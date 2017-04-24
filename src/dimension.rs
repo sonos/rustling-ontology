@@ -1,8 +1,11 @@
-use std::{ fmt, result };
+use std::{fmt, result};
 
 use rustling::*;
 
-rustling_value! { Dimension
+/// Union of all possible values parsed by the ontology.
+rustling_value! {
+    #[doc="Union of all possible values parsed by the ontology."]
+    Dimension
     Number(NumberValue),
     Ordinal(OrdinalValue),
     Temperature(TemperatureValue),
@@ -11,29 +14,30 @@ rustling_value! { Dimension
 impl Value for Dimension {
     fn same_dimension_as(&self, other: &Self) -> bool {
         match (self, other) {
-            (&Dimension::Number(_), &Dimension::Number(_))
-                | (&Dimension::Ordinal(_), &Dimension::Ordinal(_))
-                | (&Dimension::Temperature(_), &Dimension::Temperature(_)) => true,
-            _ => false
+            (&Dimension::Number(_), &Dimension::Number(_)) |
+            (&Dimension::Ordinal(_), &Dimension::Ordinal(_)) |
+            (&Dimension::Temperature(_), &Dimension::Temperature(_)) => true,
+            _ => false,
         }
     }
 }
 
 impl fmt::Display for Dimension {
-    fn fmt(&self, fmt:&mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match self {
             &Dimension::Number(ref number) => {
                 match number {
                     &NumberValue::Integer(ref v) => write!(fmt, "Number: {}", v.value),
-                    &NumberValue::Float(ref v) => write!(fmt, "Number: {}", v.value)
+                    &NumberValue::Float(ref v) => write!(fmt, "Number: {}", v.value),
                 }
-            },
+            }
             &Dimension::Ordinal(_) => write!(fmt, "Ordinal"),
             &Dimension::Temperature(_) => write!(fmt, "Temperature"),
         }
     }
 }
 
+/// Payload for the ordinal numbers of Dimension
 #[derive(Debug,PartialEq,Copy,Clone)]
 pub struct OrdinalValue {
     pub value: i64,
@@ -51,22 +55,36 @@ impl Default for Precision {
     }
 }
 
+/// Payload for the integral numbers of Dimension
 #[derive(Debug,PartialEq,Clone,Default)]
 pub struct IntegerValue {
     pub value: i64,
+    #[doc(hidden)]
     pub grain: Option<u8>,
+    #[doc(hidden)]
     pub group: bool,
+    #[doc(hidden)]
     pub prefixed: bool,
+    #[doc(hidden)]
     pub suffixed: bool,
+    #[doc(hidden)]
     pub precision: Precision,
 }
 
 impl IntegerValue {
-    pub fn new(value:i64) -> RuleResult<IntegerValue> {
-        Ok(IntegerValue { value: value, grain: None, .. IntegerValue::default() })
+    pub fn new(value: i64) -> RuleResult<IntegerValue> {
+        Ok(IntegerValue {
+            value: value,
+            grain: None,
+            ..IntegerValue::default()
+        })
     }
-    pub fn new_with_grain(value:i64, grain:u8) -> RuleResult<IntegerValue> {
-        Ok(IntegerValue { value: value, grain: Some(grain), .. IntegerValue::default() })
+    pub fn new_with_grain(value: i64, grain: u8) -> RuleResult<IntegerValue> {
+        Ok(IntegerValue {
+            value: value,
+            grain: Some(grain),
+            ..IntegerValue::default()
+        })
     }
 }
 
@@ -116,17 +134,21 @@ impl AttemptFrom<Dimension> for FloatValue {
     }
 }
 
+/// Payload for the floating numbers of Dimension
 #[derive(Debug,PartialEq,Clone,Default)]
 pub struct FloatValue {
     pub value: f32,
+    #[doc(hidden)]
     pub prefixed: bool,
+    #[doc(hidden)]
     pub suffixed: bool,
+    #[doc(hidden)]
     pub precision: Precision,
 }
 
 impl FloatValue {
     pub fn new(value: f32) -> RuleResult<FloatValue> {
-        Ok(FloatValue {value: value, .. FloatValue::default()})
+        Ok(FloatValue { value: value, ..FloatValue::default() })
     }
 }
 
@@ -136,6 +158,7 @@ impl From<FloatValue> for NumberValue {
     }
 }
 
+/// Enumeration acting as a Number supertype for IntegerValue and FloatValue.
 #[derive(Debug, PartialEq, Clone)]
 pub enum NumberValue {
     Float(FloatValue),
@@ -143,6 +166,7 @@ pub enum NumberValue {
 }
 
 impl NumberValue {
+    #[doc(hidden)]
     pub fn prefixed(&self) -> bool {
         match self {
             &NumberValue::Float(ref v) => v.prefixed,
@@ -150,6 +174,7 @@ impl NumberValue {
         }
     }
 
+    #[doc(hidden)]
     pub fn suffixed(&self) -> bool {
         match self {
             &NumberValue::Float(ref v) => v.suffixed,
@@ -157,6 +182,7 @@ impl NumberValue {
         }
     }
 
+    #[doc(hidden)]
     pub fn value(&self) -> f32 {
         match self {
             &NumberValue::Float(ref v) => v.value,
@@ -164,17 +190,21 @@ impl NumberValue {
         }
     }
 
+    #[doc(hidden)]
     pub fn grain(&self) -> Option<u8> {
         match self {
             &NumberValue::Float(_) => None,
-            &NumberValue::Integer(ref v) => v.grain
+            &NumberValue::Integer(ref v) => v.grain,
         }
     }
 }
 
+/// Payload for the temperatures of Dimension
 #[derive(Debug,PartialEq,Clone)]
 pub struct TemperatureValue {
     pub value: f32,
+    /// Celsius, Fahrenheit, ...
     pub unit: Option<&'static str>,
-    pub latent: bool
+    /// true if it can not be confirmed that the value is actually a temperature
+    pub latent: bool,
 }

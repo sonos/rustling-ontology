@@ -8,7 +8,7 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
             (&NumberValue::Integer(ref lhs), &NumberValue::Integer(ref rhs)) => {
                 Ok(NumberValue::Integer(IntegerValue::new(lhs.value + rhs.value)?))
             }
-            _ => Ok(NumberValue::Float(FloatValue::new(a.value() + b.value())?))
+            _ => Ok(NumberValue::Float(FloatValue::new(a.value() + b.value())?)),
         }
     } else {
         Err(RuleErrorKind::Invalid.into())

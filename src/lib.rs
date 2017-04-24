@@ -1,3 +1,22 @@
+//! General purpose ontology based on rustling.
+//!
+//! Contains detectors for various entities, like numbers, temperatures, dates
+//! in french, english, ...
+//!
+//! ```
+//! extern crate rustling;
+//! extern crate rustling_ontology;
+//!
+//! fn main() {
+//!     use rustling::AttemptFrom;
+//!    
+//!     let parser = rustling_ontology::build_parser(rustling_ontology::Lang::EN).unwrap();
+//!     let result = parser.parse("twenty-one", |_| Some(12)).unwrap();
+//!    
+//!     assert_eq!(result.len(), 1);
+//!     assert_eq!(21, rustling_ontology::IntegerValue::attempt_from(result[0].value.clone()).unwrap().value);
+//! }
+//! ```
 #[macro_use]
 extern crate rustling;
 
@@ -12,19 +31,26 @@ mod en;
 mod fr;
 mod parser;
 
-pub use rustling::{ ParserMatch, Range, DucklingResult };
-pub use dimension::{Dimension, IntegerValue, NumberValue, FloatValue, OrdinalValue, TemperatureValue};
+pub use rustling::{ParserMatch, Range, DucklingResult};
+pub use dimension::{Dimension, IntegerValue, NumberValue, FloatValue, OrdinalValue,
+                    TemperatureValue};
 
+/// Enumerates all language supported for the general purpose ontology.
 #[derive(Copy,Clone,Debug)]
-pub enum Lang { EN, FR }
+pub enum Lang {
+    /// English
+    EN,
+    /// French
+    FR,
+}
 
 impl std::str::FromStr for Lang {
-    type Err=String;
-    fn from_str(it: &str) -> result::Result<Lang,Self::Err> {
+    type Err = String;
+    fn from_str(it: &str) -> result::Result<Lang, Self::Err> {
         match &*it.to_lowercase() {
             "en" => Ok(Lang::EN),
             "fr" => Ok(Lang::FR),
-            _ => Err(format!("Unknown language {}", it))
+            _ => Err(format!("Unknown language {}", it)),
         }
     }
 }
@@ -38,9 +64,11 @@ impl ::std::string::ToString for Lang {
     }
 }
 
+/// Main class to be use at runtime.
 pub type Parser = rustling::Parser<Dimension, parser::Feat, parser::FeatureExtractor>;
 
-pub fn build_parser(lang:Lang) -> DucklingResult<Parser> {
+/// Obtain a parser for a given language.
+pub fn build_parser(lang: Lang) -> DucklingResult<Parser> {
     match lang {
         Lang::EN => build_parser_en(),
         Lang::FR => build_parser_fr(),
@@ -60,4 +88,3 @@ fn build_parser_fr() -> DucklingResult<Parser> {
     let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
     Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
 }
-
