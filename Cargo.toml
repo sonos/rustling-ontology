@@ -3,5 +3,8 @@ name = "rustling-ontology"
 version = "0.1.0"
 authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 
+[workspace]
+members=["cli"]
+
 [dependencies]
 rustling = { git="ssh://git@github.com/snipsco/rustling.git", branch="develop" }
