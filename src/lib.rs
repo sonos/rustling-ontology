@@ -37,7 +37,7 @@ mod fr;
 mod es;
 mod parser;
 
-pub use rustling::{ParserMatch, Range, Value, RustlingError, RustlingResult};
+pub use rustling::{AttemptTo, ParserMatch, Range, Value, RustlingError, RustlingResult};
 pub use dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue, OrdinalValue,
                     TemperatureValue, AmountOfMoneyValue, MoneyUnitValue};
 

@@ -8,3 +8,10 @@ members=["cli"]
 
 [dependencies]
 rustling = { git="ssh://git@github.com/snipsco/rustling.git", rev="0c969d1121e47fa98f7ccaba0ddb81644f40727a" }
+
+[dev-dependencies]
+bencher = "0.1"
+
+[[bench]]
+name = "example"
+harness = false
