@@ -34,6 +34,7 @@ mod dimension;
 mod examples;
 mod en;
 mod fr;
+mod es;
 mod parser;
 
 pub use rustling::{ParserMatch, Range, Value, RustlingError, RustlingResult};
@@ -47,6 +48,8 @@ pub enum Lang {
     EN,
     /// French
     FR,
+    /// Spanish
+    ES,
 }
 
 impl std::str::FromStr for Lang {
@@ -55,6 +58,7 @@ impl std::str::FromStr for Lang {
         match &*it.to_lowercase() {
             "en" => Ok(Lang::EN),
             "fr" => Ok(Lang::FR),
+            "es" => Ok(Lang::ES),
             _ => Err(format!("Unknown language {}", it)),
         }
     }
@@ -65,6 +69,7 @@ impl ::std::string::ToString for Lang {
         match self {
             &Lang::EN => "en".to_string(),
             &Lang::FR => "fr".to_string(),
+            &Lang::ES => "es".to_string(),
         }
     }
 }
@@ -77,6 +82,7 @@ pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
     match lang {
         Lang::EN => build_parser_en(),
         Lang::FR => build_parser_fr(),
+        Lang::ES => build_parser_es(),
     }
 }
 
@@ -90,6 +96,13 @@ fn build_parser_en() -> RustlingResult<Parser> {
 fn build_parser_fr() -> RustlingResult<Parser> {
     let rules = fr::rules_numbers()?;
     let exs = fr::examples_numbers();
+    let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
+    Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
+}
+
+fn build_parser_es() -> RustlingResult<Parser> {
+    let rules = es::rules_numbers()?;
+    let exs = es::examples_numbers();
     let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
     Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
 }
