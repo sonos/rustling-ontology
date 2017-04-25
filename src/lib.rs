@@ -37,7 +37,7 @@ mod fr;
 mod parser;
 
 pub use rustling::{ParserMatch, Range, RustlingResult, RustlingError};
-pub use dimension::{Dimension, IntegerValue, NumberValue, FloatValue, OrdinalValue,
+pub use dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue, OrdinalValue,
                     TemperatureValue, AmountOfMoneyValue, MoneyUnitValue};
 
 /// Enumerates all language supported for the general purpose ontology.
