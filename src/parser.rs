@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn test_twenty() {
         let parser = build_parser(Lang::EN).unwrap();
-        let result = parser.parse("twenty", |_| Some(1)).unwrap();
+        let result = parser.parse("twenty").unwrap();
         assert_eq!(vec![ParserMatch {
                             range: Range(0, 6),
                             value: IntegerValue::new_with_grain(20, 1).unwrap().into(),
@@ -62,7 +62,7 @@ mod tests {
     #[test]
     fn test_21() {
         let parser = build_parser(Lang::EN).unwrap();
-        let result = parser.parse("twenty-one", |_| Some(1)).unwrap();
+        let result = parser.parse("twenty-one").unwrap();
         assert_eq!(1, result.len());
         assert_eq!(21, IntegerValue::attempt_from(result[0].value.clone()).unwrap().value);
     }
@@ -70,14 +70,14 @@ mod tests {
     #[test]
     fn test_2_1000() {
         let parser = build_parser(Lang::EN).unwrap();
-        let result = parser.parse("twenty-one thousands", |_| Some(1)).unwrap();
+        let result = parser.parse("twenty-one thousands").unwrap();
         assert_eq!(21000, IntegerValue::attempt_from(result[0].value.clone()).unwrap().value);
     }
 
     #[test]
     fn test_foobar() {
         let parser = build_parser(Lang::EN).unwrap();
-        let result = parser.parse("foobar twenty thousands", |_| Some(1)).unwrap();
+        let result = parser.parse("foobar twenty thousands").unwrap();
         assert_eq!(20000, IntegerValue::attempt_from(result[0].value.clone()).unwrap().value);
     }
 }

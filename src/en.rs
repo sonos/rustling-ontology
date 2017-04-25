@@ -13,7 +13,7 @@ pub fn rules_finance() -> DucklingResult<RuleSet<Dimension>> {
                 amount_of_money_check!(),
                 amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent"))
             ),
-            |a, b| Ok(a.value())
+            |a, b| Ok(*a.value())
         }
     ]))
 }
