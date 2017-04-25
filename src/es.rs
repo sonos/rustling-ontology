@@ -4,6 +4,37 @@ use dimension::Precision::*;
 use helpers;
 use examples::*;
 
+#[allow(dead_code)]
+pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
+    Ok(RuleSet(vec![
+        rule! { 
+            "number as temp", 
+            (number_check!()), 
+            |a| Ok(TemperatureValue { value: a.value().value(), unit: None, latent: true}) 
+        },
+        rule! {
+            "<latent temp> temp",
+            (temperature_check!(), regex!(r#"(grados?)|°"#)),
+            |a, _| Ok(TemperatureValue { value: a.value().value, unit: Some("degree"), latent: false})
+        },
+        rule! {
+            "<temp> Celcius",
+            (temperature_check!(), regex!(r#"(cent(i|í)grados?|c(el[cs]?(ius)?)?\.?)"#)),
+            |a, _| Ok(TemperatureValue { value: a.value().value, unit: Some("celsius"), latent: false})
+        },
+        rule! {
+            "<temp> Fahrenheit",
+            (temperature_check!(), regex!(r#"f(ah?reh?n(h?eit)?)?\.?"#)),
+            |a, _| Ok(TemperatureValue { value: a.value().value, unit: Some("fahrenheit"), latent: false})
+        },
+        rule! {
+            "<latent temp> temp bajo cero",
+            (temperature_check!(), regex!(r#"((grados?)|°)?( bajo cero)"#)),
+            |a, _| Ok(TemperatureValue { value: -1.0 * a.value().value, latent: false, .. *a.value()})
+        }
+    
+    ]))
+}
 
 pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
     Ok(RuleSet(vec![
