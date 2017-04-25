@@ -48,6 +48,7 @@ impl Default for Precision {
     }
 }
 
+/// Payload for the amount of money of Dimension
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct AmountOfMoneyValue {
     pub value: f32,
@@ -55,6 +56,7 @@ pub struct AmountOfMoneyValue {
     pub unit: Option<&'static str>
 }
 
+/// Payload for the unit of money of Dimension
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct MoneyUnitValue {
     pub unit: Option<&'static str>,
