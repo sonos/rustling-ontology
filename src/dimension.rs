@@ -48,14 +48,14 @@ impl Default for Precision {
     }
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct AmountOfMoneyValue {
     pub value: f32,
     pub precision: Precision,
     pub unit: Option<&'static str>
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct MoneyUnitValue {
     pub unit: Option<&'static str>,
 }

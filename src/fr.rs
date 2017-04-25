@@ -2,6 +2,7 @@ use rustling::*;
 use dimension::*;
 use examples;
 
+#[allow(dead_code)]
 pub fn rules_temperature() -> DucklingResult<RuleSet<Dimension>> {
     Ok(RuleSet(vec![
         rule! { 

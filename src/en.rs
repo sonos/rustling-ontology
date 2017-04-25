@@ -4,7 +4,7 @@ use dimension::Precision::*;
 use helpers;
 use examples::*;
 
-
+#[allow(dead_code)]
 pub fn rules_finance() -> DucklingResult<RuleSet<Dimension>> {
     Ok(RuleSet(vec![
         rule! {
@@ -13,11 +13,29 @@ pub fn rules_finance() -> DucklingResult<RuleSet<Dimension>> {
                 amount_of_money_check!(),
                 amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent"))
             ),
-            |a, b| Ok(*a.value())
+            |a, b| helpers::compose_money(a.value(), b.value())
+        },
+        rule! {
+            "intersect (and X cents)",
+            (
+                amount_of_money_check!(),
+                regex!(r#"and"#),
+                amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent"))
+            ),
+            |a, _, b| helpers::compose_money(&a.value(), &b.value())
+        },
+        rule! {
+            "intersect",
+            (
+                amount_of_money_check!(),
+                number_check!()
+            ),
+            |a, b|  helpers::compose_money_number(&a.value(), &b.value())
         }
     ]))
 }
 
+#[allow(dead_code)]
 pub fn rules_temperature() -> DucklingResult<RuleSet<Dimension>> {
     Ok(RuleSet(vec![
         rule! { 
