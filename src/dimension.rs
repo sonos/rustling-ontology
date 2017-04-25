@@ -5,23 +5,12 @@ use rustling::*;
 /// Union of all possible values parsed by the ontology.
 rustling_value! {
     #[doc="Union of all possible values parsed by the ontology."]
-    Dimension
+    Dimension DimensionKind
     Number(NumberValue),
     AmountOfMoney(AmountOfMoneyValue),
     Ordinal(OrdinalValue),
     Temperature(TemperatureValue),
     MoneyUnit(MoneyUnitValue),
-}
-
-impl Value for Dimension {
-    fn same_dimension_as(&self, other: &Self) -> bool {
-        match (self, other) {
-            (&Dimension::Number(_), &Dimension::Number(_)) |
-            (&Dimension::Ordinal(_), &Dimension::Ordinal(_)) |
-            (&Dimension::Temperature(_), &Dimension::Temperature(_)) => true,
-            _ => false,
-        }
-    }
 }
 
 impl fmt::Display for Dimension {
@@ -133,6 +122,12 @@ impl AttemptFrom<Dimension> for IntegerValue {
         } else {
             None
         }
+    }
+}
+
+impl AttemptTo<i64> for Dimension {
+    fn attempt_to(&self) -> Option<i64> {
+        IntegerValue::attempt_from(self.clone()).map(|it| it.value)
     }
 }
 
