@@ -31,6 +31,86 @@ pub fn rules_finance() -> DucklingResult<RuleSet<Dimension>> {
                 number_check!()
             ),
             |a, b|  helpers::compose_money_number(&a.value(), &b.value())
+        },
+        rule! {
+            "intersect (and number)",
+            (
+                amount_of_money_check!(),
+                regex!(r#"and"#),
+                number_check!()
+            ),
+            |a, _, b| helpers::compose_money_number(&a.value(), &b.value())
+        },
+        rule! {
+            "$",
+            (regex!(r#"\$|dollars?"#)),
+            |_|  Ok(MoneyUnitValue { unit: Some("$") })
+        },
+        rule! {
+            "€",
+            (regex!(r#"€|([e€]uro?s?)"#)),
+            |_| Ok(MoneyUnitValue { unit: Some("€") })
+        },
+        rule! {
+            "£",
+            (regex!(r#"£|pounds?"#)),
+            |_| Ok(MoneyUnitValue { unit: Some("£") })
+        },
+        rule! {
+            "USD",
+            (regex!(r#"us[d\$]"#)),
+            |_| Ok(MoneyUnitValue { unit: Some("USD") })
+        },
+        rule! {
+            "GBP",
+            (regex!(r#"gbp"#)),
+            |_| Ok(MoneyUnitValue { unit: Some("GBP") })
+        },
+        rule! {
+            "PTS",
+            (regex!(r#"pta?s?"#)),
+            |_| Ok(MoneyUnitValue { unit: Some("PTS") })
+        },
+        rule! {
+            "cent",
+            (regex!(r#"cents?|penn(y|ies)|c|¢"#)),
+            |_| Ok(MoneyUnitValue { unit: Some("cent") })
+        },
+        rule! {
+            "INR",
+            (regex!(r#""#)),
+            |_| Ok(MoneyUnitValue { unit: Some("INR") })
+        },
+        rule! {
+            "unnamed currency",
+            (regex!(r#"(buck|balle|pouloute)s?"#)),
+            |_| Ok(MoneyUnitValue { unit: None })
+        },
+        rule! {
+            "<unit> <amount>",
+            (money_unit!(), number_check!()),
+            |a, b| Ok(AmountOfMoneyValue { value: b.value().value(), unit: a.value().unit, .. AmountOfMoneyValue::default()})
+        },
+        rule! {
+            "<amount> <unit>",
+            (number_check!(), money_unit!()),
+            |a, b| Ok(AmountOfMoneyValue { value: a.value().value(), unit: b.value().unit, .. AmountOfMoneyValue::default()})
+        },
+        rule! {
+            "about <amount-of-money>",
+            (
+                regex!(r#"about|approx(\.|imately)?|close to|near( to)?|around|almost"#),
+                amount_of_money_check!()
+            ),
+            |_, a| Ok(AmountOfMoneyValue { precision: Approximate, .. a.value().clone() })
+        },
+        rule! {
+            "exactly <amount-of-money>",
+            (
+                regex!(r#"exactly|precisely"#),
+                amount_of_money_check!()
+            ),
+            |_, a| Ok(AmountOfMoneyValue { precision: Exact, .. a.value().clone() })
         }
     ]))
 }
