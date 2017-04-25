@@ -23,6 +23,15 @@ macro_rules! ordinal_check {
     ($predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<OrdinalValue>::filter(vec![b!($predicate)]) );
 }
 
+macro_rules! amount_of_money_check {
+    () => ( $crate::rustling::core::AnyNodePattern::<AmountOfMoneyValue>::new() );
+    ($predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<AmountOfMoneyValue>::filter(vec![b!($predicate)]) );
+}
+
+macro_rules! money_unit {
+    () => ( $crate::rustling::core::AnyNodePattern::<MoneyUnitValue>::new() );
+}
+
 macro_rules! regex {
     ($pattern:expr) => ( reg!(Dimension, $pattern))
 }

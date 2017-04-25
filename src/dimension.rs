@@ -7,8 +7,10 @@ rustling_value! {
     #[doc="Union of all possible values parsed by the ontology."]
     Dimension
     Number(NumberValue),
+    AmountOfMoney(AmountOfMoneyValue),
     Ordinal(OrdinalValue),
     Temperature(TemperatureValue),
+    MoneyUnit(MoneyUnitValue),
 }
 
 impl Value for Dimension {
@@ -33,6 +35,8 @@ impl fmt::Display for Dimension {
             }
             &Dimension::Ordinal(_) => write!(fmt, "Ordinal"),
             &Dimension::Temperature(_) => write!(fmt, "Temperature"),
+            &Dimension::AmountOfMoney(_) => write!(fmt, "AmountOfMoney"),
+            &Dimension::MoneyUnit(_) => write!(fmt, "MoneyUnit"),
         }
     }
 }
@@ -53,6 +57,18 @@ impl Default for Precision {
     fn default() -> Precision {
         Precision::Exact
     }
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub struct AmountOfMoneyValue {
+    pub value: f32,
+    pub precision: Precision,
+    pub unit: Option<&'static str>
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub struct MoneyUnitValue {
+    pub unit: Option<&'static str>,
 }
 
 /// Payload for the integral numbers of Dimension

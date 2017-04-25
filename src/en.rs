@@ -4,6 +4,20 @@ use dimension::Precision::*;
 use helpers;
 use examples::*;
 
+
+pub fn rules_finance() -> DucklingResult<RuleSet<Dimension>> {
+    Ok(RuleSet(vec![
+        rule! {
+            "intersect (X cents)",
+            (
+                amount_of_money_check!(),
+                amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent"))
+            ),
+            |a, b| Ok(a.value())
+        }
+    ]))
+}
+
 pub fn rules_temperature() -> DucklingResult<RuleSet<Dimension>> {
     Ok(RuleSet(vec![
         rule! { 
