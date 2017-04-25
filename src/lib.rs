@@ -36,7 +36,7 @@ mod en;
 mod fr;
 mod parser;
 
-pub use rustling::{ParserMatch, Range, DucklingResult};
+pub use rustling::{ParserMatch, Range, RustlingResult, RustlingError};
 pub use dimension::{Dimension, IntegerValue, NumberValue, FloatValue, OrdinalValue,
                     TemperatureValue, AmountOfMoneyValue, MoneyUnitValue};
 
@@ -73,21 +73,21 @@ impl ::std::string::ToString for Lang {
 pub type Parser = rustling::Parser<Dimension, parser::Feat, parser::FeatureExtractor>;
 
 /// Obtain a parser for a given language.
-pub fn build_parser(lang: Lang) -> DucklingResult<Parser> {
+pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
     match lang {
         Lang::EN => build_parser_en(),
         Lang::FR => build_parser_fr(),
     }
 }
 
-fn build_parser_en() -> DucklingResult<Parser> {
+fn build_parser_en() -> RustlingResult<Parser> {
     let rules = en::rules_numbers()?;
     let exs = en::examples_numbers();
     let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
     Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
 }
 
-fn build_parser_fr() -> DucklingResult<Parser> {
+fn build_parser_fr() -> RustlingResult<Parser> {
     let rules = fr::rules_numbers()?;
     let exs = fr::examples_numbers();
     let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;

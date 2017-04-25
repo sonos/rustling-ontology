@@ -5,7 +5,7 @@ use helpers;
 use examples::*;
 
 #[allow(dead_code)]
-pub fn rules_finance() -> DucklingResult<RuleSet<Dimension>> {
+pub fn rules_finance() -> RustlingResult<RuleSet<Dimension>> {
     Ok(RuleSet(vec![
         rule! {
             "intersect (X cents)",
@@ -116,7 +116,7 @@ pub fn rules_finance() -> DucklingResult<RuleSet<Dimension>> {
 }
 
 #[allow(dead_code)]
-pub fn rules_temperature() -> DucklingResult<RuleSet<Dimension>> {
+pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
     Ok(RuleSet(vec![
         rule! { 
             "number as temp", 
@@ -142,7 +142,7 @@ pub fn rules_temperature() -> DucklingResult<RuleSet<Dimension>> {
     ]))
 }
 
-pub fn rules_numbers() -> DucklingResult<RuleSet<Dimension>> {
+pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
     Ok(RuleSet(vec![
         rule! {
             "intersect (with and)",

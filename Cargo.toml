@@ -7,4 +7,4 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 members=["cli"]
 
 [dependencies]
-rustling = { git="ssh://git@github.com/snipsco/rustling.git", rev="9690cfcb0c2081894fae071e7c2bac247c6290b1" }
+rustling = { git="ssh://git@github.com/snipsco/rustling.git", rev="0c969d1121e47fa98f7ccaba0ddb81644f40727a" }
