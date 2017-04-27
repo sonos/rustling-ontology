@@ -59,7 +59,52 @@ impl ops::Add<Period> for Period {
     fn add(self, p: Period) -> Period {
         let mut result = Period::default();
         for i in 0..8 {
-            result.0[i] = self.0[i] + p.0[i];
+            if !self.0.get(i).is_none() || ! p.0.get(i).is_none() {
+                result.0.insert(i, 
+                    *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
+            }
+        }
+        result
+    }
+}
+
+impl<'a> ops::Add<&'a Period> for Period {
+    type Output = Period;
+    fn add(self, p: &'a Period) -> Period {
+        let mut result = Period::default();
+        for i in 0..8 {
+            if !self.0.get(i).is_none() || ! p.0.get(i).is_none() {
+                result.0.insert(i, 
+                    *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
+            }
+        }
+        result
+    }
+}
+
+impl<'a, 'b> ops::Add<&'a Period> for &'b Period {
+    type Output = Period;
+    fn add(self, p: &'a Period) -> Period {
+        let mut result = Period::default();
+        for i in 0..8 {
+            if !self.0.get(i).is_none() || ! p.0.get(i).is_none() {
+                result.0.insert(i, 
+                    *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
+            }
+        }
+        result
+    }
+}
+
+impl<'a> ops::Add<Period> for &'a Period {
+    type Output = Period;
+    fn add(self, p: Period) -> Period {
+        let mut result = Period::default();
+        for i in 0..8 {
+            if !self.0.get(i).is_none() || ! p.0.get(i).is_none() {
+                result.0.insert(i, 
+                    *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
+            }
         }
         result
     }
@@ -203,6 +248,22 @@ impl Moment {
 impl ops::Add<Period> for Moment {
     type Output = Moment;
     fn add(self, p: Period) -> Moment {
+        use enum_primitive::FromPrimitive;
+        let mut result = self;
+        for (g, q) in p.0.iter() {
+            result = result +
+                     PeriodComp {
+                         grain: Grain::from_usize(g).unwrap(), // checked
+                         quantity: *q,
+                     };
+        }
+        result
+    }
+}
+
+impl<'a> ops::Add<&'a Period> for Moment {
+    type Output = Moment;
+    fn add(self, p: &'a Period) -> Moment {
         use enum_primitive::FromPrimitive;
         let mut result = self;
         for (g, q) in p.0.iter() {
@@ -368,7 +429,7 @@ mod tests {
     }
 
     #[test]
-    fn add_period_to_moment() {
+    fn add_period_comp_to_moment() {
         let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 21)),
                    now + PeriodComp::seconds(10));
@@ -386,6 +447,23 @@ mod tests {
                    now + PeriodComp::quarters(1));
         assert_eq!(Moment(Local.ymd(2027, 04, 25).and_hms(9, 10, 11)),
                    now + PeriodComp::years(10));
+    }
+
+    #[test]
+    fn add_period_to_moment() {
+        let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
+
+        let mut period = Period::default();
+        period.0.insert(Grain::Year as usize, 2);
+        period.0.insert(Grain::Month as usize, 3);
+
+        assert_eq!(Moment(Local.ymd(2019, 07, 25).and_hms(9, 10, 11)),
+                   now + &period);
+
+        period.0.insert(Grain::Hour as usize, 5);
+
+        assert_eq!(Moment(Local.ymd(2019, 07, 25).and_hms(14, 10, 11)),
+                   now + &period);
     }
 
     #[test]
@@ -508,6 +586,62 @@ mod tests {
             end: Some(Moment(Local.ymd(2017, 04, 30).and_hms(0, 0, 0))),
         };
         assert_eq!(5 * 86400, interval.seconds());
+    }
+
+    #[test]
+    fn period_comp_add_to_period() {
+        assert_eq!(Some(&1), 
+            (Period::default() + PeriodComp::years(1)).0.get(Grain::Year as usize));
+        assert_eq!(Some(&1), 
+            (Period::default() + PeriodComp::days(1)).0.get(Grain::Day as usize));
+        assert_eq!(None, 
+            (Period::default() + PeriodComp::days(1)).0.get(Grain::Year as usize));
+    }
+
+    #[test]
+    fn period_comp_add_assign_to_period() {
+        let mut period = Period::default();
+        period += PeriodComp::years(1);
+        assert_eq!(Some(&1), period.0.get(Grain::Year as usize));
+    }
+
+    #[test]
+    fn period_add_to_period() {
+        let mut a = Period::default();
+        a.0.insert(Grain::Year as usize, 1);
+
+        let mut b = Period::default();
+        b.0.insert(Grain::Day as usize, 2);
+
+        let mut c = Period::default();
+        c.0.insert(Grain::Day as usize, 3);
+        c.0.insert(Grain::Year as usize, 5);
+        c.0.insert(Grain::Month as usize, 1);
+
+        assert_eq!(Some(&2), (&a + &b).0.get(Grain::Day as usize));
+        assert_eq!(Some(&1), (&a + &b).0.get(Grain::Year as usize));
+        assert_eq!(Some(&6), (&a + &c).0.get(Grain::Year as usize));
+        assert_eq!(Some(&5), (&b + &c).0.get(Grain::Day as usize));
+        assert_eq!(Some(&1), (&b + &c + &a).0.get(Grain::Month as usize));
+    }
+
+    #[test]
+    fn neg_period() {
+        let mut a = Period::default();
+        a.0.insert(Grain::Year as usize, 1);
+
+        assert_eq!(Some(&-1), (-a).0.get(Grain::Year as usize));
+    }
+
+    #[test]
+    fn finer_grain() {
+        let mut a = Period::default();
+        a.0.insert(Grain::Year as usize, 1);
+        a.0.insert(Grain::Month as usize, 3);
+        assert_eq!(a.finer_grain(), Some(Grain::Month));
+
+        a.0.insert(Grain::Hour as usize, 4);
+        assert_eq!(a.finer_grain(), Some(Grain::Hour));
     }
 
 }
