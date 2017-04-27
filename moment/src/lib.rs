@@ -1,77 +1,67 @@
 extern crate chrono;
+#[macro_use] extern crate enum_primitive;
+extern crate vec_map;
 
 use std::ops;
+
+use vec_map::VecMap;
 
 use chrono::{Datelike, Duration, TimeZone, Timelike};
 use chrono::offset::local::Local;
 use chrono::datetime::DateTime;
 
-#[derive(Debug,PartialEq,Copy,Clone,Eq,Ord,PartialOrd)]
-pub enum Grain {
-    Year = 0,
-    Quarter = 1,
-    Month = 2,
-    Week = 3,
-    Day = 4,
-    Hour = 5,
-    Minute = 6,
-    Second = 7,
+enum_from_primitive! {
+    #[derive(Debug,PartialEq,Copy,Clone,Eq,Ord,PartialOrd)]
+    pub enum Grain {
+        Year = 0,
+        Quarter = 1,
+        Month = 2,
+        Week = 3,
+        Day = 4,
+        Hour = 5,
+        Minute = 6,
+        Second = 7,
+    }
 }
 
-#[derive(Debug,PartialEq,Copy,Clone,Eq)]
-pub struct Period {
-    grain: Grain,
-    quantity: i64,
-}
+#[derive(Debug,PartialEq,Clone,Eq,Default)]
+pub struct Period(VecMap<i64>);
 
 impl Period {
-    pub fn years(n: i64) -> Period {
-        Period {
-            grain: Grain::Year,
-            quantity: n,
-        }
+    fn finer_grain(&self) -> Option<Grain> {
+        use enum_primitive::FromPrimitive;
+        self.0.iter().max_by_key(|&(g,q)| g).and_then(|(g,q)| Grain::from_usize(g))
     }
-    pub fn quarters(n: i64) -> Period {
-        Period {
-            grain: Grain::Quarter,
-            quantity: n,
-        }
+}
+
+impl From<PeriodComp> for Period {
+    fn from(pc: PeriodComp) -> Period {
+        Period::default() + pc
     }
-    pub fn months(n: i64) -> Period {
-        Period {
-            grain: Grain::Month,
-            quantity: n,
-        }
+}
+
+impl ops::AddAssign<PeriodComp> for Period {
+    fn add_assign(&mut self, rhs: PeriodComp) {
+        *self.0.entry(rhs.grain as usize).or_insert(0) += rhs.quantity
     }
-    pub fn weeks(n: i64) -> Period {
-        Period {
-            grain: Grain::Week,
-            quantity: n,
-        }
+}
+
+impl ops::Add<PeriodComp> for Period {
+    type Output = Period;
+    fn add(mut self, pc: PeriodComp) -> Period {
+        self += pc;
+        self
     }
-    pub fn days(n: i64) -> Period {
-        Period {
-            grain: Grain::Day,
-            quantity: n,
+}
+
+impl ops::Add<Period> for Period {
+    type Output = Period;
+    fn add(self, p: Period) -> Period {
+        let mut result = Period::default();
+        for i in 0..8 {
+            result.0[i] = self.0[i] + p.0[i];
         }
-    }
-    pub fn hours(n: i64) -> Period {
-        Period {
-            grain: Grain::Hour,
-            quantity: n,
-        }
-    }
-    pub fn minutes(n: i64) -> Period {
-        Period {
-            grain: Grain::Minute,
-            quantity: n,
-        }
-    }
-    pub fn seconds(n: i64) -> Period {
-        Period {
-            grain: Grain::Second,
-            quantity: n,
-        }
+        result
     }
 }
 
@@ -79,7 +69,73 @@ impl ops::Neg for Period {
     type Output = Period;
 
     fn neg(self) -> Period {
-        Period {
+        Period(self.0.iter().map(|(k,v)| (k,-*v)).collect())
+    }
+}
+
+
+#[derive(Debug,PartialEq,Copy,Clone,Eq)]
+pub struct PeriodComp {
+    grain: Grain,
+    quantity: i64,
+}
+
+impl PeriodComp {
+    pub fn years(n: i64) -> PeriodComp {
+        PeriodComp {
+            grain: Grain::Year,
+            quantity: n,
+        }
+    }
+    pub fn quarters(n: i64) -> PeriodComp {
+        PeriodComp {
+            grain: Grain::Quarter,
+            quantity: n,
+        }
+    }
+    pub fn months(n: i64) -> PeriodComp {
+        PeriodComp {
+            grain: Grain::Month,
+            quantity: n,
+        }
+    }
+    pub fn weeks(n: i64) -> PeriodComp {
+        PeriodComp {
+            grain: Grain::Week,
+            quantity: n,
+        }
+    }
+    pub fn days(n: i64) -> PeriodComp {
+        PeriodComp {
+            grain: Grain::Day,
+            quantity: n,
+        }
+    }
+    pub fn hours(n: i64) -> PeriodComp {
+        PeriodComp {
+            grain: Grain::Hour,
+            quantity: n,
+        }
+    }
+    pub fn minutes(n: i64) -> PeriodComp {
+        PeriodComp {
+            grain: Grain::Minute,
+            quantity: n,
+        }
+    }
+    pub fn seconds(n: i64) -> PeriodComp {
+        PeriodComp {
+            grain: Grain::Second,
+            quantity: n,
+        }
+    }
+}
+
+impl ops::Neg for PeriodComp {
+    type Output = PeriodComp;
+
+    fn neg(self) -> PeriodComp {
+        PeriodComp {
             quantity: -self.quantity,
             ..self
         }
@@ -135,10 +191,10 @@ impl Moment {
             Grain::Week => {
                 // shift to monday morning
                 let day_offset = self.weekday().num_days_from_monday(); // monday is 0 here
-                self.round_to(Grain::Day) - Period::days(day_offset as i64)
+                self.round_to(Grain::Day) - PeriodComp::days(day_offset as i64)
             }
             Grain::Quarter => {
-                self.round_to(Grain::Month) - Period::months(self.month0() as i64 % 3)
+                self.round_to(Grain::Month) - PeriodComp::months(self.month0() as i64 % 3)
             }
         }
     }
@@ -147,6 +203,22 @@ impl Moment {
 impl ops::Add<Period> for Moment {
     type Output = Moment;
     fn add(self, p: Period) -> Moment {
+        use enum_primitive::FromPrimitive;
+        let mut result = self;
+        for (g, q) in p.0.iter() {
+            result = result +
+                     PeriodComp {
+                         grain: Grain::from_usize(g).unwrap(), // checked
+                         quantity: *q,
+                     };
+        }
+        result
+    }
+}
+
+impl ops::Add<PeriodComp> for Moment {
+    type Output = Moment;
+    fn add(self, p: PeriodComp) -> Moment {
         match p.grain {
             Grain::Year => self.add_months(12 * p.quantity as i32),
             Grain::Quarter => self.add_months(3 * p.quantity as i32),
@@ -160,9 +232,9 @@ impl ops::Add<Period> for Moment {
     }
 }
 
-impl ops::Sub<Period> for Moment {
+impl ops::Sub<PeriodComp> for Moment {
     type Output = Moment;
-    fn sub(self, p: Period) -> Moment {
+    fn sub(self, p: PeriodComp) -> Moment {
         self + -p
     }
 }
@@ -179,7 +251,7 @@ impl Interval {
         self.end
             .unwrap_or_else(|| {
                                 self.start +
-                                Period {
+                                PeriodComp {
                                     quantity: 1,
                                     grain: self.grain,
                                 }
@@ -227,11 +299,18 @@ impl Interval {
             other.intersect(self)
         }
     }
+
+    pub fn seconds(self) -> i64 {
+        self.end_moment()
+            .0
+            .signed_duration_since(self.start.0)
+            .num_seconds()
+    }
 }
 
-impl ops::Add<Period> for Interval {
+impl ops::Add<PeriodComp> for Interval {
     type Output = Interval;
-    fn add(self, p: Period) -> Interval {
+    fn add(self, p: PeriodComp) -> Interval {
         Interval {
             start: self.start + p,
             end: self.end.map(|it| it + p),
@@ -240,9 +319,9 @@ impl ops::Add<Period> for Interval {
     }
 }
 
-impl ops::Sub<Period> for Interval {
+impl ops::Sub<PeriodComp> for Interval {
     type Output = Interval;
-    fn sub(self, p: Period) -> Interval {
+    fn sub(self, p: PeriodComp) -> Interval {
         self + -p
     }
 }
@@ -292,21 +371,21 @@ mod tests {
     fn add_period_to_moment() {
         let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 21)),
-                   now + Period::seconds(10));
+                   now + PeriodComp::seconds(10));
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 20, 11)),
-                   now + Period::minutes(10));
+                   now + PeriodComp::minutes(10));
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(19, 10, 11)),
-                   now + Period::hours(10));
+                   now + PeriodComp::hours(10));
         assert_eq!(Moment(Local.ymd(2017, 05, 5).and_hms(9, 10, 11)),
-                   now + Period::days(10));
+                   now + PeriodComp::days(10));
         assert_eq!(Moment(Local.ymd(2017, 05, 2).and_hms(9, 10, 11)),
-                   now + Period::weeks(1));
+                   now + PeriodComp::weeks(1));
         assert_eq!(Moment(Local.ymd(2018, 02, 25).and_hms(9, 10, 11)),
-                   now + Period::months(10));
+                   now + PeriodComp::months(10));
         assert_eq!(Moment(Local.ymd(2017, 07, 25).and_hms(9, 10, 11)),
-                   now + Period::quarters(1));
+                   now + PeriodComp::quarters(1));
         assert_eq!(Moment(Local.ymd(2027, 04, 25).and_hms(9, 10, 11)),
-                   now + Period::years(10));
+                   now + PeriodComp::years(10));
     }
 
     #[test]
@@ -354,8 +433,8 @@ mod tests {
             grain: Grain::Day,
             end: None,
         };
-        let plus_one_hour = interval + Period::hours(1);
-        assert_eq!(now + Period::hours(1), plus_one_hour.start);
+        let plus_one_hour = interval + PeriodComp::hours(1);
+        assert_eq!(now + PeriodComp::hours(1), plus_one_hour.start);
         assert_eq!(Grain::Hour, plus_one_hour.grain);
     }
 
@@ -421,5 +500,14 @@ mod tests {
         assert_eq!(None, interval.intersect(other));
     }
 
+    #[test]
+    fn seconds() {
+        let interval = Interval {
+            start: Moment(Local.ymd(2017, 04, 25).and_hms(0, 0, 0)),
+            grain: Grain::Day,
+            end: Some(Moment(Local.ymd(2017, 04, 30).and_hms(0, 0, 0))),
+        };
+        assert_eq!(5 * 86400, interval.seconds());
+    }
 
 }
