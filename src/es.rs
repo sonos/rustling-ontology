@@ -1,7 +1,5 @@
 use rustling::*;
 use dimension::*;
-use dimension::Precision::*;
-use helpers;
 use examples::*;
 
 #[allow(dead_code)]
