@@ -23,7 +23,6 @@
 //! }
 //! ```
 
-extern crate chrono;
 #[macro_use]
 extern crate rustling;
 
@@ -38,7 +37,6 @@ mod en;
 mod fr;
 mod es;
 mod parser;
-pub mod moment;
 
 pub use rustling::{AttemptTo, ParserMatch, Range, Value, RustlingError, RustlingResult};
 pub use dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue, OrdinalValue,

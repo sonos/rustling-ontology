@@ -1,0 +1,7 @@
+[package]
+name = "rustling-ontology-moment"
+version = "0.1.0"
+authors = ["hdlj <hubert.delajonquiere@snips.net>"]
+
+[dependencies]
+chrono = "0.3"

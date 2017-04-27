@@ -4,11 +4,10 @@ version = "0.1.0"
 authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 
 [workspace]
-members=["cli"]
+members=["cli", "moment"]
 
 [dependencies]
 rustling = { git="ssh://git@github.com/snipsco/rustling.git", rev="0c969d1121e47fa98f7ccaba0ddb81644f40727a" }
-chrono = "0.3"
 
 [dev-dependencies]
 bencher = "0.1"
