@@ -3,6 +3,7 @@ extern crate chrono;
 extern crate vec_map;
 
 mod period;
+mod interval_iterator;
 mod time_predicate;
 
 use std::ops;
@@ -14,7 +15,7 @@ use chrono::datetime::DateTime;
 use period::*;
 
 #[derive(Debug,PartialEq,Copy,Clone,PartialOrd,Eq,Ord)]
-struct Moment(DateTime<Local>);
+pub struct Moment(DateTime<Local>);
 
 fn last_day_in_month(y: i32, m: u32) -> i64 {
     assert!(m >= 1 && m <= 12);
@@ -131,15 +132,14 @@ impl<'a> ops::Sub<&'a PeriodComp> for Moment {
     }
 }
 
-#[derive(Debug,PartialEq,Copy,Clone)]
-struct Interval {
+#[derive(Debug,PartialEq,Clone, Copy)]
+pub struct Interval {
     start: Moment,
     grain: Grain,
     end: Option<Moment>,
 }
 
 impl Interval {
-
     pub fn starting_at(start: Moment, grain: Grain) -> Interval {
         Interval {
             start: start,
@@ -230,10 +230,8 @@ impl ops::Sub<PeriodComp> for Interval {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Duration;
     use chrono::TimeZone;
     use chrono::offset::local::Local;
-    use chrono::datetime::DateTime;
 
     #[test]
     fn test_last_day_in_month() {
