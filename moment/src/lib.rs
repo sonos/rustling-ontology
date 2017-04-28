@@ -3,6 +3,7 @@ extern crate chrono;
 extern crate vec_map;
 
 mod period;
+mod time_predicate;
 
 use std::ops;
 
@@ -138,6 +139,15 @@ struct Interval {
 }
 
 impl Interval {
+
+    pub fn starting_at(start: Moment, grain: Grain) -> Interval {
+        Interval {
+            start: start,
+            grain: grain,
+            end: None,
+        }
+    }
+
     pub fn end_moment(self) -> Moment {
         self.end
             .unwrap_or_else(|| {
