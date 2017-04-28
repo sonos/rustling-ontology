@@ -46,9 +46,23 @@ impl ops::AddAssign<PeriodComp> for Period {
     }
 }
 
+impl<'a> ops::AddAssign<&'a PeriodComp> for Period {
+    fn add_assign(&mut self, rhs: &'a PeriodComp) {
+        *self.0.entry(rhs.grain as usize).or_insert(0) += rhs.quantity
+    }
+}
+
 impl ops::Add<PeriodComp> for Period {
     type Output = Period;
     fn add(mut self, pc: PeriodComp) -> Period {
+        self += pc;
+        self
+    }
+}
+
+impl<'a> ops::Add<&'a PeriodComp> for Period {
+    type Output = Period;
+    fn add(mut self, pc: &'a PeriodComp) -> Period {
         self += pc;
         self
     }
@@ -103,6 +117,14 @@ impl<'a> ops::Add<Period> for &'a Period {
 }
 
 impl ops::Neg for Period {
+    type Output = Period;
+
+    fn neg(self) -> Period {
+        Period(self.0.iter().map(|(k,v)| (k,-*v)).collect())
+    }
+}
+
+impl<'a> ops::Neg for &'a Period {
     type Output = Period;
 
     fn neg(self) -> Period {
@@ -175,6 +197,16 @@ impl ops::Neg for PeriodComp {
         PeriodComp {
             quantity: -self.quantity,
             ..self
+        }
+    }
+}
+
+impl<'a> ops::Neg for &'a PeriodComp {
+    type Output = PeriodComp;
+    fn neg(self) -> PeriodComp {
+        PeriodComp {
+            quantity: -self.quantity,
+            grain: self.grain,
         }
     }
 }
@@ -611,9 +643,9 @@ mod tests {
         c.0.insert(Grain::Month as usize, 1);
 
         assert_eq!(Some(&2), (&a + &b).0.get(Grain::Day as usize));
-        assert_eq!(Some(&1), (&a + &b).0.get(Grain::Year as usize));
-        assert_eq!(Some(&6), (&a + &c).0.get(Grain::Year as usize));
-        assert_eq!(Some(&5), (&b + &c).0.get(Grain::Day as usize));
+        assert_eq!(Some(&1), (a.clone() + &b).0.get(Grain::Year as usize));
+        assert_eq!(Some(&6), (&a + c.clone()).0.get(Grain::Year as usize));
+        assert_eq!(Some(&5), (&b + c.clone()).0.get(Grain::Day as usize));
         assert_eq!(Some(&1), (&b + &c + &a).0.get(Grain::Month as usize));
     }
 
@@ -621,8 +653,16 @@ mod tests {
     fn neg_period() {
         let mut a = Period::default();
         a.0.insert(Grain::Year as usize, 1);
-
+        assert_eq!(Some(&-1), (-&a).0.get(Grain::Year as usize));
         assert_eq!(Some(&-1), (-a).0.get(Grain::Year as usize));
+    }
+
+    #[test]
+    fn neg_period_comp() {
+        assert_eq!(-1, (-&PeriodComp::years(1)).quantity);
+        assert_eq!(Grain::Year, (-&PeriodComp::years(1)).grain);
+        assert_eq!(-1, (-PeriodComp::years(1)).quantity);
+        assert_eq!(Grain::Year, (-PeriodComp::years(1)).grain);
     }
 
     #[test]
