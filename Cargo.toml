@@ -7,7 +7,7 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 members=["cli", "moment"]
 
 [dependencies]
-rustling ={ git="ssh://git@github.com/snipsco/rustling.git", rev="4e60ef317eac27f788afe982b67b35ef027bf1f9" }
+rustling = { git="http://github.com/snipsco/rustling", rev="4e60ef317eac27f788afe982b67b35ef027bf1f9" }
 
 [dev-dependencies]
 bencher = "0.1"
