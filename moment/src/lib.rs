@@ -17,11 +17,11 @@ use period::*;
 #[derive(Debug,PartialEq,Copy,Clone,PartialOrd,Eq,Ord)]
 pub struct Moment(DateTime<Local>);
 
-fn last_day_in_month(y: i32, m: u32) -> i64 {
+fn last_day_in_month(y: i32, m: u32) -> u32 {
     assert!(m >= 1 && m <= 12);
     for d in 28..31 {
         if (Local.ymd_opt(y, m, d + 1)).single().is_none() {
-            return d as i64;
+            return d as u32;
         }
     }
     31
@@ -46,7 +46,7 @@ impl Moment {
             (self.year() - (n / 12) as i32 - borrow as i32, (12 + self.month0() - (n % 12)) % 12)
         };
         let target_month_days = last_day_in_month(year, month0 + 1);
-        let day = ::std::cmp::min(target_month_days, self.day() as i64) as u32;
+        let day = ::std::cmp::min(target_month_days, self.day());
         Moment(Local
                    .ymd(year, month0 + 1, day)
                    .and_hms(self.hour(), self.minute(), self.second()))
@@ -140,6 +140,14 @@ pub struct Interval {
 }
 
 impl Interval {
+    fn round_to(self, g: Grain) -> Interval {
+        Interval {
+            start: self.start.round_to(g),
+            grain: g,
+            end: None
+        }
+    }
+
     pub fn starting_at(start: Moment, grain: Grain) -> Interval {
         Interval {
             start: start,

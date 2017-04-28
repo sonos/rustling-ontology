@@ -3,13 +3,13 @@ use std::vec::IntoIter;
 use std::rc;
 
 #[derive(Clone)]
-struct IntervalIterator {
+pub struct IntervalIterator {
     anchor: Interval,
     transform: rc::Rc<Fn(Interval) -> Interval>,
 }
 
 impl IntervalIterator {
-    fn new<F: Fn(Interval) -> Interval+'static>(anchor: Interval, transform: F) -> IntervalIterator {
+    pub fn new<F: Fn(Interval) -> Interval+'static>(anchor: Interval, transform: F) -> IntervalIterator {
         IntervalIterator {
             anchor: anchor,
             transform: rc::Rc::new(transform),
@@ -80,7 +80,14 @@ impl<F, B> BidirectionalIter<F, B>
           B: Iterator<Item=Interval>+Clone,
     {
 
-    pub fn forward(self, values: Vec<Interval>) -> BidirectionalIter<IntoIter<Interval>, B> {
+    pub fn forward(self, iterator: IntervalIterator) -> BidirectionalIter<IntervalIterator, B> {
+        BidirectionalIter {
+            forward: iterator,
+            backward: self.backward,
+        } 
+    }
+
+    pub fn forward_values(self, values: Vec<Interval>) -> BidirectionalIter<IntoIter<Interval>, B> {
         BidirectionalIter {
             forward: values.into_iter(),
             backward: self.backward,
@@ -95,7 +102,14 @@ impl<F, B> BidirectionalIter<F, B>
         }   
     }
 
-    pub fn backward(self, values: Vec<Interval>) -> BidirectionalIter<F, IntoIter<Interval>> {
+    pub fn backward(self, iterator: IntervalIterator) -> BidirectionalIter<F, IntervalIterator> {
+        BidirectionalIter {
+            forward: self.forward,
+            backward: iterator,
+        } 
+    }
+
+    pub fn backward_values(self, values: Vec<Interval>) -> BidirectionalIter<F, IntoIter<Interval>> {
         BidirectionalIter {
             forward: self.forward,
             backward: values.into_iter(),
@@ -163,7 +177,7 @@ mod tests {
         ];
 
         let mut only_forward = BidirectionalIter::new()
-                    .forward(values);
+                    .forward_values(values);
 
         assert_eq!(None, only_forward.backward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)), only_forward.forward.next().unwrap().start);
@@ -199,7 +213,7 @@ mod tests {
         ];
 
         let mut only_backward = BidirectionalIter::new()
-                    .backward(values);
+                    .backward_values(values);
 
         assert_eq!(None, only_backward.forward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)), only_backward.backward.next().unwrap().start);
