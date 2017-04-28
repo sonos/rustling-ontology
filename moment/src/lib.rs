@@ -71,11 +71,10 @@ impl ops::Add<Period> for Period {
 impl<'a> ops::Add<&'a Period> for Period {
     type Output = Period;
     fn add(self, p: &'a Period) -> Period {
-        let mut result = Period::default();
+        let mut result = self;
         for i in 0..8 {
-            if !self.0.get(i).is_none() || ! p.0.get(i).is_none() {
-                result.0.insert(i, 
-                    *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
+            if !p.0.get(i).is_none() {
+                *result.0.entry(i).or_insert(0) += *p.0.get(i).unwrap_or(&0);
             }
         }
         result
@@ -99,14 +98,7 @@ impl<'a, 'b> ops::Add<&'a Period> for &'b Period {
 impl<'a> ops::Add<Period> for &'a Period {
     type Output = Period;
     fn add(self, p: Period) -> Period {
-        let mut result = Period::default();
-        for i in 0..8 {
-            if !self.0.get(i).is_none() || ! p.0.get(i).is_none() {
-                result.0.insert(i, 
-                    *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
-            }
-        }
-        result
+        p + self
     }
 }
 
