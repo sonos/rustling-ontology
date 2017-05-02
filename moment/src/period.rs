@@ -21,7 +21,10 @@ pub struct Period(pub VecMap<i64>);
 impl Period {
     fn finer_grain(&self) -> Option<Grain> {
         use enum_primitive::FromPrimitive;
-        self.0.iter().max_by_key(|&(g,q)| g).and_then(|(g,q)| Grain::from_usize(g))
+        self.0
+            .iter()
+            .max_by_key(|&(g, q)| g)
+            .and_then(|(g, q)| Grain::from_usize(g))
     }
 }
 
@@ -64,9 +67,10 @@ impl ops::Add<Period> for Period {
     fn add(self, p: Period) -> Period {
         let mut result = Period::default();
         for i in 0..8 {
-            if !self.0.get(i).is_none() || ! p.0.get(i).is_none() {
-                result.0.insert(i, 
-                    *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
+            if !self.0.get(i).is_none() || !p.0.get(i).is_none() {
+                result
+                    .0
+                    .insert(i, *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
             }
         }
         result
@@ -91,9 +95,10 @@ impl<'a, 'b> ops::Add<&'a Period> for &'b Period {
     fn add(self, p: &'a Period) -> Period {
         let mut result = Period::default();
         for i in 0..8 {
-            if !self.0.get(i).is_none() || ! p.0.get(i).is_none() {
-                result.0.insert(i, 
-                    *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
+            if !self.0.get(i).is_none() || !p.0.get(i).is_none() {
+                result
+                    .0
+                    .insert(i, *self.0.get(i).unwrap_or(&0) + *p.0.get(i).unwrap_or(&0));
             }
         }
         result
@@ -111,7 +116,7 @@ impl ops::Neg for Period {
     type Output = Period;
 
     fn neg(self) -> Period {
-        Period(self.0.iter().map(|(k,v)| (k,-*v)).collect())
+        Period(self.0.iter().map(|(k, v)| (k, -*v)).collect())
     }
 }
 
@@ -119,7 +124,7 @@ impl<'a> ops::Neg for &'a Period {
     type Output = Period;
 
     fn neg(self) -> Period {
-        Period(self.0.iter().map(|(k,v)| (k,-*v)).collect())
+        Period(self.0.iter().map(|(k, v)| (k, -*v)).collect())
     }
 }
 
@@ -208,12 +213,18 @@ mod tests {
 
     #[test]
     fn period_comp_add_to_period() {
-        assert_eq!(Some(&1), 
-            (Period::default() + PeriodComp::years(1)).0.get(Grain::Year as usize));
-        assert_eq!(Some(&1), 
-            (Period::default() + PeriodComp::days(1)).0.get(Grain::Day as usize));
-        assert_eq!(None, 
-            (Period::default() + PeriodComp::days(1)).0.get(Grain::Year as usize));
+        assert_eq!(Some(&1),
+                   (Period::default() + PeriodComp::years(1))
+                       .0
+                       .get(Grain::Year as usize));
+        assert_eq!(Some(&1),
+                   (Period::default() + PeriodComp::days(1))
+                       .0
+                       .get(Grain::Day as usize));
+        assert_eq!(None,
+                   (Period::default() + PeriodComp::days(1))
+                       .0
+                       .get(Grain::Year as usize));
     }
 
     #[test]
@@ -270,4 +281,3 @@ mod tests {
         assert_eq!(a.finer_grain(), Some(Grain::Hour));
     }
 }
-

@@ -53,7 +53,7 @@ impl Default for Precision {
 pub struct AmountOfMoneyValue {
     pub value: f32,
     pub precision: Precision,
-    pub unit: Option<&'static str>
+    pub unit: Option<&'static str>,
 }
 
 /// Payload for the unit of money of Dimension
@@ -81,17 +81,17 @@ pub struct IntegerValue {
 impl IntegerValue {
     pub fn new(value: i64) -> RuleResult<IntegerValue> {
         Ok(IntegerValue {
-            value: value,
-            grain: None,
-            ..IntegerValue::default()
-        })
+               value: value,
+               grain: None,
+               ..IntegerValue::default()
+           })
     }
     pub fn new_with_grain(value: i64, grain: u8) -> RuleResult<IntegerValue> {
         Ok(IntegerValue {
-            value: value,
-            grain: Some(grain),
-            ..IntegerValue::default()
-        })
+               value: value,
+               grain: Some(grain),
+               ..IntegerValue::default()
+           })
     }
 }
 
@@ -161,7 +161,10 @@ pub struct FloatValue {
 
 impl FloatValue {
     pub fn new(value: f32) -> RuleResult<FloatValue> {
-        Ok(FloatValue { value: value, ..FloatValue::default() })
+        Ok(FloatValue {
+               value: value,
+               ..FloatValue::default()
+           })
     }
 }
 

@@ -10,10 +10,10 @@
 //! fn main() {
 //!     use rustling_ontology::IntegerValue;
 //!     use rustling::AttemptTo;
-//!    
+//!
 //!     let parser = rustling_ontology::build_parser(rustling_ontology::Lang::EN).unwrap();
 //!     let result = parser.parse("twenty-one").unwrap();
-//!    
+//!
 //!     assert_eq!(result.len(), 1);
 //!     let int:i64 = result[0].value.attempt_to().unwrap();
 //!     assert_eq!(21, int);

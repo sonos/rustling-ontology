@@ -1,5 +1,6 @@
 extern crate chrono;
-#[macro_use] extern crate enum_primitive;
+#[macro_use]
+extern crate enum_primitive;
 extern crate vec_map;
 
 mod period;
@@ -75,7 +76,7 @@ impl Moment {
 impl ops::Add<Period> for Moment {
     type Output = Moment;
     fn add(self, p: Period) -> Moment {
-       self + &p
+        self + &p
     }
 }
 
@@ -144,7 +145,7 @@ impl Interval {
         Interval {
             start: self.start.round_to(g),
             grain: g,
-            end: None
+            end: None,
         }
     }
 

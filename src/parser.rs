@@ -20,17 +20,17 @@ impl rustling::FeatureExtractor<Dimension, Feat> for FeatureExtractor {
 
 pub fn extract_node_features(node: &rustling::Node) -> rustling::Input<rustling::RuleId, Feat> {
     let features = vec![Feat(node.children
-                            .iter()
-                            .map({
-                                |child| child.rule_name
-                            })
-                            .collect())];
+                                 .iter()
+                                 .map({
+                                          |child| child.rule_name
+                                      })
+                                 .collect())];
 
     let children_features = node.children
         .iter()
         .map({
-            |child| extract_node_features(child)
-        })
+                 |child| extract_node_features(child)
+             })
         .collect();
 
     rustling::Input {
@@ -64,20 +64,29 @@ mod tests {
         let parser = build_parser(Lang::EN).unwrap();
         let result = parser.parse("twenty-one").unwrap();
         assert_eq!(1, result.len());
-        assert_eq!(21, IntegerValue::attempt_from(result[0].value.clone()).unwrap().value);
+        assert_eq!(21,
+                   IntegerValue::attempt_from(result[0].value.clone())
+                       .unwrap()
+                       .value);
     }
 
     #[test]
     fn test_2_1000() {
         let parser = build_parser(Lang::EN).unwrap();
         let result = parser.parse("twenty-one thousands").unwrap();
-        assert_eq!(21000, IntegerValue::attempt_from(result[0].value.clone()).unwrap().value);
+        assert_eq!(21000,
+                   IntegerValue::attempt_from(result[0].value.clone())
+                       .unwrap()
+                       .value);
     }
 
     #[test]
     fn test_foobar() {
         let parser = build_parser(Lang::EN).unwrap();
         let result = parser.parse("foobar twenty thousands").unwrap();
-        assert_eq!(20000, IntegerValue::attempt_from(result[0].value.clone()).unwrap().value);
+        assert_eq!(20000,
+                   IntegerValue::attempt_from(result[0].value.clone())
+                       .unwrap()
+                       .value);
     }
 }

@@ -15,12 +15,24 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
     }
 }
 
-pub fn compose_money(a: &AmountOfMoneyValue, b: &AmountOfMoneyValue) -> RuleResult<AmountOfMoneyValue> {
+pub fn compose_money(a: &AmountOfMoneyValue,
+                     b: &AmountOfMoneyValue)
+                     -> RuleResult<AmountOfMoneyValue> {
     let amount = a.value + b.value / 100.0;
-    Ok(AmountOfMoneyValue { value: amount, unit: a.unit, .. AmountOfMoneyValue::default() })
+    Ok(AmountOfMoneyValue {
+           value: amount,
+           unit: a.unit,
+           ..AmountOfMoneyValue::default()
+       })
 }
 
-pub fn compose_money_number(a: &AmountOfMoneyValue, b: &NumberValue) -> RuleResult<AmountOfMoneyValue> {
+pub fn compose_money_number(a: &AmountOfMoneyValue,
+                            b: &NumberValue)
+                            -> RuleResult<AmountOfMoneyValue> {
     let amount = a.value + b.value() / 100.0;
-    Ok(AmountOfMoneyValue { value: amount, unit: a.unit, .. AmountOfMoneyValue::default() })
+    Ok(AmountOfMoneyValue {
+           value: amount,
+           unit: a.unit,
+           ..AmountOfMoneyValue::default()
+       })
 }
