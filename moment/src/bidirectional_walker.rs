@@ -1,37 +1,32 @@
-use cloneable_iterator::CloneableIterator;
-
-use Interval;
-use std::vec::IntoIter;
-use std::rc;
-use time_combiner::*;
+use walker::*;
 
 #[derive(Clone)]
-pub struct BidirectionalIterator<V: Copy+Clone>
+pub struct BidirectionalWalker<V: Copy+Clone>
 {
-    forward: TimeCombiner<V>,
-    backward: TimeCombiner<V>,
+    pub forward: Walker<V>,
+    pub backward: Walker<V>,
 }
 
-impl<V: Copy+Clone> BidirectionalIterator<V>
+impl<V: Copy+Clone> BidirectionalWalker<V>
 {
 
-    pub fn new() -> BidirectionalIterator<V> {
-        BidirectionalIterator {
-            forward: TimeCombiner::Vec(vec![]),
-            backward: TimeCombiner::Vec(vec![]),
+    pub fn new() -> BidirectionalWalker<V> {
+        BidirectionalWalker {
+            forward: Walker::Vec(vec![]),
+            backward: Walker::Vec(vec![]),
         }
     }
 
-    pub fn forward(self, combiner: TimeCombiner<V>) -> BidirectionalIterator<V> {
-        BidirectionalIterator {
+    pub fn forward(self, combiner: Walker<V>) -> BidirectionalWalker<V> {
+        BidirectionalWalker {
             forward: combiner,
             backward: self.backward,
         }
     }
 
-    pub fn forward_values(self, values: Vec<V>) -> BidirectionalIterator<V> {
-        BidirectionalIterator {
-            forward: TimeCombiner::vec(values),
+    pub fn forward_values(self, values: Vec<V>) -> BidirectionalWalker<V> {
+        BidirectionalWalker {
+            forward: Walker::vec(values),
             backward: self.backward,
         }
     }
@@ -39,17 +34,17 @@ impl<V: Copy+Clone> BidirectionalIterator<V>
     pub fn forward_with<FP>(self,
                             anchor: V,
                             transform: FP)
-                            ->  BidirectionalIterator<V>
+                            ->  BidirectionalWalker<V>
         where FP: Fn(V) -> V + 'static
     {
-        BidirectionalIterator {
-            forward: TimeCombiner::generator(anchor, transform),
+        BidirectionalWalker {
+            forward: Walker::generator(anchor, transform),
             backward: self.backward,
         }
     }
 
-    pub fn backward(self, combiner: TimeCombiner<V>) -> BidirectionalIterator<V> {
-        BidirectionalIterator {
+    pub fn backward(self, combiner: Walker<V>) -> BidirectionalWalker<V> {
+        BidirectionalWalker {
             forward: self.forward,
             backward: combiner,
         }
@@ -57,10 +52,10 @@ impl<V: Copy+Clone> BidirectionalIterator<V>
 
     pub fn backward_values(self,
                            values: Vec<V>)
-                           -> BidirectionalIterator<V> {
-        BidirectionalIterator {
+                           -> BidirectionalWalker<V> {
+        BidirectionalWalker {
             forward: self.forward,
-            backward: TimeCombiner::vec(values),
+            backward: Walker::vec(values),
         }
     }
 
@@ -68,12 +63,12 @@ impl<V: Copy+Clone> BidirectionalIterator<V>
         (self,
          anchor: V,
          transform: BP)
-         -> BidirectionalIterator<V>
+         -> BidirectionalWalker<V>
         where BP: Fn(V) -> V + 'static 
     {
-        BidirectionalIterator {
+        BidirectionalWalker {
             forward: self.forward,
-            backward: TimeCombiner::generator(anchor, transform),
+            backward: Walker::generator(anchor, transform),
         }
     }
 }
@@ -93,7 +88,7 @@ mod tests {
     fn test_interval_iterator() {
         let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
         let interval = Interval::starting_at(now, Grain::Second);
-        let mut iterator = TimeCombiner::generator(interval, |prev| prev + PeriodComp::days(1));
+        let mut iterator = Walker::generator(interval, |prev| prev + PeriodComp::days(1));
 
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
                    iterator.next().unwrap().start);
@@ -110,7 +105,7 @@ mod tests {
         let anchor = Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
                                            Grain::Second);
 
-        let mut bidirectional = BidirectionalIterator::new()
+        let mut bidirectional = BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::days(1))
             .backward_with(anchor - PeriodComp::days(1),
                            |prev| prev - PeriodComp::days(1));
@@ -133,7 +128,7 @@ mod tests {
                  Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
                                        Grain::Second)];
 
-        let mut only_forward = BidirectionalIterator::new().forward_values(values);
+        let mut only_forward = BidirectionalWalker::new().forward_values(values);
 
         assert_eq!(None, only_forward.backward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
@@ -149,7 +144,7 @@ mod tests {
                                            Grain::Second);
 
         let mut only_forward =
-            BidirectionalIterator::new().forward_with(anchor, |prev| prev + PeriodComp::days(1));
+            BidirectionalWalker::new().forward_with(anchor, |prev| prev + PeriodComp::days(1));
 
         assert_eq!(None, only_forward.backward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
@@ -166,7 +161,7 @@ mod tests {
                  Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
                                        Grain::Second)];
 
-        let mut only_backward = BidirectionalIterator::new().backward_values(values);
+        let mut only_backward = BidirectionalWalker::new().backward_values(values);
 
         assert_eq!(None, only_backward.forward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
@@ -182,7 +177,7 @@ mod tests {
                                            Grain::Second);
 
         let mut only_backward =
-            BidirectionalIterator::new().backward_with(anchor, |prev| prev - PeriodComp::days(1));
+            BidirectionalWalker::new().backward_with(anchor, |prev| prev - PeriodComp::days(1));
 
         assert_eq!(None, only_backward.forward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),

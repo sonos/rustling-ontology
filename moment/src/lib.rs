@@ -4,10 +4,9 @@ extern crate enum_primitive;
 extern crate vec_map;
 
 mod period;
-mod interval_iterator;
 mod time_predicate;
-mod cloneable_iterator;
-mod time_combiner;
+mod bidirectional_walker;
+mod walker;
 
 use std::ops;
 
