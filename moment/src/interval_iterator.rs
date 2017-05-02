@@ -80,7 +80,7 @@ impl<F, B> BidirectionalIter<F, B>
           B: Iterator<Item=Interval>+Clone,
     {
 
-    pub fn forward(self, iterator: IntervalIterator) -> BidirectionalIter<IntervalIterator, B> {
+    pub fn forward<F1: Iterator<Item=Interval>+Clone>(self, iterator: F1) -> BidirectionalIter<F1, B> {
         BidirectionalIter {
             forward: iterator,
             backward: self.backward,
@@ -102,7 +102,7 @@ impl<F, B> BidirectionalIter<F, B>
         }   
     }
 
-    pub fn backward(self, iterator: IntervalIterator) -> BidirectionalIter<F, IntervalIterator> {
+    pub fn backward<B1: Iterator<Item=Interval>+Clone>(self, iterator: B1) -> BidirectionalIter<F, B1> {
         BidirectionalIter {
             forward: self.forward,
             backward: iterator,
