@@ -6,6 +6,7 @@ extern crate vec_map;
 mod period;
 mod interval_iterator;
 mod time_predicate;
+mod cloneable_iterator;
 
 use std::ops;
 

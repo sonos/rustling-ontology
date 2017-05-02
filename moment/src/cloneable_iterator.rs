@@ -1,9 +1,11 @@
 use std::iter;
 use std::rc::Rc;
 
-pub trait CloneableIterator: Clone + Iterator {
+pub trait CloneableIterator: Iterator {
+    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>>;
+
     fn clonable_map<B, F>(self, f: F) -> CMap<B, Self, F>
-        where F: Fn(Self::Item) -> B
+        where F: Fn(Self::Item) -> B + 'static, Self: Sized
     {
         CMap {
             iter: self,
@@ -12,7 +14,7 @@ pub trait CloneableIterator: Clone + Iterator {
     }
 
     fn clonable_filter<F>(self, f: F) -> CFilter<Self, F>
-        where F: Fn(&Self::Item) -> bool
+        where F: Fn(&Self::Item) -> bool + 'static, Self: Sized
     {
         CFilter {
             iter: self,
@@ -21,7 +23,7 @@ pub trait CloneableIterator: Clone + Iterator {
     }
 
     fn clonable_take_while<F>(self, f: F) -> CTakeWhile<Self, F>
-        where F: Fn(&Self::Item) -> bool
+        where F: Fn(&Self::Item) -> bool + 'static, Self: Sized
     {
         CTakeWhile {
             iter: self,
@@ -31,7 +33,7 @@ pub trait CloneableIterator: Clone + Iterator {
     }
 
     fn clonable_skip_while<F>(self, f: F) -> CSkipWhile<Self, F>
-        where F: Fn(&Self::Item) -> bool
+        where F: Fn(&Self::Item) -> bool + 'static, Self: Sized
     {
         CSkipWhile {
             iter: self,
@@ -45,7 +47,7 @@ pub trait CloneableIterator: Clone + Iterator {
 
 pub struct CMap<B, Inner, F>
     where Inner: CloneableIterator,
-          F: Fn(Inner::Item) -> B
+          F: Fn(Inner::Item) -> B + 'static
 {
     iter: Inner,
     f: Rc<F>,
@@ -53,7 +55,7 @@ pub struct CMap<B, Inner, F>
 
 impl<B, Inner, F> iter::Iterator for CMap<B, Inner, F>
     where Inner: CloneableIterator,
-          F: Fn(Inner::Item) -> B
+          F: Fn(Inner::Item) -> B + 'static
 {
     type Item = B;
     #[inline]
@@ -79,22 +81,17 @@ impl<B, Inner, F> iter::Iterator for CMap<B, Inner, F>
     }
 }
 
-impl<B, Inner, F> Clone for CMap<B, Inner, F>
-    where Inner: CloneableIterator,
-          F: Fn(Inner::Item) -> B
+impl<B, Inner, F> CloneableIterator for CMap<B, Inner, F>
+    where Inner: CloneableIterator + Clone,
+          F: Fn(Inner::Item) -> B + 'static
 {
-    fn clone(&self) -> Self {
+    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+        Box::new(
         CMap {
             iter: self.iter.clone(),
             f: self.f.clone(),
-        }
+        })
     }
-}
-
-impl<B, Inner, F> CloneableIterator for CMap<B, Inner, F>
-    where Inner: CloneableIterator,
-          F: Fn(Inner::Item) -> B
-{
 }
 
 /// ------ CFilter ----
@@ -130,22 +127,17 @@ impl<Iter, F> iter::Iterator for CFilter<Iter, F>
     }
 }
 
-impl<Iter, F> Clone for CFilter<Iter, F>
-    where Iter: CloneableIterator,
-          F: Fn(&Iter::Item) -> bool
+impl<Inner, F> CloneableIterator for CFilter<Inner, F>
+    where Inner: CloneableIterator + Clone,
+          F: Fn(&Inner::Item) -> bool
 {
-    fn clone(&self) -> Self {
+    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+        Box::new(
         CFilter {
             iter: self.iter.clone(),
             f: self.f.clone(),
-        }
+        })
     }
-}
-
-impl<Iter, F> CloneableIterator for CFilter<Iter, F>
-    where Iter: CloneableIterator,
-          F: Fn(&Iter::Item) -> bool
-{
 }
 
 /// ------ CTakeWhile ----
@@ -185,23 +177,18 @@ impl<Inner, F> iter::Iterator for CTakeWhile<Inner, F>
     }
 }
 
-impl<Inner, F> Clone for CTakeWhile<Inner, F>
-    where Inner: CloneableIterator,
+impl<Inner, F> CloneableIterator for CTakeWhile<Inner, F>
+    where Inner: CloneableIterator + Clone,
           F: Fn(&Inner::Item) -> bool
 {
-    fn clone(&self) -> Self {
+    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+        Box::new(
         CTakeWhile {
             iter: self.iter.clone(),
             flag: self.flag,
             predicate: self.predicate.clone(),
-        }
+        })
     }
-}
-
-impl<Inner, F> CloneableIterator for CTakeWhile<Inner, F>
-    where Inner: CloneableIterator,
-          F: Fn(&Inner::Item) -> bool
-{
 }
 
 /// ------ CSkipWhile ----
@@ -236,23 +223,18 @@ impl<Inner, F> iter::Iterator for CSkipWhile<Inner, F>
     }
 }
 
-impl<Inner, F> Clone for CSkipWhile<Inner, F>
-    where Inner: CloneableIterator,
+impl<Inner, F> CloneableIterator for CSkipWhile<Inner, F>
+    where Inner: CloneableIterator + Clone,
           F: Fn(&Inner::Item) -> bool
 {
-    fn clone(&self) -> Self {
+    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+        Box::new(
         CSkipWhile {
             iter: self.iter.clone(),
             flag: self.flag,
             predicate: self.predicate.clone(),
-        }
+        })
     }
-}
-
-impl<Inner, F> CloneableIterator for CSkipWhile<Inner, F>
-    where Inner: CloneableIterator,
-          F: Fn(&Inner::Item) -> bool
-{
 }
 
 #[cfg(test)]
@@ -261,7 +243,11 @@ mod tests {
 
     #[derive(Clone)]
     struct Wrapper<CI: Iterator + Clone>(CI);
-    impl<CI> CloneableIterator for Wrapper<CI> where CI: Iterator + Clone {}
+    impl<CI> CloneableIterator for Wrapper<CI> where CI: Iterator + Clone {
+        fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+            Box::new(self.clone())
+        }
+    }
     impl<CI> Iterator for Wrapper<CI>
         where CI: Iterator + Clone
     {
@@ -274,8 +260,8 @@ mod tests {
     #[test]
     fn test_cloneable_map() {
         let ints = Wrapper(vec![1usize, 2, 3].into_iter());
-        let other_ints = ints.clone().clonable_map(|i| i + 2);
-        let other_other_ints = other_ints.clone().clonable_map(|i| i + 2);
+        let other_ints = ints.dup().clonable_map(|i| i + 2);
+        let other_other_ints = other_ints.dup().clonable_map(|i| i + 2);
         assert_eq!(vec![1usize, 2, 3], ints.collect::<Vec<_>>());
         assert_eq!(vec![3, 4, 5], other_ints.collect::<Vec<_>>());
         assert_eq!(vec![5, 6, 7], other_other_ints.collect::<Vec<_>>());
@@ -284,8 +270,8 @@ mod tests {
     #[test]
     fn test_cloneable_filter() {
         let ints = Wrapper(vec![1usize, 2, 3, 4, 5, 6, 7].into_iter());
-        let even = ints.clone().clonable_filter(|i| i % 2 == 0);
-        let even_mul3 = even.clone().clonable_filter(|i| i % 3 == 0);
+        let even = ints.dup().clonable_filter(|i| i % 2 == 0);
+        let even_mul3 = even.dup().clonable_filter(|i| i % 3 == 0);
         assert_eq!(vec![2, 4, 6], even.collect::<Vec<_>>());
         assert_eq!(vec![6], even_mul3.collect::<Vec<_>>());
     }

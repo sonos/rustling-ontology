@@ -1,3 +1,5 @@
+use cloneable_iterator::CloneableIterator;
+
 use Interval;
 use std::vec::IntoIter;
 use std::rc;
@@ -29,6 +31,12 @@ impl Iterator for IntervalIterator {
     }
 }
 
+impl CloneableIterator for IntervalIterator {
+    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+        Box::new(self.clone())
+    }
+}
+
 #[derive(Debug,Clone, PartialEq)]
 struct EmptyIntervalIterator;
 
@@ -40,9 +48,15 @@ impl Iterator for EmptyIntervalIterator {
     }
 }
 
+impl CloneableIterator for EmptyIntervalIterator {
+    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+        Box::new(self.clone())
+    }
+}
+
 pub trait BidirectionalIterator {
-    fn forward_iter(&self) -> Box<Iterator<Item = Interval>>;
-    fn backward_iter(&self) -> Box<Iterator<Item = Interval>>;
+    fn forward_iter(&self) -> Box<CloneableIterator<Item = Interval>>;
+    fn backward_iter(&self) -> Box<CloneableIterator<Item = Interval>>;
 }
 
 
@@ -59,12 +73,14 @@ impl<F, B> BidirectionalIterator for BidirectionalIter<F, B>
     where F: Iterator<Item = Interval> + Clone + 'static,
           B: Iterator<Item = Interval> + Clone + 'static
 {
-    fn forward_iter(&self) -> Box<Iterator<Item = Interval>> {
-        Box::new(self.forward.clone())
+    fn forward_iter(&self) -> Box<CloneableIterator<Item = Interval>> {
+        unimplemented!()
+//        Box::new(self.forward.clone())
     }
 
-    fn backward_iter(&self) -> Box<Iterator<Item = Interval>> {
-        Box::new(self.backward.clone())
+    fn backward_iter(&self) -> Box<CloneableIterator<Item = Interval>> {
+        unimplemented!()
+//        Box::new(self.backward.clone())
     }
 }
 

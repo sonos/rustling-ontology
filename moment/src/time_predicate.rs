@@ -89,7 +89,7 @@ impl IntervalPredicate for DayOfMonth {
                             })
                     .map(|interval| interval + PeriodComp::days(self.0 as i64 - 1));
 
-        let iterator = BidirectionalIter::new().forward(forward_iterator); //.backward(backward_iterator);
+//        let iterator = BidirectionalIter::new().forward(forward_iterator); //.backward(backward_iterator);
         //IntervalGenerator::new(Grain::Day, iterator)
         unimplemented!();
     }
