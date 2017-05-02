@@ -7,6 +7,7 @@ mod period;
 mod interval_iterator;
 mod time_predicate;
 mod cloneable_iterator;
+mod time_combiner;
 
 use std::ops;
 
