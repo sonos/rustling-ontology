@@ -37,6 +37,10 @@ impl ops::Deref for Moment {
 }
 
 impl Moment {
+    fn now() -> Moment {
+        Moment(Local::now())
+    }
+
     fn add_months(self, n: i32) -> Moment {
         let (year, month0) = if n >= 0 {
             let n = n as u32;

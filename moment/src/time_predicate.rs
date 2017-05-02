@@ -5,23 +5,23 @@ use period::*;
 use chrono::offset::local::Local;
 use chrono::{Datelike, Duration, TimeZone, Timelike, Weekday};
 
-struct Context;
-
-struct IntervalWalker {
-    grain: Grain,
-    walker: BidirectionalWalker<Interval>,
+#[derive(Debug, Copy, Clone, PartialEq)]
+struct Context {
+    reference: Interval
 }
 
-impl IntervalWalker {
-    fn new(grain: Grain, walker: BidirectionalWalker<Interval>) -> IntervalWalker {
-        IntervalWalker {
-            grain: grain,
-            walker: walker,
+impl Context {
+    fn now() -> Context {
+        Context {
+            reference: Interval::starting_at(Moment::now(), Grain::Second),
         }
     }
 }
 
+type IntervalWalker = BidirectionalWalker<Interval>;
+
 trait IntervalPredicate {
+    fn grain(&self) -> Grain;
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker;
 }
 
@@ -29,6 +29,10 @@ trait IntervalPredicate {
 struct Year(i32);
 
 impl IntervalPredicate for Year {
+    fn grain(&self) -> Grain {
+        Grain::Year
+    }
+
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         let normalized_year = if self.0 < 99 {
             (self.0 + 50) % 100 + 2000 - 50
@@ -39,13 +43,11 @@ impl IntervalPredicate for Year {
         if origin.start.year() <= normalized_year {
             let moment_year = Moment(Local.ymd(normalized_year, 1, 1).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Year);
-            IntervalWalker::new(Grain::Year,
-                                   BidirectionalWalker::new().forward_values(vec![interval]))
+            BidirectionalWalker::new().forward_values(vec![interval])
         } else {
             let moment_year = Moment(Local.ymd(normalized_year, 1, 1).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Year);
-            IntervalWalker::new(Grain::Year,
-                                   BidirectionalWalker::new().backward_values(vec![interval]))
+            BidirectionalWalker::new().backward_values(vec![interval])
         }
     }
 }
@@ -54,6 +56,10 @@ impl IntervalPredicate for Year {
 struct Month(u32);
 
 impl IntervalPredicate for Month {
+    fn grain(&self) -> Grain {
+        Grain::Month
+    }
+
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         let rounded_moment = Moment(Local
                                         .ymd(origin.start.year(), self.0, 1)
@@ -62,11 +68,10 @@ impl IntervalPredicate for Month {
         let anchor = Interval::starting_at(rounded_moment + PeriodComp::years(offset_year),
                                            Grain::Month);
 
-        let walker = BidirectionalWalker::new()
+        BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::years(1))
             .backward_with(anchor - PeriodComp::years(1),
-                           |prev| prev - PeriodComp::years(1));
-        IntervalWalker::new(Grain::Month, walker)
+                           |prev| prev - PeriodComp::years(1))
     }
 }
 
@@ -74,6 +79,10 @@ impl IntervalPredicate for Month {
 struct DayOfMonth(u32);
 
 impl IntervalPredicate for DayOfMonth {
+    fn grain(&self) -> Grain {
+        Grain::Day
+    }
+
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         let offset_month = (origin.start.0.day() > self.0) as i64;
         let anchor = origin.round_to(Grain::Month) + PeriodComp::months(offset_month);
@@ -93,11 +102,9 @@ impl IntervalPredicate for DayOfMonth {
                             })
                     .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
 
-        let walker = BidirectionalWalker::new()
+        BidirectionalWalker::new()
             .forward(forward_walker)
-            .backward(backward_walker);
-
-        IntervalWalker::new(Grain::Day, walker)
+            .backward(backward_walker)
     }
 }
 
@@ -105,17 +112,19 @@ impl IntervalPredicate for DayOfMonth {
 struct DayOfWeek(Weekday);
 
 impl IntervalPredicate for DayOfWeek {
+    fn grain(&self) -> Grain {
+        Grain::Day
+    }
+    
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         let offset = (self.0.number_from_monday() - origin.start.weekday().number_from_monday()) %
                      7;
         let anchor = origin.round_to(Grain::Day) + PeriodComp::days(offset as i64);
 
-        let walker = BidirectionalWalker::new()
+        BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::weeks(1))
             .backward_with(anchor - PeriodComp::weeks(1),
-                           |prev| prev - PeriodComp::weeks(1));
-
-        IntervalWalker::new(Grain::Day, walker)
+                           |prev| prev - PeriodComp::weeks(1))
     }
 }
 
@@ -135,6 +144,10 @@ impl Hour {
 }
 
 impl IntervalPredicate for Hour {
+    fn grain(&self) -> Grain {
+        Grain::Hour
+    }
+
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         let clock_step = if self.quantity <= 12 && self.is_12_clock {
             12
@@ -144,12 +157,10 @@ impl IntervalPredicate for Hour {
         let offset = (self.quantity - origin.start.hour() as i64) % clock_step;
         let anchor = origin.round_to(Grain::Hour) + PeriodComp::hours(offset);
 
-        let walker = BidirectionalWalker::new()
+        BidirectionalWalker::new()
             .forward_with(anchor, move |prev| prev + PeriodComp::hours(clock_step))
             .backward_with(anchor - PeriodComp::hours(clock_step),
-                           move |prev| prev - PeriodComp::hours(clock_step));
-
-        IntervalWalker::new(Grain::Hour, walker)
+                           move |prev| prev - PeriodComp::hours(clock_step))
     }
 }
 
@@ -157,16 +168,17 @@ impl IntervalPredicate for Hour {
 struct Minute(i64);
 
 impl IntervalPredicate for Minute {
+    fn grain(&self) -> Grain {
+        Grain::Minute
+    }
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         let offset = (self.0 - origin.start.minute() as i64) % 60;
         let anchor = origin.round_to(Grain::Minute) + PeriodComp::minutes(offset);
 
-        let walker = BidirectionalWalker::new()
+        BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::hours(1))
             .backward_with(anchor - PeriodComp::hours(1),
-                           |prev| prev + PeriodComp::hours(1));
-
-        IntervalWalker::new(Grain::Minute, walker)
+                           |prev| prev + PeriodComp::hours(1))
     }
 }
 
@@ -174,16 +186,18 @@ impl IntervalPredicate for Minute {
 struct Second(i64);
 
 impl IntervalPredicate for Second {
+    fn grain(&self) -> Grain {
+        Grain::Second
+    }
+
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         let offset = (self.0 - origin.start.second() as i64) % 60;
         let anchor = origin.round_to(Grain::Second) + PeriodComp::seconds(offset);
 
-        let walker = BidirectionalWalker::new()
+        BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::minutes(1))
             .backward_with(anchor - PeriodComp::minutes(1),
-                           |prev| prev + PeriodComp::minutes(1));
-
-        IntervalWalker::new(Grain::Second, walker)
+                           |prev| prev + PeriodComp::minutes(1))
     }
 }
 
@@ -191,16 +205,73 @@ impl IntervalPredicate for Second {
 struct Cycle(Grain);
 
 impl IntervalPredicate for Cycle {
+    fn grain(&self) -> Grain {
+        self.0
+    }
+
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         let anchor = origin.round_to(self.0);
         let grain = self.0;
-        let walker = BidirectionalWalker::new()
+        BidirectionalWalker::new()
             .forward_with(anchor, move |prev| prev + PeriodComp::new(grain, 1))
-            .backward_with(anchor - PeriodComp::new(grain, 1), move |prev| prev - PeriodComp::new(grain, 1));
-
-        IntervalWalker::new(grain, walker)
+            .backward_with(anchor - PeriodComp::new(grain, 1), move |prev| prev - PeriodComp::new(grain, 1))
     }
 }
+
+#[derive(Clone)]
+struct TakeTheNth {
+    predicate: ::std::rc::Rc<IntervalPredicate>,
+    n: i64,
+    not_immediate: bool,
+}
+
+impl TakeTheNth {
+    fn new<P: IntervalPredicate + 'static>(n: i64, not_immediate: bool, predicate: P) -> TakeTheNth {
+        TakeTheNth {
+            predicate: ::std::rc::Rc::new(predicate),
+            n: n,
+            not_immediate: not_immediate,
+        }
+    }
+}
+
+impl IntervalPredicate for TakeTheNth {
+    fn grain(&self) -> Grain {
+        self.predicate.grain()
+    }
+
+    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+        let base_interval = context.reference;
+        let interval_walker = self.predicate.predicate(base_interval, context);
+
+        let match_interval: Option<Interval> = if self.n >= 0 {
+            let head = interval_walker.forward.clone().next();
+            let mut forward_walker = if head.is_some() 
+                    && self.not_immediate 
+                    && head.map(move |x| x.intersect(base_interval)).is_some() {
+                interval_walker.forward.clone().skip((self.n+1) as usize)
+            } else {
+                interval_walker.forward.clone().skip(self.n as usize)
+            };
+            forward_walker.next()
+        } else {
+            interval_walker.backward.clone().skip((- (self.n + 1)) as usize).next()
+        };
+
+        if let Some(interval) = match_interval {
+            if origin.start < interval.end_moment() {
+                BidirectionalWalker::new()
+                    .forward_values(vec![interval])
+            } else {
+                BidirectionalWalker::new()
+                    .backward_values(vec![interval])
+            }
+        } else {
+            BidirectionalWalker::new()
+        }
+    }
+}
+
 
 
 #[cfg(test)]
@@ -216,28 +287,28 @@ mod tests {
         let now = Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
                                         Grain::Second);
 
-        let walker = year_predicate.predicate(now, Context);
+        let walker = year_predicate.predicate(now, Context::now());
 
-        let mut backward = walker.walker.backward.clone();
+        let mut backward = walker.backward.clone();
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 1, 1).and_hms(0, 0, 0)),
                                               Grain::Year)),
                    backward.next());
 
         assert_eq!(None, backward.next());
-        assert_eq!(None, walker.walker.forward.clone().next());
+        assert_eq!(None, walker.forward.clone().next());
 
         let year_predicate = Year(2018);
-        let walker = year_predicate.predicate(now, Context);
-        assert_eq!(None, walker.walker.backward.clone().next());
+        let walker = year_predicate.predicate(now, Context::now());
+        assert_eq!(None, walker.backward.clone().next());
 
-        let walker = year_predicate.predicate(now, Context);
-        let mut forward = walker.walker.forward.clone();
+        let walker = year_predicate.predicate(now, Context::now());
+        let mut forward = walker.forward.clone();
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 1, 1).and_hms(0, 0, 0)),
                                               Grain::Year)),
                    forward.next());
         assert_eq!(None, forward.next());
 
-        assert_eq!(None, walker.walker.backward.clone().next());
+        assert_eq!(None, walker.backward.clone().next());
     }
 }
 

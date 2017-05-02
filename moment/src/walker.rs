@@ -24,6 +24,10 @@ pub enum Walker<V:Copy+Clone> {
         inner: Box<Walker<V>>,
         flag: bool,
         predicate: Rc<Fn(&V) -> bool>,
+    },
+    Skip {
+        inner: Box<Walker<V>>,
+        n: usize,
     }
 }
 
@@ -32,6 +36,7 @@ impl<V: Copy+Clone> Walker<V> {
         vec.reverse();
         Walker::Vec(vec)
     }
+
     pub fn generator<F>(anchor: V, transform:F) -> Walker<V>
         where F:Fn(V) -> V + 'static
     {
@@ -39,6 +44,7 @@ impl<V: Copy+Clone> Walker<V> {
             current: anchor, transform: Rc::new(transform)
         }
     }
+
     pub fn map<F>(&self, transform:F) -> Walker<V>
         where F:Fn(V) -> V + 'static
     {
@@ -46,6 +52,7 @@ impl<V: Copy+Clone> Walker<V> {
             inner: Box::new(self.clone()), transform: Rc::new(transform)
         }
     }
+
     pub fn filter<F>(&self, predicate:F) -> Walker<V>
         where F:Fn(&V) -> bool + 'static
     {
@@ -53,6 +60,7 @@ impl<V: Copy+Clone> Walker<V> {
             inner: Box::new(self.clone()), predicate: Rc::new(predicate)
         }
     }
+
     pub fn take_while<F>(&self, predicate:F) -> Walker<V>
         where F:Fn(&V) -> bool + 'static
     {
@@ -60,6 +68,7 @@ impl<V: Copy+Clone> Walker<V> {
             inner: Box::new(self.clone()), flag:false, predicate: Rc::new(predicate)
         }
     }
+
     pub fn skip_while<F>(&self, predicate:F) -> Walker<V>
         where F:Fn(&V) -> bool + 'static
     {
@@ -67,6 +76,14 @@ impl<V: Copy+Clone> Walker<V> {
             inner: Box::new(self.clone()), flag: false, predicate: Rc::new(predicate)
         }
     }
+
+    pub fn skip(&self, n: usize) -> Walker<V> {
+        Walker::Skip {
+            inner: Box::new(self.clone()),
+            n: n
+        }
+    }
+
     pub fn next(&mut self) -> Option<V> {
         match self {
             &mut Walker::Vec(ref mut vec) => {
@@ -110,6 +127,19 @@ impl<V: Copy+Clone> Walker<V> {
                     }
                 }
                 None
+            }
+            &mut Walker::Skip { ref mut inner, ref mut n } => {
+                if *n == 0 {
+                    inner.next()
+                } else {
+                    let mut counter = *n;
+                    *n = 0;
+                    while let Some(x) = inner.next() {
+                        if counter == 0 { return Some(x) };
+                        counter -= 1;
+                    }
+                    None
+                }
             }
         }
     }
@@ -167,6 +197,14 @@ mod tests {
         let ints = Walker::vec(vec![1usize, 2, 3, 4, 5, 3, 2, 1]);
         let tw = ints.skip_while(|&i| i <= 3);
         assert_eq!(vec![4, 5, 3, 2, 1], tw.into_iter().collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn test_skip() {
+        let ints = Walker::vec(vec![1usize, 2, 3, 4, 5, 3, 2, 1]);
+        let tw = ints.skip(5);
+        assert_eq!(vec![3, 2, 1], tw.into_iter().collect::<Vec<_>>());
+
     }
 
 }
