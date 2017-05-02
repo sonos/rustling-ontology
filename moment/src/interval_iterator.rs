@@ -3,157 +3,81 @@ use cloneable_iterator::CloneableIterator;
 use Interval;
 use std::vec::IntoIter;
 use std::rc;
+use time_combiner::*;
 
 #[derive(Clone)]
-pub struct IntervalIterator {
-    anchor: Interval,
-    transform: rc::Rc<Fn(Interval) -> Interval>,
+pub struct BidirectionalIterator<V: Copy+Clone>
+{
+    forward: TimeCombiner<V>,
+    backward: TimeCombiner<V>,
 }
 
-impl IntervalIterator {
-    pub fn new<F: Fn(Interval) -> Interval + 'static>(anchor: Interval,
-                                                      transform: F)
-                                                      -> IntervalIterator {
-        IntervalIterator {
-            anchor: anchor,
-            transform: rc::Rc::new(transform),
+impl<V: Copy+Clone> BidirectionalIterator<V>
+{
+
+    pub fn new() -> BidirectionalIterator<V> {
+        BidirectionalIterator {
+            forward: TimeCombiner::Vec(vec![]),
+            backward: TimeCombiner::Vec(vec![]),
         }
     }
-}
 
-impl Iterator for IntervalIterator {
-    type Item = Interval;
-
-    fn next(&mut self) -> Option<Interval> {
-        let current = self.anchor;
-        self.anchor = (self.transform)(current);
-        Some(current)
-    }
-}
-
-impl CloneableIterator for IntervalIterator {
-    fn dup(&self) -> Box<CloneableIterator> {
-        Box::new(self.clone())
-    }
-}
-
-#[derive(Debug,Clone, PartialEq)]
-struct EmptyIntervalIterator;
-
-impl Iterator for EmptyIntervalIterator {
-    type Item = Interval;
-
-    fn next(&mut self) -> Option<Interval> {
-        None
-    }
-}
-
-impl CloneableIterator for EmptyIntervalIterator {
-    fn dup(&self) -> Box<CloneableIterator> {
-        Box::new(self.clone())
-    }
-}
-
-pub trait BidirectionalIterator {
-    fn forward_iter(&self) -> Box<CloneableIterator>;
-    fn backward_iter(&self) -> Box<CloneableIterator>;
-}
-
-
-#[derive(Debug,Clone, PartialEq)]
-pub struct BidirectionalIter<F, B>
-    where F: CloneableIterator,
-          B: CloneableIterator
-{
-    forward: F,
-    backward: B,
-}
-
-impl<F, B> BidirectionalIterator for BidirectionalIter<F, B>
-    where F: CloneableIterator,
-          B: CloneableIterator
-{
-    fn forward_iter(&self) -> Box<CloneableIterator> {
-        self.forward.dup()
-    }
-
-    fn backward_iter(&self) -> Box<CloneableIterator> {
-        self.backward.dup()
-    }
-}
-
-impl BidirectionalIter<EmptyIntervalIterator, EmptyIntervalIterator> {
-    pub fn new() -> BidirectionalIter<EmptyIntervalIterator, EmptyIntervalIterator> {
-        BidirectionalIter {
-            forward: EmptyIntervalIterator,
-            backward: EmptyIntervalIterator,
-        }
-    }
-}
-
-impl<F, B> BidirectionalIter<F, B>
-    where F: CloneableIterator,
-          B: CloneableIterator
-{
-    pub fn forward<F1: CloneableIterator>(self,
-                                                          iterator: F1)
-                                                          -> BidirectionalIter<F1, B> {
-        BidirectionalIter {
-            forward: iterator,
+    pub fn forward(self, combiner: TimeCombiner<V>) -> BidirectionalIterator<V> {
+        BidirectionalIterator {
+            forward: combiner,
             backward: self.backward,
         }
     }
 
-    pub fn forward_values(self, values: Vec<Interval>) -> BidirectionalIter<EmptyIntervalIterator, B> {
-        unimplemented!();
-        //BidirectionalIter {
-        //    forward: values.into_iter(),
-        //    backward: self.backward,
-        //}
+    pub fn forward_values(self, values: Vec<V>) -> BidirectionalIterator<V> {
+        BidirectionalIterator {
+            forward: TimeCombiner::vec(values),
+            backward: self.backward,
+        }
     }
 
     pub fn forward_with<FP>(self,
-                            anchor: Interval,
+                            anchor: V,
                             transform: FP)
-                            -> BidirectionalIter<IntervalIterator, B>
-        where FP: Fn(Interval) -> Interval + 'static
+                            ->  BidirectionalIterator<V>
+        where FP: Fn(V) -> V + 'static
     {
-        BidirectionalIter {
-            forward: IntervalIterator::new(anchor, transform),
+        BidirectionalIterator {
+            forward: TimeCombiner::generator(anchor, transform),
             backward: self.backward,
         }
     }
 
-    pub fn backward<B1: CloneableIterator>(self,
-                                                           iterator: B1)
-                                                           -> BidirectionalIter<F, B1> {
-        BidirectionalIter {
+    pub fn backward(self, combiner: TimeCombiner<V>) -> BidirectionalIterator<V> {
+        BidirectionalIterator {
             forward: self.forward,
-            backward: iterator,
+            backward: combiner,
         }
     }
 
     pub fn backward_values(self,
-                           values: Vec<Interval>)
-                           -> BidirectionalIter<F, EmptyIntervalIterator> {
-        unimplemented!();
-        //BidirectionalIter {
-        //    forward: self.forward,
-        //    backward: values.into_iter(),
-        //}
+                           values: Vec<V>)
+                           -> BidirectionalIterator<V> {
+        BidirectionalIterator {
+            forward: self.forward,
+            backward: TimeCombiner::vec(values),
+        }
     }
 
-    pub fn backward_with<BP: Fn(Interval) -> Interval + 'static>
+    pub fn backward_with<BP>
         (self,
-         anchor: Interval,
+         anchor: V,
          transform: BP)
-         -> BidirectionalIter<F, IntervalIterator> {
-        BidirectionalIter {
+         -> BidirectionalIterator<V>
+        where BP: Fn(V) -> V + 'static 
+    {
+        BidirectionalIterator {
             forward: self.forward,
-            backward: IntervalIterator::new(anchor, transform),
+            backward: TimeCombiner::generator(anchor, transform),
         }
     }
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -169,7 +93,7 @@ mod tests {
     fn test_interval_iterator() {
         let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
         let interval = Interval::starting_at(now, Grain::Second);
-        let mut iterator = IntervalIterator::new(interval, |prev| prev + PeriodComp::days(1));
+        let mut iterator = TimeCombiner::generator(interval, |prev| prev + PeriodComp::days(1));
 
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
                    iterator.next().unwrap().start);
@@ -186,7 +110,7 @@ mod tests {
         let anchor = Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
                                            Grain::Second);
 
-        let mut bidirectional = BidirectionalIter::new()
+        let mut bidirectional = BidirectionalIterator::new()
             .forward_with(anchor, |prev| prev + PeriodComp::days(1))
             .backward_with(anchor - PeriodComp::days(1),
                            |prev| prev - PeriodComp::days(1));
@@ -209,7 +133,7 @@ mod tests {
                  Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
                                        Grain::Second)];
 
-        let mut only_forward = BidirectionalIter::new().forward_values(values);
+        let mut only_forward = BidirectionalIterator::new().forward_values(values);
 
         assert_eq!(None, only_forward.backward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
@@ -225,7 +149,7 @@ mod tests {
                                            Grain::Second);
 
         let mut only_forward =
-            BidirectionalIter::new().forward_with(anchor, |prev| prev + PeriodComp::days(1));
+            BidirectionalIterator::new().forward_with(anchor, |prev| prev + PeriodComp::days(1));
 
         assert_eq!(None, only_forward.backward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
@@ -242,7 +166,7 @@ mod tests {
                  Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
                                        Grain::Second)];
 
-        let mut only_backward = BidirectionalIter::new().backward_values(values);
+        let mut only_backward = BidirectionalIterator::new().backward_values(values);
 
         assert_eq!(None, only_backward.forward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
@@ -258,7 +182,7 @@ mod tests {
                                            Grain::Second);
 
         let mut only_backward =
-            BidirectionalIter::new().backward_with(anchor, |prev| prev - PeriodComp::days(1));
+            BidirectionalIterator::new().backward_with(anchor, |prev| prev - PeriodComp::days(1));
 
         assert_eq!(None, only_backward.forward.next());
         assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
@@ -267,3 +191,4 @@ mod tests {
                    only_backward.backward.next().unwrap().start);
     }
 }
+

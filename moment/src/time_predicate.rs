@@ -9,14 +9,14 @@ struct Context;
 
 struct IntervalGenerator {
     grain: Grain,
-    iterator: Box<BidirectionalIterator>,
+    iterator: BidirectionalIterator<Interval>,
 }
 
 impl IntervalGenerator {
-    fn new<I: BidirectionalIterator + 'static>(grain: Grain, iterator: I) -> IntervalGenerator {
+    fn new(grain: Grain, iterator: BidirectionalIterator<Interval>) -> IntervalGenerator {
         IntervalGenerator {
             grain: grain,
-            iterator: Box::new(iterator),
+            iterator: iterator,
         }
     }
 }
@@ -25,6 +25,7 @@ trait IntervalPredicate {
     fn predicate(&self, origin: Interval, context: Context) -> IntervalGenerator;
 }
 
+/*
 struct Year(i32);
 
 impl IntervalPredicate for Year {
@@ -219,3 +220,5 @@ mod tests {
         assert_eq!(None, generator.iterator.backward_iter().next());
     }
 }
+
+*/
