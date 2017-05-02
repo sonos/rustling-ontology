@@ -161,7 +161,7 @@ mod tests {
     use ::*;
 
     #[test]
-    fn test_last_day_in_month() {
+    fn test_year_predicate_iterator() {
         let year_predicate = Year(2015);
         let now = Interval::starting_at(
                 Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
