@@ -32,7 +32,7 @@ impl Iterator for IntervalIterator {
 }
 
 impl CloneableIterator for IntervalIterator {
-    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+    fn dup(&self) -> Box<CloneableIterator> {
         Box::new(self.clone())
     }
 }
@@ -49,38 +49,36 @@ impl Iterator for EmptyIntervalIterator {
 }
 
 impl CloneableIterator for EmptyIntervalIterator {
-    fn dup(&self) -> Box<CloneableIterator<Item=Self::Item>> {
+    fn dup(&self) -> Box<CloneableIterator> {
         Box::new(self.clone())
     }
 }
 
 pub trait BidirectionalIterator {
-    fn forward_iter(&self) -> Box<CloneableIterator<Item = Interval>>;
-    fn backward_iter(&self) -> Box<CloneableIterator<Item = Interval>>;
+    fn forward_iter(&self) -> Box<CloneableIterator>;
+    fn backward_iter(&self) -> Box<CloneableIterator>;
 }
 
 
 #[derive(Debug,Clone, PartialEq)]
 pub struct BidirectionalIter<F, B>
-    where F: Iterator<Item = Interval> + Clone,
-          B: Iterator<Item = Interval> + Clone
+    where F: CloneableIterator,
+          B: CloneableIterator
 {
     forward: F,
     backward: B,
 }
 
 impl<F, B> BidirectionalIterator for BidirectionalIter<F, B>
-    where F: Iterator<Item = Interval> + Clone + 'static,
-          B: Iterator<Item = Interval> + Clone + 'static
+    where F: CloneableIterator,
+          B: CloneableIterator
 {
-    fn forward_iter(&self) -> Box<CloneableIterator<Item = Interval>> {
-        unimplemented!()
-//        Box::new(self.forward.clone())
+    fn forward_iter(&self) -> Box<CloneableIterator> {
+        self.forward.dup()
     }
 
-    fn backward_iter(&self) -> Box<CloneableIterator<Item = Interval>> {
-        unimplemented!()
-//        Box::new(self.backward.clone())
+    fn backward_iter(&self) -> Box<CloneableIterator> {
+        self.backward.dup()
     }
 }
 
@@ -94,10 +92,10 @@ impl BidirectionalIter<EmptyIntervalIterator, EmptyIntervalIterator> {
 }
 
 impl<F, B> BidirectionalIter<F, B>
-    where F: Iterator<Item = Interval> + Clone,
-          B: Iterator<Item = Interval> + Clone
+    where F: CloneableIterator,
+          B: CloneableIterator
 {
-    pub fn forward<F1: Iterator<Item = Interval> + Clone>(self,
+    pub fn forward<F1: CloneableIterator>(self,
                                                           iterator: F1)
                                                           -> BidirectionalIter<F1, B> {
         BidirectionalIter {
@@ -106,11 +104,12 @@ impl<F, B> BidirectionalIter<F, B>
         }
     }
 
-    pub fn forward_values(self, values: Vec<Interval>) -> BidirectionalIter<IntoIter<Interval>, B> {
-        BidirectionalIter {
-            forward: values.into_iter(),
-            backward: self.backward,
-        }
+    pub fn forward_values(self, values: Vec<Interval>) -> BidirectionalIter<EmptyIntervalIterator, B> {
+        unimplemented!();
+        //BidirectionalIter {
+        //    forward: values.into_iter(),
+        //    backward: self.backward,
+        //}
     }
 
     pub fn forward_with<FP>(self,
@@ -125,7 +124,7 @@ impl<F, B> BidirectionalIter<F, B>
         }
     }
 
-    pub fn backward<B1: Iterator<Item = Interval> + Clone>(self,
+    pub fn backward<B1: CloneableIterator>(self,
                                                            iterator: B1)
                                                            -> BidirectionalIter<F, B1> {
         BidirectionalIter {
@@ -136,11 +135,12 @@ impl<F, B> BidirectionalIter<F, B>
 
     pub fn backward_values(self,
                            values: Vec<Interval>)
-                           -> BidirectionalIter<F, IntoIter<Interval>> {
-        BidirectionalIter {
-            forward: self.forward,
-            backward: values.into_iter(),
-        }
+                           -> BidirectionalIter<F, EmptyIntervalIterator> {
+        unimplemented!();
+        //BidirectionalIter {
+        //    forward: self.forward,
+        //    backward: values.into_iter(),
+        //}
     }
 
     pub fn backward_with<BP: Fn(Interval) -> Interval + 'static>

@@ -1,4 +1,5 @@
 use interval_iterator::*;
+use cloneable_iterator::*;
 use ::*;
 use period::*;
 use chrono::offset::local::Local;
@@ -67,6 +68,7 @@ impl IntervalPredicate for Month {
     }
 }
 
+#[derive(Clone)]
 struct DayOfMonth(u32);
 
 impl IntervalPredicate for DayOfMonth {
@@ -74,22 +76,23 @@ impl IntervalPredicate for DayOfMonth {
         let offset_month = (origin.start.0.day() > self.0) as i64;
         let anchor = origin.round_to(Grain::Month) + PeriodComp::months(offset_month);
 
+        let day_of_month = self.0;
         let forward_iterator = IntervalIterator::new(anchor, |prev| prev + PeriodComp::months(1))
-            .filter(|interval| {
-                        self.0 <= last_day_in_month(interval.start.year(), interval.start.month())
+            .cloneable_filter(move |interval| {
+                        day_of_month <= last_day_in_month(interval.start.year(), interval.start.month())
                     })
-            .map(|interval| interval + PeriodComp::days(self.0 as i64 - 1));
+            .cloneable_map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
 
-        let backward_iterator =
-            IntervalIterator::new(anchor - PeriodComp::months(1),
+        let backward_iterator = IntervalIterator::new(anchor - PeriodComp::months(1),
                                   |prev| prev - PeriodComp::months(1))
-                    .filter(|interval| {
-                                self.0 <=
+                    .cloneable_filter(move |interval| {
+                                day_of_month <=
                                 last_day_in_month(interval.start.year(), interval.start.month())
                             })
-                    .map(|interval| interval + PeriodComp::days(self.0 as i64 - 1));
+                    .cloneable_map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
 
-//        let iterator = BidirectionalIter::new().forward(forward_iterator); //.backward(backward_iterator);
+        let iterator = BidirectionalIter::new().forward(forward_iterator).backward(backward_iterator);
+
         //IntervalGenerator::new(Grain::Day, iterator)
         unimplemented!();
     }
