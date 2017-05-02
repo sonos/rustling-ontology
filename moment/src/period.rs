@@ -136,6 +136,13 @@ pub struct PeriodComp {
 }
 
 impl PeriodComp {
+    pub fn new(grain: Grain, quantity: i64) -> PeriodComp {
+        PeriodComp {
+            grain: grain,
+            quantity: quantity,
+        }
+    }
+
     pub fn years(n: i64) -> PeriodComp {
         PeriodComp {
             grain: Grain::Year,

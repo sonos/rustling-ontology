@@ -187,6 +187,21 @@ impl IntervalPredicate for Second {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
+struct Cycle(Grain);
+
+impl IntervalPredicate for Cycle {
+    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+        let anchor = origin.round_to(self.0);
+        let grain = self.0;
+        let walker = BidirectionalWalker::new()
+            .forward_with(anchor, move |prev| prev + PeriodComp::new(grain, 1))
+            .backward_with(anchor - PeriodComp::new(grain, 1), move |prev| prev - PeriodComp::new(grain, 1));
+
+        IntervalWalker::new(grain, walker)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
