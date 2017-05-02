@@ -150,3 +150,47 @@ impl IntervalPredicate for Second {
         IntervalGenerator::new(Grain::Second, iterator)
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::TimeZone;
+    use chrono::offset::local::Local;
+    use interval_iterator::*;
+    use ::*;
+
+    #[test]
+    fn test_last_day_in_month() {
+        let year_predicate = Year(2015);
+        let now = Interval::starting_at(
+                Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+                Grain::Second
+            );
+
+        let generator = year_predicate.predicate(now, Context);
+
+        let mut backward = generator.iterator.backward_iter();
+        assert_eq!(
+            Some(Interval::starting_at(
+                    Moment(Local.ymd(2015, 1, 1).and_hms(0, 0, 0)), 
+                    Grain::Year
+            )), backward.next());
+
+        assert_eq!(None, backward.next());
+        assert_eq!(None, generator.iterator.forward_iter().next());
+
+        let year_predicate = Year(2018);
+        let generator = year_predicate.predicate(now, Context);
+        assert_eq!(None, generator.iterator.backward_iter().next());
+
+        let generator = year_predicate.predicate(now, Context);
+        let mut forward = generator.iterator.forward_iter();
+        assert_eq!(
+            Some(Interval::starting_at(
+                    Moment(Local.ymd(2018, 1, 1).and_hms(0, 0, 0)), Grain::Year)), forward.next());
+        assert_eq!(None, forward.next());
+
+        assert_eq!(None, generator.iterator.backward_iter().next());
+    }
+}
