@@ -117,9 +117,10 @@ impl IntervalPredicate for DayOfWeek {
     }
     
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
-        let offset = (self.0.number_from_monday() - origin.start.weekday().number_from_monday()) %
+        // number_from_monday is u32 -> use i64
+        let offset = (self.0.number_from_monday() as i64 - origin.start.weekday().number_from_monday() as i64) %
                      7;
-        let anchor = origin.round_to(Grain::Day) + PeriodComp::days(offset as i64);
+        let anchor = origin.round_to(Grain::Day) + PeriodComp::days(offset);
 
         BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::weeks(1))
@@ -275,7 +276,7 @@ impl IntervalPredicate for TakeTheNth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::TimeZone;
+    use chrono::{TimeZone, Weekday};
     use chrono::offset::local::Local;
     use chrono::offset::fixed::FixedOffset;
     use ::*;
@@ -444,6 +445,45 @@ mod tests {
                                               Grain::Day)), 
                     walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 01, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_day_of_week() {
+        // Day of week => Tuesday
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        // Test case 1
+        let day_of_week_predicate = DayOfWeek(Weekday::Wed);
+        let walker = day_of_week_predicate.predicate(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 03).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 19).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 12).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.backward.clone().skip(1).next());
+
+        // Test case 2
+        let day_of_week_predicate = DayOfWeek(Weekday::Mon);
+        let walker = day_of_week_predicate.predicate(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 01).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 17).and_hms(0, 0, 0) + FixedOffset::east(3600)),
+                                              Grain::Day)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 10).and_hms(0, 0, 0)),
                                               Grain::Day)), 
                     walker.backward.clone().skip(1).next());
     }
