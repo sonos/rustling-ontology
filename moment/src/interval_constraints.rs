@@ -343,15 +343,17 @@ pub struct Intersection<LHS, RHS>
     rhs: Rc<RHS>,
 }
 
-impl<LHS, RHS> Intersection<LHS, RHS> 
+impl<LHS, RHS> Intersection<LHS, RHS>
     where LHS: IntervalConstraint + 'static,
           RHS: IntervalConstraint + 'static
 {
     pub fn new(lhs: LHS, rhs: RHS) -> Intersection<LHS, RHS> {
         Intersection {
-            lhs: Rc::new(lhs), rhs: Rc::new(rhs)
+            lhs: Rc::new(lhs),
+            rhs: Rc::new(rhs),
         }
     }
+
 }
 
 impl<LHS, RHS> IntervalConstraint for Intersection<LHS, RHS>
@@ -363,6 +365,21 @@ impl<LHS, RHS> IntervalConstraint for Intersection<LHS, RHS>
     }
 
     fn to_walker(&self, origin: &Interval, context: &Context) -> IntervalWalker {
+
+        fn walk_from(origin: &Interval,
+                     context: Context,
+                     constraint: Rc<IntervalConstraint>)
+                     -> Walker<Interval> {
+            let context = Context::new(context.reference, *origin, *origin);
+            let max_moment = origin.end_moment();
+            let origin_copied = origin.clone();
+            constraint
+                .to_walker(origin, &context)
+                .forward
+                .take(183)
+                .take_while(move |i| i.start < max_moment)
+                .filter_map(move |i| origin_copied.intersect(i))
+        }
 
         fn combine<Fine, Coarse>(origin: &Interval,
                                  context: Context,
@@ -394,21 +411,6 @@ impl<LHS, RHS> IntervalConstraint for Intersection<LHS, RHS>
             combine(origin, *context, self.lhs.clone(), self.rhs.clone())
         }
     }
-}
-
-fn walk_from(origin: &Interval,
-             context: Context,
-             constraint: Rc<IntervalConstraint>)
-             -> Walker<Interval> {
-    let context = Context::new(context.reference, *origin, *origin);
-    let max_moment = origin.end_moment();
-    let origin_copied = origin.clone();
-    constraint
-        .to_walker(origin, &context)
-        .forward
-        .take(12)
-        .take_while(move |i| i.start < max_moment)
-        .filter_map(move |i| origin_copied.intersect(i))
 }
 
 #[cfg(test)]
@@ -819,16 +821,16 @@ mod tests {
         let inter = Intersection::new(DayOfMonth(12), Month(3));
         let walker = inter.to_walker(&context.reference, &context);
 
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 03, 12).and_hms(0,0,0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 03, 12).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.forward.clone().next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2019, 03, 12).and_hms(0,0,0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2019, 03, 12).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.forward.clone().skip(1).next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 12).and_hms(0,0,0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 12).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.backward.clone().next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 03, 12).and_hms(0,0,0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 03, 12).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.backward.clone().skip(1).next());
     }
@@ -840,16 +842,16 @@ mod tests {
         let inter = Intersection::new(DayOfMonth(12), DayOfWeek(Weekday::Wed));
         let walker = inter.to_walker(&context.reference, &context);
 
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 07, 12).and_hms(0,0,0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 07, 12).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.forward.clone().next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 09, 12).and_hms(0,0,0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 09, 12).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.forward.clone().skip(1).next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 12).and_hms(0,0,0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 12).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.backward.clone().next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 10, 12).and_hms(0,0,0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 10, 12).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.backward.clone().skip(1).next());
     }
