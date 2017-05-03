@@ -15,6 +15,22 @@ enum_from_primitive! {
     }
 }
 
+impl Grain {
+    pub fn next(&self) -> Grain {
+        match self {
+            &Grain::Year => Grain::Month,
+            &Grain::Quarter => Grain::Month,
+            &Grain::Month => Grain::Day,
+            &Grain::Week => Grain::Day,
+            &Grain::Day => Grain::Hour,
+            &Grain::Hour => Grain::Minute,
+            &Grain::Minute => Grain::Second,
+            &Grain::Second => Grain::Second,
+        }
+    }
+}
+
+
 #[derive(Debug,PartialEq,Clone,Eq,Default)]
 pub struct Period(pub VecMap<i64>);
 

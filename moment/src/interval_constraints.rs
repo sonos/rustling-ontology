@@ -334,6 +334,77 @@ impl<Inner> IntervalConstraint for TakeN<Inner>
     }
 }
 
+#[derive(Clone, new)]
+pub struct TakeTheNthAfter<Inner>
+    where Inner: IntervalConstraint + 'static
+{
+    n: i64,
+    not_immediate: bool,
+    after: Rc<Inner>,
+    cycle: Rc<Cycle>,
+}
+
+impl<Inner> IntervalConstraint for TakeTheNthAfter<Inner>
+    where Inner: IntervalConstraint + 'static
+{
+    fn grain(&self) -> Grain {
+        self.after.grain()
+    }
+
+    fn to_walker(&self, origin: &Interval, context: &Context) -> IntervalWalker {
+        let cycle = self.cycle.clone();
+        let n = self.n;
+        let not_immediate = self.not_immediate;
+        let translate = Translate {
+            generator: self.after.clone(),
+            offset: Rc::new(move |after: &Interval, c: &Context| -> Option<Interval> {
+                let walker = cycle.to_walker(after, c);
+                if n >= 0 {
+                    let head = walker.forward.clone().next();
+                    if not_immediate && head.is_some() && head.map(|h| h.start < after.start).unwrap_or(false) {
+                        walker.forward.skip((n + 1) as usize).next()
+                    } else {
+                        walker.forward.skip(n as usize).next()
+                    }
+                } else {
+                    walker.backward.skip((-(n + 1)) as usize).next()
+                }
+            }),
+        };
+        translate.to_walker(&origin, context)
+    }
+}
+
+#[derive(Clone, new)]
+pub struct TakeLastOf<Inner>
+    where Inner: IntervalConstraint + 'static
+{
+    base: Rc<Inner>,
+    cycle: Rc<Cycle>,
+}
+
+impl<Inner> IntervalConstraint for TakeLastOf<Inner>
+    where Inner: IntervalConstraint + 'static
+{
+    fn grain(&self) -> Grain {
+        self.base.grain()
+    }
+
+    fn to_walker(&self, origin: &Interval, context: &Context) -> IntervalWalker {
+        let cycle = self.cycle.clone();
+        let translate = Translate {
+            generator: self.base.clone(),
+            offset: Rc::new(move |i: &Interval, c: &Context| -> Option<Interval> {
+                let pivot = i.after();
+                let walker = cycle.to_walker(&pivot, c);
+                walker.backward.clone().next()
+            }),
+        };
+        translate.to_walker(&origin, context)
+    }
+
+}
+
 #[derive(Clone)]
 pub struct Intersection<LHS, RHS>
     where LHS: IntervalConstraint + 'static,
@@ -539,6 +610,43 @@ impl<From, To> IntervalConstraint for Span<From, To>
     }
 }
 
+#[derive(Clone, new)]
+pub struct ShiftBy<Inner>
+    where Inner: IntervalConstraint + 'static
+{
+    base: Rc<Inner>,
+    period: Period,
+}
+
+impl<Inner> IntervalConstraint for ShiftBy<Inner>
+    where Inner: IntervalConstraint + 'static
+{
+
+    fn grain(&self) -> Grain {
+        self.base.grain()
+    }
+
+    fn to_walker(&self, origin: &Interval, context: &Context) -> IntervalWalker {
+        if let Some(period_grain) = self.period.finer_grain() {
+            let period = self.period.clone();
+            let next_grain = period_grain.next();
+            let translate = Translate {
+                generator: self.base.clone(),
+                offset: Rc::new(move |i: &Interval, c: &Context| -> Option<Interval> {
+                    //Some(i.clone().round_to(next_grain) + period)
+                    unimplemented!();
+                }),
+            };
+            translate.to_walker(origin, context)
+        } else { // If no finer grain -> empty period
+            self.base.to_walker(origin, context)
+        }
+    }
+}
+
+
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -638,6 +746,94 @@ mod tests {
                    walker.backward.clone().next());
         assert_eq!(None, walker.backward.clone().skip(1).next());
         assert_eq!(None, walker.forward.clone().next());
+    }
+
+    #[test]
+    fn test_take_the_nth_after_positive() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let dom = DayOfMonth(20);
+        let take_the_nth_after = TakeTheNthAfter::new(3, false, Rc::new(dom), Rc::new(Cycle(Grain::Day)));
+
+        let walker = take_the_nth_after.to_walker(&context.reference, &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 23).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 06, 23).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 23).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 23).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_take_the_nth_after_negative() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let dom = DayOfMonth(20);
+        let take_the_nth_after = TakeTheNthAfter::new(-3, false, Rc::new(dom), Rc::new(Cycle(Grain::Day)));
+
+        let walker = take_the_nth_after.to_walker(&context.reference, &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 17).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 06, 17).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 17).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 17).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_take_the_last_week_of_month() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let month = Month(5);
+        let take_last_of = TakeLastOf::new(Rc::new(month), Rc::new(Cycle(Grain::Week)));
+
+        let walker = take_last_of.to_walker(&context.reference, &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 22).and_hms(0, 0, 0)),
+                                              Grain::Week)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 05, 21).and_hms(0, 0, 0)),
+                                              Grain::Week)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 05, 23).and_hms(0, 0, 0)),
+                                              Grain::Week)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 05, 25).and_hms(0, 0, 0)),
+                                              Grain::Week)),
+                   walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_take_the_last_day_of_month() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let month = Month(5);
+        let take_last_of = TakeLastOf::new(Rc::new(month), Rc::new(Cycle(Grain::Day)));
+
+        let walker = take_last_of.to_walker(&context.reference, &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 05, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 05, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 05, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().skip(1).next());
     }
 
     #[test]

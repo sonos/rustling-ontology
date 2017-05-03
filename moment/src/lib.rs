@@ -259,6 +259,36 @@ impl ops::Sub<PeriodComp> for Interval {
     }
 }
 
+impl ops::Add<Period> for Interval {
+    type Output = Interval;
+    fn add(self, p: Period) -> Interval {
+        self + &p
+    }
+}
+
+impl<'a> ops::Add<&'a Period> for Interval {
+    type Output = Interval;
+    fn add(self, p: &'a Period) -> Interval {
+        use enum_primitive::FromPrimitive;
+        let mut result = self;
+        for (g, q) in p.0.iter() {
+            result = result +
+                     PeriodComp {
+                         grain: Grain::from_usize(g).unwrap(), // checked
+                         quantity: *q,
+                     };
+        }
+        result
+    }
+}
+
+impl ops::Sub<Period> for Interval {
+    type Output = Interval;
+    fn sub(self, p: Period) -> Interval {
+        self + -p
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
