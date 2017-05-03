@@ -76,6 +76,10 @@ impl Moment {
             }
         }
     }
+
+    fn adjust_for_daylight_saving(self) -> Moment {
+        Moment(Local.ymd(self.year(), self.month(), self.day()).and_hms(self.hour(), self.minute(), self.second()))
+    }
 }
 
 impl ops::Add<Period> for Moment {
@@ -115,8 +119,8 @@ impl<'a> ops::Add<&'a PeriodComp> for Moment {
             Grain::Year => self.add_months(12 * p.quantity as i32),
             Grain::Quarter => self.add_months(3 * p.quantity as i32),
             Grain::Month => self.add_months(p.quantity as i32),
-            Grain::Week => Moment(self.0 + Duration::weeks(p.quantity)),
-            Grain::Day => Moment(self.0 + Duration::days(p.quantity)),
+            Grain::Week => Moment(self.0 + Duration::weeks(p.quantity)).adjust_for_daylight_saving(),
+            Grain::Day => Moment(self.0 + Duration::days(p.quantity)).adjust_for_daylight_saving(),
             Grain::Hour => Moment(self.0 + Duration::hours(p.quantity)),
             Grain::Minute => Moment(self.0 + Duration::minutes(p.quantity)),
             Grain::Second => Moment(self.0 + Duration::seconds(p.quantity)),
@@ -332,6 +336,14 @@ mod tests {
         // daylight saving brainfuck
         assert_eq!(Moment(Local.ymd(2017, 03, 26).and_hms(3, 30, 00)),
                    Moment(Local.ymd(2017, 04, 26).and_hms(2, 30, 00)).add_months(-1));
+    }
+
+    #[test]
+    fn daylight_saving_aware() {
+     // TODO Take a look at the offset shifting due to a period addition        // 1st March -> +1 and 31 Match -> +2        // 1st March + 30 days -> +1 instead of +2
+     assert_eq!(Moment(Local.ymd(2017, 03, 31).and_hms(0, 0, 0)),
+        Moment(Local.ymd(2017, 03, 20).and_hms(0, 0, 0)) + PeriodComp::days(11)
+    )
     }
 
     #[test]

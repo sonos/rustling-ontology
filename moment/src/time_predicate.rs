@@ -7,14 +7,12 @@ use chrono::{Datelike, Duration, TimeZone, Timelike, Weekday};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 struct Context {
-    reference: Interval
+    reference: Interval,
 }
 
 impl Context {
     fn now() -> Context {
-        Context {
-            reference: Interval::starting_at(Moment::now(), Grain::Second),
-        }
+        Context { reference: Interval::starting_at(Moment::now(), Grain::Second) }
     }
 }
 
@@ -64,7 +62,7 @@ impl IntervalPredicate for Month {
         let rounded_moment = Moment(Local
                                         .ymd(origin.start.year(), self.0, 1)
                                         .and_hms(0, 0, 0));
-        let rounded_interval = Interval::starting_at(rounded_moment,Grain::Month);
+        let rounded_interval = Interval::starting_at(rounded_moment, Grain::Month);
         let offset_year = !(origin.start <= rounded_interval.end_moment()) as i64;
         let anchor = rounded_interval + PeriodComp::years(offset_year);
 
@@ -88,14 +86,17 @@ impl IntervalPredicate for DayOfMonth {
         let anchor = origin.round_to(Grain::Month) + PeriodComp::months(offset_month);
 
         let day_of_month = self.0;
-        let forward_walker = Walker::generator(anchor, |prev| prev + PeriodComp::months(1))
-            .filter(move |interval| {
-                        day_of_month <= last_day_in_month(interval.start.year(), interval.start.month())
-                    })
-            .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
+        let forward_walker =
+            Walker::generator(anchor, |prev| prev + PeriodComp::months(1))
+                .filter(move |interval| {
+                            day_of_month <=
+                            last_day_in_month(interval.start.year(), interval.start.month())
+                        })
+                .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
 
-        let backward_walker = Walker::generator(anchor - PeriodComp::months(1),
-                                  |prev| prev - PeriodComp::months(1))
+        let backward_walker =
+            Walker::generator(anchor - PeriodComp::months(1),
+                              |prev| prev - PeriodComp::months(1))
                     .filter(move |interval| {
                                 day_of_month <=
                                 last_day_in_month(interval.start.year(), interval.start.month())
@@ -115,7 +116,7 @@ impl IntervalPredicate for DayOfWeek {
     fn grain(&self) -> Grain {
         Grain::Day
     }
-    
+
     fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
         // number_from_monday is u32 -> use i64
         let offset = (self.0.number_from_monday() as i64 - origin.start.weekday().number_from_monday() as i64) %
@@ -215,7 +216,8 @@ impl IntervalPredicate for Cycle {
         let grain = self.0;
         BidirectionalWalker::new()
             .forward_with(anchor, move |prev| prev + PeriodComp::new(grain, 1))
-            .backward_with(anchor - PeriodComp::new(grain, 1), move |prev| prev - PeriodComp::new(grain, 1))
+            .backward_with(anchor - PeriodComp::new(grain, 1),
+                           move |prev| prev - PeriodComp::new(grain, 1))
     }
 }
 
@@ -227,7 +229,10 @@ struct TakeTheNth {
 }
 
 impl TakeTheNth {
-    fn new<P: IntervalPredicate + 'static>(n: i64, not_immediate: bool, predicate: P) -> TakeTheNth {
+    fn new<P: IntervalPredicate + 'static>(n: i64,
+                                           not_immediate: bool,
+                                           predicate: P)
+                                           -> TakeTheNth {
         TakeTheNth {
             predicate: ::std::rc::Rc::new(predicate),
             n: n,
@@ -247,25 +252,29 @@ impl IntervalPredicate for TakeTheNth {
 
         let match_interval: Option<Interval> = if self.n >= 0 {
             let head = interval_walker.forward.clone().next();
-            let mut forward_walker = if head.is_some() 
-                    && self.not_immediate 
-                    && head.map(move |x| x.intersect(base_interval)).is_some() {
-                interval_walker.forward.clone().skip((self.n+1) as usize)
+            let mut forward_walker = if head.is_some() && self.not_immediate &&
+                                        head.map(move |x| x.intersect(base_interval)).is_some() {
+                interval_walker
+                    .forward
+                    .clone()
+                    .skip((self.n + 1) as usize)
             } else {
                 interval_walker.forward.clone().skip(self.n as usize)
             };
             forward_walker.next()
         } else {
-            interval_walker.backward.clone().skip((- (self.n + 1)) as usize).next()
+            interval_walker
+                .backward
+                .clone()
+                .skip((-(self.n + 1)) as usize)
+                .next()
         };
 
         if let Some(interval) = match_interval {
             if origin.start < interval.end_moment() {
-                BidirectionalWalker::new()
-                    .forward_values(vec![interval])
+                BidirectionalWalker::new().forward_values(vec![interval])
             } else {
-                BidirectionalWalker::new()
-                    .backward_values(vec![interval])
+                BidirectionalWalker::new().backward_values(vec![interval])
             }
         } else {
             BidirectionalWalker::new()
@@ -282,8 +291,7 @@ mod tests {
     use ::*;
 
     fn build_context(moment: Moment) -> Context {
-        let now = Interval::starting_at(moment,
-                                        Grain::Second);
+        let now = Interval::starting_at(moment, Grain::Second);
 
         Context { reference: now }
     }
@@ -322,50 +330,56 @@ mod tests {
         let walker = cycle_predicate.predicate(context.reference, context);
         let mut backward = walker.backward.clone();
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    backward.next());
+                                              Grain::Day)),
+                   backward.next());
         let mut forward = walker.forward.clone();
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    forward.next());
+                                              Grain::Day)),
+                   forward.next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    forward.next());
+                                              Grain::Day)),
+                   forward.next());
     }
 
     #[test]
-    fn test_take_the_nth_predicate() {
-        // Context
+    fn test_take_the_nth_predicate_forward_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        //  Test case 1
         let month_predicate = Month(5);
         let take_the_nth_predicate = TakeTheNth::new(3, false, month_predicate);
         let walker = take_the_nth_predicate.predicate(context.reference, context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2020, 05, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.forward.clone().next());
+                                              Grain::Month)),
+                   walker.forward.clone().next());
         assert_eq!(None, walker.forward.clone().skip(1).next());
         assert_eq!(None, walker.backward.clone().next());
 
-        // Test case 2
+    }
+
+    #[test]
+    fn test_take_the_nth_predicate_backward_positive() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+
         let month_predicate = Month(3);
         let take_the_nth_predicate = TakeTheNth::new(3, false, month_predicate);
         let walker = take_the_nth_predicate.predicate(context.reference, context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2021, 03, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.forward.clone().next());
+                                              Grain::Month)),
+                   walker.forward.clone().next());
         assert_eq!(None, walker.forward.clone().skip(1).next());
         assert_eq!(None, walker.backward.clone().next());
+    }
 
-        //Test case 3
+    #[test]
+    fn test_take_the_nth_predicate_backward_negative() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
         let month_predicate = Month(3);
         let take_the_nth_predicate = TakeTheNth::new(-3, false, month_predicate);
         let walker = take_the_nth_predicate.predicate(context.reference, context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 03, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.backward.clone().next());
+                                              Grain::Month)),
+                   walker.backward.clone().next());
         assert_eq!(None, walker.backward.clone().skip(1).next());
         assert_eq!(None, walker.forward.clone().next());
     }
@@ -378,75 +392,74 @@ mod tests {
         let walker = month_predicate.predicate(context.reference, context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.forward.clone().next());
+                                              Grain::Month)),
+                   walker.forward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 05, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.forward.clone().skip(1).next());
+                                              Grain::Month)),
+                   walker.forward.clone().skip(1).next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 05, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.backward.clone().next());
+                                              Grain::Month)),
+                   walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 05, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.backward.clone().skip(1).next());
+                                              Grain::Month)),
+                   walker.backward.clone().skip(1).next());
 
         // Test case 2
         let month_predicate = Month(3);
         let walker = month_predicate.predicate(context.reference, context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 03, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.forward.clone().next());
+                                              Grain::Month)),
+                   walker.forward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2019, 03, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.forward.clone().skip(1).next());
+                                              Grain::Month)),
+                   walker.forward.clone().skip(1).next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.backward.clone().next());
+                                              Grain::Month)),
+                   walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 03, 1).and_hms(0, 0, 0)),
-                                              Grain::Month)), 
-                    walker.backward.clone().skip(1).next());
+                                              Grain::Month)),
+                   walker.backward.clone().skip(1).next());
     }
 
     #[test]
-    fn test_day_of_month_predicate() {
+    fn test_day_of_month_predicate_backward() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        // Test case 1
         let day_of_month_predicate = DayOfMonth(10);
         let walker = day_of_month_predicate.predicate(context.reference, context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 10).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    walker.forward.clone().next());
+                                              Grain::Day)),
+                   walker.forward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 06, 10).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    walker.forward.clone().skip(1).next());
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 10).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    walker.backward.clone().next());
+                                              Grain::Day)),
+                   walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 10).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    walker.backward.clone().skip(1).next());
+                                              Grain::Day)),
+                   walker.backward.clone().skip(1).next());
+    }
 
-        // Test case 2
+    #[test]
+    fn test_day_of_month_predicate_forward() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
         let day_of_month_predicate = DayOfMonth(31);
         let walker = day_of_month_predicate.predicate(context.reference, context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 31).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    walker.forward.clone().next());
+                                              Grain::Day)),
+                   walker.forward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 07, 31).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    walker.forward.clone().skip(1).next());
-        // TODO Take a look at the offset shifting due to a period addition
-        // 1st March -> +1 and 31 Match -> +2
-        // 1st March + 30 days -> +1 instead of +2
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 31).and_hms(0, 0, 0) + FixedOffset::east(3600)),
-                                              Grain::Day)), 
-                    walker.backward.clone().next());
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 01, 31).and_hms(0, 0, 0)),
-                                              Grain::Day)), 
-                    walker.backward.clone().skip(1).next());
+                                              Grain::Day)),
+                   walker.backward.clone().skip(1).next());
     }
 
     #[test]
@@ -488,4 +501,3 @@ mod tests {
                     walker.backward.clone().skip(1).next());
     }
 }
-
