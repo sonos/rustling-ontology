@@ -205,6 +205,14 @@ impl Interval {
         }
     }
 
+    pub fn interval_to(self, other: Interval) -> Interval {
+        Interval {
+            start: self.start,
+            grain: ::std::cmp::max(self.grain, other.grain),
+            end: Some(other.start)
+        }
+    }
+
     pub fn intersect(self, other: Interval) -> Option<Interval> {
         if self.start <= other.start {
             if other.start >= self.end_moment() {

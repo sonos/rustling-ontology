@@ -282,6 +282,74 @@ impl IntervalConstraint for TakeTheNth {
     }
 }
 
+#[derive(Clone)]
+pub struct TakeN {
+    inner: ::std::rc::Rc<IntervalConstraint>,
+    n: i64,
+    not_immediate: bool,
+}
+
+impl TakeN {
+    pub fn new<Inner: IntervalConstraint + 'static>(n: i64,
+                                                    not_immediate: bool,
+                                                    inner: Inner)
+                                                    -> TakeN {
+        TakeN {
+            inner: ::std::rc::Rc::new(inner),
+            n: n,
+            not_immediate: not_immediate,
+        }
+    }
+}
+
+impl IntervalConstraint for TakeN {
+    fn grain(&self) -> Grain {
+        self.inner.grain()
+    }
+
+    fn to_walker(&self, origin: Interval, context: Context) -> IntervalWalker {
+        let base_interval = context.reference;
+        let interval_walker = self.inner.to_walker(base_interval, context);
+
+        let match_interval: Option<Interval> = if self.n >= 0 {
+            let head = interval_walker.forward.clone().next();
+            let forward_walker = if head.is_some() && self.not_immediate &&
+                                        head.map(move |x| x.intersect(base_interval)).is_some() {
+                interval_walker
+                    .forward
+                    .skip(1)
+            } else {
+                interval_walker.forward
+            };
+            let start = forward_walker.clone().next();
+            let end = forward_walker.clone().skip(self.n as usize).next();
+            if let (Some(s),Some(e)) = (start, end) {
+                Some(s.interval_to(e))
+            } else {
+                None
+            }
+        } else {
+            let end = interval_walker.backward.clone().next();
+            let start = interval_walker.backward.skip((- (self.n + 1)) as usize).next();
+            if let (Some(s),Some(e)) = (start, end) {
+                Some(s.union(e))
+            } else {
+                None
+            }
+        };
+
+        if let Some(interval) = match_interval {
+            if origin.start < interval.end_moment() {
+                BidirectionalWalker::new().forward_values(vec![interval])
+            } else {
+                BidirectionalWalker::new().backward_values(vec![interval])
+            }
+        } else {
+            BidirectionalWalker::new()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
