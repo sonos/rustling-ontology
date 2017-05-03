@@ -36,6 +36,10 @@ pub enum Walker<V: Copy + Clone> {
     },
     Skip { inner: Box<Walker<V>>, n: usize },
     Take { inner: Box<Walker<V>>, n: usize },
+    Chain {
+        lhs: Box<Walker<V>>,
+        rhs: Box<Walker<V>>,
+    },
 }
 
 impl<V: Copy + Clone> Walker<V> {
@@ -121,6 +125,13 @@ impl<V: Copy + Clone> Walker<V> {
         Walker::Take {
             inner: Box::new(self.clone()),
             n: n,
+        }
+    }
+
+    pub fn chain(&self, other: &Walker<V>) -> Walker<V> {
+        Walker::Chain {
+            lhs: Box::new(self.clone()),
+            rhs: Box::new(other.clone()),
         }
     }
 
@@ -239,6 +250,10 @@ impl<V: Copy + Clone> Walker<V> {
                     inner.next()
                 }
             }
+            &mut Walker::Chain {
+                     ref mut lhs,
+                     ref mut rhs,
+                 } => lhs.next().or_else(|| rhs.next()),
         }
     }
 }
@@ -265,7 +280,13 @@ mod tests {
     use super::*;
 
     macro_rules! w {
+        () => { Walker::vec(vec!()) };
         ($($e:expr),*) => { Walker::vec(vec!($($e),*)) }
+    }
+
+    fn c(it: Walker<usize>) -> Vec<usize> {
+        it.into_iter().collect()
+
     }
 
     #[test]
@@ -273,10 +294,9 @@ mod tests {
         let ints = w![1usize, 2, 3];
         let other_ints = ints.map(|i| i + 2);
         let other_other_ints = other_ints.map(|i| i + 2);
-        assert_eq!(vec![1usize, 2, 3], ints.into_iter().collect::<Vec<_>>());
-        assert_eq!(vec![3, 4, 5], other_ints.into_iter().collect::<Vec<_>>());
-        assert_eq!(vec![5, 6, 7],
-                   other_other_ints.into_iter().collect::<Vec<_>>());
+        assert_eq!(vec![1usize, 2, 3], c(ints));
+        assert_eq!(vec![3, 4, 5], c(other_ints));
+        assert_eq!(vec![5, 6, 7], c(other_other_ints));
     }
 
     #[test]
@@ -284,43 +304,39 @@ mod tests {
         let ints = w![1usize, 2, 3, 4, 5, 6, 7];
         let even = ints.filter(|i| i % 2 == 0);
         let even_mul3 = even.filter(|i| i % 3 == 0);
-        assert_eq!(vec![2, 4, 6], even.into_iter().collect::<Vec<_>>());
-        assert_eq!(vec![6], even_mul3.into_iter().collect::<Vec<_>>());
+        assert_eq!(vec![2, 4, 6], c(even));
+        assert_eq!(vec![6], c(even_mul3));
     }
 
     #[test]
     fn test_cloneable_take_while() {
         let ints = w![1usize, 2, 3, 4, 5, 3, 2, 1];
-        let tw = ints.take_while(|&i| i <= 3);
-        assert_eq!(vec![1, 2, 3], tw.into_iter().collect::<Vec<_>>());
+        assert_eq!(vec![1, 2, 3], c(ints.take_while(|&i| i <= 3)));
     }
 
     #[test]
     fn test_cloneable_skip_while() {
         let ints = w![1usize, 2, 3, 4, 5, 3, 2, 1];
-        let tw = ints.skip_while(|&i| i <= 3);
-        assert_eq!(vec![4, 5, 3, 2, 1], tw.into_iter().collect::<Vec<_>>());
+        assert_eq!(vec![4, 5, 3, 2, 1], c(ints.skip_while(|&i| i <= 3)));
     }
 
     #[test]
     fn test_skip() {
         let ints = w![1usize, 2, 3, 4, 5, 3, 2, 1];
-        let tw = ints.skip(5);
-        assert_eq!(vec![3, 2, 1], tw.into_iter().collect::<Vec<_>>());
+        assert_eq!(vec![3, 2, 1], c(ints.skip(5)));
     }
 
     #[test]
     fn test_take() {
         let ints = w![1usize, 2, 3, 4, 5, 3, 2, 1];
-        let take = ints.take(5);
-        assert_eq!(vec![1, 2, 3, 4, 5], take.into_iter().collect::<Vec<_>>());
+        assert_eq!(vec![1, 2, 3, 4, 5], c(ints.take(5)));
     }
 
     #[test]
     fn test_filter_map() {
         let ints = w![1usize, 2, 3, 4, 5, 3, 2, 1];
-        let filter_map = ints.filter_map(|i| if i % 2 == 0 { Some(3 * i) } else { None });
-        assert_eq!(vec![6, 12, 6], filter_map.into_iter().collect::<Vec<_>>());
+        assert_eq!(vec![6, 12, 6],
+                   c(ints.filter_map(|i| if i % 2 == 0 { Some(3 * i) } else { None })))
     }
 
     #[test]
@@ -328,40 +344,21 @@ mod tests {
         fn f(i: usize) -> Walker<usize> {
             Walker::<usize>::vec(vec![1; i])
         }
-        assert_eq!(vec![0;0],
-                   w![0usize].flat_map(f).into_iter().collect::<Vec<_>>());
-        assert_eq!(vec![1],
-                   w![1usize].flat_map(f).into_iter().collect::<Vec<_>>());
-        assert_eq!(vec![1],
-                   w![1usize, 0]
-                       .flat_map(f)
-                       .into_iter()
-                       .collect::<Vec<_>>());
-        assert_eq!(vec![1],
-                   w![0usize, 1]
-                       .flat_map(f)
-                       .into_iter()
-                       .collect::<Vec<_>>());
-        assert_eq!(vec![1, 1, 1],
-                   w![1usize, 2]
-                       .flat_map(f)
-                       .into_iter()
-                       .collect::<Vec<_>>());
-        assert_eq!(vec![1, 1, 1],
-                   w![1usize, 0, 2]
-                       .flat_map(f)
-                       .into_iter()
-                       .collect::<Vec<_>>());
-        assert_eq!(vec![1, 1, 1],
-                   w![1usize, 0, 2, 0]
-                       .flat_map(f)
-                       .into_iter()
-                       .collect::<Vec<_>>());
-        assert_eq!(vec![1, 1, 1, 1],
-                   w![1usize, 0, 2, 0, 1]
-                       .flat_map(f)
-                       .into_iter()
-                       .collect::<Vec<_>>());
+        assert_eq!(vec![0;0], c(w![0usize].flat_map(f)));
+        assert_eq!(vec![1], c(w![1usize].flat_map(f)));
+        assert_eq!(vec![1], c(w![1usize, 0].flat_map(f)));
+        assert_eq!(vec![1], c(w![0usize, 1].flat_map(f)));
+        assert_eq!(vec![1, 1, 1], c(w![1usize, 2].flat_map(f)));
+        assert_eq!(vec![1, 1, 1], c(w![1usize, 0, 2].flat_map(f)));
+        assert_eq!(vec![1, 1, 1], c(w![1usize, 0, 2, 0].flat_map(f)));
+        assert_eq!(vec![1, 1, 1, 1], c(w![1usize, 0, 2, 0, 1].flat_map(f)));
     }
 
+    #[test]
+    fn test_chain() {
+        assert_eq!(Vec::<usize>::new(), c(w!().chain(&w!())));
+        assert_eq!(vec![1], c(w!(1).chain(&w!())));
+        assert_eq!(vec![1], c(w!().chain(&w!(1))));
+        assert_eq!(vec![1, 2], c(w!(1).chain(&w!(2))));
+    }
 }
