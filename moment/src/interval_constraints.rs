@@ -130,19 +130,10 @@ impl IntervalConstraint for DayOfWeek {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, new)]
 pub struct Hour {
     quantity: i64,
     is_12_clock: bool,
-}
-
-impl Hour {
-    pub fn new(quantity: i64, is_12_clock: bool) -> Hour {
-        Hour {
-            quantity: quantity,
-            is_12_clock: is_12_clock,
-        }
-    }
 }
 
 impl IntervalConstraint for Hour {
@@ -221,27 +212,18 @@ impl IntervalConstraint for Cycle {
     }
 }
 
-#[derive(Clone)]
-pub struct TakeTheNth {
-    inner: ::std::rc::Rc<IntervalConstraint>,
+#[derive(Clone,new)]
+pub struct TakeTheNth<Inner>
+    where Inner: IntervalConstraint + 'static
+{
     n: i64,
     not_immediate: bool,
+    inner: Inner,
 }
 
-impl TakeTheNth {
-    pub fn new<Inner: IntervalConstraint + 'static>(n: i64,
-                                                    not_immediate: bool,
-                                                    inner: Inner)
-                                                    -> TakeTheNth {
-        TakeTheNth {
-            inner: ::std::rc::Rc::new(inner),
-            n: n,
-            not_immediate: not_immediate,
-        }
-    }
-}
-
-impl IntervalConstraint for TakeTheNth {
+impl<Inner> IntervalConstraint for TakeTheNth<Inner>
+    where Inner: IntervalConstraint + 'static
+{
     fn grain(&self) -> Grain {
         self.inner.grain()
     }
@@ -282,27 +264,17 @@ impl IntervalConstraint for TakeTheNth {
     }
 }
 
-#[derive(Clone)]
-pub struct TakeN {
-    inner: ::std::rc::Rc<IntervalConstraint>,
+#[derive(Clone, new)]
+pub struct TakeN<Inner>
+    where Inner: IntervalConstraint + 'static
+{
     n: i64,
     not_immediate: bool,
+    inner: Inner
 }
 
-impl TakeN {
-    pub fn new<Inner: IntervalConstraint + 'static>(n: i64,
-                                                    not_immediate: bool,
-                                                    inner: Inner)
-                                                    -> TakeN {
-        TakeN {
-            inner: ::std::rc::Rc::new(inner),
-            n: n,
-            not_immediate: not_immediate,
-        }
-    }
-}
-
-impl IntervalConstraint for TakeN {
+impl<Inner> IntervalConstraint for TakeN<Inner>
+    where Inner: IntervalConstraint + 'static {
     fn grain(&self) -> Grain {
         self.inner.grain()
     }
@@ -348,6 +320,15 @@ impl IntervalConstraint for TakeN {
             BidirectionalWalker::new()
         }
     }
+}
+
+#[derive(Clone,new)]
+pub struct Composition<LHS, RHS>
+    where LHS: IntervalConstraint + 'static,
+          RHS: IntervalConstraint + 'static
+{
+    lhs: LHS,
+    rhs: RHS,
 }
 
 #[cfg(test)]

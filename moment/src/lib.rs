@@ -1,5 +1,7 @@
 extern crate chrono;
 #[macro_use]
+extern crate derive_new;
+#[macro_use]
 extern crate enum_primitive;
 extern crate vec_map;
 
