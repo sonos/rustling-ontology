@@ -353,7 +353,6 @@ impl<LHS, RHS> Intersection<LHS, RHS>
             rhs: Rc::new(rhs),
         }
     }
-
 }
 
 impl<LHS, RHS> IntervalConstraint for Intersection<LHS, RHS>
@@ -410,6 +409,133 @@ impl<LHS, RHS> IntervalConstraint for Intersection<LHS, RHS>
         } else {
             combine(origin, *context, self.lhs.clone(), self.rhs.clone())
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct Translate<Generator, Offset>
+    where Generator: IntervalConstraint + 'static,
+          Offset: Fn(&Interval, &Context) -> Option<Interval> + 'static
+{
+    generator: Rc<Generator>,
+    offset: Rc<Offset>,
+}
+
+impl<Generator, Offset> Translate<Generator, Offset>
+    where Generator: IntervalConstraint + 'static,
+          Offset: Fn(&Interval, &Context) -> Option<Interval> + 'static
+{
+    pub fn new(generator: Generator,
+               offset: Offset)
+               -> Translate<Generator, Offset> {
+        Translate {
+            generator: Rc::new(generator),
+            offset: Rc::new(offset),
+        }
+    }
+}
+
+impl<Generator, Offset> IntervalConstraint for Translate<Generator, Offset>
+    where Generator: IntervalConstraint + 'static,
+          Offset: Fn(&Interval, &Context) -> Option<Interval> + 'static
+{
+    fn grain(&self) -> Grain {
+        self.generator.grain()
+    }
+
+    fn to_walker(&self, origin: &Interval, context: &Context) -> IntervalWalker {
+        let generator_walker = self.generator.to_walker(origin, context);
+        let context = *context;
+
+        let offset = self.offset.clone();
+        let origin = *origin;
+        let prepend_to_fore = generator_walker
+            .backward
+            .take(12)
+            .filter_map(move |i| offset(&i, &context))
+            .take_while(move |i| origin.start <= i.end_moment());
+        let mut prepend_to_fore: Vec<Interval> = prepend_to_fore.into_iter().collect();
+        prepend_to_fore.reverse();
+
+        let offset = self.offset.clone();
+        let still_fore = generator_walker
+            .forward
+            .take(12)
+            .filter_map(move |i| offset(&i, &context))
+            .skip_while(move |i| origin.start > i.end_moment())
+            .take_while(move |i| i.start <= context.max.end_moment());
+
+        let offset = self.offset.clone();
+        let prepend_to_back = generator_walker
+            .forward
+            .take(12)
+            .filter_map(move |i| offset(&i, &context))
+            .take_while(move |i| origin.start > i.end_moment());
+        let mut prepend_to_back: Vec<Interval> = prepend_to_back.into_iter().collect();
+        prepend_to_back.reverse();
+
+        let offset = self.offset.clone();
+        let still_back = generator_walker
+            .backward
+            .take(12)
+            .filter_map(move |i| offset(&i, &context))
+            .skip_while(move |i| origin.start <= i.end_moment())
+            .take_while(move |i| context.min.start <= i.end_moment());
+
+        IntervalWalker::new()
+            .forward(Walker::vec(prepend_to_fore).chain(&still_fore))
+            .backward(Walker::vec(prepend_to_back).chain(&still_back))
+    }
+}
+
+#[derive(Clone)]
+pub struct Span<From, To>
+    where From: IntervalConstraint + 'static,
+          To: IntervalConstraint + 'static
+{
+    from: Rc<From>,
+    to: Rc<To>,
+    inclusive: bool,
+}
+
+impl<From, To> Span<From, To>
+    where From: IntervalConstraint + 'static,
+          To: IntervalConstraint + 'static
+{
+    pub fn new(from: From, to: To, inclusive: bool) -> Span<From, To> {
+        Span {
+            from: Rc::new(from),
+            to: Rc::new(to),
+            inclusive,
+        }
+    }
+}
+
+impl<From, To> IntervalConstraint for Span<From, To>
+    where From: IntervalConstraint + 'static,
+          To: IntervalConstraint + 'static
+{
+    fn grain(&self) -> Grain {
+        self.from.grain()
+    }
+
+    fn to_walker(&self, origin: &Interval, context: &Context) -> IntervalWalker {
+        let inclusive = self.inclusive;
+        let to = self.to.clone();
+        let translate = Translate {
+            generator: self.from.clone(),
+            offset: Rc::new(move |start: &Interval, c: &Context| -> Option<Interval> {
+                to.to_walker(start, c)
+                    .forward
+                    .next()
+                    .map(|end| if inclusive {
+                             start.union(end)
+                         } else {
+                             start.interval_to(end)
+                         })
+            }),
+        };
+        translate.to_walker(origin, context)
     }
 }
 
@@ -855,4 +981,97 @@ mod tests {
                                               Grain::Day)),
                    walker.backward.clone().skip(1).next());
     }
+
+    #[test]
+    fn test_translate_date_by_days_fore() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+
+        // every 32th day after the 12 of any month
+        fn offset(i: &Interval, _: &Context) -> Option<Interval> {
+            Some(*i + PeriodComp::days(32))
+        }
+        let walker = Translate::new(DayOfMonth(12), offset).to_walker(&context.reference,
+                                                                             &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 14).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 06, 13).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 13).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 16).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_translate_date_by_days_back() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+
+        // every 32th day before the 12 of any month
+        fn offset(i: &Interval, _: &Context) -> Option<Interval> {
+            Some(*i - PeriodComp::days(32))
+        }
+        let walker = Translate::new(DayOfMonth(12), offset).to_walker(&context.reference,
+                                                                             &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 11).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 06, 10).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 10).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 11).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_translate_date_by_days_back_() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+
+        fn offset(i: &Interval, _: &Context) -> Option<Interval> {
+            Some(*i + PeriodComp::days(100))
+        }
+        let walker = Translate::new(DayOfMonth(12), offset).to_walker(&context.reference,
+                                                                             &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 23).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 06, 20).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_inclusive_span() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let walker = Span::new(DayOfWeek(Weekday::Mon), DayOfWeek(Weekday::Wed), false)
+            .to_walker(&context.reference, &context);
+
+        assert_eq!(Some(Interval::new(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
+                                      Some(Moment(Local.ymd(2017, 04, 26).and_hms(0, 0, 0))),
+                                      Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::new(Moment(Local.ymd(2017, 05, 01).and_hms(0, 0, 0)),
+                                      Some(Moment(Local.ymd(2017, 05, 03).and_hms(0, 0, 0))),
+                                      Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::new(Moment(Local.ymd(2017, 04, 17).and_hms(0, 0, 0)),
+                                      Some(Moment(Local.ymd(2017, 04, 19).and_hms(0, 0, 0))),
+                                      Grain::Day)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::new(Moment(Local.ymd(2017, 04, 10).and_hms(0, 0, 0)),
+                                      Some(Moment(Local.ymd(2017, 04, 12).and_hms(0, 0, 0))),
+                                      Grain::Day)),
+                   walker.backward.clone().skip(1).next());
+    }
+
 }
