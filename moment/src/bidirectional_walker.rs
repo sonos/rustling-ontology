@@ -1,15 +1,12 @@
 use walker::*;
 
 #[derive(Clone)]
-pub struct BidirectionalWalker<V: Copy+Clone>
-{
+pub struct BidirectionalWalker<V: Copy + Clone> {
     pub forward: Walker<V>,
     pub backward: Walker<V>,
 }
 
-impl<V: Copy+Clone> BidirectionalWalker<V>
-{
-
+impl<V: Copy + Clone> BidirectionalWalker<V> {
     pub fn new() -> BidirectionalWalker<V> {
         BidirectionalWalker {
             forward: Walker::Vec(vec![]),
@@ -31,10 +28,7 @@ impl<V: Copy+Clone> BidirectionalWalker<V>
         }
     }
 
-    pub fn forward_with<FP>(self,
-                            anchor: V,
-                            transform: FP)
-                            ->  BidirectionalWalker<V>
+    pub fn forward_with<FP>(self, anchor: V, transform: FP) -> BidirectionalWalker<V>
         where FP: Fn(V) -> V + 'static
     {
         BidirectionalWalker {
@@ -50,21 +44,15 @@ impl<V: Copy+Clone> BidirectionalWalker<V>
         }
     }
 
-    pub fn backward_values(self,
-                           values: Vec<V>)
-                           -> BidirectionalWalker<V> {
+    pub fn backward_values(self, values: Vec<V>) -> BidirectionalWalker<V> {
         BidirectionalWalker {
             forward: self.forward,
             backward: Walker::vec(values),
         }
     }
 
-    pub fn backward_with<BP>
-        (self,
-         anchor: V,
-         transform: BP)
-         -> BidirectionalWalker<V>
-        where BP: Fn(V) -> V + 'static 
+    pub fn backward_with<BP>(self, anchor: V, transform: BP) -> BidirectionalWalker<V>
+        where BP: Fn(V) -> V + 'static
     {
         BidirectionalWalker {
             forward: self.forward,
@@ -185,4 +173,3 @@ mod tests {
                    only_backward.backward.next().unwrap().start);
     }
 }
-

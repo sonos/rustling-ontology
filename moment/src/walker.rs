@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 #[derive(Clone)]
-pub enum Walker<V:Copy+Clone> {
+pub enum Walker<V: Copy + Clone> {
     Vec(Vec<V>),
     Generator {
         current: V,
@@ -25,117 +25,139 @@ pub enum Walker<V:Copy+Clone> {
         flag: bool,
         predicate: Rc<Fn(&V) -> bool>,
     },
-    Skip {
-        inner: Box<Walker<V>>,
-        n: usize,
-    }
+    Skip { inner: Box<Walker<V>>, n: usize },
 }
 
-impl<V: Copy+Clone> Walker<V> {
-    pub fn vec(mut vec:Vec<V>) -> Walker<V> {
+impl<V: Copy + Clone> Walker<V> {
+    pub fn vec(mut vec: Vec<V>) -> Walker<V> {
         vec.reverse();
         Walker::Vec(vec)
     }
 
-    pub fn generator<F>(anchor: V, transform:F) -> Walker<V>
-        where F:Fn(V) -> V + 'static
+    pub fn generator<F>(anchor: V, transform: F) -> Walker<V>
+        where F: Fn(V) -> V + 'static
     {
         Walker::Generator {
-            current: anchor, transform: Rc::new(transform)
+            current: anchor,
+            transform: Rc::new(transform),
         }
     }
 
-    pub fn map<F>(&self, transform:F) -> Walker<V>
-        where F:Fn(V) -> V + 'static
+    pub fn map<F>(&self, transform: F) -> Walker<V>
+        where F: Fn(V) -> V + 'static
     {
         Walker::Map {
-            inner: Box::new(self.clone()), transform: Rc::new(transform)
+            inner: Box::new(self.clone()),
+            transform: Rc::new(transform),
         }
     }
 
-    pub fn filter<F>(&self, predicate:F) -> Walker<V>
-        where F:Fn(&V) -> bool + 'static
+    pub fn filter<F>(&self, predicate: F) -> Walker<V>
+        where F: Fn(&V) -> bool + 'static
     {
         Walker::Filter {
-            inner: Box::new(self.clone()), predicate: Rc::new(predicate)
+            inner: Box::new(self.clone()),
+            predicate: Rc::new(predicate),
         }
     }
 
-    pub fn take_while<F>(&self, predicate:F) -> Walker<V>
-        where F:Fn(&V) -> bool + 'static
+    pub fn take_while<F>(&self, predicate: F) -> Walker<V>
+        where F: Fn(&V) -> bool + 'static
     {
         Walker::TakeWhile {
-            inner: Box::new(self.clone()), flag:false, predicate: Rc::new(predicate)
+            inner: Box::new(self.clone()),
+            flag: false,
+            predicate: Rc::new(predicate),
         }
     }
 
-    pub fn skip_while<F>(&self, predicate:F) -> Walker<V>
-        where F:Fn(&V) -> bool + 'static
+    pub fn skip_while<F>(&self, predicate: F) -> Walker<V>
+        where F: Fn(&V) -> bool + 'static
     {
         Walker::SkipWhile {
-            inner: Box::new(self.clone()), flag: false, predicate: Rc::new(predicate)
+            inner: Box::new(self.clone()),
+            flag: false,
+            predicate: Rc::new(predicate),
         }
     }
 
     pub fn skip(&self, n: usize) -> Walker<V> {
         Walker::Skip {
             inner: Box::new(self.clone()),
-            n: n
+            n: n,
         }
     }
 
     pub fn next(&mut self) -> Option<V> {
         match self {
-            &mut Walker::Vec(ref mut vec) => {
-                vec.pop()
-            }
-            &mut Walker::Generator { ref mut current, ref transform } => {
+            &mut Walker::Vec(ref mut vec) => vec.pop(),
+            &mut Walker::Generator {
+                     ref mut current,
+                     ref transform,
+                 } => {
                 let result = *current;
                 *current = transform(*current);
                 Some(result)
             }
-            &mut Walker::Map { ref mut inner, ref transform } => {
-                inner.next().map(|it| transform(it))
-            }
-            &mut Walker::Filter { ref mut inner, ref predicate } => {
+            &mut Walker::Map {
+                     ref mut inner,
+                     ref transform,
+                 } => inner.next().map(|it| transform(it)),
+            &mut Walker::Filter {
+                     ref mut inner,
+                     ref predicate,
+                 } => {
                 while let Some(it) = inner.next() {
                     if predicate(&it) {
-                        return Some(it)
+                        return Some(it);
                     }
                 }
                 None
             }
-            &mut Walker::TakeWhile { ref mut inner, ref mut flag, ref predicate } => {
+            &mut Walker::TakeWhile {
+                     ref mut inner,
+                     ref mut flag,
+                     ref predicate,
+                 } => {
                 if *flag {
                     None
                 } else {
-                    inner.next().and_then(|x| {
-                        if predicate(&x) {
-                            Some(x)
-                        } else {
-                            *flag = true;
-                            None
-                        }
-                    })
+                    inner
+                        .next()
+                        .and_then(|x| if predicate(&x) {
+                                      Some(x)
+                                  } else {
+                                      *flag = true;
+                                      None
+                                  })
                 }
             }
-            &mut Walker::SkipWhile { ref mut inner, ref mut flag, ref predicate } => {
+            &mut Walker::SkipWhile {
+                     ref mut inner,
+                     ref mut flag,
+                     ref predicate,
+                 } => {
                 while let Some(x) = inner.next() {
                     if *flag || !predicate(&x) {
                         *flag = true;
-                        return Some(x)
+                        return Some(x);
                     }
                 }
                 None
             }
-            &mut Walker::Skip { ref mut inner, ref mut n } => {
+            &mut Walker::Skip {
+                     ref mut inner,
+                     ref mut n,
+                 } => {
                 if *n == 0 {
                     inner.next()
                 } else {
                     let mut counter = *n;
                     *n = 0;
                     while let Some(x) = inner.next() {
-                        if counter == 0 { return Some(x) };
+                        if counter == 0 {
+                            return Some(x);
+                        };
                         counter -= 1;
                     }
                     None
@@ -145,16 +167,16 @@ impl<V: Copy+Clone> Walker<V> {
     }
 }
 
-pub struct WalkerIter<V: Copy+Clone>(Walker<V>);
+pub struct WalkerIter<V: Copy + Clone>(Walker<V>);
 
-impl<V:Copy+Clone> Iterator for WalkerIter<V> {
+impl<V: Copy + Clone> Iterator for WalkerIter<V> {
     type Item = V;
     fn next(&mut self) -> Option<V> {
         self.0.next()
     }
 }
 
-impl<V: Copy+Clone> ::std::iter::IntoIterator for Walker<V> {
+impl<V: Copy + Clone> ::std::iter::IntoIterator for Walker<V> {
     type Item = V;
     type IntoIter = WalkerIter<V>;
     fn into_iter(self) -> Self::IntoIter {
@@ -173,7 +195,8 @@ mod tests {
         let other_other_ints = other_ints.map(|i| i + 2);
         assert_eq!(vec![1usize, 2, 3], ints.into_iter().collect::<Vec<_>>());
         assert_eq!(vec![3, 4, 5], other_ints.into_iter().collect::<Vec<_>>());
-        assert_eq!(vec![5, 6, 7], other_other_ints.into_iter().collect::<Vec<_>>());
+        assert_eq!(vec![5, 6, 7],
+                   other_other_ints.into_iter().collect::<Vec<_>>());
     }
 
     #[test]
