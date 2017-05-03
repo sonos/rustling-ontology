@@ -255,7 +255,6 @@ impl IntervalPredicate for TakeTheNth {
             };
             forward_walker.next()
         } else {
-            println!("TOTO {:?}", - (self.n + 1));
             interval_walker.backward.clone().skip((- (self.n + 1)) as usize).next()
         };
 
@@ -278,6 +277,7 @@ mod tests {
     use super::*;
     use chrono::TimeZone;
     use chrono::offset::local::Local;
+    use chrono::offset::fixed::FixedOffset;
     use ::*;
 
     fn build_context(moment: Moment) -> Context {
@@ -404,6 +404,47 @@ mod tests {
                     walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2016, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_day_of_month_predicate() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        // Test case 1
+        let day_of_month_predicate = DayOfMonth(10);
+        let walker = day_of_month_predicate.predicate(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 10).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 06, 10).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 10).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 10).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.backward.clone().skip(1).next());
+
+        // Test case 2
+        let day_of_month_predicate = DayOfMonth(31);
+        let walker = day_of_month_predicate.predicate(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 07, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
+                    walker.forward.clone().skip(1).next());
+        // TODO Take a look at the offset shifting due to a period addition
+        // 1st March -> +1 and 31 Match -> +2
+        // 1st March + 30 days -> +1 instead of +2
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 31).and_hms(0, 0, 0) + FixedOffset::east(3600)),
+                                              Grain::Day)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 01, 31).and_hms(0, 0, 0)),
+                                              Grain::Day)), 
                     walker.backward.clone().skip(1).next());
     }
 }
