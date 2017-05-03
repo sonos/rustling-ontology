@@ -180,7 +180,7 @@ impl IntervalConstraint for Minute {
         BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::hours(1))
             .backward_with(anchor - PeriodComp::hours(1),
-                           |prev| prev + PeriodComp::hours(1))
+                           |prev| prev - PeriodComp::hours(1))
     }
 }
 
@@ -199,7 +199,7 @@ impl IntervalConstraint for Second {
         BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::minutes(1))
             .backward_with(anchor - PeriodComp::minutes(1),
-                           |prev| prev + PeriodComp::minutes(1))
+                           |prev| prev - PeriodComp::minutes(1))
     }
 }
 
@@ -462,10 +462,9 @@ mod tests {
     }
 
     #[test]
-    fn test_day_of_week() {
+    fn test_day_of_week_after() {
         // Day of week => Tuesday
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        // Test case 1
         let day_of_week = DayOfWeek(Weekday::Wed);
         let walker = day_of_week.to_walker(context.reference, context);
 
@@ -479,10 +478,14 @@ mod tests {
                                               Grain::Day)),
                    walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 12).and_hms(0, 0, 0)),
-                                              Grain::Day)),
-                   walker.backward.clone().skip(1).next());
+                                              Grain::Day)), 
+                    walker.backward.clone().skip(1).next());
+    }
 
-        // Test case 2
+    #[test]
+    fn test_day_of_week_before() {
+        // Day of week => Tuesday
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
         let day_of_week = DayOfWeek(Weekday::Mon);
         let walker = day_of_week.to_walker(context.reference, context);
 
@@ -498,5 +501,185 @@ mod tests {
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 10).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_hour_not_12_clock_under_12() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Hour::new(11, false);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(11, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(11, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(11, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 23).and_hms(11, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_hour_not_12_clock_above_12() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Hour::new(15, false);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(15, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(15, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(15, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 23).and_hms(15, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_hour_not_12_clock_under_current_hour() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Hour::new(4, false);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(4, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(4, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(4, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 23).and_hms(4, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_hour_is_12_clock_under_12() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Hour::new(11, true);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(11, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(23, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(23, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(11, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_hour_is_12_clock_above_12() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Hour::new(14, true);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(14, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(14, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(14, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 23).and_hms(14, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_hour_is_12_clock_under_current_hour() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Hour::new(8, true);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(8, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(20, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(20, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(8, 0, 0)),
+                                              Grain::Hour)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_minute_above_current_minute() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Minute(15);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 15, 0)),
+                                              Grain::Minute)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(10, 15, 0)),
+                                              Grain::Minute)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(8, 15, 0)),
+                                              Grain::Minute)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(7, 15, 0)),
+                                              Grain::Minute)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_minute_under_current_minute() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Minute(5);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 5, 0)),
+                                              Grain::Minute)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(10, 5, 0)),
+                                              Grain::Minute)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(8, 5, 0)),
+                                              Grain::Minute)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(7, 5, 0)),
+                                              Grain::Minute)), 
+                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_second_above_current_second() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let day = Second(30);
+        let walker = day.to_walker(context.reference, context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 30)),
+                                              Grain::Second)), 
+                    walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 11, 30)),
+                                              Grain::Second)), 
+                    walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 9, 30)),
+                                              Grain::Second)), 
+                    walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 8, 30)),
+                                              Grain::Second)), 
+                    walker.backward.clone().skip(1).next());
     }
 }
