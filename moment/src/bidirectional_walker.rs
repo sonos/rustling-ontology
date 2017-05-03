@@ -81,7 +81,6 @@ mod tests {
     use Interval;
     use period::*;
     use chrono::offset::local::Local;
-    use chrono::datetime::DateTime;
     use chrono::TimeZone;
 
     #[test]

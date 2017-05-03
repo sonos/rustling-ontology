@@ -1,37 +1,37 @@
 use bidirectional_walker::*;
 use walker::*;
-use ::*;
+use {Moment, Interval, last_day_in_month};
 use period::*;
 use chrono::offset::local::Local;
-use chrono::{Datelike, Duration, TimeZone, Timelike, Weekday};
+use chrono::{Datelike, TimeZone, Timelike, Weekday};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Context {
+pub struct Context {
     reference: Interval,
 }
 
 impl Context {
-    fn now() -> Context {
+    pub fn now() -> Context {
         Context { reference: Interval::starting_at(Moment::now(), Grain::Second) }
     }
 }
 
-type IntervalWalker = BidirectionalWalker<Interval>;
+pub type IntervalWalker = BidirectionalWalker<Interval>;
 
-trait IntervalPredicate {
+pub trait IntervalPredicate {
     fn grain(&self) -> Grain;
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker;
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Year(i32);
+pub struct Year(i32);
 
 impl IntervalPredicate for Year {
     fn grain(&self) -> Grain {
         Grain::Year
     }
 
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker {
         let normalized_year = if self.0 < 99 {
             (self.0 + 50) % 100 + 2000 - 50
         } else {
@@ -51,14 +51,14 @@ impl IntervalPredicate for Year {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Month(u32);
+pub struct Month(u32);
 
 impl IntervalPredicate for Month {
     fn grain(&self) -> Grain {
         Grain::Month
     }
 
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker {
         let rounded_moment = Moment(Local
                                         .ymd(origin.start.year(), self.0, 1)
                                         .and_hms(0, 0, 0));
@@ -74,14 +74,14 @@ impl IntervalPredicate for Month {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct DayOfMonth(u32);
+pub struct DayOfMonth(u32);
 
 impl IntervalPredicate for DayOfMonth {
     fn grain(&self) -> Grain {
         Grain::Day
     }
 
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker {
         let offset_month = (origin.start.0.day() > self.0) as i64;
         let anchor = origin.round_to(Grain::Month) + PeriodComp::months(offset_month);
 
@@ -110,14 +110,14 @@ impl IntervalPredicate for DayOfMonth {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct DayOfWeek(Weekday);
+pub struct DayOfWeek(Weekday);
 
 impl IntervalPredicate for DayOfWeek {
     fn grain(&self) -> Grain {
         Grain::Day
     }
 
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker {
         // number_from_monday is u32 -> use i64
         let offset = (self.0.number_from_monday() as i64 - origin.start.weekday().number_from_monday() as i64) %
                      7;
@@ -131,13 +131,13 @@ impl IntervalPredicate for DayOfWeek {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Hour {
+pub struct Hour {
     quantity: i64,
     is_12_clock: bool,
 }
 
 impl Hour {
-    fn new(quantity: i64, is_12_clock: bool) -> Hour {
+    pub fn new(quantity: i64, is_12_clock: bool) -> Hour {
         Hour {
             quantity: quantity,
             is_12_clock: is_12_clock,
@@ -150,7 +150,7 @@ impl IntervalPredicate for Hour {
         Grain::Hour
     }
 
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker {
         let clock_step = if self.quantity <= 12 && self.is_12_clock {
             12
         } else {
@@ -167,13 +167,13 @@ impl IntervalPredicate for Hour {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Minute(i64);
+pub struct Minute(i64);
 
 impl IntervalPredicate for Minute {
     fn grain(&self) -> Grain {
         Grain::Minute
     }
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker {
         let offset = (self.0 - origin.start.minute() as i64) % 60;
         let anchor = origin.round_to(Grain::Minute) + PeriodComp::minutes(offset);
 
@@ -185,14 +185,14 @@ impl IntervalPredicate for Minute {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Second(i64);
+pub struct Second(i64);
 
 impl IntervalPredicate for Second {
     fn grain(&self) -> Grain {
         Grain::Second
     }
 
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker {
         let offset = (self.0 - origin.start.second() as i64) % 60;
         let anchor = origin.round_to(Grain::Second) + PeriodComp::seconds(offset);
 
@@ -204,14 +204,14 @@ impl IntervalPredicate for Second {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-struct Cycle(Grain);
+pub struct Cycle(Grain);
 
 impl IntervalPredicate for Cycle {
     fn grain(&self) -> Grain {
         self.0
     }
 
-    fn predicate(&self, origin: Interval, context: Context) -> IntervalWalker {
+    fn predicate(&self, origin: Interval, _context: Context) -> IntervalWalker {
         let anchor = origin.round_to(self.0);
         let grain = self.0;
         BidirectionalWalker::new()
@@ -222,14 +222,14 @@ impl IntervalPredicate for Cycle {
 }
 
 #[derive(Clone)]
-struct TakeTheNth {
+pub struct TakeTheNth {
     predicate: ::std::rc::Rc<IntervalPredicate>,
     n: i64,
     not_immediate: bool,
 }
 
 impl TakeTheNth {
-    fn new<P: IntervalPredicate + 'static>(n: i64,
+    pub fn new<P: IntervalPredicate + 'static>(n: i64,
                                            not_immediate: bool,
                                            predicate: P)
                                            -> TakeTheNth {
@@ -287,7 +287,6 @@ mod tests {
     use super::*;
     use chrono::{TimeZone, Weekday};
     use chrono::offset::local::Local;
-    use chrono::offset::fixed::FixedOffset;
     use ::*;
 
     fn build_context(moment: Moment) -> Context {

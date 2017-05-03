@@ -4,7 +4,7 @@ extern crate enum_primitive;
 extern crate vec_map;
 
 mod period;
-mod time_predicate;
+pub mod time_predicate;
 mod bidirectional_walker;
 mod walker;
 
@@ -37,7 +37,7 @@ impl ops::Deref for Moment {
 }
 
 impl Moment {
-    fn now() -> Moment {
+    pub fn now() -> Moment {
         Moment(Local::now())
     }
 

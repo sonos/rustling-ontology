@@ -19,12 +19,12 @@ enum_from_primitive! {
 pub struct Period(pub VecMap<i64>);
 
 impl Period {
-    fn finer_grain(&self) -> Option<Grain> {
+    pub fn finer_grain(&self) -> Option<Grain> {
         use enum_primitive::FromPrimitive;
         self.0
             .iter()
-            .max_by_key(|&(g, q)| g)
-            .and_then(|(g, q)| Grain::from_usize(g))
+            .max_by_key(|&(g, _)| g)
+            .and_then(|(g, _)| Grain::from_usize(g))
     }
 }
 
