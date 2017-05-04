@@ -1,5 +1,19 @@
+extern crate rustling;
+extern crate rustling_ontology_rules;
+
 use rustling::*;
-use dimension::*;
+pub use rustling_ontology_rules::dimension::*;
+
+macro_rules! example {
+    ($v:expr, $check:expr, $($ex:expr),*) => {
+        $( $v.push($crate::rustling::Example::new($ex, Box::new($check))); )*
+    };
+}
+
+pub mod en;
+pub mod es;
+pub mod fr;
+
 
 #[derive(Debug)]
 pub struct CheckInteger {

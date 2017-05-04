@@ -1,4 +1,4 @@
-use Dimension;
+use rules::dimension::Dimension;
 use rustling;
 
 #[derive(Debug, Hash, Clone, Eq, PartialEq)]

@@ -35,9 +35,3 @@ macro_rules! money_unit {
 macro_rules! temperature_check {
     () => ( $crate::rustling::core::AnyNodePattern::<TemperatureValue>::new() );
 }
-
-macro_rules! example {
-    ($v:expr, $check:expr, $($ex:expr),*) => {
-        $( $v.push($crate::rustling::Example::new($ex, Box::new($check))); )*
-    };
-}

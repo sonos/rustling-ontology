@@ -23,60 +23,16 @@
 //! }
 //! ```
 
-#[macro_use]
 extern crate rustling;
-extern crate rustling_ontology_moment;
+extern crate rustling_ontology_rules as rules;
+extern crate rustling_ontology_training as training;
 
-use std::result;
-
-#[macro_use]
-mod macros;
-#[allow(dead_code)]
-mod helpers;
-mod dimension;
-mod examples;
-mod en;
-mod fr;
-mod es;
-mod parser;
-
-use rustling_ontology_moment as moment;
 pub use rustling::{AttemptTo, ParserMatch, Range, Value, RustlingError, RustlingResult};
-pub use dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue, OrdinalValue,
+pub use rules::Lang;
+pub use rules::dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue, OrdinalValue,
                     TemperatureValue, AmountOfMoneyValue, MoneyUnitValue};
 
-/// Enumerates all language supported for the general purpose ontology.
-#[derive(Copy,Clone,Debug)]
-pub enum Lang {
-    /// English
-    EN,
-    /// French
-    FR,
-    /// Spanish
-    ES,
-}
-
-impl std::str::FromStr for Lang {
-    type Err = String;
-    fn from_str(it: &str) -> result::Result<Lang, Self::Err> {
-        match &*it.to_lowercase() {
-            "en" => Ok(Lang::EN),
-            "fr" => Ok(Lang::FR),
-            "es" => Ok(Lang::ES),
-            _ => Err(format!("Unknown language {}", it)),
-        }
-    }
-}
-
-impl ::std::string::ToString for Lang {
-    fn to_string(&self) -> String {
-        match self {
-            &Lang::EN => "en".to_string(),
-            &Lang::FR => "fr".to_string(),
-            &Lang::ES => "es".to_string(),
-        }
-    }
-}
+mod parser;
 
 /// Main class to be use at runtime.
 pub type Parser = rustling::Parser<Dimension, parser::Feat, parser::FeatureExtractor>;
@@ -91,22 +47,22 @@ pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
 }
 
 fn build_parser_en() -> RustlingResult<Parser> {
-    let rules = en::rules_numbers()?;
-    let exs = en::examples_numbers();
+    let rules = rules::en::rules_numbers()?;
+    let exs = training::en::examples_numbers();
     let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
     Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
 }
 
 fn build_parser_fr() -> RustlingResult<Parser> {
-    let rules = fr::rules_numbers()?;
-    let exs = fr::examples_numbers();
+    let rules = rules::fr::rules_numbers()?;
+    let exs = training::fr::examples_numbers();
     let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
     Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
 }
 
 fn build_parser_es() -> RustlingResult<Parser> {
-    let rules = es::rules_numbers()?;
-    let exs = es::examples_numbers();
+    let rules = rules::es::rules_numbers()?;
+    let exs = training::es::examples_numbers();
     let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
     Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
 }

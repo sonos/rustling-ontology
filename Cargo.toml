@@ -4,11 +4,13 @@ version = "0.1.0"
 authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 
 [workspace]
-members=["cli", "moment"]
+members=["cli", "moment", "rules", "training"]
 
 [dependencies]
 rustling = { git="http://github.com/snipsco/rustling", rev="7310177" }
 rustling-ontology-moment = { path="moment"}
+rustling-ontology-rules = { path="rules"}
+rustling-ontology-training = { path="training"}
 
 [dev-dependencies]
 bencher = "0.1"
