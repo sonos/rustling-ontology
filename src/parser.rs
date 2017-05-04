@@ -2,7 +2,7 @@ use Dimension;
 use rustling;
 
 #[derive(Debug, Hash, Clone, Eq, PartialEq)]
-pub struct Feat(Vec<&'static str>);
+pub struct Feat(Vec<rustling::Sym>);
 impl rustling::Feature for Feat {}
 
 pub struct FeatureExtractor();
@@ -22,7 +22,7 @@ pub fn extract_node_features(node: &rustling::Node) -> rustling::Input<rustling:
     let features = vec![Feat(node.children
                                  .iter()
                                  .map({
-                                          |child| child.rule_name
+                                          |child| child.rule_sym
                                       })
                                  .collect())];
 
@@ -34,7 +34,7 @@ pub fn extract_node_features(node: &rustling::Node) -> rustling::Input<rustling:
         .collect();
 
     rustling::Input {
-        classifier_id: rustling::RuleId(node.rule_name),
+        classifier_id: rustling::RuleId(node.rule_sym),
         features: features,
         children: children_features,
     }

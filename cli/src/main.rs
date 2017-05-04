@@ -55,14 +55,15 @@ fn main() {
                                    f32::exp(c.1.probalog),
                                    hilite,
                                    c.1.value.kind().to_string(),
-                                   c.0.root_node.rule_name,
+                                   parser.resolve_sym(&c.0.root_node.rule_sym).unwrap_or(""),
                                    c.0
                                        .root_node
                                        .children
                                        .iter()
                                        .map(|n| {
-                                                let max_length = min(20, n.rule_name.len());
-                                                &n.rule_name[..max_length]
+                                           let name = parser.resolve_sym(&n.rule_sym).unwrap_or("");
+                                                let max_length = min(20, name.len());
+                                                &name[..max_length]
                                             })
                                        .collect::<Vec<_>>()
                                        .join(" + ")]);

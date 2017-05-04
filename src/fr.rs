@@ -4,41 +4,62 @@ use examples;
 
 #[allow(dead_code)]
 pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
-    Ok(RuleSet(vec![
-        rule! { 
-            "number as temp", 
-            (number_check!()), 
-            |a| Ok(TemperatureValue { value: a.value().value(), unit: None, latent: true}) 
-        },
-        rule! {
-            "<latent temp> degrees",
-            (temperature_check!(), regex!(r#"(deg(r[éeè])?s?\.?)|°"#)),
-            |a, _| Ok(TemperatureValue { value: a.value().value, unit: Some("degree"), latent: false})
-        },
-        rule! {
-            "<temp> Celcius",
-            (temperature_check!(), regex!(r#"c(el[cs]?(ius)?)?\.?"#)),
-            |a, _| Ok(TemperatureValue { value: a.value().value, unit: Some("celsius"), latent: false})
-        },
-        rule! {
-            "<temp> Fahrenheit",
-            (temperature_check!(), regex!(r#"f(ah?reh?n(h?eit)?)?\.?"#)),
-            |a, _| Ok(TemperatureValue { value: a.value().value, unit: Some("fahrenheit"), latent: false})
-        },
-        rule! {
-            "<latent temp> en dessous de zero",
-            (temperature_check!(), regex!(r#"en dessous de (0|z[ée]ro)"#)),
-            |a, _| Ok(TemperatureValue { value: -1.0 * a.value().value, latent: false, .. *a.value()})
-        }
-    
-    ]))
+    let b = RuleSetBuilder::default();
+    b.rule_1("number as temp", number_check!(), |a| {
+        Ok(TemperatureValue {
+               value: a.value().value(),
+               unit: None,
+               latent: true,
+           })
+    });
+    b.rule_2("<latent temp> degrees",
+             temperature_check!(),
+             b.reg(r#"(deg(r[éeè])?s?\.?)|°"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                        value: a.value().value,
+                        unit: Some("degree"),
+                        latent: false,
+                    })
+             });
+    b.rule_2("<temp> Celcius",
+             temperature_check!(),
+             b.reg(r#"c(el[cs]?(ius)?)?\.?"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                        value: a.value().value,
+                        unit: Some("celsius"),
+                        latent: false,
+                    })
+             });
+    b.rule_2("<temp> Fahrenheit",
+             temperature_check!(),
+             b.reg(r#"f(ah?reh?n(h?eit)?)?\.?"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                        value: a.value().value,
+                        unit: Some("fahrenheit"),
+                        latent: false,
+                    })
+             });
+    b.rule_2("<latent temp> en dessous de zero",
+             temperature_check!(),
+             b.reg(r#"en dessous de (0|z[ée]ro)"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                        value: -1.0 * a.value().value,
+                        latent: false,
+                        ..*a.value()
+                    })
+             });
+    Ok(b.build())
 }
 
 pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
-    Ok(RuleSet(vec![
-        rule! {
+    let b = RuleSetBuilder::default();
+    b.rule_1(
             "number (0..16)",
-            (regex!(r#"(z[eé]ro|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize)"#)),
+            b.reg(r#"(z[eé]ro|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize)"#)?,
             |text_match| {
                 let value = match text_match.group(1).as_ref()  {
                         "zéro" => 0, 
@@ -63,175 +84,144 @@ pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
                         _ => panic!("Unknow match"),
                     };
                     IntegerValue::new(value) 
-            }
-        },
-        rule! {
-            "number (20..60)",
-            (regex!(r#"(vingt|trente|quarante|cinquante|soixante)"#)),
-            |text_match| {
-                let value = match text_match.group(1).as_ref()  {
-                    "vingt" => 20,
-                    "trente" => 30,
-                    "quarante" => 40,
-                    "cinquante" => 50,
-                    "soixante" => 60,
-                    _ => panic!("Unknow match"),
-                };
-                IntegerValue::new(value) 
-            }
-        },
-        rule!{
-            "number (17..19)",
-            (
-                integer_check!(10, 10),
-                integer_check!(7, 9)
-            ),
-            |_, b| IntegerValue::new(b.value().value + 10) 
-        },
-        rule! {
-            "number 80", //
-            (
-                regex!(r#"quatre"#),
-                regex!(r#"vingts?"#)
-            ),
-            |_, _| IntegerValue::new(80)
-        },
-        rule! {
-            "numbers 21 31 41 51",
-            (
-                integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
-                regex!(r#"et"#),
-                integer_check!(1, 1)
-            ),
-            |a, _, b| IntegerValue::new(a.value().value + b.value().value)
-        },
-        rule! {
-            "numbers 22..29 32..39 .. 52..59",
-            (
-                integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
-                integer_check!(2, 9)
-            ),
-            |a, b| IntegerValue::new(a.value().value + b.value().value)
-        },
-        rule! {
-            "numbers 61 71",
-            (
-                integer_check!(60, 60),
-                regex!(r#"-?et-?"#),
-                integer_check!(1, 11, |integer: &IntegerValue| integer.value == 1 || integer.value == 11)
-            ),
-            |a, _, b| IntegerValue::new(a.value().value + b.value().value)
-        },
-        rule! {
-            "numbers 81 91",
-            (
-                integer_check!(80, 80),
-                integer_check!(1, 11, |integer: &IntegerValue| integer.value == 1 || integer.value == 11)
-            ),
-            |a, b| IntegerValue::new(a.value().value + b.value().value)
-        },
-        rule! {
-            "numbers 62..69 .. 92..99",
-            (
-                integer_check!(60, 80, |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
-                integer_check!(2, 19)
-            ),
-            |a, b| IntegerValue::new(a.value().value + b.value().value)
-        },
-        rule! {
-            "integer (numeric)",
-            (regex!(r#"(\d{1,18})"#)),
-            |text_match| {
-                let value: i64 = text_match.group(1).parse()?;
-                IntegerValue::new(value)
-            }
-        },
-        rule! {
-            "integer with thousands separator .",
-            (regex!(r#"(\d{1,3}(\.\d\d\d){1,5})"#)),
-            |text_match| {
-                let reformatted_string = text_match.group(1).replace(".", "");
-                let value: i64 = reformatted_string.parse()?;
-                IntegerValue::new(value)
-            }
-        },
-        rule! {
-            "decimal number",
-            (regex!(r#"(\d*,\d+)"#)),
-            |text_match| {
-                let reformatted_string = text_match.group(1).replace(",", ".");
-                let value: f32 = reformatted_string.parse()?;
-                FloatValue::new(value)
-            }
-        },
-        rule! {
-            "decimal with thousands separator",
-            (regex!(r#"(\d+(\.\d\d\d)+,\d+)"#)),
-            |text_match| {
-                let reformatted_string = text_match.group(1)
-                    .replace(".", "").replace(",", ".");
-                let value: f32 = reformatted_string.parse()?;
-                FloatValue::new(value)
-            }
-        },
-        rule! {
-            "numbers prefix with -, negative or minus",
-            (
-                regex!(r#"-|moins"#),
-                number_check!(|number: &NumberValue| !number.prefixed())
-            ),
-            |_, a| -> RuleResult<NumberValue> {
-                Ok(match a.value().clone() { // checked
-                    NumberValue::Integer(integer) => IntegerValue {
-                                                        value: integer.value * -1,
-                                                        prefixed: true,
-                                                        .. integer
-                                                    }.into(),
-                    NumberValue::Float(float) => FloatValue {
-                                                        value: float.value * -1.0,
-                                                        prefixed: true,
-                                                        .. float
-                                                    }.into(),
-                })
-            }
-        },
-        rule! {
-            "numbers suffixes (K, M, G)",
-            (
-                number_check!(|number: &NumberValue| !number.suffixed()),
-                regex_neg_lh!(r#"([kmg])"#, r#"^[\W\$€]"#)
-            ),
-            |a, text_match| -> RuleResult<NumberValue> {
-                let multiplier = match text_match.group(0).as_ref() {
-                    "k" => 1000,
-                    "m" => 1000000,
-                    "g" => 1000000000,
-                    _ => panic!("Unknown match"),
-                };
-                Ok(match a.value().clone() { // checked
-                    NumberValue::Integer(integer) => IntegerValue {
-                                                        value: integer.value * multiplier,
-                                                        suffixed: true,
-                                                        .. integer
-                                                    }.into(),
-                    NumberValue::Float(float) => {
-                        let product = float.value * (multiplier as f32);
-                        if product.floor() == product {
-                            IntegerValue { value: product as i64, suffixed: true, ..IntegerValue::default() }.into()
-                        } else {
-                            FloatValue {
-                                                        value: product,
-                                                        suffixed: true,
-                                                        .. float
-                                                    }.into()
-                        }
+            });
+    b.rule_1("number (20..60)",
+             b.reg(r#"(vingt|trente|quarante|cinquante|soixante)"#)?,
+             |text_match| {
+        let value = match text_match.group(1).as_ref() {
+            "vingt" => 20,
+            "trente" => 30,
+            "quarante" => 40,
+            "cinquante" => 50,
+            "soixante" => 60,
+            _ => panic!("Unknow match"),
+        };
+        IntegerValue::new(value)
+    });
+    b.rule_2("number (17..19)",
+             integer_check!(10, 10),
+             integer_check!(7, 9),
+             |_, b| IntegerValue::new(b.value().value + 10));
+    b.rule_2("number 80", //
+             b.reg(r#"quatre"#)?,
+             b.reg(r#"vingts?"#)?,
+             |_, _| IntegerValue::new(80));
+    b.rule_3("numbers 21 31 41 51",
+             integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
+             b.reg(r#"et"#)?,
+             integer_check!(1, 1),
+             |a, _, b| IntegerValue::new(a.value().value + b.value().value));
+    b.rule_2("numbers 22..29 32..39 .. 52..59",
+             integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
+             integer_check!(2, 9),
+             |a, b| IntegerValue::new(a.value().value + b.value().value));
+    b.rule_3("numbers 61 71",
+             integer_check!(60, 60),
+             b.reg(r#"-?et-?"#)?,
+             integer_check!(1,
+                            11,
+                            |integer: &IntegerValue| integer.value == 1 || integer.value == 11),
+             |a, _, b| IntegerValue::new(a.value().value + b.value().value));
+    b.rule_2("numbers 81 91",
+             integer_check!(80, 80),
+             integer_check!(1,
+                            11,
+                            |integer: &IntegerValue| integer.value == 1 || integer.value == 11),
+             |a, b| IntegerValue::new(a.value().value + b.value().value));
+    b.rule_2("numbers 62..69 .. 92..99",
+             integer_check!(60,
+                            80,
+                            |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
+             integer_check!(2, 19),
+             |a, b| IntegerValue::new(a.value().value + b.value().value));
+    b.rule_1("integer (numeric)", b.reg(r#"(\d{1,18})"#)?, |text_match| {
+        let value: i64 = text_match.group(1).parse()?;
+        IntegerValue::new(value)
+    });
+    b.rule_1("integer with thousands separator .",
+             b.reg(r#"(\d{1,3}(\.\d\d\d){1,5})"#)?,
+             |text_match| {
+                 let reformatted_string = text_match.group(1).replace(".", "");
+                 let value: i64 = reformatted_string.parse()?;
+                 IntegerValue::new(value)
+             });
+    b.rule_1("decimal number", b.reg(r#"(\d*,\d+)"#)?, |text_match| {
+        let reformatted_string = text_match.group(1).replace(",", ".");
+        let value: f32 = reformatted_string.parse()?;
+        FloatValue::new(value)
+    });
+    b.rule_1("decimal with thousands separator",
+             b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
+             |text_match| {
+                 let reformatted_string = text_match.group(1).replace(".", "").replace(",", ".");
+                 let value: f32 = reformatted_string.parse()?;
+                 FloatValue::new(value)
+             });
+    b.rule_2("numbers prefix with -, negative or minus",
+             b.reg(r#"-|moins"#)?,
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             |_, a| -> RuleResult<NumberValue> {
+        Ok(match a.value().clone() { // checked
+               NumberValue::Integer(integer) => {
+                   IntegerValue {
+                           value: integer.value * -1,
+                           prefixed: true,
+                           ..integer
+                       }
+                       .into()
+               }
+               NumberValue::Float(float) => {
+                   FloatValue {
+                           value: float.value * -1.0,
+                           prefixed: true,
+                           ..float
+                       }
+                       .into()
+               }
+           })
+    });
+    b.rule_2("numbers suffixes (K, M, G)",
+             number_check!(|number: &NumberValue| !number.suffixed()),
+             b.reg_neg_lh(r#"([kmg])"#, r#"^[\W\$€]"#)?,
+             |a, text_match| -> RuleResult<NumberValue> {
+        let multiplier = match text_match.group(0).as_ref() {
+            "k" => 1000,
+            "m" => 1000000,
+            "g" => 1000000000,
+            _ => panic!("Unknown match"),
+        };
+        Ok(match a.value().clone() { // checked
+               NumberValue::Integer(integer) => {
+                   IntegerValue {
+                           value: integer.value * multiplier,
+                           suffixed: true,
+                           ..integer
+                       }
+                       .into()
+               }
+               NumberValue::Float(float) => {
+            let product = float.value * (multiplier as f32);
+            if product.floor() == product {
+                IntegerValue {
+                        value: product as i64,
+                        suffixed: true,
+                        ..IntegerValue::default()
                     }
-                })
+                    .into()
+            } else {
+                FloatValue {
+                        value: product,
+                        suffixed: true,
+                        ..float
+                    }
+                    .into()
             }
-        },
-        rule! {
+        }
+           })
+    });
+    b.rule_1(
             "ordinals (premier..seizieme)",
-            (regex!(r#"(premi(?:ere?|ère)|(?:deux|trois|quatr|cinqu|six|sept|huit|neuv|dix|onz|douz|treiz|quatorz|quinz|seiz)i[eè]me)"#)),
+            b.reg(r#"(premi(?:ere?|ère)|(?:deux|trois|quatr|cinqu|six|sept|huit|neuv|dix|onz|douz|treiz|quatorz|quinz|seiz)i[eè]me)"#)?,
             |text_match| {
                 let value = match text_match.group(1).as_ref() {
                     "premier" => 1,
@@ -270,25 +260,18 @@ pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
                      _ => panic!("Unknow match"),
                  };
                  Ok(OrdinalValue { value: value })
-            }
-        },
-        rule! {
-            "ordinal (digits)",
-            (regex!(r#"0*(\d+) ?(ere?|ère|ème|eme|ieme|ième)"#)),
-            |text_match| {
-                let value: i64 = text_match.group(1).parse()?;
-                Ok(OrdinalValue { value: value })
-            }
-        },
-        rule! {
-            "le <ordinal>",
-            (
-                regex!(r#"le"#),
-                ordinal_check!()
-            ),
-            |_, a| Ok(*a.value())
-        }
-    ]))
+            });
+    b.rule_1("ordinal (digits)",
+             b.reg(r#"0*(\d+) ?(ere?|ère|ème|eme|ieme|ième)"#)?,
+             |text_match| {
+                 let value: i64 = text_match.group(1).parse()?;
+                 Ok(OrdinalValue { value: value })
+             });
+    b.rule_2("le <ordinal>",
+             b.reg(r#"le"#)?,
+             ordinal_check!(),
+             |_, a| Ok(*a.value()));
+    Ok(b.build())
 }
 
 pub fn examples_numbers() -> Vec<::rustling::train::Example<Dimension>> {
