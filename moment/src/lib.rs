@@ -16,6 +16,7 @@ use chrono::{Datelike, Duration, TimeZone, Timelike};
 use chrono::offset::local::Local;
 use chrono::datetime::DateTime;
 pub use interval_constraints::*;
+pub use period::*;
 
 use period::*;
 

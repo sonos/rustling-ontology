@@ -1,6 +1,7 @@
 use std::{fmt, result};
 
 use rustling::*;
+use moment::{RcConstraint, Period};
 
 /// Union of all possible values parsed by the ontology.
 rustling_value! {
@@ -11,6 +12,8 @@ rustling_value! {
     Ordinal(OrdinalValue),
     Temperature(TemperatureValue),
     MoneyUnit(MoneyUnitValue),
+    //Time(TimeValue),
+    Duration(DurationValue),
 }
 
 impl fmt::Display for Dimension {
@@ -26,6 +29,7 @@ impl fmt::Display for Dimension {
             &Dimension::Temperature(_) => write!(fmt, "Temperature"),
             &Dimension::AmountOfMoney(_) => write!(fmt, "AmountOfMoney"),
             &Dimension::MoneyUnit(_) => write!(fmt, "MoneyUnit"),
+            &Dimension::Duration(_) => write!(fmt, "Duration"),
         }
     }
 }
@@ -224,3 +228,33 @@ pub struct TemperatureValue {
     /// true if it can not be confirmed that the value is actually a temperature
     pub latent: bool,
 }
+
+
+pub struct TimeValue {
+    pub constraint: RcConstraint,
+    pub form: Form,
+    pub direction: Option<Direction>,
+}
+
+#[derive(Debug,PartialEq,Clone)]
+pub enum Form {
+    Month(u32),
+    TimeOfDay(Option<TimeOfDayForm>),
+    Empty,
+}
+
+#[derive(Debug, Clone)]
+pub enum Direction {
+    After,
+    Before,
+}
+
+#[derive(Debug,PartialEq,Clone)]
+pub struct TimeOfDayForm {
+    pub full_hour: u32, 
+    pub is_12_clock: bool,
+}
+
+#[derive(Debug,PartialEq,Clone)]
+pub struct DurationValue(pub Period);
+

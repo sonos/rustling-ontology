@@ -60,11 +60,11 @@ impl RcConstraint {
         Translate::new(self, Rc::new(offset))
     }
 
-    pub fn the_nth(self, n: i64) -> RcConstraint {
+    pub fn take_the_nth(self, n: i64) -> RcConstraint {
        TakeTheNth::new(n, false, self)
     }
 
-    pub fn the_nth_not_immediate(self, n: i64) -> RcConstraint {
+    pub fn take_the_nth_not_immediate(self, n: i64) -> RcConstraint {
        TakeTheNth::new(n, true, self)
     }
 
@@ -86,6 +86,14 @@ impl RcConstraint {
 
     pub fn intersect(self, inner: RcConstraint) -> RcConstraint {
         Intersection::new(self, inner)
+    }
+
+    pub fn last_of(self, inner: RcConstraint) -> RcConstraint {
+        TakeLastOf::new(inner, self)
+    }
+
+    pub fn the_nth(self, n: i64) -> NthConstraint {
+        NthConstraint(self.into(), n)
     }
 }
 
@@ -312,18 +320,15 @@ impl IntervalConstraint for Second {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct NthCycle(Cycle, i64);
+pub struct NthConstraint(RcConstraint, i64);
 
-impl NthCycle {
-    pub fn after<Inner>(self, inner: Inner) -> RcConstraint
-        where Inner: IntervalConstraint + 'static {
-        TakeTheNthAfter::new(self.1, false, inner.into(), self.0)
+impl NthConstraint {
+    pub fn after(self, inner: RcConstraint) -> RcConstraint {
+        TakeTheNthAfter::new(self.1, false, inner, self.0)
     }
     
-    pub fn after_not_immediate<Inner>(self, inner: Inner) -> RcConstraint 
-        where Inner: IntervalConstraint + 'static {
-        TakeTheNthAfter::new(self.1, true, inner.into(), self.0)
+    pub fn after_not_immediate(self, inner: RcConstraint) -> RcConstraint {
+        TakeTheNthAfter::new(self.1, true, inner, self.0)
     }
 }
 
@@ -331,13 +336,8 @@ impl NthCycle {
 pub struct Cycle(pub Grain);
 
 impl Cycle {
-    pub fn last_of<Inner>(self, inner: Inner) -> RcConstraint
-        where Inner: IntervalConstraint + 'static {
-        TakeLastOf::new(inner.into(), self)
-    }
-
-    pub fn the_nth(self, n: i64) -> NthCycle {
-        NthCycle(self, n)
+    pub fn rc(grain: Grain) -> RcConstraint {
+        Cycle(grain).into()
     }
 }
 
@@ -485,11 +485,11 @@ pub struct TakeTheNthAfter {
     n: i64,
     not_immediate: bool,
     after: RcConstraint,
-    cycle: Cycle,
+    cycle: RcConstraint,
 }
 
 impl TakeTheNthAfter {
-    pub fn new(n: i64, not_immediate: bool, after: RcConstraint, cycle: Cycle) -> RcConstraint {
+    pub fn new(n: i64, not_immediate: bool, after: RcConstraint, cycle: RcConstraint) -> RcConstraint {
         TakeTheNthAfter {
             n: n,
             not_immediate: not_immediate,
@@ -531,11 +531,11 @@ impl IntervalConstraint for TakeTheNthAfter {
 #[derive(Clone)]
 pub struct TakeLastOf {
     base: RcConstraint,
-    cycle: Cycle,
+    cycle: RcConstraint,
 }
 
 impl TakeLastOf {
-    pub fn new(base: RcConstraint, cycle: Cycle) -> RcConstraint {
+    pub fn new(base: RcConstraint, cycle: RcConstraint) -> RcConstraint {
         TakeLastOf {
             base, 
             cycle,
@@ -828,7 +828,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_forward_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month::new(5).the_nth(3);
+        let take_the_nth = Month::new(5).take_the_nth(3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2020, 05, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -841,7 +841,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_backward_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month::new(3).the_nth(3);
+        let take_the_nth = Month::new(3).take_the_nth(3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2021, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -853,7 +853,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_backward_negative() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month::new(3).the_nth(-3);
+        let take_the_nth = Month::new(3).take_the_nth(-3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -865,7 +865,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_after_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth_after = Cycle(Grain::Day).the_nth(3).after(DayOfMonth(20));
+        let take_the_nth_after = Cycle::rc(Grain::Day).the_nth(3).after(DayOfMonth(20).into());
 
         let walker = take_the_nth_after.to_walker(&context.reference, &context);
 
@@ -886,7 +886,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_after_negative() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth_after = Cycle(Grain::Day).the_nth(-3).after(DayOfMonth(20));
+        let take_the_nth_after = Cycle::rc(Grain::Day).the_nth(-3).after(DayOfMonth(20).into());
 
         let walker = take_the_nth_after.to_walker(&context.reference, &context);
 
@@ -907,7 +907,7 @@ mod tests {
     #[test]
     fn test_take_the_last_week_of_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_last_of = Cycle(Grain::Week).last_of(Month(5));
+        let take_last_of = Cycle::rc(Grain::Week).last_of(Month(5).into());
 
         let walker = take_last_of.to_walker(&context.reference, &context);
 
@@ -928,7 +928,7 @@ mod tests {
     #[test]
     fn test_take_the_last_day_of_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_last_of = Cycle(Grain::Day).last_of(Month(5));
+        let take_last_of = Cycle::rc(Grain::Day).last_of(Month(5).into());
 
         let walker = take_last_of.to_walker(&context.reference, &context);
 
