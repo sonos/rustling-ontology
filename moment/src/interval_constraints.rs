@@ -35,6 +35,43 @@ pub trait IntervalConstraint {
     fn shift_by(self, period: Period) -> ShiftBy<Self> where Self:Sized {
         ShiftBy::new(Rc::new(self), period)
     }
+
+    fn translate_with<Offset>(self, offset: Offset) -> Translate<Self, Offset> 
+        where Offset: Fn(&Interval, &Context) -> Option<Interval> + 'static, Self:Sized {
+        Translate::new(self, offset)
+    }
+
+    fn the_nth(self, n: i64) -> TakeTheNth<Self> where Self:Sized {
+        TakeTheNth::new(n, false, self)
+    }
+
+    fn the_nth_not_immediate(self, n: i64) -> TakeTheNth<Self> where Self:Sized {
+        TakeTheNth::new(n, true, self)
+    }
+
+    fn take(self, n: i64) -> TakeN<Self> where Self:Sized {
+        TakeN::new(n, false, self)
+    }
+
+    fn take_not_immediate(self, n: i64) -> TakeN<Self> where Self:Sized {
+        TakeN::new(n, true, self)
+    }
+
+    fn span_to<Inner>(self, inner: Inner) -> Span<Self, Inner> 
+        where Self:Sized, Inner: IntervalConstraint + 'static {
+        Span::new(self, inner, false)
+
+    }
+
+    fn span_inclusive_to<Inner>(self, inner: Inner)  -> Span<Self, Inner>
+        where Self:Sized, Inner: IntervalConstraint + 'static {
+        Span::new(self, inner, true)
+    }
+
+    fn intersect<Other>(self, other: Other) -> Intersection<Self, Other> 
+        where Self:Sized, Other: IntervalConstraint + 'static {
+        Intersection::new(self, other)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -144,10 +181,26 @@ impl IntervalConstraint for DayOfWeek {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, new)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Hour {
     quantity: i64,
     is_12_clock: bool,
+}
+
+impl Hour {
+    pub fn clock_12(quantity: i64) -> Hour {
+        Hour {
+            quantity: quantity,
+            is_12_clock: true,
+        }
+    }
+
+    pub fn clock_24(quantity: i64) -> Hour {
+        Hour {
+            quantity: quantity,
+            is_12_clock: false,
+        }
+    }
 }
 
 impl IntervalConstraint for Hour {
@@ -209,7 +262,33 @@ impl IntervalConstraint for Second {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+pub struct NthCycle(Cycle, i64);
+
+impl NthCycle {
+    pub fn after<Inner>(self, inner: Inner) -> TakeTheNthAfter<Inner> 
+        where Inner: IntervalConstraint + 'static {
+        TakeTheNthAfter::new(self.1, false, Rc::new(inner), self.0)
+    }
+
+    pub fn after_not_immediate<Inner>(self, inner: Inner) -> TakeTheNthAfter<Inner> 
+        where Inner: IntervalConstraint + 'static {
+        TakeTheNthAfter::new(self.1, true, Rc::new(inner), self.0)
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Cycle(Grain);
+
+impl Cycle {
+    pub fn last_of<Inner>(self, inner: Inner) -> TakeLastOf<Inner> 
+        where Inner: IntervalConstraint + 'static {
+        TakeLastOf::new(Rc::new(inner), self)
+    }
+
+    pub fn the_nth(self, n: i64) -> NthCycle {
+        NthCycle(self, n)
+    }
+}
 
 impl IntervalConstraint for Cycle {
     fn grain(&self) -> Grain {
@@ -345,7 +424,7 @@ pub struct TakeTheNthAfter<Inner>
     n: i64,
     not_immediate: bool,
     after: Rc<Inner>,
-    cycle: Rc<Cycle>,
+    cycle: Cycle,
 }
 
 impl<Inner> IntervalConstraint for TakeTheNthAfter<Inner>
@@ -384,7 +463,7 @@ pub struct TakeLastOf<Inner>
     where Inner: IntervalConstraint + 'static
 {
     base: Rc<Inner>,
-    cycle: Rc<Cycle>,
+    cycle: Cycle,
 }
 
 impl<Inner> IntervalConstraint for TakeLastOf<Inner>
@@ -711,9 +790,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_forward_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-
-        let month = Month(5);
-        let take_the_nth = TakeTheNth::new(3, false, month);
+        let take_the_nth = Month(5).the_nth(3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2020, 05, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -726,9 +803,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_backward_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-
-        let month = Month(3);
-        let take_the_nth = TakeTheNth::new(3, false, month);
+        let take_the_nth = Month(3).the_nth(3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2021, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -740,9 +815,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_backward_negative() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-
-        let month = Month(3);
-        let take_the_nth = TakeTheNth::new(-3, false, month);
+        let take_the_nth = Month(3).the_nth(-3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -754,8 +827,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_after_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let dom = DayOfMonth(20);
-        let take_the_nth_after = TakeTheNthAfter::new(3, false, Rc::new(dom), Rc::new(Cycle(Grain::Day)));
+        let take_the_nth_after = Cycle(Grain::Day).the_nth(3).after(DayOfMonth(20));
 
         let walker = take_the_nth_after.to_walker(&context.reference, &context);
 
@@ -776,8 +848,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_after_negative() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let dom = DayOfMonth(20);
-        let take_the_nth_after = TakeTheNthAfter::new(-3, false, Rc::new(dom), Rc::new(Cycle(Grain::Day)));
+        let take_the_nth_after = Cycle(Grain::Day).the_nth(-3).after(DayOfMonth(20));
 
         let walker = take_the_nth_after.to_walker(&context.reference, &context);
 
@@ -798,8 +869,7 @@ mod tests {
     #[test]
     fn test_take_the_last_week_of_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let month = Month(5);
-        let take_last_of = TakeLastOf::new(Rc::new(month), Rc::new(Cycle(Grain::Week)));
+        let take_last_of = Cycle(Grain::Week).last_of(Month(5));
 
         let walker = take_last_of.to_walker(&context.reference, &context);
 
@@ -820,8 +890,7 @@ mod tests {
     #[test]
     fn test_take_the_last_day_of_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let month = Month(5);
-        let take_last_of = TakeLastOf::new(Rc::new(month), Rc::new(Cycle(Grain::Day)));
+        let take_last_of = Cycle(Grain::Day).last_of(Month(5));
 
         let walker = take_last_of.to_walker(&context.reference, &context);
 
@@ -960,9 +1029,9 @@ mod tests {
     }
 
     #[test]
-    fn test_hour_not_12_clock_under_12() {
+    fn test_hour_24_clock_under_12() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::new(11, false);
+        let day = Hour::clock_24(11);
         let walker = day.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(11, 0, 0)),
@@ -980,9 +1049,9 @@ mod tests {
     }
 
     #[test]
-    fn test_hour_not_12_clock_above_12() {
+    fn test_hour_24_clock_above_12() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::new(15, false);
+        let day = Hour::clock_24(15);
         let walker = day.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(15, 0, 0)),
@@ -1000,9 +1069,9 @@ mod tests {
     }
 
     #[test]
-    fn test_hour_not_12_clock_under_current_hour() {
+    fn test_hour_24_clock_under_current_hour() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::new(4, false);
+        let day = Hour::clock_24(4);
         let walker = day.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(4, 0, 0)),
@@ -1020,9 +1089,9 @@ mod tests {
     }
 
     #[test]
-    fn test_hour_is_12_clock_under_12() {
+    fn test_hour_12_clock_under_12() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::new(11, true);
+        let day = Hour::clock_12(11);
         let walker = day.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(11, 0, 0)),
@@ -1040,9 +1109,9 @@ mod tests {
     }
 
     #[test]
-    fn test_hour_is_12_clock_above_12() {
+    fn test_hour_12_clock_above_12() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::new(14, true);
+        let day = Hour::clock_12(14);
         let walker = day.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(14, 0, 0)),
@@ -1060,9 +1129,9 @@ mod tests {
     }
 
     #[test]
-    fn test_hour_is_12_clock_under_current_hour() {
+    fn test_hour_12_clock_under_current_hour() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::new(8, true);
+        let day = Hour::clock_12(8);
         let walker = day.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(8, 0, 0)),
