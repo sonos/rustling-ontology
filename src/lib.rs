@@ -22,7 +22,7 @@
 //!     assert_eq!(21, int.value);
 //! }
 //! ```
-extern crate bincode;
+extern crate rmp_serde;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -33,8 +33,8 @@ extern crate rustling_ontology_training as training;
 
 pub use rustling::{AttemptTo, ParserMatch, Range, Value, RustlingError, RustlingResult};
 pub use rules::Lang;
-pub use rules::dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue, OrdinalValue,
-                    TemperatureValue, AmountOfMoneyValue, MoneyUnitValue};
+pub use rules::dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue,
+                           OrdinalValue, TemperatureValue, AmountOfMoneyValue, MoneyUnitValue};
 
 mod parser;
 
@@ -70,7 +70,7 @@ macro_rules! lang {
 
             pub fn build_parser() -> ::RustlingResult<::Parser> {
                 let rules = ::rules::$lang::rules_numbers()?;
-                let model = ::bincode::deserialize(include_bytes!(concat!(env!("OUT_DIR"), "/", stringify!($lang), ".bc"))).map_err(|e| format!("{:?}", e))?;
+                let model = ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/", stringify!($lang), ".rmp"))[..]).map_err(|e| format!("{:?}", e))?;
                 Ok(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor()))
             }
         }

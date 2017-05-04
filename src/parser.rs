@@ -1,4 +1,4 @@
-use ::Dimension;
+use Dimension;
 use rustling;
 
 #[derive(Debug, Hash, Clone, Eq, PartialEq,Serialize,Deserialize)]

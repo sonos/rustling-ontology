@@ -8,6 +8,7 @@ members=["cli", "moment", "rules", "training"]
 
 [dependencies]
 bincode = "0.8"
+rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
 rustling = { git="http://github.com/snipsco/rustling", rev="b0602b2" }
@@ -20,6 +21,7 @@ bencher = "0.1"
 
 [build-dependencies]
 bincode = "0.8"
+rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
 rustling = { git="http://github.com/snipsco/rustling", rev="b0602b2" }
