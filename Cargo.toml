@@ -8,6 +8,7 @@ members=["cli", "moment"]
 
 [dependencies]
 rustling = { git="http://github.com/snipsco/rustling", rev="7310177" }
+rustling-ontology-moment = { path="moment"}
 
 [dev-dependencies]
 bencher = "0.1"

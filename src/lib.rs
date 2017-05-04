@@ -25,11 +25,13 @@
 
 #[macro_use]
 extern crate rustling;
+extern crate rustling_ontology_moment;
 
 use std::result;
 
 #[macro_use]
 mod macros;
+#[allow(dead_code)]
 mod helpers;
 mod dimension;
 mod examples;
@@ -38,6 +40,7 @@ mod fr;
 mod es;
 mod parser;
 
+use rustling_ontology_moment as moment;
 pub use rustling::{AttemptTo, ParserMatch, Range, Value, RustlingError, RustlingResult};
 pub use dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue, OrdinalValue,
                     TemperatureValue, AmountOfMoneyValue, MoneyUnitValue};

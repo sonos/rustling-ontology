@@ -7,14 +7,15 @@ extern crate vec_map;
 
 mod period;
 pub mod interval_constraints;
-mod bidirectional_walker;
-mod walker;
+pub mod bidirectional_walker;
+pub mod walker;
 
 use std::ops;
 
 use chrono::{Datelike, Duration, TimeZone, Timelike};
 use chrono::offset::local::Local;
 use chrono::datetime::DateTime;
+pub use interval_constraints::*;
 
 use period::*;
 
