@@ -51,42 +51,55 @@ impl<C: IntervalConstraint + 'static> From<C> for RcConstraint {
 }
 
 impl RcConstraint {
-    pub fn shift_by(self, period: Period) -> ShiftBy {
+    pub fn shift_by(self, period: Period) -> RcConstraint {
         ShiftBy::new(self, period)
     }
 
-    pub fn translate_with<Offset>(self, offset: Offset) -> Translate
+    pub fn translate_with<Offset>(self, offset: Offset) -> RcConstraint
         where Offset: Fn(&Interval, &Context) -> Option<Interval> + 'static {
         Translate::new(self, Rc::new(offset))
     }
 
-    pub fn the_nth(self, n: i64) -> TakeTheNth {
+    pub fn the_nth(self, n: i64) -> RcConstraint {
        TakeTheNth::new(n, false, self)
     }
 
-    pub fn the_nth_not_immediate(self, n: i64) -> TakeTheNth {
+    pub fn the_nth_not_immediate(self, n: i64) -> RcConstraint {
        TakeTheNth::new(n, true, self)
     }
 
-    pub fn take(self, n: i64) -> TakeN {
+    pub fn take(self, n: i64) -> RcConstraint {
        TakeN::new(n, false, self)
     }
 
-    pub fn take_not_immediate(self, n: i64) -> TakeN {
+    pub fn take_not_immediate(self, n: i64) -> RcConstraint {
        TakeN::new(n, true, self)
     }
 
-    pub fn span_to(self, inner: RcConstraint) -> Span {
-       Span::new(self, inner, false)
+    pub fn span_to<Inner>(self, inner: Inner) -> RcConstraint
+        where Inner: IntervalConstraint + 'static {
+       Span::new(self, inner.into(), false)
     }
 
-    pub fn span_inclusive_to(self, inner: RcConstraint)  -> Span {
-       Span::new(self, inner, true)
+    pub fn span_inclusive_to<Inner>(self, inner: Inner)  -> RcConstraint
+        where Inner: IntervalConstraint + 'static {
+       Span::new(self, inner.into(), true)
+    }
+
+    pub fn intersect<Inner>(self, inner: Inner) -> RcConstraint 
+        where Inner: IntervalConstraint + 'static {
+        Intersection::new(self, inner.into())
     }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Year(pub i32);
+
+impl Year {
+    pub fn new(y: i32) -> RcConstraint {
+        Year(y).into()
+    }
+}
 
 impl IntervalConstraint for Year {
     fn grain(&self) -> Grain {
@@ -115,6 +128,12 @@ impl IntervalConstraint for Year {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Month(pub u32);
 
+impl Month {
+    pub fn new(m: u32) -> RcConstraint {
+        Month(m).into()
+    }
+}
+
 impl IntervalConstraint for Month {
     fn grain(&self) -> Grain {
         Grain::Month
@@ -137,6 +156,12 @@ impl IntervalConstraint for Month {
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct DayOfMonth(pub u32);
+
+impl DayOfMonth {
+    pub fn new(dom: u32) -> RcConstraint {
+        DayOfMonth(dom).into()
+    }
+}
 
 impl IntervalConstraint for DayOfMonth {
     fn grain(&self) -> Grain {
@@ -174,6 +199,12 @@ impl IntervalConstraint for DayOfMonth {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct DayOfWeek(pub Weekday);
 
+impl DayOfWeek {
+    pub fn new(dow: Weekday) -> RcConstraint {
+        DayOfWeek(dow).into()
+    }
+}
+
 impl IntervalConstraint for DayOfWeek {
     fn grain(&self) -> Grain {
         Grain::Day
@@ -199,18 +230,18 @@ pub struct Hour {
 }
 
 impl Hour {
-    pub fn clock_12(quantity: i64) -> Hour {
+    pub fn clock_12(quantity: i64) -> RcConstraint {
         Hour {
             quantity: quantity,
             is_12_clock: true,
-        }
+        }.into()
     }
 
     pub fn clock_24(quantity: i64) -> Hour {
         Hour {
             quantity: quantity,
             is_12_clock: false,
-        }
+        }.into()
     }
 }
 
@@ -238,6 +269,12 @@ impl IntervalConstraint for Hour {
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Minute(pub i64);
 
+impl Minute {
+    pub fn new(m: i64) -> RcConstraint {
+        Minute(m).into()
+    }
+}
+
 impl IntervalConstraint for Minute {
     fn grain(&self) -> Grain {
         Grain::Minute
@@ -255,6 +292,12 @@ impl IntervalConstraint for Minute {
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Second(pub i64);
+
+impl Second {
+    pub fn new(s: i64) -> RcConstraint {
+        Second(s).into()
+    }
+}
 
 impl IntervalConstraint for Second {
     fn grain(&self) -> Grain {
@@ -276,12 +319,14 @@ impl IntervalConstraint for Second {
 pub struct NthCycle(Cycle, i64);
 
 impl NthCycle {
-    pub fn after(self, inner: RcConstraint) -> TakeTheNthAfter {
-        TakeTheNthAfter::new(self.1, false, inner, self.0)
+    pub fn after<Inner>(self, inner: Inner) -> RcConstraint
+        where Inner: IntervalConstraint + 'static {
+        TakeTheNthAfter::new(self.1, false, inner.into(), self.0)
     }
     
-    pub fn after_not_immediate<Inner>(self, inner: RcConstraint) -> TakeTheNthAfter {
-        TakeTheNthAfter::new(self.1, true, inner, self.0)
+    pub fn after_not_immediate<Inner>(self, inner: Inner) -> RcConstraint 
+        where Inner: IntervalConstraint + 'static {
+        TakeTheNthAfter::new(self.1, true, inner.into(), self.0)
     }
 }
 
@@ -289,8 +334,9 @@ impl NthCycle {
 pub struct Cycle(pub Grain);
 
 impl Cycle {
-    pub fn last_of<Inner>(self, inner: RcConstraint) -> TakeLastOf {
-        TakeLastOf::new(inner, self)
+    pub fn last_of<Inner>(self, inner: Inner) -> RcConstraint
+        where Inner: IntervalConstraint + 'static {
+        TakeLastOf::new(inner.into(), self)
     }
 
     pub fn the_nth(self, n: i64) -> NthCycle {
@@ -313,11 +359,21 @@ impl IntervalConstraint for Cycle {
     }
 }
 
-#[derive(Clone,new)]
+#[derive(Clone)]
 pub struct TakeTheNth {
     n: i64,
     not_immediate: bool,
     inner: RcConstraint,
+}
+
+impl TakeTheNth {
+    pub fn new(n: i64, not_immediate: bool, inner: RcConstraint) -> RcConstraint {
+        TakeTheNth {
+            n: n,
+            not_immediate: not_immediate,
+            inner: inner,
+        }.into()
+    }
 }
 
 impl IntervalConstraint for TakeTheNth {
@@ -361,11 +417,21 @@ impl IntervalConstraint for TakeTheNth {
     }
 }
 
-#[derive(Clone, new)]
+#[derive(Clone)]
 pub struct TakeN {
     n: i64,
     not_immediate: bool,
     inner: RcConstraint,
+}
+
+impl TakeN {
+    pub fn new(n: i64, not_immediate: bool, inner: RcConstraint) -> RcConstraint {
+        TakeN {
+            n: n,
+            not_immediate: not_immediate,
+            inner: inner,
+        }.into()
+    }
 }
 
 impl IntervalConstraint for TakeN {
@@ -417,12 +483,23 @@ impl IntervalConstraint for TakeN {
     }
 }
 
-#[derive(Clone, new)]
+#[derive(Clone)]
 pub struct TakeTheNthAfter {
     n: i64,
     not_immediate: bool,
     after: RcConstraint,
     cycle: Cycle,
+}
+
+impl TakeTheNthAfter {
+    pub fn new(n: i64, not_immediate: bool, after: RcConstraint, cycle: Cycle) -> RcConstraint {
+        TakeTheNthAfter {
+            n: n,
+            not_immediate: not_immediate,
+            after: after,
+            cycle: cycle,
+        }.into()
+    }
 }
 
 impl IntervalConstraint for TakeTheNthAfter {
@@ -454,10 +531,19 @@ impl IntervalConstraint for TakeTheNthAfter {
     }
 }
 
-#[derive(Clone, new)]
+#[derive(Clone)]
 pub struct TakeLastOf {
     base: RcConstraint,
     cycle: Cycle,
+}
+
+impl TakeLastOf {
+    pub fn new(base: RcConstraint, cycle: Cycle) -> RcConstraint {
+        TakeLastOf {
+            base, 
+            cycle,
+        }.into()
+    }
 }
 
 impl IntervalConstraint for TakeLastOf {
@@ -480,10 +566,16 @@ impl IntervalConstraint for TakeLastOf {
 
 }
 
-#[derive(Clone, new)]
+#[derive(Clone)]
 pub struct Intersection {
     lhs: RcConstraint,
     rhs: RcConstraint,
+}
+
+impl Intersection {
+    fn new(lhs: RcConstraint, rhs: RcConstraint) -> RcConstraint {
+        Intersection { lhs, rhs }.into()
+    }
 }
 
 impl IntervalConstraint for Intersection {
@@ -547,11 +639,11 @@ pub struct Translate {
 impl Translate{
     pub fn new(generator: RcConstraint,
                offset: Rc<Fn(&Interval, &Context) -> Option<Interval>>)
-               -> Translate {
+               -> RcConstraint {
         Translate {
             generator: generator,
             offset: offset,
-        }
+        }.into()
     }
 }
 
@@ -606,11 +698,17 @@ impl IntervalConstraint for Translate {
     }
 }
 
-#[derive(Clone, new)]
+#[derive(Clone)]
 pub struct Span {
     from: RcConstraint,
     to: RcConstraint,
     inclusive: bool,
+}
+
+impl Span {
+    pub fn new(from: RcConstraint, to: RcConstraint, inclusive: bool) -> RcConstraint {
+        Span { from, to, inclusive }.into()
+    }
 }
 
 impl IntervalConstraint for Span {
@@ -638,10 +736,16 @@ impl IntervalConstraint for Span {
     }
 }
 
-#[derive(Clone, new)]
+#[derive(Clone)]
 pub struct ShiftBy {
     base: RcConstraint,
     period: Period,
+}
+
+impl ShiftBy {
+    pub fn new(base: RcConstraint, period: Period) -> RcConstraint {
+        ShiftBy { base, period }.into()
+    }
 }
 
 impl IntervalConstraint for ShiftBy {
@@ -665,9 +769,6 @@ impl IntervalConstraint for ShiftBy {
         }
     }
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
@@ -730,7 +831,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_forward_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month(5).into().the_nth(3);
+        let take_the_nth = Month::new(5).the_nth(3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2020, 05, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -743,7 +844,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_backward_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month(3).into().the_nth(3);
+        let take_the_nth = Month::new(3).the_nth(3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2021, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -755,7 +856,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_backward_negative() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month(3).into().the_nth(-3);
+        let take_the_nth = Month::new(3).the_nth(-3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -849,9 +950,8 @@ mod tests {
     }
 
     #[test]
-    fn test_month() {
+    fn test_month_above_current_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        // Test case 1
         let month = Month(5);
         let walker = month.to_walker(&context.reference, &context);
 
@@ -867,8 +967,11 @@ mod tests {
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 05, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
                    walker.backward.clone().skip(1).next());
+    }
 
-        // Test case 2
+    #[test]
+    fn test_month_under_current_month() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
         let month = Month(3);
         let walker = month.to_walker(&context.reference, &context);
 
@@ -1152,7 +1255,7 @@ mod tests {
     fn test_intersect_dom_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        let inter = Intersection::new(DayOfMonth(12), Month(3));
+        let inter = DayOfMonth::new(12).intersect(Month(3));
         let walker = inter.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 03, 12).and_hms(0, 0, 0)),
@@ -1173,7 +1276,7 @@ mod tests {
     fn test_intersect_dow_dom() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        let inter = Intersection::new(DayOfMonth(12), DayOfWeek(Weekday::Wed));
+        let inter = DayOfMonth::new(12).intersect(DayOfWeek(Weekday::Wed));
         let walker = inter.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 07, 12).and_hms(0, 0, 0)),
@@ -1198,8 +1301,8 @@ mod tests {
         fn offset(i: &Interval, _: &Context) -> Option<Interval> {
             Some(*i + PeriodComp::days(32))
         }
-        let walker = Translate::new(DayOfMonth(12), offset).to_walker(&context.reference,
-                                                                             &context);
+        let walker = DayOfMonth::new(12).translate_with(offset)
+                .to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 14).and_hms(0, 0, 0)),
                                               Grain::Day)),
@@ -1223,7 +1326,7 @@ mod tests {
         fn offset(i: &Interval, _: &Context) -> Option<Interval> {
             Some(*i - PeriodComp::days(32))
         }
-        let walker = Translate::new(DayOfMonth(12), offset).to_walker(&context.reference,
+        let walker = DayOfMonth::new(12).translate_with(offset).to_walker(&context.reference,
                                                                              &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 11).and_hms(0, 0, 0)),
@@ -1247,7 +1350,7 @@ mod tests {
         fn offset(i: &Interval, _: &Context) -> Option<Interval> {
             Some(*i + PeriodComp::days(100))
         }
-        let walker = Translate::new(DayOfMonth(12), offset).to_walker(&context.reference,
+        let walker = DayOfMonth::new(12).translate_with(offset).to_walker(&context.reference,
                                                                              &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 23).and_hms(0, 0, 0)),
@@ -1261,7 +1364,7 @@ mod tests {
     #[test]
     fn test_inclusive_span() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let walker = Span::new(DayOfWeek(Weekday::Mon), DayOfWeek(Weekday::Wed), false)
+        let walker = DayOfWeek::new(Weekday::Mon).span_to(DayOfWeek(Weekday::Wed))
             .to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::new(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
@@ -1285,7 +1388,7 @@ mod tests {
     #[test]
     fn test_shift_by_days() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let walker = DayOfMonth(12).shift_by(PeriodComp::days(2).into())
+        let walker = DayOfMonth::new(12).shift_by(PeriodComp::days(2).into())
             .to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 14).and_hms(0, 0, 0)),
