@@ -6,7 +6,11 @@ use rustling_ontology::*;
 use rustling_ontology::AttemptTo;
 use bencher::Bencher;
 
-fn build_parser_en(bench: &mut Bencher) {
+fn train_parser_en(bench: &mut Bencher) {
+    bench.iter(|| train_parser(Lang::EN).unwrap());
+}
+
+fn load_parser_en(bench: &mut Bencher) {
     bench.iter(|| build_parser(Lang::EN).unwrap());
 }
 
@@ -41,7 +45,8 @@ fn parse_book_restaurant(bench: &mut Bencher) {
 }
 
 benchmark_group!(benches,
-                 build_parser_en,
+                 load_parser_en,
+                 train_parser_en,
                  parse_small_number_en,
                  parse_big_number_en,
                  parse_book_restaurant);

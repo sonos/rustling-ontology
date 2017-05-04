@@ -1,7 +1,7 @@
-use rules::dimension::Dimension;
+use ::Dimension;
 use rustling;
 
-#[derive(Debug, Hash, Clone, Eq, PartialEq)]
+#[derive(Debug, Hash, Clone, Eq, PartialEq,Serialize,Deserialize)]
 pub struct Feat(Vec<rustling::Sym>);
 impl rustling::Feature for Feat {}
 
@@ -44,7 +44,7 @@ pub fn extract_node_features(node: &rustling::Node) -> rustling::Input<rustling:
 mod tests {
     use rustling::*;
     use {build_parser, Lang};
-    use dimension::*;
+    use ::*;
     use rustling::ParserMatch;
 
     #[test]

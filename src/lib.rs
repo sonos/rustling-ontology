@@ -22,6 +22,10 @@
 //!     assert_eq!(21, int.value);
 //! }
 //! ```
+extern crate bincode;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 
 extern crate rustling;
 extern crate rustling_ontology_rules as rules;
@@ -40,29 +44,39 @@ pub type Parser = rustling::Parser<Dimension, parser::Feat, parser::FeatureExtra
 /// Obtain a parser for a given language.
 pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
     match lang {
-        Lang::EN => build_parser_en(),
-        Lang::FR => build_parser_fr(),
-        Lang::ES => build_parser_es(),
+        Lang::EN => en::build_parser(),
+        Lang::FR => fr::build_parser(),
+        Lang::ES => es::build_parser(),
     }
 }
 
-fn build_parser_en() -> RustlingResult<Parser> {
-    let rules = rules::en::rules_numbers()?;
-    let exs = training::en::examples_numbers();
-    let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
-    Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
+pub fn train_parser(lang: Lang) -> RustlingResult<Parser> {
+    match lang {
+        Lang::EN => en::train_parser(),
+        Lang::FR => fr::train_parser(),
+        Lang::ES => es::train_parser(),
+    }
 }
 
-fn build_parser_fr() -> RustlingResult<Parser> {
-    let rules = rules::fr::rules_numbers()?;
-    let exs = training::fr::examples_numbers();
-    let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
-    Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
+macro_rules! lang {
+    ($lang:ident) => {
+        mod $lang {
+            pub fn train_parser() -> ::RustlingResult<::Parser> {
+                let rules = ::rules::$lang::rules_numbers()?;
+                let exs = ::training::$lang::examples_numbers();
+                let model = ::rustling::train::train(&rules, exs, ::parser::FeatureExtractor())?;
+                Ok(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor()))
+            }
+
+            pub fn build_parser() -> ::RustlingResult<::Parser> {
+                let rules = ::rules::$lang::rules_numbers()?;
+                let model = ::bincode::deserialize(include_bytes!(concat!(env!("OUT_DIR"), "/", stringify!($lang), ".bc"))).map_err(|e| format!("{:?}", e))?;
+                Ok(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor()))
+            }
+        }
+    }
 }
 
-fn build_parser_es() -> RustlingResult<Parser> {
-    let rules = rules::es::rules_numbers()?;
-    let exs = training::es::examples_numbers();
-    let model = rustling::train::train(&rules, exs, parser::FeatureExtractor())?;
-    Ok(rustling::Parser::new(rules, model, parser::FeatureExtractor()))
-}
+lang!(en);
+lang!(es);
+lang!(fr);

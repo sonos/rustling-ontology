@@ -7,6 +7,9 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 members=["cli", "moment", "rules", "training"]
 
 [dependencies]
+bincode = "0.8"
+serde = "1.0"
+serde_derive = "1.0"
 rustling = { git="http://github.com/snipsco/rustling", rev="7310177" }
 rustling-ontology-moment = { path="moment"}
 rustling-ontology-rules = { path="rules"}
@@ -14,6 +17,15 @@ rustling-ontology-training = { path="training"}
 
 [dev-dependencies]
 bencher = "0.1"
+
+[build-dependencies]
+bincode = "0.8"
+serde = "1.0"
+serde_derive = "1.0"
+rustling = { git="http://github.com/snipsco/rustling", rev="7310177" }
+rustling-ontology-moment = { path="moment"}
+rustling-ontology-rules = { path="rules"}
+rustling-ontology-training = { path="training"}
 
 [[bench]]
 name = "example"
