@@ -632,9 +632,8 @@ impl<Inner> IntervalConstraint for ShiftBy<Inner>
             let next_grain = period_grain.next();
             let translate = Translate {
                 generator: self.base.clone(),
-                offset: Rc::new(move |i: &Interval, c: &Context| -> Option<Interval> {
-                    //Some(i.clone().round_to(next_grain) + period)
-                    unimplemented!();
+                offset: Rc::new(move |i: &Interval, _: &Context| -> Option<Interval> {
+                    Some((*i).round_to(next_grain) + &period)
                 }),
             };
             translate.to_walker(origin, context)
