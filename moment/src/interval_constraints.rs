@@ -31,6 +31,10 @@ pub type IntervalWalker = BidirectionalWalker<Interval>;
 pub trait IntervalConstraint {
     fn grain(&self) -> Grain;
     fn to_walker(&self, origin: &Interval, _context: &Context) -> IntervalWalker;
+
+    fn shift_by(self, period: Period) -> ShiftBy<Self> where Self:Sized {
+        ShiftBy::new(Rc::new(self), period)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -1267,6 +1271,27 @@ mod tests {
                                       Some(Moment(Local.ymd(2017, 04, 12).and_hms(0, 0, 0))),
                                       Grain::Day)),
                    walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_shift_by_days() {
+        let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let walker = DayOfMonth(12).shift_by(PeriodComp::days(2).into())
+            .to_walker(&context.reference, &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 14).and_hms(0, 0, 0)),
+                                              Grain::Hour)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 06, 14).and_hms(0, 0, 0)),
+                                              Grain::Hour)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 14).and_hms(0, 0, 0)),
+                                              Grain::Hour)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 03, 14).and_hms(0, 0, 0)),
+                                              Grain::Hour)),
+                   walker.backward.clone().skip(1).next());
+
     }
 
 }
