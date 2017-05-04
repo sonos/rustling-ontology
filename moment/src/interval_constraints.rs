@@ -35,7 +35,7 @@ pub trait IntervalConstraint {
 }
 
 #[derive(Clone)]
-pub struct RcConstraint(Rc<IntervalConstraint>);
+pub struct RcConstraint(pub Rc<IntervalConstraint>);
 
 impl ops::Deref for RcConstraint {
     type Target = Rc<IntervalConstraint>;
@@ -76,19 +76,16 @@ impl RcConstraint {
        TakeN::new(n, true, self)
     }
 
-    pub fn span_to<Inner>(self, inner: Inner) -> RcConstraint
-        where Inner: IntervalConstraint + 'static {
+    pub fn span_to(self, inner: RcConstraint) -> RcConstraint {
        Span::new(self, inner.into(), false)
     }
 
-    pub fn span_inclusive_to<Inner>(self, inner: Inner)  -> RcConstraint
-        where Inner: IntervalConstraint + 'static {
+    pub fn span_inclusive_to(self, inner: RcConstraint)  -> RcConstraint {
        Span::new(self, inner.into(), true)
     }
 
-    pub fn intersect<Inner>(self, inner: Inner) -> RcConstraint 
-        where Inner: IntervalConstraint + 'static {
-        Intersection::new(self, inner.into())
+    pub fn intersect(self, inner: RcConstraint) -> RcConstraint {
+        Intersection::new(self, inner)
     }
 }
 
@@ -225,19 +222,19 @@ impl IntervalConstraint for DayOfWeek {
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Hour {
-    pub quantity: i64,
+    pub quantity: u32,
     pub is_12_clock: bool,
 }
 
 impl Hour {
-    pub fn clock_12(quantity: i64) -> RcConstraint {
+    pub fn clock_12(quantity: u32) -> RcConstraint {
         Hour {
             quantity: quantity,
             is_12_clock: true,
         }.into()
     }
 
-    pub fn clock_24(quantity: i64) -> Hour {
+    pub fn clock_24(quantity: u32) -> RcConstraint {
         Hour {
             quantity: quantity,
             is_12_clock: false,
@@ -256,7 +253,7 @@ impl IntervalConstraint for Hour {
         } else {
             24
         };
-        let offset = (self.quantity - origin.start.hour() as i64) % clock_step;
+        let offset = (self.quantity as i64 - origin.start.hour() as i64) % clock_step;
         let anchor = origin.round_to(Grain::Hour) + PeriodComp::hours(offset);
 
         BidirectionalWalker::new()
@@ -267,10 +264,10 @@ impl IntervalConstraint for Hour {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Minute(pub i64);
+pub struct Minute(pub u32);
 
 impl Minute {
-    pub fn new(m: i64) -> RcConstraint {
+    pub fn new(m: u32) -> RcConstraint {
         Minute(m).into()
     }
 }
@@ -280,7 +277,7 @@ impl IntervalConstraint for Minute {
         Grain::Minute
     }
     fn to_walker(&self, origin: &Interval, _context: &Context) -> IntervalWalker {
-        let offset = (self.0 - origin.start.minute() as i64) % 60;
+        let offset = (self.0 as i64 - origin.start.minute() as i64) % 60;
         let anchor = origin.round_to(Grain::Minute) + PeriodComp::minutes(offset);
 
         BidirectionalWalker::new()
@@ -291,10 +288,10 @@ impl IntervalConstraint for Minute {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Second(pub i64);
+pub struct Second(pub u32);
 
 impl Second {
-    pub fn new(s: i64) -> RcConstraint {
+    pub fn new(s: u32) -> RcConstraint {
         Second(s).into()
     }
 }
@@ -305,7 +302,7 @@ impl IntervalConstraint for Second {
     }
 
     fn to_walker(&self, origin: &Interval, _context: &Context) -> IntervalWalker {
-        let offset = (self.0 - origin.start.second() as i64) % 60;
+        let offset = (self.0 as i64 - origin.start.second() as i64) % 60;
         let anchor = origin.round_to(Grain::Second) + PeriodComp::seconds(offset);
 
         BidirectionalWalker::new()
@@ -1255,7 +1252,7 @@ mod tests {
     fn test_intersect_dom_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        let inter = DayOfMonth::new(12).intersect(Month(3));
+        let inter = DayOfMonth::new(12).intersect(Month(3).into());
         let walker = inter.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 03, 12).and_hms(0, 0, 0)),
@@ -1276,7 +1273,7 @@ mod tests {
     fn test_intersect_dow_dom() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        let inter = DayOfMonth::new(12).intersect(DayOfWeek(Weekday::Wed));
+        let inter = DayOfMonth::new(12).intersect(DayOfWeek(Weekday::Wed).into());
         let walker = inter.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 07, 12).and_hms(0, 0, 0)),
@@ -1364,7 +1361,7 @@ mod tests {
     #[test]
     fn test_inclusive_span() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let walker = DayOfWeek::new(Weekday::Mon).span_to(DayOfWeek(Weekday::Wed))
+        let walker = DayOfWeek::new(Weekday::Mon).span_to(DayOfWeek(Weekday::Wed).into())
             .to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::new(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
