@@ -332,14 +332,56 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             Ok(helpers::day_of_month(ordinal.value().value as u32)?.latent())
         }
     ); 
-    b.rule_1("the <day-of-month> (ordinal)",
+    b.rule_1("<day-of-month> (ordinal)",
         ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
         |ordinal| {
             Ok(helpers::day_of_month(ordinal.value().value as u32)?.latent())
         }
     );
-     
-
+    b.rule_2("the <day-of-month> (non ordinal)",
+        b.reg(r#"the"#)?,
+        integer_check!(1, 31),
+        |_, integer| {
+            Ok(helpers::day_of_month(integer.value().value as u32)?.latent())
+        }
+    );
+    b.rule_2("<named-day> <day-of-month> (ordinal)",
+        time_check_form!(Form::DayOfWeek{..}),
+        ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
+        |a, ordinal| {
+            a.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
+        }
+    );
+    b.rule_2("<named-month> <day-of-month> (ordinal)", // march 12th
+        time_check_form!(Form::Month{..}),
+        ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
+        |a, ordinal| {
+            a.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
+        }
+    );
+    b.rule_2("<named-month> <day-of-month> (non ordinal)",
+        time_check_form!(Form::Month(_)),
+        integer_check!(1, 31),
+        |a, integer| {
+            a.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+        }
+    );
+    b.rule_3("<day-of-month> (ordinal) of <named-month>",
+        ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
+        b.reg(r#""of|in""#)?,
+        time_check_form!(Form::Month(_)),
+        |ordinal, _, a| {
+            a.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
+        }
+    );
+    b.rule_3("<day-of-month> (non ordinal) of <named-month>",
+        integer_check!(1, 31),
+        b.reg(r#""of|in""#)?,
+        time_check_form!(Form::Month(_)),
+        |integer, _, a| {
+            a.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+        }
+    );
     Ok(())
 }
 
