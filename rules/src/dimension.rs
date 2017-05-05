@@ -6,6 +6,7 @@ use moment::{RcConstraint, Period};
 /// Union of all possible values parsed by the ontology.
 rustling_value! {
     #[doc="Union of all possible values parsed by the ontology."]
+    #[derive(Clone)]
     Dimension DimensionKind
     Number(NumberValue),
     AmountOfMoney(AmountOfMoneyValue),

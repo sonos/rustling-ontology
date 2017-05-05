@@ -33,13 +33,21 @@ extern crate rustling_ontology_training as training;
 
 pub use rustling::{AttemptTo, ParserMatch, Range, Value, RustlingError, RustlingResult};
 pub use rules::Lang;
-pub use rules::dimension::{Dimension, DimensionKind, IntegerValue, NumberValue, FloatValue,
-                           OrdinalValue, TemperatureValue, AmountOfMoneyValue, MoneyUnitValue};
 
 mod parser;
 
+enum Dimension: Value {
+    Foo,
+}
+
+impl From<dimension::Dimension> for Dimension {
+    fn from(d:&dimension::Dimension) -> Dimension {
+        Dimension::Foo
+    }
+}
+
 /// Main class to be use at runtime.
-pub type Parser = rustling::Parser<Dimension, parser::Feat, parser::FeatureExtractor>;
+pub type Parser = rustling::Parser<dimension::Dimension, Dimension, parser::Feat, parser::FeatureExtractor>;
 
 /// Obtain a parser for a given language.
 pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
