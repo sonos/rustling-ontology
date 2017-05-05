@@ -14,11 +14,10 @@ use std::ops;
 
 use chrono::{Datelike, Duration, TimeZone, Timelike};
 use chrono::offset::local::Local;
+pub use chrono::{Weekday};
 use chrono::datetime::DateTime;
 pub use interval_constraints::*;
 pub use period::*;
-
-use period::*;
 
 #[derive(Debug,PartialEq,Copy,Clone,PartialOrd,Eq,Ord)]
 pub struct Moment(DateTime<Local>);

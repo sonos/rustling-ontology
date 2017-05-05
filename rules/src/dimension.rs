@@ -236,6 +236,7 @@ pub struct TimeValue {
     pub constraint: RcConstraint,
     pub form: Form,
     pub direction: Option<Direction>,
+    pub latent: bool,
 }
 
 // We need partial eq to make Dimension partial eq happy, but this is only
@@ -256,6 +257,7 @@ impl ::std::fmt::Debug for TimeValue {
 pub enum Form {
     Month(u32),
     TimeOfDay(Option<TimeOfDayForm>),
+    DayOfWeek { not_immediate: bool },
     Empty,
 }
 
@@ -267,10 +269,9 @@ pub enum Direction {
 
 #[derive(Debug,PartialEq,Clone)]
 pub struct TimeOfDayForm {
-    pub full_hour: u32, 
+    pub full_hour: u32,
     pub is_12_clock: bool,
 }
 
 #[derive(Debug,PartialEq,Clone)]
 pub struct DurationValue(pub Period);
-

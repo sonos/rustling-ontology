@@ -45,4 +45,3 @@ impl ::std::string::ToString for Lang {
         }
     }
 }
-

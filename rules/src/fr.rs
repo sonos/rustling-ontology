@@ -272,4 +272,3 @@ pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
              |_, a| Ok(*a.value()));
     Ok(b.build())
 }
-

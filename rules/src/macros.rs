@@ -35,3 +35,12 @@ macro_rules! money_unit {
 macro_rules! temperature_check {
     () => ( $crate::rustling::core::AnyNodePattern::<TemperatureValue>::new() );
 }
+
+macro_rules! time_check {
+    () => ( $crate::rustling::core::AnyNodePattern::<TimeValue>::new() );
+    ($predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!($predicate)]) );
+}
+
+macro_rules! time_check_form {
+    ($form:expr) => ( $crate::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| if let &$form = time.form { true } else { false })]) );
+}

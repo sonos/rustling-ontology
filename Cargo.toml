@@ -2,6 +2,7 @@
 name = "rustling-ontology"
 version = "0.1.0"
 authors = ["hdlj <hubert.delajonquiere@snips.net>"]
+build = "build.rs"
 
 [workspace]
 members=["cli", "moment", "rules", "training"]

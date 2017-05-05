@@ -41,7 +41,10 @@ pub fn compose_money_number(a: &AmountOfMoneyValue,
 
 impl Form {
     fn time_of_day(full_hour: u32, is_12_clock: bool) -> Form {
-        Form::TimeOfDay(Some(TimeOfDayForm { full_hour: full_hour, is_12_clock: is_12_clock }))
+        Form::TimeOfDay(Some(TimeOfDayForm {
+                                 full_hour: full_hour,
+                                 is_12_clock: is_12_clock,
+                             }))
     }
 }
 
@@ -51,26 +54,28 @@ impl TimeValue {
             constraint: constraint,
             form: Form::Empty,
             direction: None,
+            latent: false,
         }
     }
 
+    pub fn latent(self) -> TimeValue {
+        TimeValue { latent: true, ..self }
+    }
+
     pub fn form(self, form: Form) -> TimeValue {
-        TimeValue {
-            form: form,
-            .. self 
-        }
+        TimeValue { form: form, ..self }
     }
 
     pub fn direction(self, direction: Option<Direction>) -> TimeValue {
         TimeValue {
             direction: direction,
-            .. self
+            ..self
         }
     }
 
     pub fn intersect(self, other: TimeValue) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(self.constraint.intersect(other.constraint))
-            .direction(self.direction.or(other.direction)))
+               .direction(self.direction.or(other.direction)))
     }
 
     pub fn last_of(self, other: TimeValue) -> RuleResult<TimeValue> {
@@ -86,11 +91,14 @@ impl TimeValue {
     }
 
     pub fn the_nth_after(self, n: i64, after_value: TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.the_nth(n).after_not_immediate(after_value.constraint)))
+        Ok(TimeValue::constraint(self.constraint
+                                     .the_nth(n)
+                                     .after_not_immediate(after_value.constraint)))
     }
 
     pub fn span_to(self, to: TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
-        if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) || is_inclusive {
+        if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
+           is_inclusive {
             Ok(TimeValue::constraint(self.constraint.span_inclusive_to(to.constraint)))
         } else {
             Ok(TimeValue::constraint(self.constraint.span_to(to.constraint)))
@@ -103,13 +111,21 @@ pub fn year(y: i32) -> RuleResult<TimeValue> {
 }
 
 pub fn month(m: u32) -> RuleResult<TimeValue> {
-    if !(1 <= m && m <= 12) { unimplemented!();  } 
+    if !(1 <= m && m <= 12) {
+        unimplemented!();
+    }
     Ok(TimeValue::constraint(Month::new(m)).form(Form::Month(m)))
 }
 
 pub fn day_of_month(dom: u32) -> RuleResult<TimeValue> {
-    if !(1 <= dom && dom <= 31) { unimplemented!(); }
+    if !(1 <= dom && dom <= 31) {
+        unimplemented!();
+    }
     Ok(TimeValue::constraint(DayOfMonth::new(dom)).form(Form::Empty))
+}
+
+pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
+    Ok(TimeValue::constraint(DayOfWeek::new(weekday)).form(Form::DayOfWeek { not_immediate: true }))
 }
 
 pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
@@ -133,16 +149,28 @@ pub fn second(s: u32) -> RuleResult<TimeValue> {
 }
 
 pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
-    Ok(hour(h, is_12_clock)?.intersect(minute(m)?)?.form(Form::TimeOfDay(None)))
+    Ok(hour(h, is_12_clock)?
+           .intersect(minute(m)?)?
+           .form(Form::TimeOfDay(None)))
 }
 
-pub fn hour_minute_second_clock_12(h: u32, m: u32, s: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
-    Ok(hour_minute(h, m, is_12_clock)?.intersect(second(s)?)?.form(Form::TimeOfDay(None)))
+pub fn hour_minute_second_clock_12(h: u32,
+                                   m: u32,
+                                   s: u32,
+                                   is_12_clock: bool)
+                                   -> RuleResult<TimeValue> {
+    Ok(hour_minute(h, m, is_12_clock)?
+           .intersect(second(s)?)?
+           .form(Form::TimeOfDay(None)))
 }
 
 pub fn hour_minute_relative(h: u32, m: i32, is_12_clock: bool) -> RuleResult<TimeValue> {
-    if !(1 <= h && h <= 23) { unimplemented!(); }
-    if !(-59 <= m && m <= 59) { unimplemented!(); }
+    if !(1 <= h && h <= 23) {
+        unimplemented!();
+    }
+    if !(-59 <= m && m <= 59) {
+        unimplemented!();
+    }
     let normalized_minute = ((m + 60) % 60) as u32;
 
     let shifter_hour = if m >= 0 {
@@ -153,7 +181,7 @@ pub fn hour_minute_relative(h: u32, m: i32, is_12_clock: bool) -> RuleResult<Tim
             (1, true) => 12,
             (0, false) => 23,
             (1, false) => 0,
-            _ => h - 1
+            _ => h - 1,
         }
     };
     hour_minute(shifter_hour, normalized_minute, is_12_clock)
@@ -171,8 +199,13 @@ pub fn cycle_nth_after(grain: Grain, n: i64, after_value: TimeValue) -> RuleResu
     Ok(TimeValue::constraint(Cycle::rc(grain).the_nth(n).after(after_value.constraint)))
 }
 
-pub fn cycle_nth_after_not_immediate(grain: Grain, n: i64, after_value: TimeValue) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).the_nth(n).after_not_immediate(after_value.constraint)))
+pub fn cycle_nth_after_not_immediate(grain: Grain,
+                                     n: i64,
+                                     after_value: TimeValue)
+                                     -> RuleResult<TimeValue> {
+    Ok(TimeValue::constraint(Cycle::rc(grain)
+                                 .the_nth(n)
+                                 .after_not_immediate(after_value.constraint)))
 }
 
 pub fn cycle_n(grain: Grain, n: i64) -> RuleResult<TimeValue> {
@@ -200,8 +233,10 @@ impl DurationValue {
     }
 
     pub fn ago(self) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(-self.0)))
-    } 
+        Ok(TimeValue::constraint(Cycle::rc(Grain::Second)
+                                     .take_the_nth(0)
+                                     .shift_by(-self.0)))
+    }
 
     pub fn after(self, time: TimeValue) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(time.constraint.shift_by(self.0)))
