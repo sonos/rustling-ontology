@@ -35,13 +35,15 @@ extern crate rustling_ontology_training as training;
 pub use rustling::{AttemptTo, ParsedNode, ParserMatch, Range, Value, RustlingError, RustlingResult, Sym};
 pub use rustling_ontology_rules::Lang;
 pub use rustling_ontology_rules::dimension;
-pub use rustling_ontology_rules::dimension::{Dimension, DimensionKind};
+pub use rustling_ontology_rules::dimension::{Dimension, DimensionKind, NumberValue};
 pub use rustling_ontology_moment::Interval;
 
 mod parser;
 
 #[derive(Clone,PartialEq,Debug)]
 pub enum Output {
+    Integer(i64),
+    Float(f32),
     Time(Interval),
     String(String),
 }
@@ -58,7 +60,12 @@ impl ParsingContext {
                 let mut walker = tv.constraint.to_walker(&self.moment.reference, &self.moment);
                 walker.forward.next().or_else(|| walker.backward.next()).map(Output::Time)
             },
-            _ => Some(Output::String("--".into()))
+            &Dimension::Number(ref number) => {                match number {
+                    &NumberValue::Integer(ref v) => Some(Output::Integer(v.value)),
+                    &NumberValue::Float(ref v) => Some(Output::Float(v.value)),
+                }
+            },
+            _ => None,
         }
     }
 }
