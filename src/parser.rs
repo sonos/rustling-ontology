@@ -1,4 +1,4 @@
-use Dimension;
+use rustling_ontology_rules::dimension::*;
 use rustling;
 
 #[derive(Debug, Hash, Clone, Eq, PartialEq,Serialize,Deserialize)]
@@ -43,13 +43,12 @@ pub fn extract_node_features(node: &rustling::Node) -> rustling::Input<rustling:
 #[cfg(test)]
 mod tests {
     use rustling::*;
-    use {build_parser, Lang};
     use ::*;
     use rustling::ParserMatch;
 
     #[test]
     fn test_twenty() {
-        let parser = build_parser(Lang::EN).unwrap();
+        let parser = build_raw_parser(Lang::EN).unwrap();
         let result = parser.parse("twenty").unwrap();
         assert_eq!(vec![ParserMatch {
                             range: Range(0, 6),
@@ -61,7 +60,7 @@ mod tests {
 
     #[test]
     fn test_21() {
-        let parser = build_parser(Lang::EN).unwrap();
+        let parser = build_raw_parser(Lang::EN).unwrap();
         let result = parser.parse("twenty-one").unwrap();
         assert_eq!(1, result.len());
         assert_eq!(21,
@@ -72,7 +71,7 @@ mod tests {
 
     #[test]
     fn test_2_1000() {
-        let parser = build_parser(Lang::EN).unwrap();
+        let parser = build_raw_parser(Lang::EN).unwrap();
         let result = parser.parse("twenty-one thousands").unwrap();
         assert_eq!(21000,
                    IntegerValue::attempt_from(result[0].value.clone())
@@ -82,7 +81,7 @@ mod tests {
 
     #[test]
     fn test_foobar() {
-        let parser = build_parser(Lang::EN).unwrap();
+        let parser = build_raw_parser(Lang::EN).unwrap();
         let result = parser.parse("foobar twenty thousands").unwrap();
         assert_eq!(20000,
                    IntegerValue::attempt_from(result[0].value.clone())

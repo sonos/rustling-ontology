@@ -6,14 +6,14 @@ use moment::{RcConstraint, Period};
 /// Union of all possible values parsed by the ontology.
 rustling_value! {
     #[doc="Union of all possible values parsed by the ontology."]
-    #[derive(Clone)]
+    #[derive(Clone,PartialEq,Debug)]
     Dimension DimensionKind
     Number(NumberValue),
     AmountOfMoney(AmountOfMoneyValue),
     Ordinal(OrdinalValue),
     Temperature(TemperatureValue),
     MoneyUnit(MoneyUnitValue),
-    //Time(TimeValue),
+    Time(TimeValue),
     Duration(DurationValue),
 }
 
@@ -30,6 +30,7 @@ impl fmt::Display for Dimension {
             &Dimension::Temperature(_) => write!(fmt, "Temperature"),
             &Dimension::AmountOfMoney(_) => write!(fmt, "AmountOfMoney"),
             &Dimension::MoneyUnit(_) => write!(fmt, "MoneyUnit"),
+            &Dimension::Time(_) => write!(fmt, "Time"),
             &Dimension::Duration(_) => write!(fmt, "Duration"),
         }
     }
@@ -230,11 +231,25 @@ pub struct TemperatureValue {
     pub latent: bool,
 }
 
-
+#[derive(Clone)]
 pub struct TimeValue {
     pub constraint: RcConstraint,
     pub form: Form,
     pub direction: Option<Direction>,
+}
+
+// We need partial eq to make Dimension partial eq happy, but this is only
+// useful for testing.
+impl PartialEq for TimeValue {
+    fn eq(&self, _other: &TimeValue) -> bool {
+        unimplemented!()
+    }
+}
+
+impl ::std::fmt::Debug for TimeValue {
+    fn fmt(&self,fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
+        write!(fmt, "<TimeValue>")
+    }
 }
 
 #[derive(Debug,PartialEq,Clone)]
