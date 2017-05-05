@@ -116,6 +116,14 @@ impl TimeValue {
             Err(format!("Form {:?} is not a month form", self.form))?
         }
     }
+
+    pub fn form_time_of_day(&self) -> RuleResult<TimeOfDayForm> {
+        if let Form::TimeOfDay(Some(v)) = self.form.clone() {
+            Ok(v)
+        } else {
+            Err(format!("Form {:?} is not a time of day form", self.form))?
+        }
+    }
 }
 
 pub fn year(y: i32) -> RuleResult<TimeValue> {
@@ -232,30 +240,27 @@ pub fn ymd(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
     Ok(year(y)?.intersect(&month_day(m, d)?)?)
 }
 
-#[derive(Clone)]
-struct DurationValue(Period);
-
 impl DurationValue {
-    fn new(grain: Grain, n: i64) -> DurationValue {
+    pub fn new(grain: Grain, n: i64) -> DurationValue {
         DurationValue(PeriodComp::new(grain, n).into())
     }
 
-    pub fn in_present(self) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(self.0)))
+    pub fn in_present(&self) -> RuleResult<TimeValue> {
+        Ok(TimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(self.0.clone())))
     }
 
-    pub fn ago(self) -> RuleResult<TimeValue> {
+    pub fn ago(&self) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(Cycle::rc(Grain::Second)
                                      .take_the_nth(0)
-                                     .shift_by(-self.0)))
+                                     .shift_by(-self.0.clone())))
     }
 
-    pub fn after(self, time: TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(time.constraint.shift_by(self.0)))
+    pub fn after(&self, time: TimeValue) -> RuleResult<TimeValue> {
+        Ok(TimeValue::constraint(time.constraint.shift_by(self.0.clone())))
     }
 
-    pub fn before(self, time: TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(time.constraint.shift_by(-self.0)))
+    pub fn before(&self, time: TimeValue) -> RuleResult<TimeValue> {
+        Ok(TimeValue::constraint(time.constraint.shift_by(-self.0.clone())))
     }
 }
 
