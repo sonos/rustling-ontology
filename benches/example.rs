@@ -15,7 +15,7 @@ fn load_parser_en(bench: &mut Bencher) {
 }
 
 fn parse_small_number_en(bench: &mut Bencher) {
-    let parser = build_parser(Lang::EN).unwrap();
+    let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "eighty-two";
     let result = parser.parse(number).unwrap();
     let int: i64 = result[0].value.attempt_to().unwrap();
@@ -25,7 +25,7 @@ fn parse_small_number_en(bench: &mut Bencher) {
 }
 
 fn parse_big_number_en(bench: &mut Bencher) {
-    let parser = build_parser(Lang::EN).unwrap();
+    let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "one million five hundred twenty-one thousand eighty-two";
     let result = parser.parse(number).unwrap();
     let int: i64 = result[0].value.attempt_to().unwrap();
@@ -35,7 +35,7 @@ fn parse_big_number_en(bench: &mut Bencher) {
 }
 
 fn parse_book_restaurant(bench: &mut Bencher) {
-    let parser = build_parser(Lang::EN).unwrap();
+    let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "book a restaurant for four people";
     let result = parser.parse(number).unwrap();
     let int: i64 = result[0].value.attempt_to().unwrap();
@@ -44,10 +44,18 @@ fn parse_book_restaurant(bench: &mut Bencher) {
     bench.iter(|| parser.parse(number));
 }
 
+fn parse_complex_train_sentence(bench: &mut Bencher) {
+    let parser = build_raw_parser(Lang::EN).unwrap();
+    let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm";
+    bench.iter(|| parser.parse(sent));
+}
+
 benchmark_group!(benches,
                  load_parser_en,
                  train_parser_en,
                  parse_small_number_en,
                  parse_big_number_en,
-                 parse_book_restaurant);
+                 parse_book_restaurant,
+                 parse_complex_train_sentence
+                 );
 benchmark_main!(benches);
