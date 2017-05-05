@@ -37,6 +37,7 @@ fn main() {
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
             table.set_titles(row!["ix", "best", "log(p)", "p", "text", "kind", "rule", "childs"]);
+            let decoder = ParsingContext::default();
             for (ix, c) in candidates.iter().enumerate().rev() {
                 /*
                 if !kinds.is_empty() && !kinds.contains(&c.1.value.kind()) {
@@ -56,8 +57,7 @@ fn main() {
                                    c.1.probalog,
                                    f32::exp(c.1.probalog),
                                    hilite,
-                                   "",
-//                                   c.1.value.kind().to_string(),
+                                   format!("{:?}", decoder.resolve(&c.1.value)),
                                    parser.resolve_sym(&c.0.root_node.rule_sym).unwrap_or(""),
                                    c.0
                                        .root_node

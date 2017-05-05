@@ -10,9 +10,15 @@ use chrono::{Datelike, TimeZone, Timelike, Weekday};
 
 #[derive(Debug, Copy, Clone, PartialEq, new)]
 pub struct Context {
-    reference: Interval,
-    min: Interval,
-    max: Interval,
+    pub reference: Interval,
+    pub min: Interval,
+    pub max: Interval,
+}
+
+impl Default for Context {
+    fn default() -> Context {
+        Self::now()
+    }
 }
 
 impl Context {

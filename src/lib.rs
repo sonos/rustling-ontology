@@ -29,24 +29,38 @@ extern crate serde_derive;
 
 extern crate rustling;
 extern crate rustling_ontology_rules;
+extern crate rustling_ontology_moment;
 extern crate rustling_ontology_training as training;
 
 pub use rustling::{AttemptTo, ParsedNode, ParserMatch, Range, Value, RustlingError, RustlingResult, Sym};
 pub use rustling_ontology_rules::Lang;
 pub use rustling_ontology_rules::dimension;
 pub use rustling_ontology_rules::dimension::{Dimension, DimensionKind};
+pub use rustling_ontology_moment::Interval;
 
 mod parser;
 
 #[derive(Clone,PartialEq,Debug)]
 pub enum Output {
-    Number(dimension::NumberValue),
-    AmountOfMoney(dimension::AmountOfMoneyValue),
-    Ordinal(dimension::OrdinalValue),
-    Temperature(dimension::TemperatureValue),
-    MoneyUnit(dimension::MoneyUnitValue),
-    Time(usize),
-    Duration(dimension::DurationValue),
+    Time(Interval),
+    String(String),
+}
+
+#[derive(Default)]
+pub struct ParsingContext {
+    moment: rustling_ontology_moment::interval_constraints::Context,
+}
+
+impl ParsingContext {
+    pub fn resolve(&self, dim:&Dimension) -> Option<Output> {
+        match dim {
+            &Dimension::Time(ref tv) => {
+                let mut walker = tv.constraint.to_walker(&self.moment.reference, &self.moment);
+                walker.forward.next().or_else(|| walker.backward.next()).map(Output::Time)
+            },
+            _ => Some(Output::String("--".into()))
+        }
+    }
 }
 
 pub type RawParser = rustling::Parser<dimension::Dimension, parser::Feat, parser::FeatureExtractor>;
@@ -54,17 +68,21 @@ pub type RawParser = rustling::Parser<dimension::Dimension, parser::Feat, parser
 pub struct Parser(RawParser);
 
 impl Parser {
-    pub fn parse(&self, input: &str) -> RustlingResult<Vec<ParserMatch<Output>>> {
-        Ok(self.0
-               .parse(input)?
+    pub fn raw_parse(&self, input: &str) -> RustlingResult<Vec<ParserMatch<Dimension>>> {
+        self.0.parse(input)
+    }
+
+    pub fn parse(&self, input: &str, context: ParsingContext) -> RustlingResult<Vec<ParserMatch<Output>>> {
+        Ok(self.raw_parse(input)?
                .into_iter()
-               .map(|pm| {
+               .filter_map(|pm| {
+                    context.resolve(&pm.value).map(|o|
                         ParserMatch {
-                            value: Output::Time(0),
+                            value: o,
                             range: pm.range,
                             probalog: pm.probalog,
                         }
-                    })
+                    )})
                .collect())
     }
 }
