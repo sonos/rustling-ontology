@@ -57,7 +57,7 @@ fn main() {
                                    c.1.probalog,
                                    f32::exp(c.1.probalog),
                                    hilite,
-                                   format!("{:?}", decoder.resolve(&c.1.value)),
+                                   decoder.resolve(&c.1.value).map(|v| format!("{:?}", v)).unwrap_or("".into()),
                                    parser.resolve_sym(&c.0.root_node.rule_sym).unwrap_or(""),
                                    c.0
                                        .root_node
