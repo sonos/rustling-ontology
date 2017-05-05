@@ -1,9 +1,7 @@
 use rustling::*;
 use dimension::*;
 
-#[allow(dead_code)]
-pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
-    let b = RuleSetBuilder::default();
+pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("number as temp", number_check!(), |a| {
         Ok(TemperatureValue {
                value: a.value().value(),
@@ -13,7 +11,7 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
     });
     b.rule_2("<latent temp> degrees",
              temperature_check!(),
-             b.reg(r#"(deg(r[éeè])?s?\.?)|°"#)?,
+             b.reg(r#"(?:deg(?:r[éeè])?s?\.?)|°"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                         value: a.value().value,
@@ -23,7 +21,7 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
              });
     b.rule_2("<temp> Celcius",
              temperature_check!(),
-             b.reg(r#"c(el[cs]?(ius)?)?\.?"#)?,
+             b.reg(r#"c(?:el[cs]?(?:ius)?)?\.?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                         value: a.value().value,
@@ -33,7 +31,7 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
              });
     b.rule_2("<temp> Fahrenheit",
              temperature_check!(),
-             b.reg(r#"f(ah?reh?n(h?eit)?)?\.?"#)?,
+             b.reg(r#"f(?:ah?reh?n(?:h?eit)?)?\.?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                         value: a.value().value,
@@ -43,7 +41,7 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
              });
     b.rule_2("<latent temp> en dessous de zero",
              temperature_check!(),
-             b.reg(r#"en dessous de (0|z[ée]ro)"#)?,
+             b.reg(r#"en dessous de (?:0|z[ée]ro)"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                         value: -1.0 * a.value().value,
@@ -51,11 +49,10 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
                         ..*a.value()
                     })
              });
-    Ok(b.build())
+    Ok(())
 }
 
-pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
-    let b = RuleSetBuilder::default();
+pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1(
             "number (0..16)",
             b.reg(r#"(z[eé]ro|une?|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|onze|douze|treize|quatorze|quinze|seize)"#)?,
@@ -270,5 +267,13 @@ pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
              b.reg(r#"le"#)?,
              ordinal_check!(),
              |_, a| Ok(*a.value()));
-    Ok(b.build())
+    Ok(())
+}
+
+pub fn rules_finance(_b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    Ok(())
+}
+
+pub fn rules_time(_b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    Ok(())
 }

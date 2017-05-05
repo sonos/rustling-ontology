@@ -12,8 +12,7 @@ fn ok<V>(v: V) -> RuleResult<V> {
     Ok(v)
 }
 
-pub fn rules_time() -> RustlingResult<RuleSet<Dimension>> {
-    let b = RuleSetBuilder::default();
+pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //"intersect"
     // "intersect by \"of\", \"from\", \"'s\""
     // "intersect by \",\""
@@ -271,12 +270,10 @@ pub fn rules_time() -> RustlingResult<RuleSet<Dimension>> {
 
 
 
-    Ok(b.build())
+    Ok(())
 }
 
-#[allow(dead_code)]
-pub fn rules_finance() -> RustlingResult<RuleSet<Dimension>> {
-    let b = RuleSetBuilder::default();
+pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect (X cents)",
              amount_of_money_check!(),
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
@@ -354,12 +351,10 @@ pub fn rules_finance() -> RustlingResult<RuleSet<Dimension>> {
                         ..a.value().clone()
                     })
              });
-    Ok(b.build())
+    Ok(())
 }
 
-#[allow(dead_code)]
-pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
-    let b = RuleSetBuilder::default();
+pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("number as temp", number_check!(), |a| {
         Ok(TemperatureValue {
                value: a.value().value(),
@@ -369,7 +364,7 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
     });
     b.rule_2("<latent temp> degrees",
              temperature_check!(),
-             b.reg(r#"(deg(ree?)?s?\.?)|°"#)?,
+             b.reg(r#"(?:deg(?:ree?)?s?\.?)|°"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                         value: a.value().value,
@@ -379,7 +374,7 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
              });
     b.rule_2("<temp> Celcius",
              temperature_check!(),
-             b.reg(r#"c(el[cs]?(ius)?)?\.?"#)?,
+             b.reg(r#"c(?:el[cs]?(?:ius)?)?\.?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                         value: a.value().value,
@@ -389,7 +384,7 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
              });
     b.rule_2("<temp> Fahrenheit",
              temperature_check!(),
-             b.reg(r#"f(ah?rh?eh?n(h?eit)?)?\.?"#)?,
+             b.reg(r#"f(?:ah?rh?eh?n(?:h?eit)?)?\.?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                         value: a.value().value,
@@ -397,11 +392,10 @@ pub fn rules_temperature() -> RustlingResult<RuleSet<Dimension>> {
                         latent: false,
                     })
              });
-    Ok(b.build())
+    Ok(())
 }
 
-pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
-    let b = RuleSetBuilder::default();
+pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_3("intersect (with and)",
              number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
              b.reg(r#"and"#)?,
@@ -700,5 +694,5 @@ pub fn rules_numbers() -> RustlingResult<RuleSet<Dimension>> {
              b.reg(r#"the"#)?,
              ordinal_check!(),
              |_, ordinal| Ok(*ordinal.value()));
-    Ok(b.build())
+    Ok(())
 }

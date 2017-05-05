@@ -45,3 +45,22 @@ impl ::std::string::ToString for Lang {
         }
     }
 }
+
+macro_rules! lang {
+    ($lang:ident) => {
+        pub fn $lang() -> ::rustling::RustlingResult<::rustling::RuleSet<dimension::Dimension>> {
+            let mut b = ::rustling::RuleSetBuilder::default();
+            $lang::rules_numbers(&mut b)?;
+            $lang::rules_time(&mut b)?;
+            $lang::rules_temperature(&mut b)?;
+            /*
+            $lang::rules_finance(&mut b)?;
+            */
+            Ok(b.build())
+        }
+    }
+}
+
+lang!(en);
+lang!(es);
+lang!(fr);

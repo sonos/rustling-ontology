@@ -102,14 +102,14 @@ macro_rules! lang {
             use super::*;
 
             pub fn train_parser() -> RustlingResult<Parser> {
-                let rules = rules::$lang::rules_numbers()?;
+                let rules = rules::$lang()?;
                 let exs = ::training::$lang::examples_numbers();
                 let model = ::rustling::train::train(&rules, exs, ::parser::FeatureExtractor())?;
                 Ok(Parser(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor())))
             }
 
             pub fn build_raw_parser() -> RustlingResult<::RawParser> {
-                let rules = rules::$lang::rules_numbers()?;
+                let rules = rules::$lang()?;
                 let model = ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/", stringify!($lang), ".rmp"))[..]).map_err(|e| format!("{:?}", e))?;
                 Ok(::RawParser::new(rules, model, ::parser::FeatureExtractor()))
             }
@@ -124,3 +124,5 @@ macro_rules! lang {
 lang!(en);
 lang!(es);
 lang!(fr);
+
+
