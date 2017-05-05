@@ -260,15 +260,71 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             a.value().the_nth(-2)
         }
     );
-    /*
-    b.rule_2("last <day-of-week> of <time>"
-            b.reg(r#"last"#), 
-            time_check_form!(Form::DayOfWeek(_)),
-            b.reg(r#"of"#),
-            time_check!() 
-    );*/
-
-
+    b.rule_4("last <day-of-week> of <time>",
+        b.reg(r#"last"#)?, 
+        time_check_form!(Form::DayOfWeek{..}),
+        b.reg(r#"of"#)?,
+        time_check!(),
+        |_, a, _, b| {
+            a.value().last_of(b.value())
+        } 
+    );
+    b.rule_4("nth <time> of <time>",
+        ordinal_check!(),
+        time_check!(),
+        b.reg(r#"of|in"#)?,
+        time_check!(),
+        |ordinal, a, _, b| {
+            b.value().intersect(a.value())?.the_nth(ordinal.value().value - 1)
+        }
+    );
+    b.rule_5("nth <time> of <time>",
+        b.reg(r#"the"#)?,
+        ordinal_check!(),
+        time_check!(),
+        b.reg(r#"of|in"#)?,
+        time_check!(),
+        |_, ordinal, a, _, b| {
+            b.value().intersect(a.value())?.the_nth(ordinal.value().value - 1)
+        }
+    );
+    b.rule_4("nth <time> after <time>",
+        ordinal_check!(),
+        time_check!(),
+        b.reg(r#"after"#)?,
+        time_check!(),
+        |ordinal, a, _, b| {
+            a.value().the_nth_after(ordinal.value().value - 1, b.value())
+        }
+    );
+    b.rule_5("nth <time> after <time>",
+        b.reg(r#"the"#)?,
+        ordinal_check!(),
+        time_check!(),
+        b.reg(r#"after"#)?,
+        time_check!(),
+        |_, ordinal, a, _, b| {
+            a.value().the_nth_after(ordinal.value().value - 1, b.value())
+        }
+    );
+    b.rule_1("year",
+        integer_check!(1000, 2100),
+        |integer| {
+            helpers::year(integer.value().value as i32)
+        }
+    );  
+    b.rule_1("year (latent)",
+        integer_check!(-1000, 999),
+        |integer| {
+            Ok(helpers::year(integer.value().value as i32)?.latent())
+        }
+    );
+    b.rule_1("year (latent)",
+        integer_check!(2101, 2200),
+        |integer| {
+            Ok(helpers::year(integer.value().value as i32)?.latent())
+        }
+    );  
 
     Ok(())
 }
