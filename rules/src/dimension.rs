@@ -261,7 +261,7 @@ pub enum Form {
     Empty,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Direction {
     After,
     Before,

@@ -73,35 +73,35 @@ impl TimeValue {
         }
     }
 
-    pub fn intersect(self, other: TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.intersect(other.constraint))
+    pub fn intersect(&self, other: &TimeValue) -> RuleResult<TimeValue> {
+        Ok(TimeValue::constraint(self.constraint.intersect(&other.constraint))
                .direction(self.direction.or(other.direction)))
     }
 
-    pub fn last_of(self, other: TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.last_of(other.constraint)))
+    pub fn last_of(&self, other: &TimeValue) -> RuleResult<TimeValue> {
+        Ok(TimeValue::constraint(self.constraint.last_of(&other.constraint)))
     }
 
-    pub fn the_nth(self, n: i64) -> RuleResult<TimeValue> {
+    pub fn the_nth(&self, n: i64) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(self.constraint.take_the_nth(n)))
     }
 
-    pub fn the_nth_not_immediate(self, n: i64) -> RuleResult<TimeValue> {
+    pub fn the_nth_not_immediate(&self, n: i64) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(self.constraint.take_the_nth_not_immediate(n)))
     }
 
-    pub fn the_nth_after(self, n: i64, after_value: TimeValue) -> RuleResult<TimeValue> {
+    pub fn the_nth_after(&self, n: i64, after_value: &TimeValue) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(self.constraint
                                      .the_nth(n)
-                                     .after_not_immediate(after_value.constraint)))
+                                     .after_not_immediate(&after_value.constraint)))
     }
 
-    pub fn span_to(self, to: TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
+    pub fn span_to(&self, to: &TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
         if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
            is_inclusive {
-            Ok(TimeValue::constraint(self.constraint.span_inclusive_to(to.constraint)))
+            Ok(TimeValue::constraint(self.constraint.span_inclusive_to(&to.constraint)))
         } else {
-            Ok(TimeValue::constraint(self.constraint.span_to(to.constraint)))
+            Ok(TimeValue::constraint(self.constraint.span_to(&to.constraint)))
         }
     }
 }
@@ -129,7 +129,7 @@ pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
 }
 
 pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
-    Ok(month(m)?.intersect(day_of_month(d)?)?)
+    Ok(month(m)?.intersect(&day_of_month(d)?)?)
 }
 
 pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
@@ -150,7 +150,7 @@ pub fn second(s: u32) -> RuleResult<TimeValue> {
 
 pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
     Ok(hour(h, is_12_clock)?
-           .intersect(minute(m)?)?
+           .intersect(&minute(m)?)?
            .form(Form::TimeOfDay(None)))
 }
 
@@ -160,7 +160,7 @@ pub fn hour_minute_second_clock_12(h: u32,
                                    is_12_clock: bool)
                                    -> RuleResult<TimeValue> {
     Ok(hour_minute(h, m, is_12_clock)?
-           .intersect(second(s)?)?
+           .intersect(&second(s)?)?
            .form(Form::TimeOfDay(None)))
 }
 
@@ -195,17 +195,17 @@ pub fn cycle_nth(grain: Grain, n: i64) -> RuleResult<TimeValue> {
     Ok(TimeValue::constraint(Cycle::rc(grain).take_the_nth(n)))
 }
 
-pub fn cycle_nth_after(grain: Grain, n: i64, after_value: TimeValue) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).the_nth(n).after(after_value.constraint)))
+pub fn cycle_nth_after(grain: Grain, n: i64, after_value: &TimeValue) -> RuleResult<TimeValue> {
+    Ok(TimeValue::constraint(Cycle::rc(grain).the_nth(n).after(&after_value.constraint)))
 }
 
 pub fn cycle_nth_after_not_immediate(grain: Grain,
                                      n: i64,
-                                     after_value: TimeValue)
+                                     after_value: &TimeValue)
                                      -> RuleResult<TimeValue> {
     Ok(TimeValue::constraint(Cycle::rc(grain)
                                  .the_nth(n)
-                                 .after_not_immediate(after_value.constraint)))
+                                 .after_not_immediate(&after_value.constraint)))
 }
 
 pub fn cycle_n(grain: Grain, n: i64) -> RuleResult<TimeValue> {
@@ -217,7 +217,7 @@ pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<TimeValue> {
 }
 
 pub fn ymd(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
-    Ok(year(y)?.intersect(month_day(m, d)?)?)
+    Ok(year(y)?.intersect(&month_day(m, d)?)?)
 }
 
 #[derive(Clone)]

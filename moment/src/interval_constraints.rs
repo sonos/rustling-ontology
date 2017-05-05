@@ -51,49 +51,49 @@ impl<C: IntervalConstraint + 'static> From<C> for RcConstraint {
 }
 
 impl RcConstraint {
-    pub fn shift_by(self, period: Period) -> RcConstraint {
+    pub fn shift_by(&self, period: Period) -> RcConstraint {
         ShiftBy::new(self, period)
     }
 
-    pub fn translate_with<Offset>(self, offset: Offset) -> RcConstraint
+    pub fn translate_with<Offset>(&self, offset: Offset) -> RcConstraint
         where Offset: Fn(&Interval, &Context) -> Option<Interval> + 'static {
         Translate::new(self, Rc::new(offset))
     }
 
-    pub fn take_the_nth(self, n: i64) -> RcConstraint {
+    pub fn take_the_nth(&self, n: i64) -> RcConstraint {
        TakeTheNth::new(n, false, self)
     }
 
-    pub fn take_the_nth_not_immediate(self, n: i64) -> RcConstraint {
+    pub fn take_the_nth_not_immediate(&self, n: i64) -> RcConstraint {
        TakeTheNth::new(n, true, self)
     }
 
-    pub fn take(self, n: i64) -> RcConstraint {
+    pub fn take(&self, n: i64) -> RcConstraint {
        TakeN::new(n, false, self)
     }
 
-    pub fn take_not_immediate(self, n: i64) -> RcConstraint {
+    pub fn take_not_immediate(&self, n: i64) -> RcConstraint {
        TakeN::new(n, true, self)
     }
 
-    pub fn span_to(self, inner: RcConstraint) -> RcConstraint {
-       Span::new(self, inner.into(), false)
+    pub fn span_to(&self, inner: &RcConstraint) -> RcConstraint {
+       Span::new(self, inner, false)
     }
 
-    pub fn span_inclusive_to(self, inner: RcConstraint)  -> RcConstraint {
-       Span::new(self, inner.into(), true)
+    pub fn span_inclusive_to(&self, inner: &RcConstraint)  -> RcConstraint {
+       Span::new(self, inner, true)
     }
 
-    pub fn intersect(self, inner: RcConstraint) -> RcConstraint {
+    pub fn intersect(&self, inner: &RcConstraint) -> RcConstraint {
         Intersection::new(self, inner)
     }
 
-    pub fn last_of(self, inner: RcConstraint) -> RcConstraint {
+    pub fn last_of(&self, inner: &RcConstraint) -> RcConstraint {
         TakeLastOf::new(inner, self)
     }
 
-    pub fn the_nth(self, n: i64) -> NthConstraint {
-        NthConstraint(self.into(), n)
+    pub fn the_nth(&self, n: i64) -> NthConstraint {
+        NthConstraint(self.clone(), n)
     }
 }
 
@@ -323,12 +323,12 @@ impl IntervalConstraint for Second {
 pub struct NthConstraint(RcConstraint, i64);
 
 impl NthConstraint {
-    pub fn after(self, inner: RcConstraint) -> RcConstraint {
-        TakeTheNthAfter::new(self.1, false, inner, self.0)
+    pub fn after(&self, inner: &RcConstraint) -> RcConstraint {
+        TakeTheNthAfter::new(self.1, false, inner, &self.0)
     }
-    
-    pub fn after_not_immediate(self, inner: RcConstraint) -> RcConstraint {
-        TakeTheNthAfter::new(self.1, true, inner, self.0)
+
+    pub fn after_not_immediate(&self, inner: &RcConstraint) -> RcConstraint {
+        TakeTheNthAfter::new(self.1, true, inner, &self.0)
     }
 }
 
@@ -364,11 +364,11 @@ pub struct TakeTheNth {
 }
 
 impl TakeTheNth {
-    pub fn new(n: i64, not_immediate: bool, inner: RcConstraint) -> RcConstraint {
+    pub fn new(n: i64, not_immediate: bool, inner: &RcConstraint) -> RcConstraint {
         TakeTheNth {
             n: n,
             not_immediate: not_immediate,
-            inner: inner,
+            inner: inner.clone(),
         }.into()
     }
 }
@@ -422,11 +422,11 @@ pub struct TakeN {
 }
 
 impl TakeN {
-    pub fn new(n: i64, not_immediate: bool, inner: RcConstraint) -> RcConstraint {
+    pub fn new(n: i64, not_immediate: bool, inner: &RcConstraint) -> RcConstraint {
         TakeN {
             n: n,
             not_immediate: not_immediate,
-            inner: inner,
+            inner: inner.clone(),
         }.into()
     }
 }
@@ -489,12 +489,12 @@ pub struct TakeTheNthAfter {
 }
 
 impl TakeTheNthAfter {
-    pub fn new(n: i64, not_immediate: bool, after: RcConstraint, cycle: RcConstraint) -> RcConstraint {
+    pub fn new(n: i64, not_immediate: bool, after: &RcConstraint, cycle: &RcConstraint) -> RcConstraint {
         TakeTheNthAfter {
             n: n,
             not_immediate: not_immediate,
-            after: after,
-            cycle: cycle,
+            after: after.clone(),
+            cycle: cycle.clone(),
         }.into()
     }
 }
@@ -535,10 +535,10 @@ pub struct TakeLastOf {
 }
 
 impl TakeLastOf {
-    pub fn new(base: RcConstraint, cycle: RcConstraint) -> RcConstraint {
+    pub fn new(base: &RcConstraint, cycle: &RcConstraint) -> RcConstraint {
         TakeLastOf {
-            base, 
-            cycle,
+            base: base.clone(),
+            cycle: cycle.clone(),
         }.into()
     }
 }
@@ -570,8 +570,8 @@ pub struct Intersection {
 }
 
 impl Intersection {
-    fn new(lhs: RcConstraint, rhs: RcConstraint) -> RcConstraint {
-        Intersection { lhs, rhs }.into()
+    fn new(lhs: &RcConstraint, rhs: &RcConstraint) -> RcConstraint {
+        Intersection { lhs: lhs.clone(), rhs: rhs.clone() }.into()
     }
 }
 
@@ -634,11 +634,11 @@ pub struct Translate {
 }
 
 impl Translate{
-    pub fn new(generator: RcConstraint,
+    pub fn new(generator: &RcConstraint,
                offset: Rc<Fn(&Interval, &Context) -> Option<Interval>>)
                -> RcConstraint {
         Translate {
-            generator: generator,
+            generator: generator.clone(),
             offset: offset,
         }.into()
     }
@@ -703,8 +703,8 @@ pub struct Span {
 }
 
 impl Span {
-    pub fn new(from: RcConstraint, to: RcConstraint, inclusive: bool) -> RcConstraint {
-        Span { from, to, inclusive }.into()
+    pub fn new(from: &RcConstraint, to: &RcConstraint, inclusive: bool) -> RcConstraint {
+        Span { from: from.clone(), to: to.clone(), inclusive }.into()
     }
 }
 
@@ -740,8 +740,8 @@ pub struct ShiftBy {
 }
 
 impl ShiftBy {
-    pub fn new(base: RcConstraint, period: Period) -> RcConstraint {
-        ShiftBy { base, period }.into()
+    pub fn new(base: &RcConstraint, period: Period) -> RcConstraint {
+        ShiftBy { base:base.clone(), period }.into()
     }
 }
 

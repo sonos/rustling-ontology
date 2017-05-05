@@ -45,6 +45,7 @@ mod tests {
     use rustling::*;
     use ::*;
     use rustling::ParserMatch;
+    use rustling_ontology_rules::dimension::*;
 
     #[test]
     fn test_twenty() {

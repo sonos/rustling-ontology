@@ -42,5 +42,5 @@ macro_rules! time_check {
 }
 
 macro_rules! time_check_form {
-    ($form:expr) => ( $crate::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| if let &$form = time.form { true } else { false })]) );
+    ($form:pat) => ( $crate::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| if let $form = time.form { true } else { false })]) );
 }
