@@ -324,7 +324,21 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |integer| {
             Ok(helpers::year(integer.value().value as i32)?.latent())
         }
-    );  
+    );
+    b.rule_2("the <day-of-month> (ordinal)",
+        b.reg(r#"the"#)?,
+        ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
+        |_, ordinal| {
+            Ok(helpers::day_of_month(ordinal.value().value as u32)?.latent())
+        }
+    ); 
+    b.rule_1("the <day-of-month> (ordinal)",
+        ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
+        |ordinal| {
+            Ok(helpers::day_of_month(ordinal.value().value as u32)?.latent())
+        }
+    );
+     
 
     Ok(())
 }
