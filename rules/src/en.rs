@@ -427,6 +427,131 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             a.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)?.intersect(&helpers::year(year)?)
         }
     );
+    b.rule_2("the ides of <named-month>",
+        b.reg(r#"the ides? of"#)?,
+        time_check_form!(Form::Month(_)),
+        |_, a| {
+            let day = match a.value().form_month()? {
+                3 | 5 | 7 | 10 => 15, 
+                _ => 13,
+            };
+            a.value().intersect(&helpers::day_of_month(day)?)
+        }
+    );
+    b.rule_1("time-of-day (latent)",
+        integer_check!(0, 23),
+        |integer| {
+            Ok(helpers::hour(integer.value().value as u32, true)?.latent())
+        }
+    );
+    b.rule_2("at <time-of-day>",
+        b.reg(r#"at|@"#)?,
+        time_check_form!(Form::TimeOfDay(_)),
+        |_, a| Ok(a.value().clone().not_latent())
+    );
+    b.rule_2("<time-of-day> o'clock",
+        time_check_form!(Form::TimeOfDay(_)),
+        b.reg(r#"o.?clock"#)?,
+        |a, _| Ok(a.value().clone().not_latent())
+    );
+    b.rule_1("hh:mm",
+        b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)"#)?,
+        |text_match| helpers::hour_minute(
+                text_match.group(1).parse()?, 
+                text_match.group(2).parse()?, 
+                true)
+    );
+    b.rule_1("hh:mm:ss",
+        b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)[:.]([0-5]\d)"#)?,
+        |text_match| helpers::hour_minute_second(
+                text_match.group(1).parse()?, 
+                text_match.group(2).parse()?,
+                text_match.group(3).parse()?, 
+                true)
+    );
+    b.rule_2("hhmm (military) am|pm",
+        b.reg(r#"((?:1[012]|0?\d))([0-5]\d)"#)?,
+        b.reg(r#"([ap])\.?m?\.?"#)?,
+        |a, b| {
+            let day_period = if b.group(1) == "a" {
+                helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?
+            } else {
+                helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
+            };
+            Ok(day_period.intersect(&helpers::hour_minute(
+                                a.group(1).parse()?,
+                                a.group(2).parse()?, 
+                                true)?)?.form(Form::TimeOfDay(None)))
+        }
+    );
+    b.rule_2("<time-of-day> am|pm",
+        time_check_form!(Form::TimeOfDay(_)),
+        b.reg(r#"(?:in the )?([ap])(?:\s|\.)?m?\.?"#)?,
+        |a, text_match| {
+            let day_period = if text_match.group(1) == "a" {
+                helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?
+            } else {
+                helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
+            };
+            Ok(day_period.intersect(a.value())?.form(Form::TimeOfDay(None)))
+        }
+    );
+
+    //"noon"
+    //"midnight|EOD|end of day"
+    //"quarter (relative minutes)"
+    //"half (relative minutes)"
+    //"number (as relative minutes)"
+    //"<hour-of-day> <integer> (as relative minutes)"
+    //"relative minutes to|till|before <integer> (hour-of-day)"
+    // "relative minutes after|past <integer> (hour-of-day)"
+    //"half <integer> (UK style hour-of-day)"
+    //"mm/.dd/.yyyy"
+    // "yyyy-mm-dd"
+    //"mm/dd"
+    //"morning"
+    //"early morning"
+    //"afternoon"
+    //"evening|night"
+    //"lunch"
+    //"in|during the <part-of-day>"
+    // "this <part-of-day>"
+    //"tonight"
+    //"after lunch"
+    //"after work"
+    //"<time> <part-of-day>"
+    //"<part-of-day> of <time>"
+    //"week-end"
+    //"season"
+    //"season"
+    //"season"
+    //"season"
+    //"<time-of-day> approximately"
+    //"<time-of-day> sharp"
+    //"about <time-of-day>"
+    //"exactly <time-of-day>"
+    //"<month> dd-dd (interval)"
+
+    b.rule_3("<datetime> - <datetime> (interval)",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"\-|to|th?ru|through|(?:un)?til(?:l)?"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("from <datetime> - <datetime> (interval)",
+        b.reg(r#"from"#)?,
+        time_check!(),
+        b.reg(r#"\-|to|th?ru|through|(?:un)?til(?:l)?"#)?,
+        time_check!(),
+        |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("between <datetime> and <datetime> (interval)",
+        b.reg(r#"between"#)?,
+        time_check!(),
+        b.reg(r#"and"#)?,
+        time_check!(),
+        |_, a, _, b| a.value().span_to(b.value(), true)
+    );
     Ok(())
 }
 

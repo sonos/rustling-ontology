@@ -62,6 +62,10 @@ impl TimeValue {
         TimeValue { latent: true, ..self }
     }
 
+    pub fn not_latent(self) -> TimeValue {
+        TimeValue { latent: false, .. self }
+    }
+
     pub fn form(self, form: Form) -> TimeValue {
         TimeValue { form: form, ..self }
     }
@@ -102,6 +106,14 @@ impl TimeValue {
             Ok(TimeValue::constraint(self.constraint.span_inclusive_to(&to.constraint)))
         } else {
             Ok(TimeValue::constraint(self.constraint.span_to(&to.constraint)))
+        }
+    }
+
+    pub fn form_month(&self) -> RuleResult<u32> {
+        if let Form::Month(m) = self.form {
+            Ok(m)
+        } else {
+            Err(format!("Form {:?} is not a month form", self.form))?
         }
     }
 }
@@ -154,7 +166,7 @@ pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
            .form(Form::TimeOfDay(None)))
 }
 
-pub fn hour_minute_second_clock_12(h: u32,
+pub fn hour_minute_second(h: u32,
                                    m: u32,
                                    s: u32,
                                    is_12_clock: bool)
