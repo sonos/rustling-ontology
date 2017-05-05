@@ -4,21 +4,39 @@ use dimension::Precision::*;
 use helpers;
 use moment::{Weekday, Grain};
 
-fn default_result() -> RuleResult<Dimension> {
-    Ok(AmountOfMoneyValue::default().into())
-}
-
-fn ok<V>(v: V) -> RuleResult<V> {
-    Ok(v)
-}
-
 pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    //"intersect"
-    // "intersect by \"of\", \"from\", \"'s\""
-    // "intersect by \",\""
-    //"on <date>"
-    //"on a <named-day>"
-    //"in <named-month>"
+    b.rule_2("intersect",
+        time_check!(|time: &TimeValue| !time.latent),
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, b| a.value().intersect(b.value())
+    );
+    b.rule_3("intersect by \"of\", \"from\", \"'s\"",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"of|from|for|'s"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_3("intersect by \",\"",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#","#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_2("on <date>",
+        b.reg(r#"on"#)?,
+        time_check!(),
+        |_, a| Ok(a.value().clone())
+    );
+    b.rule_2("on a <named-day>",
+        b.reg(r#"on a"#)?,
+        time_check_form!(Form::DayOfWeek{..}),
+        |_, a| Ok(a.value().clone())
+    );
+    b.rule_2("in <named-month>",
+        b.reg(r#"in"#)?,
+        time_check_form!(Form::Month(_)),
+        |_, a| Ok(a.value().clone())
+    );
     b.rule_1("named-day", b.reg(r#"monday|mon\.?"#)?, |_| {
         helpers::day_of_week(Weekday::Mon)
     });
@@ -180,7 +198,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             thursday_november.intersect(&fourth_week_of_november) // fourth friday of november
         }
     );
-    //"absorption of , after named day"
+    b.rule_2("absorption of , after named day",
+        time_check_form!(Form::DayOfWeek{..}),
+        b.reg(r#","#)?,
+        |a, _| Ok(a.value().clone())
+    );
 
     b.rule_1("now",
         b.reg(r#"(just|right)? ?now|immediately"#)?,
@@ -376,10 +398,33 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("<day-of-month> (non ordinal) of <named-month>",
         integer_check!(1, 31),
-        b.reg(r#""of|in""#)?,
+        b.reg(r#"of|in"#)?,
         time_check_form!(Form::Month(_)),
         |integer, _, a| {
             a.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+        }
+    );
+    b.rule_2("<day-of-month> (non ordinal) <named-month>",
+        integer_check!(1, 31),
+        time_check_form!(Form::Month(_)),
+        |integer, a| {
+            a.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+        }
+    );
+    b.rule_2("<day-of-month>(ordinal) <named-month>", //12nd march
+        ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
+        time_check_form!(Form::Month(_)),
+        |ordinal, a| {
+            a.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
+        }
+    );
+    b.rule_3("<day-of-month>(ordinal) <named-month> year",
+        ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
+        time_check_form!(Form::Month(_)),
+        b.reg(r#"(\d{2,4})"#)?,
+        |ordinal, a, text_match| {
+            let year: i32 = text_match.group(1).parse()?;
+            a.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)?.intersect(&helpers::year(year)?)
         }
     );
     Ok(())
