@@ -4,6 +4,174 @@ use dimension::Precision::*;
 use helpers;
 use moment::{Weekday, Grain};
 
+
+pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("second (cycle)",
+        b.reg(r#"seconds?"#)?,
+        |_| CycleValue::new(Grain::Second)
+    );
+
+    b.rule_1("minute (cycle)",
+        b.reg(r#"minutes?"#)?,
+        |_| CycleValue::new(Grain::Minute)
+    );
+
+    b.rule_1("hour (cycle)",
+        b.reg(r#"h(?:ou)?rs?"#)?,
+        |_| CycleValue::new(Grain::Hour)
+    );
+
+    b.rule_1("day (cycle)",
+        b.reg(r#"days?"#)?,
+        |_| CycleValue::new(Grain::Day)
+    );
+
+    b.rule_1("week (cycle)",
+        b.reg(r#"weeks?"#)?,
+        |_| CycleValue::new(Grain::Week)
+    );
+
+    b.rule_1("month (cycle)",
+        b.reg(r#"months?"#)?,
+        |_| CycleValue::new(Grain::Week)
+    );
+
+    b.rule_1("quarter (cycle)",
+        b.reg(r#"(?:quarter|qtr)s?"#)?,
+        |_| CycleValue::new(Grain::Quarter)
+    );
+
+    b.rule_1("year (cycle)",
+        b.reg(r#"y(?:ea)?rs?"#)?,
+        |_| CycleValue::new(Grain::Year)
+    );
+
+    b.rule_2("this <cycle>",
+        b.reg(r#"this|current|coming"#)?,
+        cycle_check!(),
+        |_, a| helpers::cycle_nth(a.value().grain, 0)
+    );
+
+    b.rule_2("last <cycle>",
+        b.reg(r#"last|past|previous"#)?,
+        cycle_check!(),
+        |_, a| helpers::cycle_nth(a.value().grain, -1)
+    );
+
+    b.rule_2("next <cycle>",
+        b.reg(r#"next|the following"#)?,
+        cycle_check!(),
+        |_, a| helpers::cycle_nth(a.value().grain, 1)
+    );
+
+    b.rule_4("the <cycle> after <time>",
+        b.reg(r#"the"#)?,
+        cycle_check!(),
+        b.reg(r#"after"#)?,
+        time_check!(),
+        |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, 1, time.value())
+    );
+
+    b.rule_3("<cycle> after <time>",
+        cycle_check!(),
+        b.reg(r#"after"#)?,
+        time_check!(),
+        |cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, 1, time.value())
+    );
+
+    b.rule_4("<cycle> after <time>",
+        b.reg(r#"the"#)?,
+        cycle_check!(),
+        b.reg(r#"before"#)?,
+        time_check!(),
+        |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, -1, time.value())
+    );
+
+    b.rule_3("<cycle> after <time>",
+        cycle_check!(),
+        b.reg(r#"before"#)?,
+        time_check!(),
+        |cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, -1, time.value())
+    );
+
+    b.rule_3("last n <cycle>",
+        b.reg(r#"last|past"#)?,
+        integer_check!(1, 9999),
+        cycle_check!(),
+        |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+
+    b.rule_3("last n <cycle>",
+        b.reg(r#"next"#)?,
+        integer_check!(1, 9999),
+        cycle_check!(),
+        |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+
+    b.rule_4("<ordinal> <cycle> of <time>",
+        ordinal_check!(),
+        cycle_check!(),
+        b.reg(r#"of|in|from"#)?,
+        time_check!(),
+        |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+
+    b.rule_5("the <ordinal> <cycle> of <time>",
+        b.reg(r#"the"#)?,
+        ordinal_check!(),
+        cycle_check!(),
+        b.reg(r#"of|in|from"#)?,
+        time_check!(),
+        |_, ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+
+    b.rule_4("the <cycle> of <time>",
+        b.reg(r#"the"#)?,
+        cycle_check!(),
+        b.reg(r#"of"#)?,
+        time_check!(),
+        |_, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, 0, time.value())
+    );
+
+    b.rule_4("<ordinal> <cycle> after <time>",
+        ordinal_check!(),
+        cycle_check!(),
+        b.reg(r#"after"#)?,
+        time_check!(),
+        |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+
+    b.rule_5("the <ordinal> <cycle> after <time>",
+        b.reg(r#"the"#)?,
+        ordinal_check!(),
+        cycle_check!(),
+        b.reg(r#"after"#)?,
+        time_check!(),
+        |_, ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+    b.rule_2(
+        "<ordinal> quarter",
+        ordinal_check!(),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        |ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?) 
+    );
+    b.rule_3(
+        "the <ordinal> quarter",
+        b.reg(r#"the"#)?,
+        ordinal_check!(),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        |_, ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
+    );
+    b.rule_3("<ordinal> quarter <year>",
+        ordinal_check!(),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        time_check!(),
+        |ordinal, _, time| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, time.value())
+    );
+    Ok(())
+}
+
+
 pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect",
         time_check!(|time: &TimeValue| !time.latent),

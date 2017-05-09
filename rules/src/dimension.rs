@@ -1,7 +1,7 @@
 use std::{fmt, result};
 
 use rustling::*;
-use moment::{RcConstraint, Period};
+use moment::{RcConstraint, Period, Grain};
 
 /// Union of all possible values parsed by the ontology.
 rustling_value! {
@@ -15,6 +15,7 @@ rustling_value! {
     MoneyUnit(MoneyUnitValue),
     Time(TimeValue),
     Duration(DurationValue),
+    Cycle(CycleValue),
 }
 
 impl fmt::Display for Dimension {
@@ -32,6 +33,7 @@ impl fmt::Display for Dimension {
             &Dimension::MoneyUnit(_) => write!(fmt, "MoneyUnit"),
             &Dimension::Time(_) => write!(fmt, "Time"),
             &Dimension::Duration(_) => write!(fmt, "Duration"),
+            &Dimension::Cycle(_) => write!(fmt, "Cycle"),
         }
     }
 }
@@ -229,6 +231,18 @@ pub struct TemperatureValue {
     pub unit: Option<&'static str>,
     /// true if it can not be confirmed that the value is actually a temperature
     pub latent: bool,
+}
+
+/// Payload for the cycle of Dimension
+#[derive(Debug,PartialEq,Clone)]
+pub struct CycleValue {
+    pub grain: Grain,
+}
+
+impl CycleValue {
+    pub fn new(grain: Grain) -> RuleResult<CycleValue> {
+        Ok(CycleValue { grain: grain })
+    }
 }
 
 #[derive(Clone)]

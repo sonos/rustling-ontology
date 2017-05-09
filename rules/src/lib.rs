@@ -48,9 +48,10 @@ impl ::std::string::ToString for Lang {
 }
 
 macro_rules! lang {
-    ($lang:ident) => {
+    ($lang:ident, [$($rule:ident),*]) => {
         pub fn $lang() -> ::rustling::RustlingResult<::rustling::RuleSet<dimension::Dimension>> {
             let mut b = ::rustling::RuleSetBuilder::default();
+            $( $lang::$rule(&mut b)?; )*
             $lang::rules_numbers(&mut b)?;
             $lang::rules_time(&mut b)?;
             $lang::rules_temperature(&mut b)?;
@@ -62,6 +63,6 @@ macro_rules! lang {
     }
 }
 
-lang!(en);
-lang!(es);
-lang!(fr);
+lang!(en, [rules_numbers, rules_time, rules_temperature, rules_cycle]);
+lang!(es, [rules_numbers, rules_time, rules_temperature]);
+lang!(fr, [rules_numbers, rules_time, rules_temperature]);

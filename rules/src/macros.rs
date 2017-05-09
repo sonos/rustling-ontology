@@ -32,6 +32,11 @@ macro_rules! money_unit {
     () => ( $crate::rustling::core::AnyNodePattern::<MoneyUnitValue>::new() );
 }
 
+macro_rules! cycle_check {
+    () => ( $crate::rustling::core::AnyNodePattern::<CycleValue>::new() );
+    ($predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<CycleValue>::filter(vec![b!($predicate)]) );
+}
+
 macro_rules! temperature_check {
     () => ( $crate::rustling::core::AnyNodePattern::<TemperatureValue>::new() );
 }
