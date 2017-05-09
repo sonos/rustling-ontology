@@ -46,7 +46,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("named-day", b.reg(r#"wed?nesday|wed\.?"#)?, |_| {
         helpers::day_of_week(Weekday::Wed)
     });
-    b.rule_1("named-day", b.reg(r#"thursday|thu(rs?)?\.?"#)?, |_| {
+    b.rule_1("named-day", b.reg(r#"thursday|thu(?:rs?)?\.?"#)?, |_| {
         helpers::day_of_week(Weekday::Thu)
     });
     b.rule_1("named-day", b.reg(r#"friday|fri\.?"#)?, |_| {
@@ -94,25 +94,25 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("named-month", b.reg(r#"december|dec\.?"#)?, |_| {
         helpers::month(12)
     });
-    b.rule_1("christmas", b.reg(r#"(xmas|christmas)( day)?"#)?, |_| {
+    b.rule_1("christmas", b.reg(r#"(?:xmas|christmas)(?: day)?"#)?, |_| {
         helpers::month_day(12, 25)
     });
     b.rule_1("christmas eve",
-             b.reg(r#"(xmas|christmas)( day)?('s)? eve"#)?,
+             b.reg(r#"(?:xmas|christmas)(?: day)?(?:'s)? eve"#)?,
              |_| {
                  helpers::month_day(12, 24)
              });
     b.rule_1("new year's eve", b.reg(r#"new year'?s? eve"#)?, |_| {
         helpers::month_day(12, 31)
     });
-    b.rule_1("new year's day", b.reg(r#"new year'?s?( day)?"#)?, |_| {
+    b.rule_1("new year's day", b.reg(r#"new year'?s?(?: day)?"#)?, |_| {
         helpers::month_day(1, 1)
     });
-    b.rule_1("valentine's day", b.reg(r#"valentine'?s?( day)?"#)?, |_| {
+    b.rule_1("valentine's day", b.reg(r#"valentine'?s?(?: day)?"#)?, |_| {
         helpers::month_day(2, 14)
     });
     b.rule_1("MLK Day",
-             b.reg(r#"(MLK|Martin Luther King,?)( Jr.?| Junior)? day"#)?,
+             b.reg(r#"(?:MLK|Martin Luther King,?)(?: Jr.?| Junior)? day"#)?,
              |_| {
                  let third_week_january =
                      helpers::cycle_nth_after(Grain::Week, 3, &helpers::month_day(1, 1)?)?;
@@ -127,7 +127,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         monday.last_of(&may)
     });
     b.rule_1("memorial day weekend",
-             b.reg(r#"memorial day week(\s|-)?end"#)?,
+             b.reg(r#"memorial day week(?:\s|-)?end"#)?,
              |_| {
         let monday = helpers::day_of_week(Weekday::Mon)?;
         let tuesday = helpers::day_of_week(Weekday::Tue)?;
@@ -151,7 +151,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             }
     );
     b.rule_1("labor day weekend",
-            b.reg(r#"labor day week(\s|-)?end"#)?,
+            b.reg(r#"labor day week(?:\s|-)?end"#)?,
             |_| {
                 let start = helpers::cycle_nth_after(Grain::Day, -3, &helpers::month(9)?.intersect(&helpers::day_of_week(Weekday::Mon)?)?)?
                             .intersect(&helpers::hour(18, false)?)?;
@@ -177,13 +177,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             }
     );
     b.rule_1("halloween day",
-            b.reg(r#"hall?owe?en( day)?"#)?,
+            b.reg(r#"hall?owe?en(?: day)?"#)?,
             |_| {
                 helpers::month_day(10, 31)
             }
     );
     b.rule_1("thanksgiving day",
-        b.reg(r#"thanks?giving( day)?"#)?,
+        b.reg(r#"thanks?giving(?: day)?"#)?,
         |_| {
             let thursday_november = helpers::month(11)?.intersect(&helpers::day_of_week(Weekday::Thu)?)?;
             let fourth_week_of_november = helpers::cycle_nth_after(Grain::Week, 4, &helpers::month_day(11, 1)?)?;
@@ -205,19 +205,19 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1("now",
-        b.reg(r#"(just|right)? ?now|immediately"#)?,
+        b.reg(r#"(?:just|right)? ?now|immediately"#)?,
         |_| {
             helpers::cycle_nth(Grain::Second, 0)
         }
     );
     b.rule_1("today",
-        b.reg(r#"todays?|(at this time)"#)?,
+        b.reg(r#"todays?|(?:at this time)"#)?,
         |_| {
             helpers::cycle_nth(Grain::Day, 0)
         }
     );
     b.rule_1("tomorrow",
-        b.reg(r#"(tmrw?|tomm?or?rows?)"#)?,
+        b.reg(r#"(?:tmrw?|tomm?or?rows?)"#)?,
         |_| {
             helpers::cycle_nth(Grain::Day, 1)
         }
@@ -229,13 +229,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1("EOM|End of month",
-        b.reg(r#"(the )?(eom|end of (the )?month)"#)?,
+        b.reg(r#"(?:the )?(?:eom|end of (?:the )?month)"#)?,
         |_| {
             helpers::cycle_nth(Grain::Month, 1)
         }
     );
     b.rule_1("EOY|End of year",
-        b.reg(r#"(the )?(eoy|end of (the )?year)"#)?,
+        b.reg(r#"(?:the )?(?:eoy|end of (?:the )?year)"#)?,
         |_| {
             helpers::cycle_nth(Grain::Year, 1)
         }
@@ -264,7 +264,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("last <time>",
-        b.reg(r#"(this past|last)"#)?,
+        b.reg(r#"(?:this past|last)"#)?,
         time_check!(),
         |_, a| {
             a.value().the_nth(-1)
@@ -390,7 +390,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("<day-of-month> (ordinal) of <named-month>",
         ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
-        b.reg(r#""of|in""#)?,
+        b.reg(r#"of|in"#)?,
         time_check_form!(Form::Month(_)),
         |ordinal, _, a| {
             a.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
@@ -501,7 +501,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::hour(12, false)
     );
     b.rule_1("midnight|EOD|end of day",
-        b.reg(r#""midni(?:ght|te)|(?:the )?(?:eod|end of (?:the )?day)""#)?,
+        b.reg(r#"midni(?:ght|te)|(?:the )?(?:eod|end of (?:the )?day)"#)?,
         |_| helpers::hour(0, false)
     );
     //"quarter (relative minutes)"
@@ -515,13 +515,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check_form!(Form::TimeOfDay(Some(_))),
         |_, a| helpers::hour_minute_relative(a.value().form_time_of_day()?.full_hour, 30, true)
     );
-    //b.rule_1("mm/.dd/.yyyy",
-    //    b.reg(r#"(0?[1-9]|1[0-2])[-\/.](3[01]|[12]\d|0?[1-9])[-\/.](\d{2,4})"#)?,
-    //    |text_match| helpers::ymd(
-    //        text_match.group(3).parse()?,
-    //        text_match.group(1).parse()?,
-    //        text_match.group(2).parse()?)
-    //);
+    b.rule_1("mm/.dd/.yyyy",
+        b.reg(r#"(0?[1-9]|1[0-2])[-/.](3[01]|[12]\d|0?[1-9])[-/.](\d{2,4})"#)?,
+        |text_match| helpers::ymd(
+            text_match.group(3).parse()?,
+            text_match.group(1).parse()?,
+            text_match.group(2).parse()?)
+    );
 
     b.rule_1("yyyy-mm-dd",
         b.reg(r#"(\d{2,4})-(0?[1-9]|1[0-2])-(3[01]|[12]\d|0?[1-9])"#)?,
@@ -639,7 +639,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, a| Ok(a.value().clone().direction(Some(Direction::Before)))
     );
     b.rule_2("after <time-of-day>",
-        b.reg(r#"(anytime |sometimes? )?after"#)?,
+        b.reg(r#"(?:anytime |sometimes? )?after"#)?,
         time_check!(),
         |_, a| Ok(a.value().clone().direction(Some(Direction::After)))
     );
@@ -674,7 +674,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"\$|dollars?"#)?,
              |_| Ok(MoneyUnitValue { unit: Some("$") }));
     b.rule_1("€",
-             b.reg(r#"€|([e€]uro?s?)"#)?,
+             b.reg(r#"€|(?:[e€]uro?s?)"#)?,
              |_| Ok(MoneyUnitValue { unit: Some("€") }));
     b.rule_1("£",
              b.reg(r#"£|pounds?"#)?,
@@ -689,13 +689,13 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"pta?s?"#)?,
              |_| Ok(MoneyUnitValue { unit: Some("PTS") }));
     b.rule_1("cent",
-             b.reg(r#"cents?|penn(y|ies)|c|¢"#)?,
+             b.reg(r#"cents?|penn(?:y|ies)|c|¢"#)?,
              |_| Ok(MoneyUnitValue { unit: Some("cent") }));
     b.rule_1("INR",
-             b.reg(r#""#)?,
+             b.reg(r#"inr|rs(?:. )?|rupees?"#)?,
              |_| Ok(MoneyUnitValue { unit: Some("INR") }));
     b.rule_1("unnamed currency",
-             b.reg(r#"(buck|balle|pouloute)s?"#)?,
+             b.reg(r#"(?:buck|balle|pouloute)s?"#)?,
              |_| Ok(MoneyUnitValue { unit: None }));
     b.rule_2("<unit> <amount>", money_unit!(), number_check!(), |a, b| {
         Ok(AmountOfMoneyValue {
@@ -712,7 +712,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
            })
     });
     b.rule_2("about <amount-of-money>",
-             b.reg(r#"about|approx(\.|imately)?|close to|near( to)?|around|almost"#)?,
+             b.reg(r#"(?:about|approx(\.|imately)?|close to|near( to)?|around|almost)"#)?,
              amount_of_money_check!(),
              |_, a| {
                  Ok(AmountOfMoneyValue {
@@ -839,9 +839,9 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"millions?"#)?,
              |_| IntegerValue::new_with_grain(1000000, 6));
     b.rule_1("couple",
-             b.reg(r#"(a )?couple( of)?"#)?,
+             b.reg(r#"(?:a )?couple(?: of)?"#)?,
              |_| IntegerValue::new_with_grain(2, 1));
-    b.rule_1("few", b.reg(r#"(a )?few"#)?, |_| {
+    b.rule_1("few", b.reg(r#"(?:a )?few"#)?, |_| {
         Ok(IntegerValue {
                value: 3,
                grain: Some(1),
