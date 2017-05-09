@@ -12,15 +12,14 @@ pub mod walker;
 
 use std::ops;
 
-use chrono::{Datelike, Duration, TimeZone, Timelike};
-use chrono::offset::local::Local;
-pub use chrono::{Weekday};
+use chrono::{Duration, Datelike, Timelike};
+pub use chrono::{Weekday, Local, TimeZone};
 use chrono::datetime::DateTime;
 pub use interval_constraints::*;
 pub use period::*;
 
 #[derive(Debug,PartialEq,Copy,Clone,PartialOrd,Eq,Ord)]
-pub struct Moment(DateTime<Local>);
+pub struct Moment(pub DateTime<Local>);
 
 fn last_day_in_month(y: i32, m: u32) -> u32 {
     assert!(m >= 1 && m <= 12);

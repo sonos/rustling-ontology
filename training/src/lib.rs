@@ -1,7 +1,9 @@
 extern crate rustling;
 extern crate rustling_ontology_rules;
+extern crate rustling_ontology_moment;
 
 use rustling::*;
+use rustling_ontology_moment::*;
 pub use rustling_ontology_rules::dimension::*;
 
 macro_rules! example {
@@ -10,10 +12,11 @@ macro_rules! example {
     };
 }
 
+#[macro_use]
+mod macros;
 pub mod en;
 pub mod es;
 pub mod fr;
-
 
 #[derive(Debug)]
 pub struct CheckInteger {
@@ -64,4 +67,36 @@ impl Check<Dimension> for CheckFloat {
 
 pub fn check_float(v: f32) -> CheckFloat {
     CheckFloat { value: v }
+}
+
+#[derive(Debug)]
+pub struct CheckMoment {
+    pub interval: Interval,
+}
+
+impl Check<Dimension> for CheckMoment {
+    fn check(&self, _: &ParsedNode<Dimension>) -> bool {
+        unimplemented!()
+    }
+}
+
+pub fn check_moment(moment: Moment, grain: Grain)
+                      -> CheckMoment {
+    CheckMoment { interval: Interval::starting_at(moment, grain) }
+}
+
+#[derive(Debug)]
+pub struct CheckMomentSpan {
+    pub interval: Interval,
+}
+
+impl Check<Dimension> for CheckMomentSpan {
+    fn check(&self, _: &ParsedNode<Dimension>) -> bool {
+        unimplemented!()
+    }
+}
+
+pub fn check_moment_span(start: Moment, end: Moment, grain: Grain)
+                      -> CheckMomentSpan {
+    CheckMomentSpan { interval: Interval::new(start, Some(end), grain) }
 }

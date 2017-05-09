@@ -5,4 +5,5 @@ authors = ["Mathieu Poumeyrol <kali@zoy.org>"]
 
 [dependencies]
 rustling = { git="http://github.com/snipsco/rustling", rev="ab7bbbc" }
-rustling-ontology-rules = { path="../rules"}
+rustling-ontology-rules = { path="../rules" }
+rustling-ontology-moment = { path = "../moment" }
