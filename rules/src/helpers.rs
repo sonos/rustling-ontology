@@ -17,6 +17,12 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
     }
 }
 
+pub fn decimal_hour_in_minute(a: &str, b: &str) -> RuleResult<i64> {
+    let a_value: i64 = a.parse()?;
+    let b_value: i64 = b.parse()?;
+    Ok((b_value * 6) / 10i64.pow(b.len() as u32 - 1) + a_value * 60)
+}
+
 pub fn compose_money(a: &AmountOfMoneyValue,
                      b: &AmountOfMoneyValue)
                      -> RuleResult<AmountOfMoneyValue> {
@@ -290,5 +296,16 @@ impl<'a> ops::Add<DurationValue> for &'a DurationValue {
     type Output = DurationValue;
     fn add(self, duration: DurationValue) -> DurationValue {
         DurationValue(&self.0 + duration.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_decimal_hour() {
+        assert_eq!(90, decimal_hour_in_minute("1", "5").unwrap());
+        assert_eq!(93, decimal_hour_in_minute("1", "55").unwrap());
     }
 }

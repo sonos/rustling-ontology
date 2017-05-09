@@ -16,6 +16,7 @@ rustling_value! {
     Time(TimeValue),
     Duration(DurationValue),
     Cycle(CycleValue),
+    UnitOfDuration(UnitOfDurationValue),
 }
 
 impl fmt::Display for Dimension {
@@ -34,6 +35,7 @@ impl fmt::Display for Dimension {
             &Dimension::Time(_) => write!(fmt, "Time"),
             &Dimension::Duration(_) => write!(fmt, "Duration"),
             &Dimension::Cycle(_) => write!(fmt, "Cycle"),
+            &Dimension::UnitOfDuration(_) => write!(fmt, "UnitOfDuration"),
         }
     }
 }
@@ -245,6 +247,19 @@ impl CycleValue {
     }
 }
 
+/// Payload for the unit of duration of Dimension
+#[derive(Debug,PartialEq,Clone)]
+pub struct UnitOfDurationValue {
+    pub grain: Grain,
+}
+
+impl UnitOfDurationValue {
+    pub fn new(grain: Grain) -> RuleResult<UnitOfDurationValue> {
+        Ok(UnitOfDurationValue { grain: grain })
+    }
+}
+
+/// Payload for the time of Dimension
 #[derive(Clone)]
 pub struct TimeValue {
     pub constraint: RcConstraint,
