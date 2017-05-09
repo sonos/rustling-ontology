@@ -51,20 +51,23 @@ mod tests {
     #[test]
     fn test_twenty() {
         let parser = build_raw_parser(Lang::EN).unwrap();
-        let result = parser.parse("twenty").unwrap();
-        assert_eq!(vec![ParserMatch {
-                            range: Range(0, 6),
-                            value: IntegerValue::new_with_grain(20, 1).unwrap().into(),
-                            probalog: 0.0,
-                        }],
-                   result);
+        let result = parser
+            .parse_with_kind_order("twenty", &[DimensionKind::Number])
+            .unwrap();
+        assert_eq!(ParserMatch {
+                       range: Range(0, 6),
+                       value: IntegerValue::new_with_grain(20, 1).unwrap().into(),
+                       probalog: 0.0,
+                   },
+                   result[0]);
     }
 
     #[test]
     fn test_21() {
         let parser = build_raw_parser(Lang::EN).unwrap();
-        let result = parser.parse("twenty-one").unwrap();
-        assert_eq!(1, result.len());
+        let result = parser
+            .parse_with_kind_order("twenty-one", &[DimensionKind::Number])
+            .unwrap();
         assert_eq!(21,
                    IntegerValue::attempt_from(result[0].value.clone())
                        .unwrap()

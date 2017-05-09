@@ -28,6 +28,7 @@ fn parse_big_number_en(bench: &mut Bencher) {
     let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "one million five hundred twenty-one thousand eighty-two";
     let result = parser.parse(number).unwrap();
+    println!("result: {:?}", result);
     let int: i64 = result[0].value.attempt_to().unwrap();
     assert_eq!(1521082, int);
 
@@ -46,8 +47,26 @@ fn parse_book_restaurant(bench: &mut Bencher) {
 
 fn parse_complex_train_sentence(bench: &mut Bencher) {
     let parser = build_raw_parser(Lang::EN).unwrap();
-    let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm";
-    bench.iter(|| parser.parse(sent));
+    let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
+    bench.iter(|| parser.parse(&*sent));
+}
+
+fn time_resolve_complex_train_sentence(bench: &mut Bencher) {
+    let decoder = ParsingContext::default();
+    let parser = build_raw_parser(Lang::EN).unwrap();
+    let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
+    for it in parser.parse(&*sent).unwrap() {
+        println!("resolve: {:?}", it);
+    }
+    let resolve = parser
+        .parse(&*sent)
+        .unwrap()
+        .into_iter()
+        .rev()
+        .filter(|r| decoder.resolve(&r.value).is_some())
+        .max_by_key(|r| r.range.1 - r.range.0)
+        .unwrap();
+    bench.iter(|| decoder.resolve(&resolve.value));
 }
 
 benchmark_group!(benches,
@@ -56,6 +75,6 @@ benchmark_group!(benches,
                  parse_small_number_en,
                  parse_big_number_en,
                  parse_book_restaurant,
-                 parse_complex_train_sentence
-                 );
+                 parse_complex_train_sentence,
+                 time_resolve_complex_train_sentence);
 benchmark_main!(benches);

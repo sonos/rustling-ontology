@@ -8,18 +8,14 @@
 //! extern crate rustling_ontology;
 //!
 //! fn main() {
-//!     use rustling_ontology::dimension::IntegerValue;
-//!     use rustling_ontology::AttemptTo;
+//!     use rustling_ontology::*;
 //!
-//!     let parser = rustling_ontology::build_parser(rustling_ontology::Lang::EN).unwrap();
-//!     let result = parser.parse("twenty-one").unwrap();
+//!     let ctx = ParsingContext::default();
+//!     let parser = build_parser(rustling_ontology::Lang::EN).unwrap();
+//!     let result = parser.parse("twenty-one", &ctx).unwrap();
 //!
-//!     assert_eq!(result.len(), 1);
 //!     let int:i64 = result[0].value.attempt_to().unwrap();
 //!     assert_eq!(21, int);
-//!
-//!     let int:IntegerValue = result[0].value.attempt_to().unwrap();
-//!     assert_eq!(21, int.value);
 //! }
 //! ```
 extern crate rmp_serde;
@@ -27,12 +23,14 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
+#[macro_use]
 extern crate rustling;
 extern crate rustling_ontology_rules;
 extern crate rustling_ontology_moment;
 extern crate rustling_ontology_training as training;
 
-pub use rustling::{AttemptTo, ParsedNode, ParserMatch, Range, Value, RustlingError, RustlingResult, Sym};
+pub use rustling::{AttemptTo, ParsedNode, ParserMatch, Range, Value, RustlingError,
+                   RustlingResult, Sym};
 pub use rustling_ontology_rules::Lang;
 pub use rustling_ontology_rules::dimension;
 pub use rustling_ontology_rules::dimension::{Dimension, DimensionKind, NumberValue};
@@ -48,49 +46,77 @@ pub enum Output {
     String(String),
 }
 
+variant_converters!(Output, Integer, i64);
+
 #[derive(Default)]
 pub struct ParsingContext {
     moment: rustling_ontology_moment::interval_constraints::Context,
 }
 
 impl ParsingContext {
-    pub fn resolve(&self, dim:&Dimension) -> Option<Output> {
+    pub fn resolve(&self, dim: &Dimension) -> Option<Output> {
         match dim {
             &Dimension::Time(ref tv) => {
-                let mut walker = tv.constraint.to_walker(&self.moment.reference, &self.moment);
-                walker.forward.next().or_else(|| walker.backward.next()).map(Output::Time)
-            },
-            &Dimension::Number(ref number) => {                match number {
+                let mut walker = tv.constraint
+                    .to_walker(&self.moment.reference, &self.moment);
+                walker
+                    .forward
+                    .next()
+                    .or_else(|| walker.backward.next())
+                    .map(Output::Time)
+            }
+            &Dimension::Number(ref number) => {
+                match number {
                     &NumberValue::Integer(ref v) => Some(Output::Integer(v.value)),
                     &NumberValue::Float(ref v) => Some(Output::Float(v.value)),
                 }
-            },
+            }
             _ => None,
         }
     }
 }
 
+// Rustling raw parser. Don't use directly
+#[doc(hidden)]
 pub type RawParser = rustling::Parser<dimension::Dimension, parser::Feat, parser::FeatureExtractor>;
+
 /// Main class to be use at runtime.
 pub struct Parser(RawParser);
 
 impl Parser {
-    pub fn raw_parse(&self, input: &str) -> RustlingResult<Vec<ParserMatch<Dimension>>> {
-        self.0.parse(input)
+    fn translate_values(&self,
+                        input: Vec<ParserMatch<Dimension>>,
+                        context: &ParsingContext)
+                        -> Vec<ParserMatch<Output>> {
+        input
+            .into_iter()
+            .filter_map(|pm| {
+                context
+                    .resolve(&pm.value)
+                    .map(|o| {
+                             ParserMatch {
+                                 value: o,
+                                 range: pm.range,
+                                 probalog: pm.probalog,
+                             }
+                         })
+            })
+            .collect()
     }
 
-    pub fn parse(&self, input: &str, context: ParsingContext) -> RustlingResult<Vec<ParserMatch<Output>>> {
-        Ok(self.raw_parse(input)?
-               .into_iter()
-               .filter_map(|pm| {
-                    context.resolve(&pm.value).map(|o|
-                        ParserMatch {
-                            value: o,
-                            range: pm.range,
-                            probalog: pm.probalog,
-                        }
-                    )})
-               .collect())
+    pub fn parse_with_kind_order(&self,
+                                 input: &str,
+                                 context: &ParsingContext,
+                                 order: &[DimensionKind])
+                                 -> RustlingResult<Vec<ParserMatch<Output>>> {
+        Ok(self.translate_values(self.0.parse_with_kind_order(input, order)?, context))
+    }
+
+    pub fn parse(&self,
+                 input: &str,
+                 context: &ParsingContext)
+                 -> RustlingResult<Vec<ParserMatch<Output>>> {
+        Ok(self.translate_values(self.0.parse(input)?, context))
     }
 }
 
@@ -150,4 +176,31 @@ lang!(en);
 lang!(es);
 lang!(fr);
 
+#[cfg(test)]
+mod tests {
+    use super::*;
 
+    #[test]
+    fn test_long_number_en() {
+        let ctx = ParsingContext::default();
+        let parser = build_parser(Lang::EN).unwrap();
+        let number = "one million five hundred twenty-one thousand eighty-two";
+        let result = parser.parse_with_kind_order(number, &ctx,  &[DimensionKind::Number]).unwrap();
+        let int: i64 = result[0].value.attempt_to().unwrap();
+        assert_eq!(1521082, int);
+    }
+
+    #[test]
+    #[ignore]
+    fn time_resolve_complex_train_sentence() {
+        let parser = build_raw_parser(Lang::EN).unwrap();
+        //        let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm";
+        let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
+        let result = parser.candidates(&*sent, |_| Some(0)).unwrap();
+        println!("{}", result.len());
+        for r in &result {
+            println!("{:?}", &sent[r.node.root_node.range.0..r.node.root_node.range.1]);
+        }
+        panic!();
+    }
+}
