@@ -116,7 +116,7 @@ macro_rules! lang {
 
             pub fn train_parser() -> RustlingResult<Parser> {
                 let rules = rules::$lang()?;
-                let exs = ::training::$lang::examples_numbers();
+                let exs = ::training::$lang();
                 let model = ::rustling::train::train(&rules, exs, ::parser::FeatureExtractor())?;
                 Ok(Parser(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor())))
             }
