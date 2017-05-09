@@ -1,17 +1,17 @@
 macro_rules! check_moment {
-    ($($item:expr),*) => ( check_moment(moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, None) );
+    ($context:expr, [$($item:expr),*]) => ( check_moment($context, moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, None) );
 }
 
 macro_rules! check_moment_with_precision {
-    ([$($item:expr),*], $precision:expr) => ( check_moment(moment!($( $item ),*), grain!($( $item ),*), $precision, None) );
+    ($context:expr, [$($item:expr),*], $precision:expr) => ( check_moment($context, moment!($( $item ),*), grain!($( $item ),*), $precision, None) );
 }
 
 macro_rules! check_moment_with_direction {
-    ([$($item:expr),*], $direction:expr) => ( check_moment(moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, Some($direction)) );
+    ($context:expr, [$($item:expr),*], $direction:expr) => ( check_moment($context, moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, Some($direction)) );
 }
 
 macro_rules! check_moment_span {
-    ([$($item1:expr),*], [$($item2:expr),*]) => ( check_moment_span(moment!($( $item1 ),*), moment!($( $item2 ),*), grain!($( $item1 ),*)) );
+    ($context:expr, [$($item1:expr),*], [$($item2:expr),*]) => ( check_moment_span($context, moment!($( $item1 ),*), moment!($( $item2 ),*), grain!($( $item1 ),*)) );
 }
 
 macro_rules! moment {

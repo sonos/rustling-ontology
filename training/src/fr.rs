@@ -1,7 +1,6 @@
 use super::*;
 
-pub fn examples_numbers() -> Vec<::rustling::train::Example<Dimension>> {
-    let mut v = vec![];
+pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(1), "1", "un", "une");
     example!(v, check_integer(11), "onze");
     example!(v, check_integer(17), "dix sept", "dix-sept");
@@ -57,5 +56,4 @@ pub fn examples_numbers() -> Vec<::rustling::train::Example<Dimension>> {
              "3ème",
              "troisième",
              "troisieme");
-    v
 }

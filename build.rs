@@ -20,7 +20,7 @@ macro_rules! lang {
                 let out_dir = path::PathBuf::from(env::var("OUT_DIR").unwrap());
                 let mut file = fs::File::create(out_dir.join(concat!(stringify!($lang), ".rmp"))).unwrap(); 
                 let rules = rules::$lang().unwrap();
-                let exs = ::training::$lang::examples_numbers();
+                let exs = ::training::$lang();
                 let model = ::rustling::train::train(&rules, exs, ::parser::FeatureExtractor()).unwrap();
                 ::rmp_serde::encode::write(&mut file, &model).unwrap();
             }
