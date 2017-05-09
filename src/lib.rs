@@ -23,7 +23,6 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-#[macro_use]
 extern crate rustling;
 extern crate rustling_ontology_rules;
 extern crate rustling_ontology_moment;
@@ -32,49 +31,12 @@ extern crate rustling_ontology_training as training;
 pub use rustling::{AttemptTo, ParsedNode, ParserMatch, Range, Value, RustlingError,
                    RustlingResult, Sym};
 pub use rustling_ontology_rules::Lang;
+pub use rustling_ontology_rules::output::{ParsingContext, Output};
 pub use rustling_ontology_rules::dimension;
 pub use rustling_ontology_rules::dimension::{Dimension, DimensionKind, NumberValue};
 pub use rustling_ontology_moment::Interval;
 
 mod parser;
-
-#[derive(Clone,PartialEq,Debug)]
-pub enum Output {
-    Integer(i64),
-    Float(f32),
-    Time(Interval),
-    String(String),
-}
-
-variant_converters!(Output, Integer, i64);
-
-#[derive(Default)]
-pub struct ParsingContext {
-    moment: rustling_ontology_moment::interval_constraints::Context,
-}
-
-impl ParsingContext {
-    pub fn resolve(&self, dim: &Dimension) -> Option<Output> {
-        match dim {
-            &Dimension::Time(ref tv) => {
-                let mut walker = tv.constraint
-                    .to_walker(&self.moment.reference, &self.moment);
-                walker
-                    .forward
-                    .next()
-                    .or_else(|| walker.backward.next())
-                    .map(Output::Time)
-            }
-            &Dimension::Number(ref number) => {
-                match number {
-                    &NumberValue::Integer(ref v) => Some(Output::Integer(v.value)),
-                    &NumberValue::Float(ref v) => Some(Output::Float(v.value)),
-                }
-            }
-            _ => None,
-        }
-    }
-}
 
 // Rustling raw parser. Don't use directly
 #[doc(hidden)]

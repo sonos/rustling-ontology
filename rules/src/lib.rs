@@ -9,6 +9,7 @@ mod macros;
 #[allow(dead_code)]
 mod helpers;
 pub mod dimension;
+pub mod output;
 pub mod en;
 pub mod fr;
 pub mod es;
