@@ -39,27 +39,25 @@ fn main() {
             table.set_titles(row!["ix", "best", "log(p)", "p", "text", "kind", "rule", "childs"]);
             let decoder = ParsingContext::default();
             for (ix, c) in candidates.iter().enumerate().rev() {
-                /*
-                if !kinds.is_empty() && !kinds.contains(&c.1.value.kind()) {
+                if !kinds.is_empty() && !kinds.contains(&c.match_.value.kind()) {
                     continue;
                 }
-                */
                 let mut hilite = String::new();
-                for _ in 0..c.1.range.0 {
+                for _ in 0..c.match_.range.0 {
                     hilite.push('_');
                 }
-                hilite.push_str(&sentence[c.1.range.0..c.1.range.1]);
-                for _ in c.1.range.1..sentence.len() {
+                hilite.push_str(&sentence[c.match_.range.0..c.match_.range.1]);
+                for _ in c.match_.range.1..sentence.len() {
                     hilite.push('_');
                 }
                 table.add_row(row![ix,
-                                   if c.3 { "*" } else { " " },
-                                   c.1.probalog,
-                                   f32::exp(c.1.probalog),
+                                   if c.tagged { "*" } else { " " },
+                                   c.match_.probalog,
+                                   f32::exp(c.match_.probalog),
                                    hilite,
-                                   decoder.resolve(&c.1.value).map(|v| format!("{:?}", v)).unwrap_or("".into()),
-                                   parser.resolve_sym(&c.0.root_node.rule_sym).unwrap_or(""),
-                                   c.0
+                                   decoder.resolve(&c.match_.value).map(|v| format!("{:?}", v)).unwrap_or("".into()),
+                                   parser.resolve_sym(&c.node.root_node.rule_sym).unwrap_or(""),
+                                   c.node
                                        .root_node
                                        .children
                                        .iter()
