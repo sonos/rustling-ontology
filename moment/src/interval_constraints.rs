@@ -224,7 +224,7 @@ impl IntervalConstraint for DayOfWeek {
     fn to_walker(&self, origin: &Interval, _context: &Context) -> IntervalWalker {
         // number_from_monday is u32 -> use i64
         let offset = (self.0.number_from_monday() as i64 -
-                      origin.start.weekday().number_from_monday() as i64) % 7;
+                      origin.start.weekday().number_from_monday() as i64 + 7) % 7;
         let anchor = origin.round_to(Grain::Day) + PeriodComp::days(offset);
 
         BidirectionalWalker::new()
@@ -267,7 +267,7 @@ impl IntervalConstraint for Hour {
         } else {
             24
         };
-        let offset = (self.quantity as i64 - origin.start.hour() as i64) % clock_step;
+        let offset = (self.quantity as i64 - origin.start.hour() as i64 + clock_step) % clock_step;
         let anchor = origin.round_to(Grain::Hour) + PeriodComp::hours(offset);
 
         BidirectionalWalker::new()
@@ -316,7 +316,7 @@ impl IntervalConstraint for Second {
     }
 
     fn to_walker(&self, origin: &Interval, _context: &Context) -> IntervalWalker {
-        let offset = (self.0 as i64 - origin.start.second() as i64) % 60;
+        let offset = (self.0 as i64 - origin.start.second() as i64 + 60) % 60;
         let anchor = origin.round_to(Grain::Second) + PeriodComp::seconds(offset);
 
         BidirectionalWalker::new()
@@ -391,7 +391,7 @@ impl IntervalConstraint for TakeTheNth {
         let match_interval: Option<Interval> = if self.n >= 0 {
             let head = interval_walker.forward.clone().next();
             let mut forward_walker = if head.is_some() && self.not_immediate &&
-                                        head.map(move |x| x.intersect(base_interval)).is_some() {
+                                        head.and_then(move |x| x.intersect(base_interval)).is_some() {
                 interval_walker
                     .forward
                     .clone()
@@ -449,7 +449,7 @@ impl IntervalConstraint for TakeN {
         let match_interval: Option<Interval> = if self.n >= 0 {
             let head = interval_walker.forward.clone().next();
             let forward_walker = if head.is_some() && self.not_immediate &&
-                                    head.map(move |x| x.intersect(base_interval)).is_some() {
+                                    head.and_then(move |x| x.intersect(base_interval)).is_some() {
                 interval_walker.forward.skip(1)
             } else {
                 interval_walker.forward
@@ -871,7 +871,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_after_positive() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth_after = Cycle::rc(Grain::Day).the_nth(3).after(DayOfMonth(20).into());
+        let take_the_nth_after = Cycle::rc(Grain::Day).the_nth(3).after(&DayOfMonth(20).into());
 
         let walker = take_the_nth_after.to_walker(&context.reference, &context);
 
@@ -892,7 +892,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_after_negative() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth_after = Cycle::rc(Grain::Day).the_nth(-3).after(DayOfMonth(20).into());
+        let take_the_nth_after = Cycle::rc(Grain::Day).the_nth(-3).after(&DayOfMonth(20).into());
 
         let walker = take_the_nth_after.to_walker(&context.reference, &context);
 
@@ -913,7 +913,7 @@ mod tests {
     #[test]
     fn test_take_the_last_week_of_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_last_of = Cycle::rc(Grain::Week).last_of(Month(5).into());
+        let take_last_of = Cycle::rc(Grain::Week).last_of(&Month(5).into());
 
         let walker = take_last_of.to_walker(&context.reference, &context);
 
@@ -934,7 +934,7 @@ mod tests {
     #[test]
     fn test_take_the_last_day_of_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_last_of = Cycle::rc(Grain::Day).last_of(Month(5).into());
+        let take_last_of = Cycle::rc(Grain::Day).last_of(&Month(5).into());
 
         let walker = take_last_of.to_walker(&context.reference, &context);
 
@@ -1060,16 +1060,16 @@ mod tests {
         let day_of_week = DayOfWeek(Weekday::Mon);
         let walker = day_of_week.to_walker(&context.reference, &context);
 
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
-                                              Grain::Day)),
-                   walker.forward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 01).and_hms(0, 0, 0)),
                                               Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 05, 08).and_hms(0, 0, 0)),
+                                              Grain::Day)),
                    walker.forward.clone().skip(1).next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 17).and_hms(0, 0, 0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.backward.clone().next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 10).and_hms(0, 0, 0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 17).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.backward.clone().skip(1).next());
     }
@@ -1120,16 +1120,16 @@ mod tests {
         let day = Hour::clock_24(4);
         let walker = day.to_walker(&context.reference, &context);
 
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(4, 0, 0)),
-                                              Grain::Hour)),
-                   walker.forward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(4, 0, 0)),
                                               Grain::Hour)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 27).and_hms(4, 0, 0)),
+                                              Grain::Hour)),
                    walker.forward.clone().skip(1).next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(4, 0, 0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(4, 0, 0)),
                                               Grain::Hour)),
                    walker.backward.clone().next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 23).and_hms(4, 0, 0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(4, 0, 0)),
                                               Grain::Hour)),
                    walker.backward.clone().skip(1).next());
     }
@@ -1180,16 +1180,16 @@ mod tests {
         let day = Hour::clock_12(8);
         let walker = day.to_walker(&context.reference, &context);
 
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(8, 0, 0)),
-                                              Grain::Hour)),
-                   walker.forward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(20, 0, 0)),
                                               Grain::Hour)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(8, 0, 0)),
+                                              Grain::Hour)),
                    walker.forward.clone().skip(1).next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(20, 0, 0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(8, 0, 0)),
                                               Grain::Hour)),
                    walker.backward.clone().next());
-        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(8, 0, 0)),
+        assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(20, 0, 0)),
                                               Grain::Hour)),
                    walker.backward.clone().skip(1).next());
     }
@@ -1258,7 +1258,7 @@ mod tests {
     fn test_intersect_dom_month() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        let inter = DayOfMonth::new(12).intersect(Month(3).into());
+        let inter = DayOfMonth::new(12).intersect(&Month(3).into());
         let walker = inter.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 03, 12).and_hms(0, 0, 0)),
@@ -1279,7 +1279,7 @@ mod tests {
     fn test_intersect_dow_dom() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        let inter = DayOfMonth::new(12).intersect(DayOfWeek(Weekday::Wed).into());
+        let inter = DayOfMonth::new(12).intersect(&DayOfWeek(Weekday::Wed).into());
         let walker = inter.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2017, 07, 12).and_hms(0, 0, 0)),
@@ -1367,7 +1367,7 @@ mod tests {
     #[test]
     fn test_inclusive_span() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let walker = DayOfWeek::new(Weekday::Mon).span_to(DayOfWeek(Weekday::Wed).into())
+        let walker = DayOfWeek::new(Weekday::Mon).span_to(&DayOfWeek(Weekday::Wed).into())
             .to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::new(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
