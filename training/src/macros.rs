@@ -1,5 +1,13 @@
 macro_rules! check_moment {
-    ($($item:expr),*) => ( check_moment(moment!($( $item ),*), grain!($( $item ),*)) );
+    ($($item:expr),*) => ( check_moment(moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, None) );
+}
+
+macro_rules! check_moment_with_precision {
+    ([$($item:expr),*], $precision:expr) => ( check_moment(moment!($( $item ),*), grain!($( $item ),*), $precision, None) );
+}
+
+macro_rules! check_moment_with_direction {
+    ([$($item:expr),*], $direction:expr) => ( check_moment(moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, Some($direction)) );
 }
 
 macro_rules! check_moment_span {

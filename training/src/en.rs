@@ -6,22 +6,22 @@ pub fn examples_time() -> Vec<::rustling::train::Example<Dimension>> {
     example!(v, check_moment!(2013, 2, 12), "today", "at this time");
     example!(v, check_moment!(2013, 2, 11), "yesterday");
     example!(v, check_moment!(2013, 2, 13), "tomorrow");
-    example!(v, check_moment!(2013, 2, 18), "monday", "mon.", "this monday"); // {"day-of-week": 1}
-    example!(v, check_moment!(2013, 2, 18), "Monday, Feb 18", "Mon, February 18"); // {"day-of-week": 1, "day": 18, "month": 2}
+    example!(v, check_moment!(2013, 2, 18), "monday", "mon.", "this monday");
+    example!(v, check_moment!(2013, 2, 18), "Monday, Feb 18", "Mon, February 18");
     example!(v, check_moment!(2013, 2, 19), "tuesday", "Tuesday the 19th", "Tuesday 19th");
     example!(v, check_moment!(2013, 2, 14), "thursday", "thu", "thu.");
     example!(v, check_moment!(2013, 2, 15), "friday", "fri", "fri.");
     example!(v, check_moment!(2013, 2, 16), "saturday", "sat", "sat.");
     example!(v, check_moment!(2013, 2, 17), "sunday", "sun", "sun.");
-    example!(v, check_moment!(2013, 3, 1), "the 1st of march", "first of march", "march first"); //{"day": 1, "month": 3}
+    example!(v, check_moment!(2013, 3, 1), "the 1st of march", "first of march", "march first");
     example!(v, check_moment!(2013, 3, 3), "march 3");
-    example!(v, check_moment!(2013, 3, 15), "the ides of march"); // {"month": 3}
-    example!(v, check_moment!(2015, 3, 3), "march 3 2015", "march 3rd 2015", "march third 2015", "3/3/2015", "3/3/15", "2015-3-3", "2015-03-03"); //{"day": 3, "month": 3, "year": 2015}
-    example!(v, check_moment!(2013, 2, 15), "on the 15", "on the 15th"); //{"day": 15}
-    example!(v, check_moment!(2013, 2, 15), "the 15th of february", "15 of february", "february the 15th", "february 15", "15th february", "2/15", "on 2/15", "February 15"); // {"day": 15, "month": 2}
-    example!(v, check_moment!(2013, 8, 8), "Aug 8"); //{"day": 8, "month": 8}
-    example!(v, check_moment!(2014, 10), "October 2014"); //{"year": 2014, "month": 10}
-    example!(v, check_moment!(1974, 10, 31), "10/31/1974", "10/31/74", "10-31-74"); // {"day": 31, "month": 10, "year": 1974}
+    example!(v, check_moment!(2013, 3, 15), "the ides of march");
+    example!(v, check_moment!(2015, 3, 3), "march 3 2015", "march 3rd 2015", "march third 2015", "3/3/2015", "3/3/15", "2015-3-3", "2015-03-03");
+    example!(v, check_moment!(2013, 2, 15), "on the 15", "on the 15th");
+    example!(v, check_moment!(2013, 2, 15), "the 15th of february", "15 of february", "february the 15th", "february 15", "15th february", "2/15", "on 2/15", "February 15");
+    example!(v, check_moment!(2013, 8, 8), "Aug 8");
+    example!(v, check_moment!(2014, 10), "October 2014");
+    example!(v, check_moment!(1974, 10, 31), "10/31/1974", "10/31/74", "10-31-74");
     example!(v, check_moment!(2015, 4, 14), "14april 2015", "April 14, 2015", "14th April 15");
     example!(v, check_moment!(2013, 2, 19), "next tuesday");
     example!(v, check_moment!(2013, 2, 22), "friday after next");
@@ -161,9 +161,9 @@ pub fn examples_time() -> Vec<::rustling::train::Example<Dimension>> {
     example!(v, check_moment!(2013, 2, 12, 14), "today at 2pm", "at 2pm");
     example!(v, check_moment!(2013, 4, 25, 16, 0), "4/25 at 4:00pm");
     example!(v, check_moment!(2013, 2, 13, 15), "3pm tomorrow");
-    example!(v, check_moment!(2013, 2, 12, 14), "after 2 pm");
-    example!(v, check_moment!(2013, 2, 17, 4), "after 5 days");
-    example!(v, check_moment!(2013, 2, 12, 11), "before 11 am");
+    example!(v, check_moment_with_direction!([2013, 2, 12, 14], Direction::After), "after 2 pm");
+    example!(v, check_moment_with_direction!([2013, 2, 17, 4], Direction::After), "after 5 days");
+    example!(v, check_moment_with_direction!([2013, 2, 12, 11], Direction::Before), "before 11 am");
     example!(v, check_moment_span!([2013, 2, 12, 12], [2013, 2, 12, 19]), "in the afternoon");
     example!(v, check_moment!(2013, 2, 12, 13, 30), "at 1:30pm", "1:30pm");
     example!(v, check_moment!(2013, 2, 12, 4, 45, 0), "in 15 minutes");
