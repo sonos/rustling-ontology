@@ -150,9 +150,9 @@ impl<'a> ops::Sub<&'a PeriodComp> for Moment {
 
 #[derive(Debug,PartialEq,Clone, Copy, new)]
 pub struct Interval {
-    start: Moment,
-    end: Option<Moment>,
-    grain: Grain,
+    pub start: Moment,
+    pub end: Option<Moment>,
+    pub grain: Grain,
 }
 
 impl Interval {
