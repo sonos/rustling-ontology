@@ -84,6 +84,13 @@ impl TimeValue {
         }
     }
 
+    pub fn precision(self, precision: Precision) -> TimeValue {
+        TimeValue {
+            precision: precision,
+            ..self
+        }
+    }
+
     pub fn intersect(&self, other: &TimeValue) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(self.constraint.intersect(&other.constraint))
                .direction(self.direction.or(other.direction)))
@@ -248,54 +255,51 @@ pub fn ymd(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
 }
 
 impl DurationValue {
-    pub fn new(grain: Grain, n: i64) -> DurationValue {
-        DurationValue(PeriodComp::new(grain, n).into())
-    }
 
     pub fn in_present(&self) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(self.0.clone())))
+        Ok(TimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(self.period.clone())).precision(self.precision))
     }
 
     pub fn ago(&self) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(Cycle::rc(Grain::Second)
                                      .take_the_nth(0)
-                                     .shift_by(-self.0.clone())))
+                                     .shift_by(-self.period.clone())).precision(self.precision))
     }
 
-    pub fn after(&self, time: TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(time.constraint.shift_by(self.0.clone())))
+    pub fn after(&self, time: &TimeValue) -> RuleResult<TimeValue> {
+        Ok(TimeValue::constraint(time.constraint.shift_by(self.period.clone())).precision(self.precision))
     }
 
-    pub fn before(&self, time: TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(time.constraint.shift_by(-self.0.clone())))
+    pub fn before(&self, time: &TimeValue) -> RuleResult<TimeValue> {
+        Ok(TimeValue::constraint(time.constraint.shift_by(-self.period.clone())).precision(self.precision))
     }
 }
 
 impl ops::Add<DurationValue> for DurationValue {
     type Output = DurationValue;
     fn add(self, duration: DurationValue) -> DurationValue {
-        DurationValue(self.0 + duration.0)
+        DurationValue::new(self.period + duration.period)
     }
 }
 
 impl<'a> ops::Add<&'a DurationValue> for DurationValue {
     type Output = DurationValue;
     fn add(self, duration: &'a DurationValue) -> DurationValue {
-        DurationValue(self.0 + &duration.0)
+        DurationValue::new(self.period + &duration.period)
     }
 }
 
 impl<'a, 'b> ops::Add<&'a DurationValue> for &'b DurationValue {
     type Output = DurationValue;
     fn add(self, duration: &'a DurationValue) -> DurationValue {
-        DurationValue(&self.0 + &duration.0)
+        DurationValue::new(&self.period + &duration.period)
     }
 }
 
 impl<'a> ops::Add<DurationValue> for &'a DurationValue {
     type Output = DurationValue;
     fn add(self, duration: DurationValue) -> DurationValue {
-        DurationValue(&self.0 + duration.0)
+        DurationValue::new(&self.period + duration.period)
     }
 }
 

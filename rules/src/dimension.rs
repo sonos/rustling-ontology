@@ -315,4 +315,17 @@ pub struct TimeOfDayForm {
 }
 
 #[derive(Debug,PartialEq,Clone)]
-pub struct DurationValue(pub Period);
+pub struct DurationValue {
+    pub period: Period, 
+    pub precision: Precision
+}
+
+impl DurationValue {
+    pub fn new(period: Period) -> DurationValue {
+        DurationValue { period: period, precision: Precision::Exact }
+    }
+
+    pub fn precision(self, precision: Precision) -> DurationValue {
+        DurationValue { precision: precision, .. self }
+    }
+}

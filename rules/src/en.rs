@@ -35,36 +35,36 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1("quarter of an hour",
         b.reg(r#"(?:1/4\s?h(?:our)?|(?:a\s)?quarter of an hour)"#)?,
-        |_| Ok(DurationValue(PeriodComp::minutes(15).into()))
+        |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
     );
     b.rule_1("half an hour",
         b.reg(r#"(?:1/2\s?h(?:our)?|half an? hour)"#)?,
-        |_| Ok(DurationValue(PeriodComp::minutes(30).into()))
+        |_| Ok(DurationValue::new(PeriodComp::minutes(30).into()))
     );
     b.rule_1("three-quarters of an hour",
         b.reg(r#"(?:3/4\s?h(?:our)?|three(?:\s|-)quarters of an hour)"#)?,
-        |_| Ok(DurationValue(PeriodComp::minutes(45).into()))
+        |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
     );
     b.rule_1("fortnight",
         b.reg(r#"(?:a|one)? fortnight"#)?,
-        |_| Ok(DurationValue(PeriodComp::days(14).into()))
+        |_| Ok(DurationValue::new(PeriodComp::days(14).into()))
     );
     b.rule_2("<integer> <unit-of-duration>",
         integer_check!(0),
         unit_of_duration_check!(),
-        |integer, uod| Ok(DurationValue(PeriodComp::new(uod.value().grain, integer.value().value).into()))
+        |integer, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
     );
     b.rule_3("<integer> more <unit-of-duration>",
         integer_check!(0),
         b.reg(r#"more|less"#)?,
         unit_of_duration_check!(),
-        |integer, _, uod| Ok(DurationValue(PeriodComp::new(uod.value().grain, integer.value().value).into()))
+        |integer, _, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
     );
     b.rule_2("number.number hours",
         b.reg(r#"(\d+)\.(\d+)"#)?,
         b.reg(r#"hours?"#)?,
         |text_match, _| {
-            Ok(DurationValue(
+            Ok(DurationValue::new(
                     PeriodComp::minutes(
                         helpers::decimal_hour_in_minute(text_match.group(1), text_match.group(2))?
                     ).into()
@@ -72,7 +72,96 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             )
         }
     );
+    b.rule_2("<integer> and an half hours",
+        integer_check!(0),
+        b.reg(r#"and (?:an? )?half hours?"#)?,
+        |integer, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
+    );
+    b.rule_2("a <unit-of-duration>",
+        b.reg(r#"an?"#)?,
+        unit_of_duration_check!(),
+        |_, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, 1).into()))
+    );
+    b.rule_2("in <duration>",
+        b.reg(r#"in"#)?,
+        duration_check!(),
+        |_, duration| duration.value().in_present()
+    );
 
+    b.rule_2("about <duration>",
+        b.reg(r#"about"#)?,
+        duration_check!(),
+        |_, duration| duration.value().in_present()
+    );
+    b.rule_2("for <duration>",
+        b.reg(r#"for"#)?,
+        duration_check!(),
+        |_, duration| duration.value().in_present()
+    );
+    b.rule_2("after <duration>",
+        b.reg(r#"after"#)?,
+        duration_check!(),
+        |_, duration| Ok(duration
+                            .value()
+                            .in_present()?
+                            .direction(Some(Direction::After)))
+    );
+    b.rule_3("<duration> and <duration>",
+        duration_check!(),
+        b.reg(r#"and"#)?,
+        duration_check!(),
+        |a, _, b| Ok(a.value() + b.value())
+    );
+
+    b.rule_2("<duration> <duration>",
+        duration_check!(),
+        duration_check!(),
+        |a, b| Ok(a.value() + b.value())
+    );
+
+    b.rule_2("<duration> from now",
+        duration_check!(),
+        b.reg(r#"from (?:today|now)"#)?,
+        |a, _| a.value().in_present()
+    );
+
+    b.rule_2("<duration> ago",
+        duration_check!(),
+        b.reg(r#"ago"#)?,
+        |a, _| a.value().ago()
+    );
+
+    b.rule_2("<duration> hence",
+        duration_check!(),
+        b.reg(r#"hence"#)?,
+        |a, _| a.value().in_present()
+    );
+
+    b.rule_3("<duration> after <time>",
+        duration_check!(),
+        b.reg(r#"after"#)?,
+        time_check!(),
+        |duration, _, time| duration.value().after(time.value())
+    );
+
+    b.rule_3("<duration> before <time>",
+        duration_check!(),
+        b.reg(r#"before"#)?,
+        time_check!(),
+        |duration, _, time| duration.value().before(time.value())
+    );
+
+    b.rule_2("about <duration>",
+        b.reg(r#"(?:about|around|approximately)"#)?,
+        duration_check!(),
+        |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+
+    b.rule_2("exactly <duration>",
+        b.reg(r#"exactly"#)?,
+        duration_check!(),
+        |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
+    );
 
     Ok(())
 }
