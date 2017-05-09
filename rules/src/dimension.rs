@@ -262,6 +262,17 @@ pub enum Form {
     Empty,
 }
 
+impl Form {
+    pub fn not_immediate(&self) -> Option<bool> {
+        match self {
+            &Form::Month(_) => None,
+            &Form::TimeOfDay(_) => None,
+            &Form::DayOfWeek { not_immediate } => Some(not_immediate),
+            &Form::Empty => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Direction {
     After,
