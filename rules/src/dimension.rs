@@ -236,6 +236,7 @@ pub struct TimeValue {
     pub constraint: RcConstraint,
     pub form: Form,
     pub direction: Option<Direction>,
+    pub precision: Precision,
     pub latent: bool,
 }
 
@@ -261,7 +262,7 @@ pub enum Form {
     Empty,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Direction {
     After,
     Before,

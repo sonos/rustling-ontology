@@ -54,6 +54,7 @@ impl TimeValue {
             constraint: constraint,
             form: Form::Empty,
             direction: None,
+            precision: Precision::Exact,
             latent: false,
         }
     }
