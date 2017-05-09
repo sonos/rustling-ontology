@@ -10,8 +10,9 @@ pub enum Output {
 }
 
 variant_converters!(Output, Integer, i64);
+variant_converters!(Output, Time, Interval);
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ParsingContext {
     moment: Context,
 }

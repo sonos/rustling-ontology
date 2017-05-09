@@ -5,6 +5,7 @@ extern crate rustling_ontology_moment;
 use rustling::*;
 use rustling_ontology_moment::*;
 pub use rustling_ontology_rules::dimension::*;
+pub use rustling_ontology_rules::output::ParsingContext;
 
 macro_rules! example {
     ($v:expr, $check:expr, $($ex:expr),*) => {
@@ -71,32 +72,56 @@ pub fn check_float(v: f32) -> CheckFloat {
 
 #[derive(Debug)]
 pub struct CheckMoment {
+    pub direction: Option<Direction>,
+    pub precision: Precision,
     pub interval: Interval,
+    pub context: ParsingContext,
 }
 
 impl Check<Dimension> for CheckMoment {
-    fn check(&self, _: &ParsedNode<Dimension>) -> bool {
-        unimplemented!()
+    fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
+        let check_value = self.context.resolve(&pn.value)
+            .and_then(|v| Interval::attempt_from(v))
+            .map(|v| v.start == self.interval.start && v.grain == self.interval.grain)
+            .unwrap_or(false);
+        let time_value = TimeValue::attempt_from(pn.value.clone());
+        let check_direction = time_value.clone()
+            .map(|tv| tv.direction == self.direction)
+            .unwrap_or(false);
+        let check_precision = time_value.clone()
+            .map(|tv| tv.direction == self.direction)
+            .unwrap_or(false);
+        check_value && check_precision && check_direction
+
     }
 }
 
-pub fn check_moment(moment: Moment, grain: Grain)
+pub fn check_moment(moment: Moment, grain: Grain, precision: Precision, direction: Option<Direction>)
                       -> CheckMoment {
-    CheckMoment { interval: Interval::starting_at(moment, grain) }
+    CheckMoment { 
+        direction: direction,
+        precision: precision,
+        interval: Interval::starting_at(moment, grain),
+        context: ParsingContext::default() 
+    }
 }
 
 #[derive(Debug)]
 pub struct CheckMomentSpan {
     pub interval: Interval,
+    pub context: ParsingContext,
 }
 
 impl Check<Dimension> for CheckMomentSpan {
-    fn check(&self, _: &ParsedNode<Dimension>) -> bool {
-        unimplemented!()
+    fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
+        self.context.resolve(&pn.value)
+            .and_then(|v| Interval::attempt_from(v))
+            .map(|v| v.start == self.interval.start && v.end == self.interval.end)
+            .unwrap_or(false)
     }
 }
 
 pub fn check_moment_span(start: Moment, end: Moment, grain: Grain)
                       -> CheckMomentSpan {
-    CheckMomentSpan { interval: Interval::new(start, Some(end), grain) }
+    CheckMomentSpan { interval: Interval::new(start, Some(end), grain), context: ParsingContext::default() }
 }
