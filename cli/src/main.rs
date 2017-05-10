@@ -1,12 +1,14 @@
 #[macro_use]
 extern crate clap;
 extern crate rustling_ontology;
+extern crate rustling_ontology_moment;
 #[macro_use]
 extern crate prettytable;
 
 use std::str::FromStr;
 
 use rustling_ontology::*;
+use rustling_ontology_moment::*;
 use prettytable::Table;
 use std::cmp::min;
 
@@ -37,7 +39,9 @@ fn main() {
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
             table.set_titles(row!["ix", "best", "log(p)", "p", "text", "kind", "rule", "childs"]);
-            let decoder = ParsingContext::default();
+            //let decoder = ParsingContext::default();
+            let decoder = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second), 80);
+
             for (ix, c) in candidates.iter().enumerate().rev() {
                 if !kinds.is_empty() && !kinds.contains(&c.match_.value.kind()) {
                     continue;

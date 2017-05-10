@@ -17,6 +17,7 @@ rustling_value! {
     Duration(DurationValue),
     Cycle(CycleValue),
     UnitOfDuration(UnitOfDurationValue),
+    RelativeMinute(RelativeMinuteValue),
 }
 
 impl fmt::Display for Dimension {
@@ -36,6 +37,7 @@ impl fmt::Display for Dimension {
             &Dimension::Duration(_) => write!(fmt, "Duration"),
             &Dimension::Cycle(_) => write!(fmt, "Cycle"),
             &Dimension::UnitOfDuration(_) => write!(fmt, "UnitOfDuration"),
+            &Dimension::RelativeMinute(_) => write!(fmt, "RelativeMinute"),
         }
     }
 }
@@ -288,6 +290,7 @@ pub enum Form {
     Month(u32),
     TimeOfDay(Option<TimeOfDayForm>),
     DayOfWeek { not_immediate: bool },
+    PartOfDay,
     Empty,
 }
 
@@ -298,6 +301,7 @@ impl Form {
             &Form::TimeOfDay(_) => None,
             &Form::DayOfWeek { not_immediate } => Some(not_immediate),
             &Form::Empty => None,
+            &Form::PartOfDay => None,
         }
     }
 }
@@ -329,3 +333,6 @@ impl DurationValue {
         DurationValue { precision: precision, .. self }
     }
 }
+
+#[derive(Debug,PartialEq,Clone)]
+pub struct RelativeMinuteValue(pub i32);

@@ -47,17 +47,17 @@ macro_rules! temperature_check {
 
 macro_rules! time_check {
     () => ( $crate::rustling::core::AnyNodePattern::<TimeValue>::new() );
-    ($predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!($predicate)]) );
+    ($($predicate:expr),*) => ( $crate::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![ $( b!($predicate) ),*]) );
 }
 
 macro_rules! duration_check {
     () => ( $crate::rustling::core::AnyNodePattern::<DurationValue>::new() );
 }
 
-macro_rules! time_check_form_predicate {
-    ($predicate:expr, $form:pat) => ( $crate::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| if let $form = time.form { true } else { false })], b!($predicate)) );
+macro_rules! relative_minute_check {
+    () => ( $crate::rustling::core::AnyNodePattern::<RelativeMinuteValue>::new() );
 }
 
-macro_rules! time_check_form {
-    ($form:pat) => ( $crate::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| if let $form = time.form { true } else { false })]) );
+macro_rules! form {
+    ($form:pat) => (|time: &TimeValue| if let $form = time.form { true } else { false })
 }

@@ -198,7 +198,7 @@ pub fn hour_minute_second(h: u32,
            .form(Form::TimeOfDay(None)))
 }
 
-pub fn hour_minute_relative(h: u32, m: i32, is_12_clock: bool) -> RuleResult<TimeValue> {
+pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if !(1 <= h && h <= 23) {
         unimplemented!();
     }
