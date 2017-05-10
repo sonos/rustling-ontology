@@ -256,8 +256,8 @@ pub struct UnitOfDurationValue {
 }
 
 impl UnitOfDurationValue {
-    pub fn new(grain: Grain) -> RuleResult<UnitOfDurationValue> {
-        Ok(UnitOfDurationValue { grain: grain })
+    pub fn new(grain: Grain) -> UnitOfDurationValue {
+        UnitOfDurationValue { grain: grain }
     }
 }
 

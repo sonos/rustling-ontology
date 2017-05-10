@@ -7,31 +7,31 @@ use moment::{Weekday, Grain, PeriodComp};
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("second (unit-of-duration)",
         b.reg(r#"sec(?:ond)?s?"#)?,
-        |_| UnitOfDurationValue::new(Grain::Second)
+        |_| Ok(UnitOfDurationValue::new(Grain::Second))
     );
     b.rule_1("minute (unit-of-duration)",
         b.reg(r#"min(?:ute)?s?"#)?,
-        |_| UnitOfDurationValue::new(Grain::Minute)
+        |_| Ok(UnitOfDurationValue::new(Grain::Minute))
     );
     b.rule_1("hour (unit-of-duration)",
         b.reg(r#"h(?:(?:(?:ou)?rs?)|r)?"#)?,
-        |_| UnitOfDurationValue::new(Grain::Hour)
+        |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1("day (unit-of-duration)",
         b.reg(r#"days?"#)?,
-        |_| UnitOfDurationValue::new(Grain::Day)
+        |_| Ok(UnitOfDurationValue::new(Grain::Day))
     );
     b.rule_1("week (unit-of-duration)",
         b.reg(r#"weeks?"#)?,
-        |_| UnitOfDurationValue::new(Grain::Week)
+        |_| Ok(UnitOfDurationValue::new(Grain::Week))
     );
     b.rule_1("month (unit-of-duration)",
         b.reg(r#"months?"#)?,
-        |_| UnitOfDurationValue::new(Grain::Month)
+        |_| Ok(UnitOfDurationValue::new(Grain::Month))
     );
     b.rule_1("year (unit-of-duration)",
         b.reg(r#"years?"#)?,
-        |_| UnitOfDurationValue::new(Grain::Year)
+        |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
     b.rule_1("quarter of an hour",
         b.reg(r#"(?:1/4\s?h(?:our)?|(?:a\s)?quarter of an hour)"#)?,
