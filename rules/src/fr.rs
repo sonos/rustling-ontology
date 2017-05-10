@@ -393,6 +393,134 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(form!(Form::DayOfWeek{..})),
         |_, time| time.value().the_nth_not_immediate(0)
     );
+    b.rule_2("ce <time>",
+        b.reg(r#"ce"#)?,
+        time_check!(),
+        |_, time| time.value().the_nth(0)
+    );
+    b.rule_2("<day-of-week> prochain",
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"prochain"#)?,
+        |time, _| time.value().the_nth_not_immediate(0)
+    );
+    b.rule_2("<named-month> prochain",
+        time_check!(),
+        b.reg(r#"prochain"#)?,
+        |time, _| time.value().the_nth(1)
+    );
+    b.rule_2("<named-month|named-day> suivant|d'après",
+        time_check!(),
+        b.reg(r#"suivante?s?|d'apr[eéè]s"#)?,
+        |time, _| time.value().the_nth(1)
+    );
+    b.rule_2("<named-month|named-day> dernier|passé",
+        time_check!(),
+        b.reg(r#"derni[eéè]re?|pass[ée]e?"#)?,
+        |time, _| time.value().the_nth(-1)
+    );
+    b.rule_2("<named-day> en huit",
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"en (?:huit|8)"#)?,
+        |time, _| time.value().the_nth(1)
+    );
+    b.rule_2("<named-day> en quinze",
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"en (quinze|15)"#)?,
+        |time, _| time.value().the_nth(2)
+    );
+    b.rule_4("dernier <day-of-week> de <time> (latent)",
+        b.reg(r#"derni[eéè]re?"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"d['e]"#)?,
+        time_check!(),
+        |_, dow, _, time| dow.value().last_of(time.value())
+    );
+    b.rule_4("dernier <day-of-week> de <time> (latent)",
+        b.reg(r#"derni[eéè]re?"#)?,
+        cycle_check!(),
+        b.reg(r#"d['e]"#)?,
+        time_check!(),
+        |_, cycle, _, time| cycle.value().last_of(time.value())
+    );
+    b.rule_3("<ordinal> week-end de <time>",
+        ordinal_check!(),
+        b.reg(r#"week(?:\s|-)?end (?:d['eu]|en|du mois de)"#)?,
+        time_check!(form!(Form::Month(_))),
+        |ordinal, _, time| { 
+            let week_day_start = helpers::day_of_week(Weekday::Fri)?.intersect(&helpers::hour(18, false)?)?;
+            let week_day_end = helpers::day_of_week(Weekday::Mon)?.intersect(&helpers::hour(0, false)?)?;
+            let week_day = week_day_start.span_to(&week_day_end, false)?;
+            let week_ends_of_time = time.value().intersect(&week_day)?;
+            week_ends_of_time.the_nth(ordinal.value().value - 1)
+        }
+    );
+    b.rule_2("dernier week-end de <time>",
+        b.reg(r#"dernier week(?:\s|-)?end (?:d['eu]|en|du mois de)"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, time| { 
+            let week_day_start = helpers::day_of_week(Weekday::Fri)?.intersect(&helpers::hour(18, false)?)?;
+            let week_day_end = helpers::day_of_week(Weekday::Mon)?.intersect(&helpers::hour(0, false)?)?;
+            let week_day = week_day_start.span_to(&week_day_end, false)?;
+            week_day.last_of(time.value())
+        }
+    );
+    b.rule_1("year",
+        integer_check!(1000, 2100),
+        |integer| {
+            helpers::year(integer.value().value as i32)
+        }
+    );  
+    b.rule_1("year (latent)",
+        integer_check!(-1000, 999),
+        |integer| {
+            Ok(helpers::year(integer.value().value as i32)?.latent())
+        }
+    );
+    b.rule_1("year (latent)",
+        integer_check!(2101, 3000),
+        |integer| {
+            Ok(helpers::year(integer.value().value as i32)?.latent())
+        }
+    );
+    b.rule_1("day of month (premier)",
+        b.reg(r#"premier|prem\.?|1er|1 er"#)?,
+        |_| helpers::day_of_month(1)
+    );
+    b.rule_2("le <day-of-month> (non ordinal)",
+        b.reg(r#"le"#)?,
+        integer_check!(1, 31),
+        |_, integer| helpers::day_of_month(integer.value().value as u32)
+    );
+    b.rule_4("le <day-of-month> à <datetime>",
+        b.reg(r#"le"#)?,
+        integer_check!(1, 31),
+        b.reg(r#"[aà]"#)?,
+        time_check!(),
+        |_, integer, _, time| {
+            let day_of_month = helpers::day_of_month(integer.value().value as u32)?;
+            day_of_month.intersect(&time.value())
+        }
+    );
+    b.rule_2("<day-of-month> <named-month>",
+        integer_check!(1, 31),
+        time_check!(form!(Form::Month(_))),
+        |integer, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+
+    b.rule_2("<day-of-week> <day-of-month>",
+        time_check!(form!(Form::DayOfWeek{..})), // Weird it is not used in the production of the rule
+        integer_check!(1, 31),
+        |_, integer| helpers::day_of_month(integer.value().value as u32)
+    );
+
+    b.rule_3("<day-of-week> <day-of-month> à <time-of-day>)",
+        time_check!(form!(Form::DayOfWeek{..})), // Weird it is not used in the production of the rule
+        integer_check!(1, 31),
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, integer, tod| helpers::day_of_month(integer.value().value as u32)
+            ?.intersect(tod.value())
+    );
+
     Ok(())
 }
 
