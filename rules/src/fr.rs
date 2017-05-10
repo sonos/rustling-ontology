@@ -5,19 +5,19 @@ use moment::{Weekday, Grain, PeriodComp};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("seconde (unit-of-duration)",
-        b.reg(r#"sec(onde)?s?"#)?,
+        b.reg(r#"sec(?:onde)?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Second))
     );
     b.rule_1("minute (unit-of-duration)",
-        b.reg(r#"min(ute)?s?"#)?,
+        b.reg(r#"min(?:ute)?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Minute))
     );
     b.rule_1("heure (unit-of-duration)",
-        b.reg(r#"h(eure)?s?"#)?,
+        b.reg(r#"h(?:eure)?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1("jour (unit-of-duration)",
-        b.reg(r#"jour(n[ée]e?)?s?"#)?,
+        b.reg(r#"jour(?:n[ée]e?)?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Day))
     );
     b.rule_1("semaine (unit-of-duration)",
@@ -29,11 +29,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Month))
     );
     b.rule_1("année (unit-of-duration)",
-        b.reg(r#"an(n[ée]e?)?s?"#)?,
+        b.reg(r#"an(?:n[ée]e?)?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
     b.rule_1("un quart heure",
-        b.reg(r#"(1/4\s?h(eure)?|(un|1) quart d'heure)"#)?,
+        b.reg(r#"(1/4\s?h(?:eure)?|(?:un|1) quart d'heure)"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
     );
     b.rule_1("une demi heure",
@@ -116,7 +116,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Month)
     );
     b.rule_1("année (cycle)",
-        b.reg(r#"an(n[ée]e?)?s?"#)?,
+        b.reg(r#"an(?:n[ée]e?)?s?"#)?,
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("ce|dans le <cycle>",
@@ -227,6 +227,171 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"(la )?veille du"#)?,
         time_check!(),
         |_, time| helpers::cycle_nth_after_not_immediate(Grain::Day, -1, time.value())
+    );
+    Ok(())
+}
+
+pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect",
+        time_check!(|time: &TimeValue| !time.latent),
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, b| a.value().intersect(b.value())
+    );
+    b.rule_3("intersect by 'de' or ','",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"de|,"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_3("intersect by 'mais/par exemple/plutôt'",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"mais|par exemple|plutôt|plutot"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_2("en <named-month>",
+        b.reg(r#"en|au mois de?'?"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, a| Ok(a.value().clone())
+    );
+    b.rule_1("named-day",
+        b.reg(r#"lun\.?(di)?"#)?,
+        |_| helpers::day_of_week(Weekday::Mon)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"mar\.?(di)?"#)?,
+        |_| helpers::day_of_week(Weekday::Tue)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"mer\.?(credi)?"#)?,
+        |_| helpers::day_of_week(Weekday::Wed)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"jeu\.?(di)?"#)?,
+        |_| helpers::day_of_week(Weekday::Thu)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"ven\.?(dredi)?"#)?,
+        |_| helpers::day_of_week(Weekday::Fri)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"sam\.?(edi)?"#)?,
+        |_| helpers::day_of_week(Weekday::Sat)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"dim\.?(anche)?"#)?,
+        |_| helpers::day_of_week(Weekday::Sun)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"janvier|janv\.?"#)?,
+        |_| helpers::month(1)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"fevrier|février|fev|fév\.?"#)?,
+        |_| helpers::month(2)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"mars|mar\.?"#)?,
+        |_| helpers::month(3)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"avril|avr\.?"#)?,
+        |_| helpers::month(4)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"mai"#)?,
+        |_| helpers::month(5)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"juin|jun\.?"#)?,
+        |_| helpers::month(6)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"juillet|juil?\."#)?,
+        |_| helpers::month(7)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"aout|août|aou\.?"#)?,
+        |_| helpers::month(8)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"septembre|sept?\.?"#)?,
+        |_| helpers::month(9)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"octobre|oct\.?"#)?,
+        |_| helpers::month(10)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"novembre|nov\.?"#)?,
+        |_| helpers::month(11)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"décembre|decembre|déc\.?|dec\.?"#)?,
+        |_| helpers::month(12)
+    );
+    b.rule_1("noel",
+        b.reg(r#"(?:jour de )?no[eë]l"#)?,
+        |_| helpers::month_day(12, 25)
+    );
+    b.rule_1("soir de noël",
+        b.reg(r#"soir(?:ée)? de no[eë]l"#)?,
+        |_| {
+            let start = helpers::month_day(12, 24)?.intersect(&helpers::hour(18, false)?)?;
+            let end = helpers::month_day(12, 25)?.intersect(&helpers::hour(0, false)?)?;
+            start.span_to(&end, false)
+        }
+    );
+    b.rule_1("jour de l'an",
+        b.reg(r#"(?:jour de l'|nouvel )an"#)?,
+        |_| helpers::month_day(1, 1)
+    );
+    b.rule_1("toussaint",
+        b.reg(r#"(?:(?:la |la journée de la |jour de la )?toussaint|jour des morts)"#)?,
+        |_| helpers::month_day(11, 1)
+    );
+    b.rule_1("1er mai",
+        b.reg(r#"f(e|ê)te du travail"#)?,
+        |_| helpers::month_day(5, 1)
+    );
+    b.rule_1("maintenant",
+        b.reg(r#"maintenant|(?:tout de suite)"#)?,
+        |_| helpers::cycle_nth(Grain::Second, 0)
+    );
+    b.rule_1("aujourd'hui",
+        b.reg(r#"(?:aujourd'? ?hui)|(?:ce jour)|(?:dans la journ[ée]e?)|(?:en ce moment)"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 0)
+    );
+    b.rule_1("demain",
+        b.reg(r#"(?:demain)|(?:le lendemain)"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 1)
+    );
+    b.rule_1("hier",
+        b.reg(r#"hier|la veille"#)?,
+        |_| helpers::cycle_nth(Grain::Day, -1)
+    );
+    b.rule_1("fin du mois",
+        b.reg(r#"(?:(?:[aà] )?la )?fin (?:du|de) mois"#)?,
+        |_| {
+            let month = helpers::cycle_nth(Grain::Month, 1)?;
+            Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
+                .span_to(&month, false)?
+                .latent()
+                .form(Form::PartOfDay)) // Weird form
+        } 
+    );
+    b.rule_1("après-demain",
+        b.reg(r#"apr(?:e|è)s[- ]?demain"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 2)
+    );
+    b.rule_1("avant-hier",
+        b.reg(r#"avant[- ]?hier"#)?,
+        |_| helpers::cycle_nth(Grain::Day, -2)
+    );
+    b.rule_2("ce <day-of-week>",
+        b.reg(r#"ce"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        |_, time| time.value().the_nth_not_immediate(0)
     );
     Ok(())
 }
@@ -497,13 +662,5 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"le"#)?,
              ordinal_check!(),
              |_, a| Ok(*a.value()));
-    Ok(())
-}
-
-pub fn rules_finance(_b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    Ok(())
-}
-
-pub fn rules_time(_b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     Ok(())
 }
