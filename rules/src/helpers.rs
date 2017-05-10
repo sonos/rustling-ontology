@@ -254,6 +254,12 @@ pub fn ymd(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
     Ok(year(y)?.intersect(&month_day(m, d)?)?)
 }
 
+impl CycleValue {
+    pub fn last_of(&self, base: &TimeValue) -> RuleResult<TimeValue> {
+        cycle(self.grain)?.last_of(base)
+    }
+}
+
 impl DurationValue {
 
     pub fn in_present(&self) -> RuleResult<TimeValue> {

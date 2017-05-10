@@ -39,7 +39,7 @@ impl ParsingContext {
                 walker.forward
                     .next()
                     .and_then(|h| {
-                        if tv.form.not_immediate().unwrap_or(false) && h.start <= self.ctx.reference.start {
+                        if tv.form.not_immediate().unwrap_or(false) && h.intersect(self.ctx.reference).is_some() {
                             walker.forward.next()
                         } else {
                             Some(h)

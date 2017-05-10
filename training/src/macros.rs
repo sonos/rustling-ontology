@@ -1,5 +1,6 @@
 macro_rules! check_moment {
     ($context:expr, [$($item:expr),*]) => ( check_moment($context, moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, None) );
+    ($context:expr, [$($item:expr),*], $grain:expr) => ( check_moment($context, moment!($( $item ),*), $grain, Precision::Exact, None) );
 }
 
 macro_rules! check_moment_with_precision {
@@ -12,6 +13,7 @@ macro_rules! check_moment_with_direction {
 
 macro_rules! check_moment_span {
     ($context:expr, [$($item1:expr),*], [$($item2:expr),*]) => ( check_moment_span($context, moment!($( $item1 ),*), moment!($( $item2 ),*), grain!($( $item1 ),*)) );
+    ($context:expr, [$($item1:expr),*], [$($item2:expr),*], $grain:expr) => ( check_moment_span($context, moment!($( $item1 ),*), moment!($( $item2 ),*), $grain) );
 }
 
 macro_rules! moment {

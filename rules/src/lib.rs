@@ -52,17 +52,11 @@ macro_rules! lang {
         pub fn $lang() -> ::rustling::RustlingResult<::rustling::RuleSet<dimension::Dimension>> {
             let mut b = ::rustling::RuleSetBuilder::default();
             $( $lang::$rule(&mut b)?; )*
-            $lang::rules_numbers(&mut b)?;
-            $lang::rules_time(&mut b)?;
-            $lang::rules_temperature(&mut b)?;
-            /*
-            $lang::rules_finance(&mut b)?;
-            */
             Ok(b.build())
         }
     }
 }
 
-lang!(en, [rules_numbers, rules_time, rules_temperature, rules_cycle]);
+lang!(en, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature]);
 lang!(es, [rules_numbers, rules_time, rules_temperature]);
 lang!(fr, [rules_numbers, rules_time, rules_temperature]);

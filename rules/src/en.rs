@@ -30,7 +30,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| UnitOfDurationValue::new(Grain::Month)
     );
     b.rule_1("year (unit-of-duration)",
-        b.reg(r#"months?"#)?,
+        b.reg(r#"years?"#)?,
         |_| UnitOfDurationValue::new(Grain::Year)
     );
     b.rule_1("quarter of an hour",
@@ -194,7 +194,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_1("month (cycle)",
         b.reg(r#"months?"#)?,
-        |_| CycleValue::new(Grain::Week)
+        |_| CycleValue::new(Grain::Month)
     );
 
     b.rule_1("quarter (cycle)",
@@ -620,6 +620,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             a.value().last_of(b.value())
         } 
     );
+    b.rule_4("last <cycle> of <time>",
+        b.reg(r#"last"#)?, 
+        cycle_check!(),
+        b.reg(r#"of|in"#)?,
+        time_check!(),
+        |_, cycle, _, time| {
+            cycle.value().last_of(time.value())
+        } 
+    );
     b.rule_4("nth <time> of <time>",
         ordinal_check!(),
         time_check!(),
@@ -834,7 +843,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::hour(0, false)
     );
     b.rule_1("quarter (relative minutes)",
-        b.reg(r#"(a|one)? ?quarter"#)?,
+        b.reg(r#"(?:a|one)? ?quarter"#)?,
         |_| Ok(RelativeMinuteValue(15))
     );
     b.rule_1("half (relative minutes)",
@@ -1046,8 +1055,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("<month> dd-dd (interval)",
         time_check!(form!(Form::Month(_))),
         b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
-        b.reg(r#"\-|to|th?ru|through|(?:un)?til(?:l)?""#)?,
-        b.reg(r#"(3[01]|[12]\d|0?[1-9])""#)?,
+        b.reg(r#"\-|to|th?ru|through|(?:un)?til(?:l)?"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
         |time, a, _, b| {
             let start = time.value()
                 .intersect(&helpers::day_of_month(a.group(1).parse()?)?)?;

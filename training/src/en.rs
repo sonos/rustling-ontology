@@ -22,7 +22,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 8, 8]), "Aug 8");
     example!(v, check_moment!(c, [2014, 10]), "October 2014");
     example!(v, check_moment!(c, [1974, 10, 31]), "10/31/1974", "10/31/74", "10-31-74");
-    example!(v, check_moment!(c, [2015, 4, 14]), "14april 2015", "April 14, 2015", "14th April 15");
+    example!(v, check_moment!(c, [2015, 4, 14]), "14 april 2015", "April 14, 2015", "14th April 15");
     example!(v, check_moment!(c, [2013, 2, 19]), "next tuesday");
     example!(v, check_moment!(c, [2013, 2, 22]), "friday after next");
     example!(v, check_moment!(c, [2013, 3]), "next March");
@@ -30,15 +30,15 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 10]), "Sunday, Feb 10");
     example!(v, check_moment!(c, [2013, 2, 13]), "Wed, Feb13");
     example!(v, check_moment!(c, [2013, 2, 18]), "Monday, Feb 18", "Mon, February 18");
-    example!(v, check_moment!(c, [2013, 2, 11]), "this week", "current week", "coming week");
-    example!(v, check_moment!(c, [2013, 2, 4]), "last week", "past week", "previous week");
-    example!(v, check_moment!(c, [2013, 2, 18]), "next week", "the following week");
+    example!(v, check_moment!(c, [2013, 2, 11], Grain::Week), "this week", "current week", "coming week");
+    example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "last week", "past week", "previous week");
+    example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "next week", "the following week");
     example!(v, check_moment!(c, [2013, 1]), "last month");
     example!(v, check_moment!(c, [2013, 3]), "next month");
-    example!(v, check_moment!(c, [2013, 1, 1]), "this quarter", "this qtr");
-    example!(v, check_moment!(c, [2013, 4, 1]), "next quarter", "next qtr");
-    example!(v, check_moment!(c, [2013, 7, 1]), "third quarter", "3rd quarter", "third qtr", "3rd qtr", "the 3rd qtr");
-    example!(v, check_moment!(c, [2018, 10, 1]), "4th quarter 2018", "4th qtr 2018", "the 4th qtr of 2018");
+    example!(v, check_moment!(c, [2013, 1, 1], Grain::Quarter), "this quarter", "this qtr");
+    example!(v, check_moment!(c, [2013, 4, 1], Grain::Quarter), "next quarter", "next qtr");
+    example!(v, check_moment!(c, [2013, 7, 1], Grain::Quarter), "third quarter", "3rd quarter", "third qtr", "3rd qtr", "the 3rd qtr");
+    example!(v, check_moment!(c, [2018, 10, 1], Grain::Quarter), "4th quarter 2018", "4th qtr 2018", "the 4th qtr of 2018");
     example!(v, check_moment!(c, [2012]), "last year", "last yr");
     example!(v, check_moment!(c, [2013]), "this year", "current year", "this yr");
     example!(v, check_moment!(c, [2014]), "next year", "next yr");
@@ -57,10 +57,10 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 3, 25]), "last Monday of March");
     example!(v, check_moment!(c, [2014, 3, 30]), "last Sunday of March 2014");
     example!(v, check_moment!(c, [2013, 10, 3]), "third day of october");
-    example!(v, check_moment!(c, [2014, 10, 6]), "first week of october 2014");
-    example!(v, check_moment!(c, [2013, 10, 7]), "the week of october 6th", "the week of october 7th");
+    example!(v, check_moment!(c, [2014, 10, 6], Grain::Week), "first week of october 2014");
+    example!(v, check_moment!(c, [2013, 10, 7], Grain::Week), "the week of october 6th", "the week of october 7th");
     example!(v, check_moment!(c, [2015, 10, 31]), "last day of october 2015", "last day in october 2015");
-    example!(v, check_moment!(c, [2014, 9, 22]), "last week of september 2014");
+    example!(v, check_moment!(c, [2014, 9, 22], Grain::Week), "last week of september 2014");
     //nth of
     example!(v, check_moment!(c, [2013, 10, 1]), "first tuesday of october", "first tuesday in october");
     example!(v, check_moment!(c, [2014, 9, 16]), "third tuesday of september 2014");
@@ -139,8 +139,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 10], [2013, 2, 12]), "last 2 days", "last two days", "past 2 days");
     example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "next 3 days", "next three days");
     example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "next few days");
-    example!(v, check_moment_span!(c, [2013, 1], [2013, 2]), "last 2 weeks", "last two weeks", "past 2 weeks");
-    example!(v, check_moment_span!(c, [2013, 2], [2013, 3]), "next 3 weeks", "next three weeks");
+    example!(v, check_moment_span!(c, [2013, 1, 28], [2013, 2, 11], Grain::Week), "last 2 weeks", "last two weeks", "past 2 weeks");
+    example!(v, check_moment_span!(c, [2013, 2, 18], [2013, 3, 11], Grain::Week), "next 3 weeks", "next three weeks");
     example!(v, check_moment_span!(c, [2012, 12], [2013, 02]), "last 2 months", "last two months");
     example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "next 3 months", "next three months");
     example!(v, check_moment_span!(c, [2011], [2013]), "last 2 years", "last two years");
@@ -153,7 +153,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 31]), "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30");
     example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "1:30 PM on Sat, Sep 21");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "within 2 weeks");
-    example!(v, check_moment!(c, [2013, 2, 12, 14, 0]), "until 2:00pm", "through 2:00pm");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14, 0], Direction::Before), "until 2:00pm", "through 2:00pm");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 14]), "by 2:00pm");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 13, 0]), "by EOD");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 3, 1, 0]), "by EOM");
