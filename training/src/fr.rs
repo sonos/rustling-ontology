@@ -68,6 +68,25 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 10, 7], Grain::Week), "la semaine du 6 octobre", "la semaine du 7 octobre");
     example!(v, check_moment!(c, [2015, 10, 31]), "dernier jour d'octobre 2015", "le dernier jour d'octobre 2015");
     example!(v, check_moment!(c, [2014, 9, 22], Grain::Week), "dernière semaine de septembre 2014", "la dernière semaine de septembre 2014");
+    //Hours
+    example!(v, check_moment!(c, [2013, 2, 12, 15]), "à quinze heures", "à 15 heures", "à 3 heures cet après-midi", "15h", "15H", "vers 15 heures", "à environ 15 heures");
+    example!(v, check_moment!(c, [2013, 2, 12, 15, 0]), "15:00", "15h00", "15H00");
+    example!(v, check_moment!(c, [2013, 2, 13, 00]), "minuit");
+    example!(v, check_moment!(c, [2013, 2, 12, 12]), "midi", "aujourd'hui à midi");
+    example!(v, check_moment!(c, [2013, 2, 12, 12, 15]), "midi et quart", "midi quinze");
+    example!(v, check_moment!(c, [2013, 2, 12, 11, 55]), "midi moins cinq");
+    example!(v, check_moment!(c, [2013, 2, 12, 12, 30]), "midi et demi", "midi trente");
+    example!(v, check_moment!(c, [2013, 2, 13, 00, 03]), "minuit trois");
+    example!(v, check_moment!(c, [2013, 2, 12, 00, 03]), "aujourd'hui à minuit trois");
+    example!(v, check_moment!(c, [2013, 2, 12, 15, 15]), "à quinze heures quinze", "à quinze heures et quinze minutes", "15h passé de 15 minutes", "à trois heures et quart cet après-midi", "15:15", "15h15");
+    example!(v, check_moment!(c, [2013, 2, 13, 15, 15]), "à trois heures et quart demain après-midi");
+    example!(v, check_moment!(c, [2013, 2, 12, 15, 30]), "à quinze heures trente", "à quinze heures passé de trente minutes", "à trois heures et demi cet après-midi", "15:30", "15h30");
+    example!(v, check_moment!(c, [2013, 2, 12, 11, 45]), "midi moins le quart", "11h45", "onze heures trois quarts", "aujourd'hui à 11h45");
+    example!(v, check_moment!(c, [2013, 2, 13, 11]), "mercredi à 11h");
+    example!(v, check_moment!(c, [2013, 2, 13, 11]), "demain à 11 heures", "demain à 11H");
+    example!(v, check_moment!(c, [2013, 2, 14, 11]), "jeudi à 11h", "après-demain à 11 heures", "après-demain à 11H");
+    example!(v, check_moment!(c, [2013, 2, 15, 12]), "vendredi à midi", "vendredi à 12h");
+    example!(v, check_moment!(c, [2013, 2, 15, 16]), "vendredi quinze à seize heures", "vendredi 15 à 16h", "vendredi quinze à 16h");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

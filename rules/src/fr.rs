@@ -571,7 +571,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(RelativeMinuteValue(15))
     );
     b.rule_1("demi (relative minutes)",
-        b.reg(r#"(?:3|trois) quarts?"#)?,
+        b.reg(r#"demie?"#)?,
         |_| Ok(RelativeMinuteValue(30))
     );
     b.rule_1("trois quarts (relative minutes)",
@@ -612,7 +612,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         relative_minute_check!(),
         |time, _, minutes| helpers::hour_relative_minute(
             time.value().form_time_of_day()?.full_hour,
-            -1 * minutes.value().0,
+            minutes.value().0,
             time.value().form_time_of_day()?.is_12_clock
         )
     );

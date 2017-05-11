@@ -168,9 +168,9 @@ pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
 
 pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if is_12_clock {
-        Ok(TimeValue::constraint(Hour::clock_12(h)).form(Form::time_of_day(h, true)))
+        Ok(TimeValue::constraint(Hour::clock_12(h)).form(Form::time_of_day(h, is_12_clock)))
     } else {
-        Ok(TimeValue::constraint(Hour::clock_24(h)).form(Form::time_of_day(h, true)))
+        Ok(TimeValue::constraint(Hour::clock_24(h)).form(Form::time_of_day(h, is_12_clock)))
     }
 }
 
@@ -199,11 +199,11 @@ pub fn hour_minute_second(h: u32,
 }
 
 pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<TimeValue> {
-    if !(1 <= h && h <= 23) {
-        unimplemented!();
+    if !(h <= 23) {
+        Err(format!("Invalid hour {:?}", h))?
     }
     if !(-59 <= m && m <= 59) {
-        unimplemented!();
+        Err(format!("Invalid relative minutes {:?}", m))?
     }
     let normalized_minute = ((m + 60) % 60) as u32;
 
