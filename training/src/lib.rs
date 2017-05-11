@@ -96,19 +96,15 @@ pub struct CheckMoment {
 
 impl Check<Dimension> for CheckMoment {
     fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
-        let check_value = self.context.resolve(&pn.value)
+        self.context.resolve(&pn.value)
             .and_then(|v| TimeOutput::attempt_from(v))
-            .map(|v| v.0.start == self.interval.start && v.0.grain == self.interval.grain)
-            .unwrap_or(false);
-        let time_value = TimeValue::attempt_from(pn.value.clone());
-        let check_direction = time_value.clone()
-            .map(|tv| tv.direction == self.direction)
-            .unwrap_or(false);
-        let check_precision = time_value.clone()
-            .map(|tv| tv.direction == self.direction)
-            .unwrap_or(false);
-        check_value && check_precision && check_direction
-
+            .map(|v| {
+                let check_value = v.moment == self.interval.start && v.grain == self.interval.grain;
+                let check_direction = v.direction == self.direction;
+                let check_precision = v.precision == self.precision;
+                check_value && check_direction && check_precision
+            })
+            .unwrap_or(false)
     }
 }
 
@@ -131,8 +127,8 @@ pub struct CheckMomentSpan {
 impl Check<Dimension> for CheckMomentSpan {
     fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
         self.context.resolve(&pn.value)
-            .and_then(|v| TimeOutput::attempt_from(v))
-            .map(|v| v.0.start == self.interval.start && v.0.end == self.interval.end)
+            .and_then(|v| TimeIntervalOutput::attempt_from(v))
+            .map(|v| v.start == self.interval.start && Some(v.end) == self.interval.end)
             .unwrap_or(false)
     }
 }

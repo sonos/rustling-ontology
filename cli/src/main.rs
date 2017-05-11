@@ -19,12 +19,39 @@ fn main() {
              (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
              (@arg sentence: +required "Sentence to test")
         )
+        (@subcommand play =>
+             (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
+             (@arg sentence: +required "Sentence to test")
+        )
     )
         .get_matches();
 
     let lang = value_t!(matches.value_of("lang"), Lang).unwrap_or_else(|e| e.exit());
     match matches.subcommand() {
         ("parse", Some(matches)) => {
+            let sentence = matches.value_of("sentence").unwrap().to_lowercase();
+            let parser = build_parser(lang).unwrap();
+            let context = ParsingContext::default();
+            let entities = parser.parse(&*sentence, &context).unwrap();
+            let mut table = Table::new();
+            for (ix, c) in entities.iter().enumerate().rev() {
+                let mut hilite = String::new();
+                for _ in 0..c.range.0 {
+                    hilite.push('_');
+                }
+                hilite.push_str(&sentence[c.range.0..c.range.1]);
+                for _ in c.range.1..sentence.len() {
+                    hilite.push('_');
+                }
+                table.add_row(row![ix,
+                                   c.probalog,
+                                   f32::exp(c.probalog),
+                                   hilite,
+                                   format!("{:?}", c.value)]);
+            }
+            table.printstd();
+        }
+        ("play", Some(matches)) => {
             let kinds = matches
                 .values_of("kinds")
                 .map(|values| {

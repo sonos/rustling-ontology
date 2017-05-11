@@ -3,17 +3,66 @@ use dimension::*;
 
 #[derive(Clone,PartialEq,Debug)]
 pub enum Output {
-    Integer(i64),
-    Float(f32),
-    Ordinal(i64),
-    Time { moment: Moment, grain: Grain, direction: Option<Direction> },
-    TimeInterval { start: Moment, end: Moment },
-    AmountOfMoney { value: f32, precision: Precision, unit: Option<&'static str>},
-    Temperature { value: f32, unit: Option<&'static str> },
-    Duration { period: Period, precision: Precision },
+    Integer(IntegerOutput),
+    Float(FloatOutput),
+    Ordinal(OrdinalOutput),
+    Time(TimeOutput),
+    TimeInterval(TimeIntervalOutput),
+    AmountOfMoney(AmountOfMoneyOutput),
+    Temperature(TemperatureOutput),
+    Duration(DurationOutput),
 }
 
-variant_converters!(Output, Integer, i64);
+#[derive(Clone,PartialEq,Debug)]
+pub struct IntegerOutput(i64);
+
+#[derive(Clone,PartialEq,Debug)]
+pub struct FloatOutput(f32);
+
+#[derive(Clone,PartialEq,Debug)]
+pub struct OrdinalOutput(i64);
+
+#[derive(Clone,PartialEq,Debug)]
+pub struct TimeOutput {
+    pub moment: Moment, 
+    pub grain: Grain, 
+    pub direction: Option<Direction>,
+    pub precision: Precision,
+}
+
+#[derive(Clone,PartialEq,Debug)]
+pub struct TimeIntervalOutput {
+    pub start: Moment, 
+    pub end: Moment,
+}
+
+#[derive(Clone,PartialEq,Debug)]
+pub struct AmountOfMoneyOutput {
+    pub value: f32, 
+    pub precision: Precision, 
+    pub unit: Option<&'static str>,
+}
+
+#[derive(Clone,PartialEq,Debug)]
+pub struct TemperatureOutput {
+    pub value: f32, 
+    pub unit: Option<&'static str>,
+}
+
+#[derive(Clone,PartialEq,Debug)]
+pub struct DurationOutput {
+    pub period: Period, 
+    pub precision: Precision,
+}
+
+variant_converters!(Output, Integer, IntegerOutput);
+variant_converters!(Output, Float, FloatOutput);
+variant_converters!(Output, Ordinal, OrdinalOutput);
+variant_converters!(Output, Time, TimeOutput);
+variant_converters!(Output, TimeInterval, TimeIntervalOutput);
+variant_converters!(Output, AmountOfMoney, AmountOfMoneyOutput);
+variant_converters!(Output, Temperature, TemperatureOutput);
+variant_converters!(Output, Duration, DurationOutput);
 
 #[derive(Default, Debug, Copy, Clone)]
 pub struct ParsingContext {
@@ -48,39 +97,40 @@ impl ParsingContext {
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
                         if let Some(end) = interval.end {
-                            Output::TimeInterval {
+                            Output::TimeInterval( TimeIntervalOutput {
                                 start: interval.start,
                                 end: end,
-                            }
+                            })
                         } else {
-                            Output::Time {
+                            Output::Time( TimeOutput {
                                 moment: interval.start,
                                 grain: interval.grain,
-                                direction: tv.direction
-                            } 
+                                direction: tv.direction,
+                                precision: tv.precision,
+                            }) 
                         }
                     })
             }
             &Dimension::Number(ref number) => {
                 match number {
-                    &NumberValue::Integer(ref v) => Some(Output::Integer(v.value)),
-                    &NumberValue::Float(ref v) => Some(Output::Float(v.value)),
+                    &NumberValue::Integer(ref v) => Some(Output::Integer(IntegerOutput(v.value))),
+                    &NumberValue::Float(ref v) => Some(Output::Float(FloatOutput(v.value))),
                 }
             }
-            &Dimension::Ordinal(ref ordinal) => Some(Output::Ordinal(ordinal.value)),
-            &Dimension::AmountOfMoney(ref aom) => Some(Output::AmountOfMoney {
+            &Dimension::Ordinal(ref ordinal) => Some(Output::Ordinal(OrdinalOutput(ordinal.value))),
+            &Dimension::AmountOfMoney(ref aom) => Some(Output::AmountOfMoney(AmountOfMoneyOutput {
                 value: aom.value,
                 precision: aom.precision,
                 unit: aom.unit,
-            }),
-            &Dimension::Temperature(ref temp) => Some(Output::Temperature {
+            })),
+            &Dimension::Temperature(ref temp) => Some(Output::Temperature(TemperatureOutput {
                 value: temp.value,
                 unit: temp.unit,
-            }),
-            &Dimension::Duration(ref duration) => Some(Output::Duration {
+            })),
+            &Dimension::Duration(ref duration) => Some(Output::Duration(DurationOutput {
                 period: duration.period.clone(),
                 precision: duration.precision,
-            }),
+            })),
             _ => None,
         }
     }
