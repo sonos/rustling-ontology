@@ -57,6 +57,15 @@ macro_rules! lang {
     }
 }
 
+/// Obtain rules for a given language.
+pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<dimension::Dimension>> {
+    match lang {
+        Lang::EN => en(),
+        Lang::FR => fr(),
+        Lang::ES => es(),
+    }
+}
+
 lang!(en, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature]);
 lang!(es, [rules_numbers, rules_time, rules_temperature]);
 lang!(fr, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration]);
