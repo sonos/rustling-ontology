@@ -87,6 +87,74 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 14, 11]), "jeudi à 11h", "après-demain à 11 heures", "après-demain à 11H");
     example!(v, check_moment!(c, [2013, 2, 15, 12]), "vendredi à midi", "vendredi à 12h");
     example!(v, check_moment!(c, [2013, 2, 15, 16]), "vendredi quinze à seize heures", "vendredi 15 à 16h", "vendredi quinze à 16h");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 1]), "dans une seconde");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 31, 0]), "dans une minute", "dans 1 min");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 32, 0]), "dans 2 minutes", "dans deux min");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 30, 0]), "dans 60 minutes");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "dans une heure");
+    example!(v, check_moment!(c, [2013, 2, 12, 2, 30]), "il y a deux heures");
+    example!(v, check_moment!(c, [2013, 2, 13, 4, 30]), "dans 24 heures", "dans vingt quatre heures");
+    example!(v, check_moment!(c, [2013, 2, 13, 4]), "dans un jour");
+    example!(v, check_moment!(c, [2013, 2, 19, 4]), "dans 7 jours");
+    example!(v, check_moment!(c, [2013, 2, 19]), "dans 1 semaine", "dans une semaine");
+    example!(v, check_moment!(c, [2013, 1, 22]), "il y a trois semaines");
+    example!(v, check_moment!(c, [2013, 4, 12]), "dans deux mois");
+    example!(v, check_moment!(c, [2012, 11, 12]), "il y a trois mois");
+    example!(v, check_moment!(c, [2014, 2]), "dans une année", "dans 1 an");
+    example!(v, check_moment!(c, [2011, 2]), "il y a deux ans");
+    //Seasons
+    example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "cet été");
+    example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "cet hiver");
+    example!(v, check_moment!(c, [2013, 12, 25]), "Noel", "noël", "jour de noel");
+    example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "le soir de noël");
+    example!(v, check_moment!(c, [2014, 1, 1]), "jour de l'an", "nouvel an", "premier janvier");
+    example!(v, check_moment!(c, [2013, 11, 1]), "la toussaint", "le jour de la toussaint", "la journée de la toussaint", "toussaint", "le jour des morts");
+    example!(v, check_moment!(c, [2013, 05, 1]), "fête du travail");
+    //Part of day (morning, afternoon...)
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "cet après-midi", "l'après-midi");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 15], [2013, 2, 12, 17]), "en milieu d'après-midi");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "en début de matinée", "très tôt le matin", "tôt le matin", "le matin tôt", "le matin très tôt");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 9], [2013, 2, 12, 11]), "milieu de matinée");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "en fin de matinée");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "après déjeuner");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "avant déjeuner");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "pendant le déjeuner", "à l'heure du déjeuner");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "après le travail");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 12]), "dès le matin", "dès la matinée");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "en début d'après-midi");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "en fin d'après-midi");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 6], [2013, 2, 12, 10]), "en début de journée");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "milieu de journée");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "en fin de journée");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "ce soir");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 12, 21]), "en début de soirée");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 00]), "en fin de soirée");
+    example!(v, check_moment_span!(c, [2013, 2, 13, 18], [2013, 2, 14, 00]), "demain soir", "mercredi soir", "mercredi en soirée");
+    example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 00]), "hier soir", "la veille au soir");
+    example!(v, check_moment_span!(c, [2013, 2, 15, 18], [2013, 2, 18, 00]), "ce week-end");
+    example!(v, check_moment_span!(c, [2013, 2, 11], [2013, 2, 13]), "en début de semaine");
+    example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 15]), "en milieu de semaine");
+    example!(v, check_moment_span!(c, [2013, 2, 14], [2013, 2, 18]), "en fin de semaine");
+    example!(v, check_moment_span!(c, [2013, 2, 11], [2013, 2, 16]), "en semaine");
+    example!(v, check_moment_span!(c, [2013, 2, 19], [2013, 3, 01]), "à la fin du mois");
+    //TODO "en début de semaine prochaine" interval (2013, 2, 18) (2013, 2, 20)
+    example!(v, check_moment_span!(c, [2013, 9, 6, 18], [2013, 9, 9, 00]), "le premier week-end de septembre");
+    example!(v, check_moment_span!(c, [2013, 9, 13, 18], [2013, 9, 16, 00]), "le deuxième week-end de septembre");
+    example!(v, check_moment_span!(c, [2013, 9, 27, 18], [2013, 9, 30, 00]), "le dernier week-end de septembre");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 4], [2013, 2, 18, 12]), "lundi matin");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 12], [2013, 2, 18, 19]), "lundi après-midi", "lundi dans l'après-midi");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 17], [2013, 2, 18, 19]), "lundi fin d'après-midi", "lundi en fin d'après-midi");
+    example!(v, check_moment_span!(c, [2013, 2, 15, 4], [2013, 2, 15, 12]), "le 15 février dans la matinée", "matinée du 15 février", "le 15 février le matin");
+    example!(v, check_moment!(c, [2013, 2, 12, 20]), "8 heures ce soir", "8h du soir");
+    example!(v, check_moment!(c, [2013, 2, 13, 3]), "3 heures du matin", "3h du mat");
+    //Intervals involving cycles
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "2 dernières secondes", "deux dernieres secondes");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "3 prochaines secondes", "trois prochaines secondes");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "2 dernieres minutes", "deux dernières minutes");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 31], [2013, 2, 12, 4, 34]), "3 prochaines minutes", "trois prochaines minutes");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 8]), "3 prochaines heures", "3 heures suivantes");
+    example!(v, check_moment_span!(c, [2013, 2, 10], [2013, 2, 12]), "2 dernier jours", "deux derniers jour");
+    example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "3 prochains jours");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
