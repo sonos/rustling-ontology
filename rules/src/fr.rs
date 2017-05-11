@@ -839,7 +839,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_3("<part-of-day> du <dim time>",
-        time_check!(form!(Form::TimeOfDay(_))),
+        time_check!(form!(Form::PartOfDay)),
         b.reg(r#"du"#)?,
         time_check!(),
         |a, _, b| b.value().intersect(a.value())

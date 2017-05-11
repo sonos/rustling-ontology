@@ -625,7 +625,7 @@ impl IntervalConstraint for Intersection {
             IntervalWalker::new().forward(fore).backward(back)
         }
 
-        if self.lhs.grain() < self.rhs.grain() {
+        if self.lhs.grain() <= self.rhs.grain() {
             combine(origin, *context, self.rhs.clone(), self.lhs.clone())
         } else {
             combine(origin, *context, self.lhs.clone(), self.rhs.clone())

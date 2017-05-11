@@ -816,10 +816,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             } else {
                 helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
             };
-            Ok(day_period.intersect(&helpers::hour_minute(
+            Ok(helpers::hour_minute(
                                 a.group(1).parse()?,
                                 a.group(2).parse()?, 
-                                true)?)?.form(Form::TimeOfDay(None)))
+                                true)?.intersect(&day_period)?.form(Form::TimeOfDay(None)))
         }
     );
     b.rule_2("<time-of-day> am|pm",
@@ -831,7 +831,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             } else {
                 helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
             };
-            Ok(day_period.intersect(a.value())?.form(Form::TimeOfDay(None)))
+            Ok(a.value().intersect(&day_period)?.form(Form::TimeOfDay(None)))
         }
     );
     b.rule_1("noon",
