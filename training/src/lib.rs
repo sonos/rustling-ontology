@@ -32,7 +32,7 @@ macro_rules! lang {
 }
 
 lang!(en, [examples_numbers, examples_time]);
-lang!(fr, [examples_numbers]);
+lang!(fr, [examples_numbers, examples_time]);
 lang!(es, [examples_numbers]);
 
 #[derive(Debug)]

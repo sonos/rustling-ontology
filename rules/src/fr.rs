@@ -104,7 +104,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Hour)
     );
     b.rule_1("jour (cycle)",
-        b.reg(r#"jour(n[ée]e?)?s?"#)?,
+        b.reg(r#"jour(?:n[ée]e?)?s?"#)?,
         |_| CycleValue::new(Grain::Day)
     );
     b.rule_1("semaine (cycle)",
@@ -201,7 +201,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         cycle_check!(),
         b.reg(r#"d['eu]|en"#)?,
         time_check!(),
-        |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value, time.value())
+        |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
     );
     b.rule_5("le <ordinal> <cycle> de <time>",
         b.reg(r#"l[ea]"#)?,
@@ -209,7 +209,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         cycle_check!(),
         b.reg(r#"d['eu]|en"#)?,
         time_check!(),
-        |_, ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value, time.value())
+        |_, ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
     );
     b.rule_4("le <cycle> de <time>",
         b.reg(r#"l[ea]"#)?,
@@ -255,31 +255,31 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, a| Ok(a.value().clone())
     );
     b.rule_1("named-day",
-        b.reg(r#"lun\.?(di)?"#)?,
+        b.reg(r#"lun\.?(?:di)?"#)?,
         |_| helpers::day_of_week(Weekday::Mon)
     );
     b.rule_1("named-day",
-        b.reg(r#"mar\.?(di)?"#)?,
+        b.reg(r#"mar\.?(?:di)?"#)?,
         |_| helpers::day_of_week(Weekday::Tue)
     );
     b.rule_1("named-day",
-        b.reg(r#"mer\.?(credi)?"#)?,
+        b.reg(r#"mer\.?(?:credi)?"#)?,
         |_| helpers::day_of_week(Weekday::Wed)
     );
     b.rule_1("named-day",
-        b.reg(r#"jeu\.?(di)?"#)?,
+        b.reg(r#"jeu\.?(?:di)?"#)?,
         |_| helpers::day_of_week(Weekday::Thu)
     );
     b.rule_1("named-day",
-        b.reg(r#"ven\.?(dredi)?"#)?,
+        b.reg(r#"ven\.?(?:dredi)?"#)?,
         |_| helpers::day_of_week(Weekday::Fri)
     );
     b.rule_1("named-day",
-        b.reg(r#"sam\.?(edi)?"#)?,
+        b.reg(r#"sam\.?(?:edi)?"#)?,
         |_| helpers::day_of_week(Weekday::Sat)
     );
     b.rule_1("named-day",
-        b.reg(r#"dim\.?(anche)?"#)?,
+        b.reg(r#"dim\.?(?:anche)?"#)?,
         |_| helpers::day_of_week(Weekday::Sun)
     );
     b.rule_1("named-month",
@@ -870,7 +870,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     ?.span_to(&helpers::day_of_week(Weekday::Sun)?, false)
     );
     b.rule_1("en semaine",
-        b.reg(r#"(pendant la |en )?semaine"#)?,
+        b.reg(r#"(?:pendant la |en )?semaine"#)?,
         |_| helpers::day_of_week(Weekday::Mon)
                     ?.span_to(&helpers::day_of_week(Weekday::Fri)?, false)
     );
