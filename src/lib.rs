@@ -14,8 +14,8 @@
 //!     let parser = build_parser(rustling_ontology::Lang::EN).unwrap();
 //!     let result = parser.parse("twenty-one", &ctx).unwrap();
 //!
-//!     let int:i64 = result[0].value.attempt_to().unwrap();
-//!     assert_eq!(21, int);
+//!     let int: output::IntegerOutput= result[0].value.attempt_to().unwrap();
+//!     assert_eq!(21, int.0);
 //! }
 //! ```
 extern crate rmp_serde;
@@ -35,6 +35,7 @@ pub use rustling_ontology_rules::output::{ParsingContext, Output};
 pub use rustling_ontology_rules::dimension;
 pub use rustling_ontology_rules::dimension::{Dimension, DimensionKind, NumberValue};
 pub use rustling_ontology_moment::Interval;
+pub use rustling_ontology_rules::output;
 
 mod parser;
 
@@ -148,8 +149,8 @@ mod tests {
         let parser = build_parser(Lang::EN).unwrap();
         let number = "one million five hundred twenty-one thousand eighty-two";
         let result = parser.parse_with_kind_order(number, &ctx,  &[DimensionKind::Number]).unwrap();
-        let int: i64 = result[0].value.attempt_to().unwrap();
-        assert_eq!(1521082, int);
+        let int: output::IntegerOutput = result[0].value.attempt_to().unwrap();
+        assert_eq!(1521082, int.0);
     }
 
     #[test]

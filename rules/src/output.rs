@@ -14,13 +14,13 @@ pub enum Output {
 }
 
 #[derive(Clone,PartialEq,Debug)]
-pub struct IntegerOutput(i64);
+pub struct IntegerOutput(pub i64);
 
 #[derive(Clone,PartialEq,Debug)]
-pub struct FloatOutput(f32);
+pub struct FloatOutput(pub f32);
 
 #[derive(Clone,PartialEq,Debug)]
-pub struct OrdinalOutput(i64);
+pub struct OrdinalOutput(pub i64);
 
 #[derive(Clone,PartialEq,Debug)]
 pub struct TimeOutput {

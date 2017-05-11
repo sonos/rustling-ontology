@@ -22,18 +22,38 @@ pub mod fr;
 
 
 macro_rules! lang {
-    ($lang:ident, [$($example:ident),*]) => {
+    ($lang:ident, $lang_test:ident, [$($example:ident),*]) => {
         pub fn $lang() -> Vec<::rustling::train::Example<Dimension>> {
             let mut v = vec![];
             $( $lang::$example(&mut v); )*
             v
         }
+        #[cfg(test)]
+        mod $lang_test {
+            use super::*;
+            fn assert_examples(rules: &RuleSet<Dimension>, examples: Vec<Example<Dimension>>) {
+                for ex in examples.iter() {
+                    let stash = rules.apply_all(&ex.text.to_lowercase()).unwrap();
+                    let correct_results = stash
+                                .into_iter()
+                                .filter(|candidate| candidate.root_node.range == ::Range(0, ex.text.len()) && ex.predicate.check(&candidate))
+                                .collect::<Vec<_>>();
+                    assert!(!correct_results.is_empty(), ex.text);
+                }
+            }
+            #[test]
+            fn test_examples() {
+                let rules = ::rustling_ontology_rules::$lang().unwrap();
+                let examples = $lang();
+                assert_examples(&rules, examples);
+            }
+        }
     }
 }
 
-lang!(en, [examples_numbers, examples_time]);
-lang!(fr, [examples_numbers, examples_time]);
-lang!(es, [examples_numbers]);
+lang!(en, en_test, [examples_numbers, examples_time]);
+lang!(fr, fr_test, [examples_numbers, examples_time]);
+lang!(es, es_test, [examples_numbers]);
 
 #[derive(Debug)]
 pub struct CheckInteger {
