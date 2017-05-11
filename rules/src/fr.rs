@@ -890,7 +890,237 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"(?:ce )?printemps"#)?,
         |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     );
-
+    b.rule_2("le <time>",
+        b.reg(r#"l[ea]"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |_, a| Ok(a.value().clone())
+    );
+    // TODO: Should be translated in French
+    //b.rule_2("<time-of-day> approximately",
+    //    time_check!(form!(Form::TimeOfDay(_))),
+    //    b.reg(r#"(?:-?ish|approximately)"#)?,
+    //    |time, _| Ok(time.value().not_latent().precision(Precision::Approximate))
+    //);
+    //b.rule_2("<time-of-day> sharp",
+    //    time_check!(form!(Form::TimeOfDay(_))),
+    //    b.reg(r#"(?:sharp|exactly)"#)?,
+    //    |time, _| Ok(time.value().not_latent().precision(Precision::Exact))
+    //);
+    //b.rule_2("about <time-of-day>",
+    //    time_check!(form!(Form::TimeOfDay(_))),
+    //    b.reg(r#"(?:about|around|approximately)""#)?,
+    //    |time, _| Ok(time.value().not_latent().precision(Precision::Approximate))
+    //);
+    //b.rule_2("exactly <time-of-day>",
+    //    b.reg(r#"exactly"#)?,
+    //    time_check!(form!(Form::TimeOfDay(_))),
+    //    |time, _| Ok(time.value().not_latent().precision(Precision::Exact))
+    //);
+    b.rule_4("dd-dd <month>(interval)",
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        b.reg(r#"\-|au|jusqu'au"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        time_check!(form!(Form::Month(_))),
+        |a, _, b, month| {
+            let start = month.value().intersect(&helpers::day_of_month(a.group(1).parse()?)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(b.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_4("<datetime>-dd <month>(interval)",
+        time_check!(),
+        b.reg(r#"\-|au|jusqu'au"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        time_check!(form!(Form::Month(_))),
+        |time, _, text_match, month| {
+            let start = month.value().intersect(time.value())?;
+            let end = month.value().intersect(&helpers::day_of_month(text_match.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_5("<datetime>-<day-of-week> dd <month>(interval)",
+        time_check!(),
+        b.reg(r#"\-|au|jusqu'au"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        time_check!(form!(Form::Month(_))),
+        |time, _, _, text_match, month| {
+            let start = month.value().intersect(time.value())?;
+            let end = month.value().intersect(&helpers::day_of_month(text_match.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_6("<day-of-week> 1er-<day-of-week> dd <month>(interval)",
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"premier|prem\.?|1er|1 er"#)?,
+        b.reg(r#"\-|au|jusqu'au"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, _, _, _, text_match, month| {
+            let start = month.value().intersect(&helpers::day_of_month(1)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(text_match.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_6("du dd-<day-of-week> dd <month>(interval)",
+        b.reg(r#"du"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        b.reg(r#"\-|au|jusqu'au"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, a, _, _, b, month| {
+            let start = month.value().intersect(&helpers::day_of_month(a.group(1).parse()?)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(b.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }       
+    );
+    b.rule_6("du dd-<day-of-week> dd <month>(interval)",
+        b.reg(r#"du"#)?,
+        time_check!(),
+        b.reg(r#"\-|au|jusqu'au"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, time, _, _, text_match, month| {
+            let start = month.value().intersect(time.value())?;
+            let end = month.value().intersect(&helpers::day_of_month(text_match.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }       
+    );
+    b.rule_5("entre dd et dd <month>(interval)",
+        b.reg(r#"entre(?: le)?"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        b.reg(r#"et(?: le)?"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, a, _, b, month| {
+            let start = month.value().intersect(&helpers::day_of_month(a.group(1).parse()?)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(b.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_4("du dd au dd(interval)",
+        b.reg(r#"du"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        b.reg(r#"au|jusqu'au"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        |_, a, _, b| {
+            let start = helpers::day_of_month(a.group(1).parse()?)?;
+            let end = helpers::day_of_month(b.group(1).parse()?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("fin <named-month>(interval)",
+        b.reg(r#"fin(?: du mois d[e']? ?)?"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, month| {
+            let start = month.value().intersect(&helpers::day_of_month(25)?)?;
+            let end = helpers::cycle(Grain::Day)?.last_of(month.value())?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("début <named-month>(interval)",
+        b.reg(r#"d[ée]but(?: du mois d[e'] ?)?"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, month| {
+            let start = month.value().intersect(&helpers::day_of_month(1)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(5)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("première quinzaine de <named-month>(interval)",
+        b.reg(r#"(?:premi[èe]re|1 ?[èe]re) (?:quinzaine|15 ?aine) d[e']"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, month| {
+            let start = month.value().intersect(&helpers::day_of_month(1)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(14)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("deuxième quinzaine de <named-month>(interval)",
+        b.reg(r#"(?:deuxi[èe]me|2 ?[èe]me) (?:quinzaine|15 ?aine) d[e']"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, month| {
+            let start = month.value().intersect(&helpers::day_of_month(15)?)?;
+            let end = helpers::cycle(Grain::Day)?.last_of(month.value())?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("<named-month>",
+        b.reg(r#"mi[- ]"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, month| {
+            let start = month.value().intersect(&helpers::day_of_month(10)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(19)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_3("<datetime> - <datetime> (interval)",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"\-|au|jusqu'(?:au|[aà])"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("de <datetime> - <datetime> (interval)",
+        b.reg(r#"de|depuis|du"#)?,
+        time_check!(),
+        b.reg(r#"\-|au|jusqu'(?:au|[aà])"#)?,
+        time_check!(),
+        |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("entre <datetime> et <datetime> (interval)",
+        b.reg(r#"entre"#)?,
+        time_check!(),
+        b.reg(r#"et"#)?,
+        time_check!(),
+        |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_3("<time-of-day> - <time-of-day> (interval)",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("de <time-of-day> - <time-of-day> (interval)",
+        b.reg(r#"(?:midi )?de"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("entre <time-of-day> et <time-of-day> (interval)",
+        b.reg(r#"entre"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"et"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_2("d'ici <duration>",
+        b.reg(r#"d'ici|dans l(?:'|es?)"#)?,
+        duration_check!(),
+        |_, duration| { 
+            let start = helpers::cycle_nth(Grain::Second, 0)?;
+            let end = duration.value().in_present()?;
+            start.span_to(&end, false)
+        }
+    );
+    b.rule_2("avant <time-of-day>",
+        b.reg(r#"(?:n[ ']importe quand )?(?:avant|jusqu'(?:a|à))"#)?,
+        time_check!(),
+        |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
+    );
+    b.rule_2("après <time-of-day>",
+        b.reg(r#"(?:apr(?:e|è)s|(?:a|à) partir de)"#)?,
+        time_check!(),
+        |_, time| Ok(time.value().clone().direction(Some(Direction::After)))
+    );
+    b.rule_2("après le <day-of-month>",
+        b.reg(r#"(?:apr(?:e|è)s le|(?:a|à) partir du)"#)?,
+        integer_check!(1, 31),
+        |_, integer| Ok(helpers::day_of_month(integer.value().value as u32)?.direction(Some(Direction::After)))
+    );
     Ok(())
 }
 
