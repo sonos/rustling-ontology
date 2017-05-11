@@ -5,15 +5,15 @@ use dimension::*;
 pub enum Output {
     Integer(i64),
     Float(f32),
-    Time(TimeOutput),
-    String(String),
+    Ordinal(i64),
+    Time { moment: Moment, grain: Grain, direction: Option<Direction> },
+    TimeInterval { start: Moment, end: Moment },
+    AmountOfMoney { value: f32, precision: Precision, unit: Option<&'static str>},
+    Temperature { value: f32, unit: Option<&'static str> },
+    Duration { period: Period, precision: Precision },
 }
 
-#[derive(Clone,PartialEq,Debug)]
-pub struct TimeOutput(pub Interval, pub bool);
-
 variant_converters!(Output, Integer, i64);
-variant_converters!(Output, Time, TimeOutput);
 
 #[derive(Default, Debug, Copy, Clone)]
 pub struct ParsingContext {
@@ -46,8 +46,20 @@ impl ParsingContext {
                         }
                     })
                     .or_else(|| walker.backward.next())
-                    .map(|v| Output::Time(TimeOutput(v, tv.latent)))
-
+                    .map(|interval| {
+                        if let Some(end) = interval.end {
+                            Output::TimeInterval {
+                                start: interval.start,
+                                end: end,
+                            }
+                        } else {
+                            Output::Time {
+                                moment: interval.start,
+                                grain: interval.grain,
+                                direction: tv.direction
+                            } 
+                        }
+                    })
             }
             &Dimension::Number(ref number) => {
                 match number {
@@ -55,6 +67,20 @@ impl ParsingContext {
                     &NumberValue::Float(ref v) => Some(Output::Float(v.value)),
                 }
             }
+            &Dimension::Ordinal(ref ordinal) => Some(Output::Ordinal(ordinal.value)),
+            &Dimension::AmountOfMoney(ref aom) => Some(Output::AmountOfMoney {
+                value: aom.value,
+                precision: aom.precision,
+                unit: aom.unit,
+            }),
+            &Dimension::Temperature(ref temp) => Some(Output::Temperature {
+                value: temp.value,
+                unit: temp.unit,
+            }),
+            &Dimension::Duration(ref duration) => Some(Output::Duration {
+                period: duration.period.clone(),
+                precision: duration.precision,
+            }),
             _ => None,
         }
     }
