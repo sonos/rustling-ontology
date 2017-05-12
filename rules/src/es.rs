@@ -361,6 +361,323 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         integer_check!(1, 31),
         |_, integer| Ok(helpers::day_of_month(integer.value().value as u32)?.latent())
     );
+    b.rule_3("<day-of-month> de <named-month>",
+        integer_check!(1, 31),
+        b.reg(r#"de"#)?,
+        time_check!(form!(Form::Month(_))),
+        |integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    b.rule_4("el <day-of-month> de <named-month>",
+        b.reg(r#"el"#)?,
+        integer_check!(1, 31),
+        b.reg(r#"de"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    b.rule_4("ultimo <day-of-week> de <time>",
+        b.reg(r#"[ú|u]ltimo"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"de|en"#)?,
+        time_check!(),
+        |_, dow, _, time| dow.value().last_of(time.value())
+    );
+    b.rule_4("nth <time> de <time>",
+        ordinal_check!(),
+        time_check!(),
+        b.reg(r#"de|en"#)?,
+        time_check!(),
+        |ordinal, a, _, b| b.value().intersect(a.value())?.the_nth(ordinal.value().value - 1)
+    );
+    b.rule_5("nth <time> de <time>",
+        b.reg(r#"el"#)?, // TODO to be checked 
+        ordinal_check!(),
+        time_check!(),
+        b.reg(r#"de|en"#)?,
+        time_check!(),
+        |_, ordinal, a, _, b| b.value().intersect(a.value())?.the_nth(ordinal.value().value - 1)
+    );
+    b.rule_2("<named-month> <day-of-month>",
+        time_check!(form!(Form::Month(_))),
+        integer_check!(1, 31),
+        |month, integer| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    b.rule_2("<day-of-week> <day-of-month>",
+        time_check!(form!(Form::DayOfWeek{..})),
+        integer_check!(1, 31),
+        |dow, integer| dow.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    b.rule_1("time-of-day (latent)",
+        integer_check!(0, 23),
+        |integer| Ok(helpers::hour(integer.value().value as u32, true)?.latent())
+    );
+    b.rule_1("noon",
+        b.reg(r#"mediod(?:í|i)a"#)?,
+        |_| helpers::hour(12, false)
+    );
+    b.rule_1("midnight",
+        b.reg(r#"medianoche"#)?,
+        |_| helpers::hour(0, false)
+    );
+    b.rule_2("<time-of-day> horas",
+        time_check!(form!(Form::TimeOfDay(Some(_)))),
+        b.reg(r#"h\.?(?:ora)?s?"#)?,
+        |time, _| Ok(time.value().clone().not_latent())
+    );
+    b.rule_2("a las <time-of-day>",
+        b.reg(r#"(?:al?)(?: las?)?|las?"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, tod| Ok(tod.value().clone().not_latent())
+    );
+    b.rule_3("a las <hour-min>(time-of-day)",
+        b.reg(r#"(?:(?:al?)(?: las?)?|las?)"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"horas?"#)?,
+        |_, tod, _| Ok(tod.value().clone())
+    );
+    b.rule_1("hh(:|.|h)mm (time-of-day)",
+        b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
+        |text_match| helpers::hour_minute(
+            text_match.group(1).parse()?,
+            text_match.group(2).parse()?,
+            true
+        )
+    );
+    b.rule_1("hh:mm:ss",
+        b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)[:.]([0-5]\d)"#)?,
+        |text_match| helpers::hour_minute_second(
+            text_match.group(1).parse()?,
+            text_match.group(2).parse()?,
+            text_match.group(3).parse()?,
+            true
+        )
+    );
+    // "<time-of-day> am|pm" not translated to spanish
+    b.rule_1("quarter (relative minutes)",
+        b.reg(r#"cuarto"#)?,
+        |_| Ok(RelativeMinuteValue(15))
+    );
+    b.rule_1("half (relative minutes)",
+        b.reg(r#"y media"#)?,
+        |_| Ok(RelativeMinuteValue(30))
+    );
+    b.rule_1("3 quarter (relative minutes)",
+        b.reg(r#"(3|tres) cuartos?"#)?,
+        |_| Ok(RelativeMinuteValue(45))
+    );
+    b.rule_1("number (as relative minutes)",
+        integer_check!(1, 59),
+        |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
+    );
+    b.rule_2("<integer> minutes (as relative minutes)",
+        integer_check!(1, 59),
+        b.reg(r#"min\.?(?:uto)?s?"#)?,
+        |integer, _| Ok(RelativeMinuteValue(integer.value().value as i32))
+    );
+    b.rule_2("<hour-of-day> <integer> (as relative minutes)",
+        time_check!(form!(Form::TimeOfDay(Some(_)))),
+        relative_minute_check!(),
+        |time, relative_minute| helpers::hour_relative_minute(
+                                        time.value().form_time_of_day()?.full_hour, 
+                                        relative_minute.value().0, 
+                                        time.value().form_time_of_day()?.is_12_clock)
+    );
+    b.rule_3("<hour-of-day> minus <integer> (as relative minutes)",
+        time_check!(form!(Form::TimeOfDay(Some(_)))),
+        b.reg(r#"menos\s?"#)?,
+        relative_minute_check!(),
+        |time, _, relative_minute| helpers::hour_relative_minute(
+                                        time.value().form_time_of_day()?.full_hour, 
+                                        -1 * relative_minute.value().0, 
+                                        time.value().form_time_of_day()?.is_12_clock)
+
+    );
+    b.rule_3("<hour-of-day> and <relative minutes>",
+        time_check!(form!(Form::TimeOfDay(Some(_)))),
+        b.reg(r#"y"#)?,
+        relative_minute_check!(),
+        |time, _, relative_minute| helpers::hour_relative_minute(
+                                        time.value().form_time_of_day()?.full_hour, 
+                                        relative_minute.value().0, 
+                                        time.value().form_time_of_day()?.is_12_clock)
+    );
+    b.rule_1("dd[/-.]mm[/-.]yyyy",
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])[-/.](0?[1-9]|1[0-2])[-/.](\d{2,4})"#)?,
+        |text_match| helpers::ymd(
+            text_match.group(3).parse()?,
+            text_match.group(2).parse()?,
+            text_match.group(1).parse()?
+        )
+    );
+    b.rule_1("yyyy-mm-dd",
+        b.reg(r#"(\d{2,4})-(0?[1-9]|1[0-2])-(3[01]|[12]\d|0?[1-9])"#)?,
+        |text_match| helpers::ymd(
+            text_match.group(1).parse()?,
+            text_match.group(2).parse()?,
+            text_match.group(3).parse()?
+        )
+    );
+    b.rule_1("dd[/-]mm",
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])[/-](0?[1-9]|1[0-2])"#)?,
+        |text_match| helpers::month_day(
+            text_match.group(2).parse()?,
+            text_match.group(1).parse()?
+        )
+    );
+    b.rule_1("morning",
+        b.reg(r#"ma(?:ñ|n)ana"#)?,
+        |_| Ok(helpers::hour(4, false)?.span_to(&helpers::hour(12, false)?, false)?
+                .form(Form::PartOfDay)
+                .latent())
+    );
+    b.rule_1("afternoon",
+        b.reg(r#"tarde"#)?,
+        |_| Ok(helpers::hour(12, false)?.span_to(&helpers::hour(19, false)?, false)?
+                .form(Form::PartOfDay)
+                .latent())
+    );
+    b.rule_1("del mediodía",
+        b.reg(r#"del mediod[ií]a"#)?,
+        |_| Ok(helpers::hour(12, false)?.span_to(&helpers::hour(17, false)?, false)?
+                .form(Form::PartOfDay)
+                .latent())
+    );
+    b.rule_1("evening",
+        b.reg(r#"noche"#)?,
+        |_| Ok(helpers::hour(18, false)?.span_to(&helpers::hour(0, false)?, false)?
+                .form(Form::PartOfDay)
+                .latent())
+    );
+    b.rule_2("in the <part-of-day>",
+        b.reg(r#"(?:a|en|de|por) la"#)?,
+        time_check!(form!(Form::PartOfDay)),
+        |_, pod| Ok(pod.value().clone().not_latent())
+    );
+    b.rule_2("this <part-of-day>",
+        b.reg(r#"est(?:e|a)"#)?,
+        time_check!(form!(Form::PartOfDay)),
+        |_, pod| Ok(helpers::cycle_nth(Grain::Day, 0)?
+            .intersect(pod.value())?
+            .form(Form::PartOfDay))
+    );
+    b.rule_2("<time-of-day> <part-of-day>",
+        time_check!(),
+        time_check!(form!(Form::PartOfDay)),
+        |time, pod| time.value().intersect(pod.value())
+    );
+    b.rule_2("<dim time> de la tarde",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"(?:a|en|de) la tarde"#)?,
+        |time, _| {
+            let period = helpers::hour(12, false)?
+                        .span_to(&helpers::hour(21, false)?, false)?
+                        .form(Form::PartOfDay)
+                        .latent();
+            time.value().intersect(&period)
+        }
+    );
+    b.rule_2("<dim time> de la manana",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"(?:a|en|de) la ma(?:ñ|n)ana"#)?,
+        |time, _| {
+            let period = helpers::hour(0, false)?
+                        .span_to(&helpers::hour(12, false)?, false)?
+                        .form(Form::PartOfDay)
+                        .latent();
+            time.value().intersect(&period)
+        }
+    );
+    b.rule_3("<integer> in the <part-of-day>",
+        time_check!(form!(Form::PartOfDay)),
+        b.reg(r#"(?:a|en|de|por) la"#)?,
+        time_check!(),
+        |pod, _, time| time.value().intersect(pod.value())
+    );
+    b.rule_1("week-end",
+        b.reg(r#"week[ -]?end|fin de semana"#)?,
+        |_| {
+            let friday = helpers::day_of_week(Weekday::Fri)?
+                    .intersect(&helpers::hour(18, false)?)?;
+            let monday = helpers::day_of_week(Weekday::Mon)?
+                    .intersect(&helpers::hour(0, false)?)?;
+            friday.span_to(&monday, false)
+        }
+    );
+    b.rule_1("season",
+        b.reg(r#"verano"#)?,
+        |_| helpers::month_day(6, 21)?
+                .span_to(&helpers::month_day(9, 23)?, false)
+    );
+    b.rule_1("season",
+        b.reg(r#"oto[ñn]o"#)?,
+        |_| helpers::month_day(9, 23)?
+                .span_to(&helpers::month_day(12, 21)?, false)
+    );
+    b.rule_1("season",
+        b.reg(r#"invierno"#)?,
+        |_| helpers::month_day(12, 21)?
+                .span_to(&helpers::month_day(3, 20)?, false)
+    );
+    b.rule_1("season",
+        b.reg(r#"primavera"#)?,
+        |_| helpers::month_day(3, 20)?
+                .span_to(&helpers::month_day(6, 21)?, false)
+    );
+    b.rule_2("el <time>",
+        b.reg(r#"d?el"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |_, time| Ok(time.value().clone())
+    );
+    b.rule_5("dd-dd <month>(interval)",
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        b.reg(r#"\-|al?"#)?,
+        b.reg(r#"(3[01]|[12]\d|0?[1-9])"#)?,
+        b.reg(r#"de"#)?,
+        time_check!(form!(Form::Month(_))),
+        |a, _, b, _, month| {
+            let start = month.value().intersect(&helpers::day_of_month(a.group(1).parse()?)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(b.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_6("dd-dd <month>(interval)",
+        b.reg(r#"entre(?: el)?"#)?,
+        b.reg(r#"(0?[1-9]|[12]\d|3[01])"#)?,
+        b.reg(r#"y(?: el)?"#)?,
+        b.reg(r#"(0?[1-9]|[12]\d|3[01])"#)?,
+        b.reg(r#"de"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, a, _, b, _, month| {
+            let start = month.value().intersect(&helpers::day_of_month(a.group(1).parse()?)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(b.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_3("<datetime> - <datetime> (interval)",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"\-|al?"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().span_to(b.value(), false)
+    );
+
+    b.rule_4("<datetime> - <datetime> (interval)",
+        b.reg(r#"del?"#)?,
+        time_check!(),
+        b.reg(r#"\-|al?"#)?,
+        time_check!(),
+        |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    b.rule_4("entre <datetime> et <datetime> (interval)",
+        b.reg(r#"entre"#)?,
+        time_check!(),
+        b.reg(r#"y"#)?,
+        time_check!(),
+        |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    b.rule_2("dentro de <duration>",
+        b.reg(r#"dentro de"#)?,
+        duration_check!(),
+        |_, duration| helpers::cycle_nth(Grain::Second, 0)?.span_to(&duration.value().in_present()?, false)
+    );
     Ok(())
 }
 
