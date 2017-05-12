@@ -67,5 +67,5 @@ pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<dimen
 }
 
 lang!(en, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature]);
-lang!(es, [rules_numbers, rules_temperature, rules_cycle, rules_duration]);
+lang!(es, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time]);
 lang!(fr, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration]);
