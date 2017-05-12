@@ -53,7 +53,7 @@ macro_rules! lang {
 
 lang!(en, en_test, [examples_numbers, examples_time]);
 lang!(fr, fr_test, [examples_numbers, examples_time]);
-lang!(es, es_test, [examples_numbers]);
+lang!(es, es_test, [examples_numbers, examples_time]);
 
 #[derive(Debug)]
 pub struct CheckInteger {
