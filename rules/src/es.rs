@@ -1,5 +1,136 @@
 use rustling::*;
 use dimension::*;
+use helpers;
+use moment::{Weekday, Grain, PeriodComp};
+
+pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("segundo (cycle)",
+        b.reg(r#""segundos?""#)?,
+        |_| CycleValue::new(Grain::Second)
+    );
+    b.rule_1("minutos (cycle)",
+        b.reg(r#"minutos?"#)?,
+        |_| CycleValue::new(Grain::Minute)
+    );
+    b.rule_1("hora (cycle)",
+        b.reg(r#"horas?"#)?,
+        |_| CycleValue::new(Grain::Hour)
+    );
+    b.rule_1("dia (cycle)",
+        b.reg(r#"d(?:í|i)as?"#)?,
+        |_| CycleValue::new(Grain::Day)
+    );
+    b.rule_1("semana (cycle)",
+        b.reg(r#"semanas?"#)?,
+        |_| CycleValue::new(Grain::Week)
+    );
+    b.rule_1("mes (cycle)",
+        b.reg(r#"mes(?:es)?"#)?,
+        |_| CycleValue::new(Grain::Month)
+    );
+    b.rule_1("trimestre (cycle)",
+        b.reg(r#"trimestres?"#)?,
+        |_| CycleValue::new(Grain::Quarter)
+    );
+    b.rule_1("año (cycle)",
+        b.reg(r#"a(?:n|ñ)os?"#)?,
+        |_| CycleValue::new(Grain::Year)
+    );
+    b.rule_2("este|en un <cycle>",
+        b.reg(r#"(?:est(?:e|a|os)|en (?:el|los|la|las) ?)"#)?,
+        cycle_check!(),
+        |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
+    );
+    b.rule_3("la <cycle> pasado",
+        b.reg(r#"(?:el|los|la|las) ?"#)?,
+        cycle_check!(),
+        b.reg(r#"pasad(?:a|o)s?|[u|ú]ltim[a|o]s?"#)?,
+        |_, cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    b.rule_3("la pasado <cycle>",
+        b.reg(r#"(?:el|los|la|las) ?"#)?,
+        b.reg(r#"pasad(?:a|o)s?|[u|ú]ltim[a|o]s?"#)?,
+        cycle_check!(),
+        |_, _, cycle| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    b.rule_3("el <cycle> (proximo|que viene)",
+        b.reg(r#"(?:el|los|la|las) ?"#)?,
+        cycle_check!(),
+        b.reg(r#"(?:pr(?:ó|o)xim(?:o|a)s?|que vienen?|siguientes?)"#)?,
+        |_, cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_3("el proximo <cycle>",
+        b.reg(r#"(?:el|los|la|las) ?"#)?,
+        b.reg(r#"pr(?:ó|o)xim(?:o|a)s?|siguientes?"#)?,
+        cycle_check!(),
+        |_, _, cycle| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_4("el <cycle> proximo|que viene <time>",
+        b.reg(r#"(?:el|los|la|las)"#)?,
+        cycle_check!(),
+        b.reg(r#"(?:pr(?:ó|o)xim(?:o|a)s?|que vienen?|siguientes?)"#)?,
+        time_check!(),
+        |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, 1, time.value())
+    );
+    b.rule_4("el <cycle> antes <time>",
+        b.reg(r#"l[ea']? ?"#)?,
+        cycle_check!(),
+        b.reg(r#"antes de"#)?,
+        time_check!(),
+        |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, -1, time.value())
+    );
+    b.rule_3("pasados n <cycle>",
+        b.reg(r#"pasad(?:a|o)s?"#)?,
+        integer_check!(2, 9999),
+        cycle_check!(),
+        |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    b.rule_3("n pasados <cycle>",
+        integer_check!(2, 9999),
+        b.reg(r#"pasad(?:a|o)s?"#)?,
+        cycle_check!(),
+        |integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    b.rule_3("proximas n <cycle>",
+        b.reg(r#"pr(?:ó|o)xim(?:o|a)s?"#)?,
+        integer_check!(2, 9999),
+        cycle_check!(),
+        |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+    b.rule_3("n proximas <cycle>",
+        integer_check!(2, 9999),
+        b.reg(r#"pr(?:ó|o)xim(?:o|a)s?"#)?,
+        cycle_check!(),
+        |integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+    b.rule_3("n <cycle> (proximo|que viene)",
+        integer_check!(2, 9999),
+        cycle_check!(),
+        b.reg(r#"(?:pr(?:ó|o)xim(?:o|a)s?|que vienen?|siguientes?)"#)?,
+        |integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+    b.rule_2("<ordinal> quarter",
+        ordinal_check!(),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        |ordinal, _| helpers::cycle_nth_after(
+                Grain::Quarter, 
+                ordinal.value().value - 1, 
+                &helpers::cycle_nth(Grain::Year, 0)?
+        )
+    );
+    b.rule_4("<ordinal> quarter <year>",
+        ordinal_check!(),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        b.reg(r#"del? ?"#)?,
+        time_check!(),
+        |ordinal, _, _, time| helpers::cycle_nth_after(
+                Grain::Quarter, 
+                ordinal.value().value - 1, 
+                time.value()
+        )
+    );
+    Ok(())
+}
 
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("number as temp", number_check!(), |a| {
@@ -11,7 +142,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
     });
     b.rule_2("<latent temp> temp",
              temperature_check!(),
-             b.reg(r#"(grados?)|°"#)?,
+             b.reg(r#"(?:grados?)|°"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                         value: a.value().value,
