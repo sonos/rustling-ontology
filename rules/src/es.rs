@@ -179,6 +179,191 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     Ok(())
 }
 
+pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect",
+        time_check!(|time: &TimeValue| !time.latent),
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, b| a.value().intersect(b.value())
+    );
+    b.rule_3("intersect by `de`",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"de"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_3("two time tokens separated by \",\"",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#","#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_1("named-day",
+         b.reg(r#"lunes|lun?\.?"#)?,
+         |_| helpers::day_of_week(Weekday::Mon)
+    );
+    b.rule_1("named-day",
+         b.reg(r#"martes|mar?\.?"#)?,
+         |_| helpers::day_of_week(Weekday::Tue)
+    );
+    b.rule_1("named-day",
+         b.reg(r#"mi(?:e|é)\.?(?:rcoles)?|mx|mier?\."#)?,
+         |_| helpers::day_of_week(Weekday::Wed)
+    );
+    b.rule_1("named-day",
+         b.reg(r#"jueves|jue|jue\."#)?,
+         |_| helpers::day_of_week(Weekday::Thu)
+    );
+    b.rule_1("named-day",
+         b.reg(r#"viernes|vie|vie\."#)?,
+         |_| helpers::day_of_week(Weekday::Fri)
+    );
+    b.rule_1("named-day",
+         b.reg(r#"s[áa]bado|s(?:á|a)b\.?"#)?,
+         |_| helpers::day_of_week(Weekday::Sat)
+    );
+    b.rule_1("named-day",
+         b.reg(r#"domingo|dom\.?"#)?,
+         |_| helpers::day_of_week(Weekday::Sun)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"enero|ene\.?"#)?,
+         |_| helpers::month(1)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"febrero|feb\.?"#)?,
+         |_| helpers::month(2)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"marzo|mar\.?"#)?,
+         |_| helpers::month(3)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"abril|abr\.?"#)?,
+         |_| helpers::month(4)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"mayo?\.?"#)?,
+         |_| helpers::month(5)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"junio|jun\.?"#)?,
+         |_| helpers::month(6)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"julio|jul\.?"#)?,
+         |_| helpers::month(7)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"agosto|ago\.?"#)?,
+         |_| helpers::month(8)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"septiembre|sept?\.?"#)?,
+         |_| helpers::month(9)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"octubre|oct\.?"#)?,
+         |_| helpers::month(10)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"noviembre|nov\.?"#)?,
+         |_| helpers::month(11)
+    );
+    b.rule_1("named-month",
+         b.reg(r#"diciembre|dic\.?"#)?,
+         |_| helpers::month(12)
+    );
+    b.rule_1("Navidad",
+        b.reg(r#"(?:la )?navidad"#)?,
+        |_| helpers::month_day(12, 25)
+    );
+    b.rule_1("Nochevieja",
+        b.reg(r#"nochevieja"#)?,
+        |_| helpers::month_day(12, 31)
+    );
+    b.rule_1("ano nuevo",
+        b.reg(r#"a[nñ]o nuevo"#)?,
+        |_| helpers::month_day(1, 1)
+    );
+    b.rule_1("right now",
+        b.reg(r#"ahor(?:it)?a|ya|en\s?seguida|cuanto antes"#)?,
+        |_| helpers::cycle_nth(Grain::Second, 0)
+    );
+    b.rule_1("now",
+        b.reg(r#"(?:hoy)|(?:en este momento)"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 0)
+    );
+    b.rule_1("tomorrow",
+        b.reg(r#"ma(?:n|ñ)ana"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 1)
+    );
+    b.rule_1("yesterday",
+        b.reg(r#"ayer"#)?,
+        |_| helpers::cycle_nth(Grain::Day, -1)
+    );
+    b.rule_1("the day after tomorrow",
+        b.reg(r#"pasado\s?ma(?:n|ñ)ana"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 2)
+    );
+    b.rule_1("the day before yesterday",
+        b.reg(r#"anteayer|antes de (?:ayer|anoche)|antier"#)?,
+        |_| helpers::cycle_nth(Grain::Day, -2)
+    );
+    b.rule_2("this <day-of-week>", //assumed to be in the future
+        b.reg(r#"este"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        |_, time| time.value().the_nth_not_immediate(0)
+    );
+    b.rule_2("this <time>",
+        b.reg(r#"este"#)?,
+        time_check!(),
+        |_, time| time.value().the_nth(0)
+    );
+    b.rule_2("<named-month|named-day> next",
+        time_check!(),
+        b.reg(r#"que vienen?"#)?,
+        |time, _| time.value().the_nth(1)
+    );
+    b.rule_2("<named-month|named-day> past",
+        time_check!(),
+        b.reg(r#"pasad(?:o|a)"#)?,
+        |time, _| time.value().the_nth(-1)
+    );
+    b.rule_1("year",
+        integer_check!(1000, 2100),
+        |integer| {
+            helpers::year(integer.value().value as i32)
+        }
+    );  
+    b.rule_1("year (latent)",
+        integer_check!(-1000, 999),
+        |integer| {
+            Ok(helpers::year(integer.value().value as i32)?.latent())
+        }
+    );
+    b.rule_1("year (latent)",
+        integer_check!(2101, 2200),
+        |integer| {
+            Ok(helpers::year(integer.value().value as i32)?.latent())
+        }
+    );
+    b.rule_2("del <year>", //latin america mostly
+        b.reg(r#"del(?: a[ñn]o)?"#)?,
+        integer_check!(1000, 2100),
+        |_, integer| helpers::year(integer.value().value as i32)
+    );
+    b.rule_1("day of month (1st)",
+        b.reg(r#"primero|uno|prem\.?|1o"#)?,
+        |_| helpers::day_of_month(1)
+    );
+    b.rule_2("el <day-of-month> (non ordinal)",
+        b.reg(r#"el"#)?,
+        integer_check!(1, 31),
+        |_, integer| Ok(helpers::day_of_month(integer.value().value as u32)?.latent())
+    );
+    Ok(())
+}
+
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("number as temp", number_check!(), |a| {
         Ok(TemperatureValue {
