@@ -498,11 +498,3 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             });
     Ok(())
 }
-
-pub fn rules_finance(_b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    Ok(())
-}
-
-pub fn rules_time(_b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    Ok(())
-}
