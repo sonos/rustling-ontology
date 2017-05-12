@@ -3,6 +3,53 @@ use dimension::*;
 use helpers;
 use moment::{Weekday, Grain, PeriodComp};
 
+pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("seconde (unit-of-duration)",
+        b.reg(r#"seg(?:undo)?s?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Second))
+    );
+    b.rule_1("minute (unit-of-duration)",
+        b.reg(r#"min(?:uto)?s?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Minute))
+    );
+    b.rule_1("hour (unit-of-duration)",
+        b.reg(r#"h(?:ora)?s?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Hour))
+    );
+    b.rule_1("day (unit-of-duration)",
+        b.reg(r#"d(?:í|i)as?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Day))
+    );
+    b.rule_1("week (unit-of-duration)",
+        b.reg(r#"semanas?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Week))
+    );
+    b.rule_1("month (unit-of-duration)",
+        b.reg(r#"mes(?:es)?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Month))
+    );
+    b.rule_1("year (unit-of-duration)",
+        b.reg(r#"a(?:n|ñ)os?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Year))
+    );
+    b.rule_2("<integer> <unit-of-duration>",
+        integer_check!(0),
+        unit_of_duration_check!(),
+        |integer, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
+    );
+    b.rule_2("en <duration>",
+        b.reg(r#"en"#)?,
+        duration_check!(),
+        |_, duration| duration.value().in_present()
+    );
+    b.rule_2("hace <duration>",
+        b.reg(r#"hace"#)?,
+        duration_check!(),
+        |_, duration| duration.value().ago()
+    );
+    Ok(())
+}
+
 pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("segundo (cycle)",
         b.reg(r#""segundos?""#)?,
