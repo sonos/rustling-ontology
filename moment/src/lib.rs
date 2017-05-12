@@ -217,15 +217,19 @@ impl Interval {
 
     pub fn intersect(self, other: Interval) -> Option<Interval> {
         if self.start <= other.start {
-            if other.start >= self.end_moment() {
+            let self_end = self.end_moment();
+            let other_end = other.end_moment();
+            if other.start >= self_end {
                 None
-            } else if other.end_moment() <= self.end_moment() {
+            } else if other_end <= self_end {
                 Some(other)
+            } else if self.start == other.start && self_end < other_end {
+                Some(self)
             } else {
                 Some(Interval {
                          start: other.start,
                          grain: ::std::cmp::max(self.grain, other.grain),
-                         end: Some(self.end_moment()),
+                         end: Some(self_end),
                      })
             }
         } else {

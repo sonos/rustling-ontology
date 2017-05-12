@@ -54,6 +54,15 @@ impl Form {
     }
 }
 
+
+fn precision_resolution(lhs: Precision, rhs: Precision) -> Precision {
+    if lhs == Precision::Approximate || rhs == Precision::Approximate {
+        Precision::Approximate
+    } else {
+        Precision::Exact
+    }
+}
+
 impl TimeValue {
     pub fn constraint(constraint: RcConstraint) -> TimeValue {
         TimeValue {
@@ -93,33 +102,40 @@ impl TimeValue {
 
     pub fn intersect(&self, other: &TimeValue) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(self.constraint.intersect(&other.constraint))
-               .direction(self.direction.or(other.direction)))
+               .direction(self.direction.or(other.direction))
+               .precision(precision_resolution(self.precision, other.precision)))
     }
 
     pub fn last_of(&self, other: &TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.last_of(&other.constraint)))
+        Ok(TimeValue::constraint(self.constraint.last_of(&other.constraint))
+                .precision(precision_resolution(self.precision, other.precision)))
     }
 
     pub fn the_nth(&self, n: i64) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.take_the_nth(n)))
+        Ok(TimeValue::constraint(self.constraint.take_the_nth(n))
+                .precision(self.precision))
     }
 
     pub fn the_nth_not_immediate(&self, n: i64) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.take_the_nth_not_immediate(n)))
+        Ok(TimeValue::constraint(self.constraint.take_the_nth_not_immediate(n))
+                .precision(self.precision))
     }
 
     pub fn the_nth_after(&self, n: i64, after_value: &TimeValue) -> RuleResult<TimeValue> {
         Ok(TimeValue::constraint(self.constraint
                                      .the_nth(n)
-                                     .after_not_immediate(&after_value.constraint)))
+                                     .after_not_immediate(&after_value.constraint))
+                                     .precision(precision_resolution(self.precision, after_value.precision)))
     }
 
     pub fn span_to(&self, to: &TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
         if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
            is_inclusive {
-            Ok(TimeValue::constraint(self.constraint.span_inclusive_to(&to.constraint)))
+            Ok(TimeValue::constraint(self.constraint.span_inclusive_to(&to.constraint))
+                    .precision(precision_resolution(self.precision, to.precision)))
         } else {
-            Ok(TimeValue::constraint(self.constraint.span_to(&to.constraint)))
+            Ok(TimeValue::constraint(self.constraint.span_to(&to.constraint))
+                    .precision(precision_resolution(self.precision, to.precision)))
         }
     }
 
