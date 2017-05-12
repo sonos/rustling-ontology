@@ -52,7 +52,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
 pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("segundo (cycle)",
-        b.reg(r#""segundos?""#)?,
+        b.reg(r#"segundos?"#)?,
         |_| CycleValue::new(Grain::Second)
     );
     b.rule_1("minutos (cycle)",
@@ -451,7 +451,18 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             true
         )
     );
-    // "<time-of-day> am|pm" not translated to spanish
+    b.rule_2("<time-of-day> am|pm",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"([ap])\.?m?\.?"#)?,
+        |a, text_match| {
+            let day_period = if text_match.group(1) == "a" {
+                helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?
+            } else {
+                helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
+            };
+            Ok(a.value().intersect(&day_period)?.form(Form::TimeOfDay(None)))
+        }
+    );
     b.rule_1("quarter (relative minutes)",
         b.reg(r#"cuarto"#)?,
         |_| Ok(RelativeMinuteValue(15))
@@ -941,7 +952,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     });
     b.rule_1(
             "ordinals (primero..10)",
-            b.reg(r#"(primer|tercer(os?|as?)?|(primer|segund|cuart|quint|sext|s[eé]ptim|octav|noven|d[eé]cim)(os?|as?))"#)?,
+            b.reg(r#"(primer|tercer(?:os?|as?)?|(?:primer|segund|cuart|quint|sext|s[eé]ptim|octav|noven|d[eé]cim)(?:os?|as?))"#)?,
             |text_match| {
                 let value = match text_match.group(1).as_ref() {
                     "primer" => 1,
