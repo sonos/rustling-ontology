@@ -157,3 +157,26 @@ pub fn check_moment_span(context: ParsingContext, start: Moment, end: Moment, gr
                       -> CheckMomentSpan {
     CheckMomentSpan { interval: Interval::new(start, Some(end), grain), context: context }
 }
+
+#[derive(Debug)]
+pub struct CheckFinance {
+    pub value: f32,
+    pub precision: Precision,
+    pub unit: Option<&'static str>,
+}
+
+impl Check<Dimension> for CheckFinance {
+    fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
+        AmountOfMoneyValue::attempt_from(pn.value.clone())
+            .map(|v| v.value == self.value)
+            .unwrap_or(false)
+    }
+}
+
+pub fn check_finance(value: f32, precision: Precision, unit: Option<&'static str>) -> CheckFinance {
+    CheckFinance {
+        value: value, 
+        precision: precision,
+        unit: unit,
+    }
+}
