@@ -14,12 +14,17 @@ macro_rules! example {
     };
 }
 
+macro_rules! check_finance {
+    ($value:expr) => (check_finance($value, None, Precision::Exact));
+    ($value:expr, $unit:expr) => (check_finance($value, $unit, Precision::Exact));
+    ($value:expr, $unit:expr, $precision:expr) => (check_finance($value, $unit, $precision));
+}
+
 #[macro_use]
 mod macros;
 pub mod en;
 pub mod es;
 pub mod fr;
-
 
 macro_rules! lang {
     ($lang:ident, $lang_test:ident, [$($example:ident),*]) => {
@@ -161,19 +166,19 @@ pub fn check_moment_span(context: ParsingContext, start: Moment, end: Moment, gr
 #[derive(Debug)]
 pub struct CheckFinance {
     pub value: f32,
-    pub precision: Precision,
     pub unit: Option<&'static str>,
+    pub precision: Precision,
 }
 
 impl Check<Dimension> for CheckFinance {
     fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
         AmountOfMoneyValue::attempt_from(pn.value.clone())
-            .map(|v| v.value == self.value)
+            .map(|v| v.value == self.value && v.precision == self.precision && v.unit == self.unit)
             .unwrap_or(false)
     }
 }
 
-pub fn check_finance(value: f32, precision: Precision, unit: Option<&'static str>) -> CheckFinance {
+pub fn check_finance(value: f32, unit: Option<&'static str>, precision: Precision) -> CheckFinance {
     CheckFinance {
         value: value, 
         precision: precision,
