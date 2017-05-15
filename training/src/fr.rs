@@ -1,4 +1,5 @@
 use super::*;
+use rustling_ontology_values::check::*;
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second), 80);

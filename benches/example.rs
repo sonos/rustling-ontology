@@ -28,7 +28,6 @@ fn parse_big_number_en(bench: &mut Bencher) {
     let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "one million five hundred twenty-one thousand eighty-two";
     let result = parser.parse(number).unwrap();
-    println!("result: {:?}", result);
     let int: i64 = result[0].value.attempt_to().unwrap();
     assert_eq!(1521082, int);
 
@@ -39,6 +38,7 @@ fn parse_book_restaurant(bench: &mut Bencher) {
     let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "book a restaurant for four people";
     let result = parser.parse(number).unwrap();
+    println!("{:?}", result);
     let int: i64 = result[0].value.attempt_to().unwrap();
     assert_eq!(4, int);
 
@@ -55,9 +55,11 @@ fn time_resolve_complex_train_sentence(bench: &mut Bencher) {
     let decoder = ParsingContext::default();
     let parser = build_raw_parser(Lang::EN).unwrap();
     let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
+    /*
     for it in parser.parse(&*sent).unwrap() {
         println!("resolve: {:?}", it);
     }
+    */
     let resolve = parser
         .parse(&*sent)
         .unwrap()

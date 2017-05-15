@@ -5,7 +5,7 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 build = "build.rs"
 
 [workspace]
-members=["cli", "cli-debug", "moment", "rules", "training"]
+members=["values", "cli", "cli-debug", "moment", "rules", "training"]
 
 [dependencies]
 bincode = "0.8"
@@ -14,6 +14,7 @@ serde = "1.0"
 serde_derive = "1.0"
 rustling = { git="http://github.com/snipsco/rustling", rev="ab7bbbc" }
 rustling-ontology-moment = { path="moment"}
+rustling-ontology-values = { path="values"}
 rustling-ontology-rules = { path="rules"}
 rustling-ontology-training = { path="training"}
 
@@ -26,6 +27,7 @@ rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
 rustling = { git="http://github.com/snipsco/rustling", rev="ab7bbbc" }
+rustling-ontology-values = { path="values"}
 rustling-ontology-moment = { path="moment"}
 rustling-ontology-rules = { path="rules"}
 rustling-ontology-training = { path="training"}

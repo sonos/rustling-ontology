@@ -1,6 +1,6 @@
 use rustling::*;
-use dimension::*;
-use helpers;
+use values::dimension::*;
+use values::helpers;
 use moment::{Weekday, Grain, PeriodComp};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {

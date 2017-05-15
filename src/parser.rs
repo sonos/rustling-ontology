@@ -1,4 +1,4 @@
-use rustling_ontology_rules::dimension::*;
+use rustling_ontology_values::dimension::*;
 use rustling;
 
 #[derive(Debug, Hash, Clone, Eq, PartialEq,Serialize,Deserialize)]
@@ -46,7 +46,7 @@ mod tests {
     use rustling::*;
     use ::*;
     use rustling::ParserMatch;
-    use rustling_ontology_rules::dimension::*;
+    use rustling_ontology_values::dimension::*;
 
     #[test]
     fn test_twenty() {

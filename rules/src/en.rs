@@ -1,7 +1,7 @@
 use rustling::*;
-use dimension::*;
-use dimension::Precision::*;
-use helpers;
+use values::dimension::*;
+use values::dimension::Precision::*;
+use values::helpers;
 use moment::{Weekday, Grain, PeriodComp};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
@@ -1466,7 +1466,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     });
     b.rule_2("numbers suffixes (K, M, G)",
              number_check!(|number: &NumberValue| !number.suffixed()),
-             b.reg_neg_lh(r#"([kmg])"#, r#"^[\W\$€]"#)?,
+             b.reg_neg_lh(r#"([kmg])"#, r#"^[^\W\$€]"#)?,
              |a, text_match| -> RuleResult<NumberValue> {
         let multiplier = match text_match.group(0).as_ref() {
             "k" => 1000,

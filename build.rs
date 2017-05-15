@@ -1,6 +1,7 @@
 extern crate rmp_serde;
 extern crate rustling;
 extern crate rustling_ontology_rules;
+extern crate rustling_ontology_values;
 extern crate rustling_ontology_training as training;
 extern crate serde;
 #[macro_use]

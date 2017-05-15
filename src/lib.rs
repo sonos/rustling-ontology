@@ -26,16 +26,17 @@ extern crate serde_derive;
 extern crate rustling;
 extern crate rustling_ontology_rules;
 extern crate rustling_ontology_moment;
+extern crate rustling_ontology_values;
 extern crate rustling_ontology_training as training;
 
 pub use rustling::{AttemptTo, ParsedNode, ParserMatch, Range, Value, RustlingError,
                    RustlingResult, Sym};
 pub use rustling_ontology_rules::Lang;
-pub use rustling_ontology_rules::output::{ParsingContext, Output};
-pub use rustling_ontology_rules::dimension;
-pub use rustling_ontology_rules::dimension::{Dimension, DimensionKind, NumberValue};
+pub use rustling_ontology_values::dimension;
+pub use rustling_ontology_values::dimension::{Dimension, DimensionKind, NumberValue};
+pub use rustling_ontology_values::output;
+pub use rustling_ontology_values::output::{ParsingContext, Output};
 pub use rustling_ontology_moment::Interval;
-pub use rustling_ontology_rules::output;
 
 mod parser;
 

@@ -1,19 +1,19 @@
 macro_rules! check_moment {
-    ($context:expr, [$($item:expr),*]) => ( check_moment($context, moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, None) );
-    ($context:expr, [$($item:expr),*], $grain:expr) => ( check_moment($context, moment!($( $item ),*), $grain, Precision::Exact, None) );
+    ($context:expr, [$($item:expr),*]) => ( ::rustling_ontology_values::check::check_moment($context, moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, None) );
+    ($context:expr, [$($item:expr),*], $grain:expr) => ( ::rustling_ontology_values::check::check_moment($context, moment!($( $item ),*), $grain, Precision::Exact, None) );
 }
 
 macro_rules! check_moment_with_precision {
-    ($context:expr, [$($item:expr),*], $precision:expr) => ( check_moment($context, moment!($( $item ),*), grain!($( $item ),*), $precision, None) );
+    ($context:expr, [$($item:expr),*], $precision:expr) => ( ::rustling_ontology_values::check::check_moment($context, moment!($( $item ),*), grain!($( $item ),*), $precision, None) );
 }
 
 macro_rules! check_moment_with_direction {
-    ($context:expr, [$($item:expr),*], $direction:expr) => ( check_moment($context, moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, Some($direction)) );
+    ($context:expr, [$($item:expr),*], $direction:expr) => ( ::rustling_ontology_values::check::check_moment($context, moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, Some($direction)) );
 }
 
 macro_rules! check_moment_span {
-    ($context:expr, [$($item1:expr),*], [$($item2:expr),*]) => ( check_moment_span($context, moment!($( $item1 ),*), moment!($( $item2 ),*), grain!($( $item1 ),*)) );
-    ($context:expr, [$($item1:expr),*], [$($item2:expr),*], $grain:expr) => ( check_moment_span($context, moment!($( $item1 ),*), moment!($( $item2 ),*), $grain) );
+    ($context:expr, [$($item1:expr),*], [$($item2:expr),*]) => ( ::rustling_ontology_values::check::check_moment_span($context, moment!($( $item1 ),*), moment!($( $item2 ),*), grain!($( $item1 ),*)) );
+    ($context:expr, [$($item1:expr),*], [$($item2:expr),*], $grain:expr) => ( ::rustling_ontology_values::check::check_moment_span($context, moment!($( $item1 ),*), moment!($( $item2 ),*), $grain) );
 }
 
 macro_rules! moment {

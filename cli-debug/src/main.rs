@@ -2,6 +2,7 @@
 extern crate clap;
 extern crate rustling;
 extern crate rustling_ontology_rules as rules;
+extern crate rustling_ontology_values as values;
 extern crate rustling_ontology_moment;
 #[macro_use]
 extern crate prettytable;
@@ -26,7 +27,7 @@ fn main() {
     match matches.subcommand() {
         ("parse", Some(matches)) => {
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
-            let decoder = rules::output::ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second), 80);
+            let decoder = values::output::ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second), 80);
             let rules = rules::rules(lang).unwrap();
             let matches = rules.apply_all(&*sentence).unwrap();
         

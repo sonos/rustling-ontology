@@ -1,15 +1,13 @@
 #[macro_use]
 extern crate rustling;
 extern crate rustling_ontology_moment as moment;
+extern crate rustling_ontology_values as values;
 
 use std::result;
 
 #[macro_use]
 mod macros;
-#[allow(dead_code)]
-mod helpers;
-pub mod dimension;
-pub mod output;
+
 pub mod en;
 pub mod fr;
 pub mod es;
@@ -49,7 +47,7 @@ impl ::std::string::ToString for Lang {
 
 macro_rules! lang {
     ($lang:ident, [$($rule:ident),*]) => {
-        pub fn $lang() -> ::rustling::RustlingResult<::rustling::RuleSet<dimension::Dimension>> {
+        pub fn $lang() -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
             let mut b = ::rustling::RuleSetBuilder::default();
             $( $lang::$rule(&mut b)?; )*
             Ok(b.build())
@@ -58,7 +56,7 @@ macro_rules! lang {
 }
 
 /// Obtain rules for a given language.
-pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<dimension::Dimension>> {
+pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
     match lang {
         Lang::EN => en(),
         Lang::FR => fr(),
