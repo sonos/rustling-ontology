@@ -354,7 +354,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("on <date>",
         b.reg(r#"on"#)?,
         time_check!(),
-        |_, a| Ok(a.value().clone())
+        |_, a| Ok(a.value().clone().not_latent())
     );
     b.rule_2("on a <named-day>",
         b.reg(r#"on a"#)?,
@@ -1199,7 +1199,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
            })
     });
     b.rule_2("about <amount-of-money>",
-             b.reg(r#"(?:about|approx(\.|imately)?|close to|near( to)?|around|almost)"#)?,
+             b.reg(r#"(?:about|approx(?:\.|imately)?|close to|near(?: to)?|around|almost)"#)?,
              amount_of_money_check!(),
              |_, a| {
                  Ok(AmountOfMoneyValue {

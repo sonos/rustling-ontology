@@ -82,7 +82,7 @@ impl ParsingContext {
 impl ParsingContext {
     pub fn resolve(&self, dim: &Dimension) -> Option<Output> {
         match dim {
-            &Dimension::Time(ref tv) if !tv.latent => {
+            &Dimension::Time(ref tv) => {
                 let mut walker = tv.constraint
                     .to_walker(&self.ctx.reference, &self.ctx);
                 walker.forward

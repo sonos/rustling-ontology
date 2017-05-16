@@ -32,6 +32,7 @@ fn main() {
             let context = ParsingContext::default();
             let entities = parser.parse(&*sentence, &context).unwrap();
             let mut table = Table::new();
+            table.set_titles(row!["ix", "log(p)", "p", "text", "value"]);
             for (ix, c) in entities.iter().enumerate().rev() {
                 let mut hilite = String::new();
                 for _ in 0..c.range.0 {
@@ -63,7 +64,7 @@ fn main() {
             let candidates = parser.candidates(&*sentence, |_| Some(12)).unwrap();
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-            table.set_titles(row!["ix", "best", "log(p)", "p", "text", "kind", "rule", "childs"]);
+            table.set_titles(row!["ix", "best", "log(p)", "p", "text", "value", "intermediate", "rule", "childs"]);
             let decoder = ParsingContext::default();
 
             for (ix, c) in candidates.iter().enumerate().rev() {
@@ -84,6 +85,7 @@ fn main() {
                                    f32::exp(c.match_.probalog),
                                    hilite,
                                    decoder.resolve(&c.match_.value).map(|v| format!("{:?}", v)).unwrap_or("".into()),
+                                   c.match_.value.intermediate(),
                                    parser.resolve_sym(&c.node.root_node.rule_sym).unwrap_or(""),
                                    c.node
                                        .root_node
