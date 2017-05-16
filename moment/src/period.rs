@@ -42,6 +42,18 @@ impl Period {
             .max_by_key(|&(g, _)| g)
             .and_then(|(g, _)| Grain::from_usize(g))
     }
+
+    pub fn comps(&self) -> Vec<PeriodComp> {
+        use enum_primitive::FromPrimitive;
+        self.0.iter()
+            .filter_map(|(g, q)|  {
+                if let Some(grain) = Grain::from_usize(g) {
+                    Some(PeriodComp::new(grain, *q))
+                } else {
+                    None
+                }
+            }).collect()
+    }
 }
 
 impl From<PeriodComp> for Period {
