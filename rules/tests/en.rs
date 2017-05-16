@@ -17,6 +17,6 @@ fn ex_100k() {
     assert!(run(&en, "100k").into_iter().any(|it| check_integer(100000).check(&it)));
     assert!(!run(&en, "100kilo").into_iter().any(|it| check_integer(100000).check(&it)));
     assert!(run(&en, "100k$").into_iter().any(|it| check_integer(100000).check(&it)));
-    assert!(run(&en, "toto100k").into_iter().any(|it| check_integer(100000).check(&it)));
+    assert!(!run(&en, "toto100k").into_iter().any(|it| check_integer(100000).check(&it)));
 }
 
