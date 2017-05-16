@@ -36,12 +36,12 @@ fn main() {
             table.set_titles(row!["ix", "text", "kind", "rule", "childs"]);
             for (ix, m) in matches.iter().enumerate().rev() {
                 let mut hilite = String::new();
-                let range = m.root_node.range;
-                for _ in 0..range.0 {
+                let byte_range = m.root_node.byte_range;
+                for _ in 0..byte_range.0 {
                     hilite.push('_');
                 }
-                hilite.push_str(&sentence[range.0..range.1]);
-                for _ in range.1..sentence.len() {
+                hilite.push_str(&sentence[byte_range.0..byte_range.1]);
+                for _ in byte_range.1..sentence.len() {
                     hilite.push('_');
                 }
                 table.add_row(row![ix,

@@ -165,7 +165,7 @@ mod tests {
         let result = parser.candidates(&*sent, |_| Some(0)).unwrap();
         println!("{}", result.len());
         for r in &result {
-            println!("{:?}", &sent[r.node.root_node.range.0..r.node.root_node.range.1]);
+            println!("{:?}", &sent[r.node.root_node.byte_range.0..r.node.root_node.byte_range.1]);
         }
         panic!();
     }

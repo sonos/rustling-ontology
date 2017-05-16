@@ -55,7 +55,8 @@ mod tests {
             .parse_with_kind_order("twenty", &[DimensionKind::Number])
             .unwrap();
         assert_eq!(ParserMatch {
-                       range: Range(0, 6),
+                       byte_range: Range(0, 6),
+                       char_range: Range(0, 6),
                        value: IntegerValue::new_with_grain(20, 1).unwrap().into(),
                        probalog: 0.0,
                    },

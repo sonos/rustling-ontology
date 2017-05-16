@@ -36,7 +36,7 @@ macro_rules! lang {
                     let stash = rules.apply_all(&ex.text.to_lowercase()).unwrap();
                     let correct_results = stash
                                 .into_iter()
-                                .filter(|candidate| candidate.root_node.range == Range(0, ex.text.len()) && ex.predicate.check(&candidate))
+                                .filter(|candidate| candidate.root_node.byte_range == Range(0, ex.text.len()) && ex.predicate.check(&candidate))
                                 .collect::<Vec<_>>();
                     assert!(!correct_results.is_empty(), ex.text);
                 }
