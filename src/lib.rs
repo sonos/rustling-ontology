@@ -37,6 +37,7 @@ pub use rustling_ontology_values::dimension::{Dimension, DimensionKind, NumberVa
 pub use rustling_ontology_values::output;
 pub use rustling_ontology_values::output::{ParsingContext, Output};
 pub use rustling_ontology_moment::Interval;
+pub use rustling_ontology_moment::Grain;
 
 mod parser;
 
