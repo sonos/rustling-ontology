@@ -1,6 +1,6 @@
 [package]
 name = "rustling-ontology"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 build = "build.rs"
 
@@ -12,7 +12,7 @@ bincode = "0.8"
 rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
-rustling = { git="http://github.com/snipsco/rustling", rev="0.0.1" }
+rustling = { git="http://github.com/snipsco/rustling", rev="0.1.0" }
 rustling-ontology-moment = { path="moment"}
 rustling-ontology-values = { path="values"}
 rustling-ontology-rules = { path="rules"}
@@ -26,7 +26,7 @@ bincode = "0.8"
 rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
-rustling = { git="http://github.com/snipsco/rustling", rev="0.0.1" }
+rustling = { git="http://github.com/snipsco/rustling", rev="0.1.0" }
 rustling-ontology-values = { path="values"}
 rustling-ontology-moment = { path="moment"}
 rustling-ontology-rules = { path="rules"}

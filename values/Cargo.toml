@@ -1,8 +1,8 @@
 [package]
 name = "rustling-ontology-values"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["Mathieu Poumeyrol <kali@zoy.org>"]
 
 [dependencies]
 rustling-ontology-moment = { path="../moment"}
-rustling = { git="http://github.com/snipsco/rustling", rev="3adc11" }
+rustling = { git="http://github.com/snipsco/rustling", rev="0.1.0" }
