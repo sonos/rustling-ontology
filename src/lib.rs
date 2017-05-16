@@ -61,7 +61,8 @@ impl Parser {
                     .map(|o| {
                              ParserMatch {
                                  value: o,
-                                 range: pm.range,
+                                 byte_range: pm.byte_range,
+                                 char_range: pm.char_range,
                                  probalog: pm.probalog,
                              }
                          })

@@ -35,11 +35,11 @@ fn main() {
             table.set_titles(row!["ix", "log(p)", "p", "text", "value"]);
             for (ix, c) in entities.iter().enumerate().rev() {
                 let mut hilite = String::new();
-                for _ in 0..c.range.0 {
+                for _ in 0..c.byte_range.0 {
                     hilite.push('_');
                 }
-                hilite.push_str(&sentence[c.range.0..c.range.1]);
-                for _ in c.range.1..sentence.len() {
+                hilite.push_str(&sentence[c.byte_range.0..c.byte_range.1]);
+                for _ in c.byte_range.1..sentence.len() {
                     hilite.push('_');
                 }
                 table.add_row(row![ix,
@@ -72,11 +72,11 @@ fn main() {
                     continue;
                 }
                 let mut hilite = String::new();
-                for _ in 0..c.match_.range.0 {
+                for _ in 0..c.match_.byte_range.0 {
                     hilite.push('_');
                 }
-                hilite.push_str(&sentence[c.match_.range.0..c.match_.range.1]);
-                for _ in c.match_.range.1..sentence.len() {
+                hilite.push_str(&sentence[c.match_.byte_range.0..c.match_.byte_range.1]);
+                for _ in c.match_.byte_range.1..sentence.len() {
                     hilite.push('_');
                 }
                 table.add_row(row![ix,
