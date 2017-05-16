@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Mathieu Poumeyrol <kali@zoy.org>"]
 
 [dependencies]
-rustling = { git="http://github.com/snipsco/rustling", rev="ab7bbbc" }
+rustling = { git="http://github.com/snipsco/rustling", rev="3adc11" }
 rustling-ontology-values = { path="../values" }
 rustling-ontology-rules = { path="../rules" }
 rustling-ontology-moment = { path = "../moment" }
