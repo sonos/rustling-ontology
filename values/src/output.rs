@@ -26,14 +26,14 @@ pub struct OrdinalOutput(pub i64);
 pub struct TimeOutput {
     pub moment: Moment, 
     pub grain: Grain, 
-    pub direction: Option<Direction>,
     pub precision: Precision,
 }
 
 #[derive(Clone,PartialEq,Debug)]
-pub struct TimeIntervalOutput {
-    pub start: Moment, 
-    pub end: Moment,
+pub enum TimeIntervalOutput {
+    After(Moment),
+    Before(Moment),
+    Between(Moment, Moment)
 }
 
 #[derive(Clone,PartialEq,Debug)]
@@ -97,15 +97,15 @@ impl ParsingContext {
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
                         if let Some(end) = interval.end {
-                            Output::TimeInterval( TimeIntervalOutput {
-                                start: interval.start,
-                                end: end,
-                            })
+                            Output::TimeInterval(TimeIntervalOutput::Between(interval.start, end))
+                        } else if let Some(Direction::After) = tv.direction {
+                            Output::TimeInterval(TimeIntervalOutput::After(interval.start))
+                        } else if let Some(Direction::Before) = tv.direction {
+                            Output::TimeInterval(TimeIntervalOutput::Before(interval.start))
                         } else {
                             Output::Time( TimeOutput {
                                 moment: interval.start,
                                 grain: interval.grain,
-                                direction: tv.direction,
                                 precision: tv.precision,
                             }) 
                         }

@@ -70,15 +70,43 @@ pub struct CheckMoment {
 
 impl Check<Dimension> for CheckMoment {
     fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
-        self.context.resolve(&pn.value)
-            .and_then(|v| TimeOutput::attempt_from(v))
-            .map(|v| {
-                let check_value = v.moment == self.interval.start && v.grain == self.interval.grain;
-                let check_direction = v.direction == self.direction;
-                let check_precision = v.precision == self.precision;
-                check_value && check_direction && check_precision
-            })
-            .unwrap_or(false)
+        match self.direction {
+            None => {
+                self.context.resolve(&pn.value)
+                    .and_then(|v| TimeOutput::attempt_from(v))
+                    .map(|v| {
+                        let check_value = v.moment == self.interval.start && v.grain == self.interval.grain;
+                        let check_precision = v.precision == self.precision;
+                        check_value && check_precision
+                    })
+                    .unwrap_or(false)
+            },
+            Some(Direction::After) => {
+                self.context.resolve(&pn.value)
+                    .and_then(|v| TimeIntervalOutput::attempt_from(v))
+                    .map(|v| {
+                        if let TimeIntervalOutput::After(m) = v {
+                            m == self.interval.start
+                        } else {
+                            true
+                        }
+                    })
+                    .unwrap_or(false)
+            },
+            Some(Direction::Before) => {
+                self.context.resolve(&pn.value)
+                    .and_then(|v| TimeIntervalOutput::attempt_from(v))
+                    .map(|v| {
+                        if let TimeIntervalOutput::Before(m) = v {
+                            m == self.interval.start
+                        } else {
+                            true
+                        }
+                    })
+                    .unwrap_or(false)
+            }
+
+        }
     }
 }
 
@@ -101,7 +129,13 @@ impl Check<Dimension> for CheckMomentSpan {
     fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
         self.context.resolve(&pn.value)
             .and_then(|v| TimeIntervalOutput::attempt_from(v))
-            .map(|v| v.start == self.interval.start && Some(v.end) == self.interval.end)
+            .map(|v| {
+                if let TimeIntervalOutput::Between(s, e) = v {
+                    s == self.interval.start && Some(e) == self.interval.end
+                } else {
+                    false
+                }
+            })
             .unwrap_or(false)
     }
 }
