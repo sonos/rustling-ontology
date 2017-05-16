@@ -7,17 +7,33 @@ use moment::{RcConstraint, Period, Grain};
 rustling_value! {
     #[doc="Union of all possible values parsed by the ontology."]
     #[derive(Clone,PartialEq,Debug)]
-    Dimension DimensionKind
-    Number(NumberValue),
-    AmountOfMoney(AmountOfMoneyValue),
-    Ordinal(OrdinalValue),
-    Temperature(TemperatureValue),
-    MoneyUnit(MoneyUnitValue),
-    Time(TimeValue),
-    Duration(DurationValue),
-    Cycle(CycleValue),
-    UnitOfDuration(UnitOfDurationValue),
-    RelativeMinute(RelativeMinuteValue),
+    Dimension DimensionKind {
+        Number(NumberValue),
+        AmountOfMoney(AmountOfMoneyValue),
+        Ordinal(OrdinalValue),
+        Temperature(TemperatureValue),
+        MoneyUnit(MoneyUnitValue),
+        Time(TimeValue),
+        Duration(DurationValue),
+        Cycle(CycleValue),
+        UnitOfDuration(UnitOfDurationValue),
+        RelativeMinute(RelativeMinuteValue),
+    }
+
+    fn intermediate(v: &Dimension) -> bool {
+        match v {
+            &Dimension::Number(_) => false,
+            &Dimension::AmountOfMoney(_) => false,
+            &Dimension::Ordinal(_) => false,
+            &Dimension::Temperature(ref temp) => temp.latent,
+            &Dimension::MoneyUnit(_) => true,
+            &Dimension::Time(ref tv) => tv.latent,
+            &Dimension::Duration(_) => false,
+            &Dimension::Cycle(_) => true,
+            &Dimension::UnitOfDuration(_) => true,
+            &Dimension::RelativeMinute(_) => true,
+        }
+    }
 }
 
 impl fmt::Display for Dimension {

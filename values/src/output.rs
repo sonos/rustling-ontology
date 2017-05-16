@@ -82,7 +82,7 @@ impl ParsingContext {
 impl ParsingContext {
     pub fn resolve(&self, dim: &Dimension) -> Option<Output> {
         match dim {
-            &Dimension::Time(ref tv) => {
+            &Dimension::Time(ref tv) if !tv.latent => {
                 let mut walker = tv.constraint
                     .to_walker(&self.ctx.reference, &self.ctx);
                 walker.forward
@@ -123,7 +123,7 @@ impl ParsingContext {
                 precision: aom.precision,
                 unit: aom.unit,
             })),
-            &Dimension::Temperature(ref temp) => Some(Output::Temperature(TemperatureOutput {
+            &Dimension::Temperature(ref temp) if !temp.latent => Some(Output::Temperature(TemperatureOutput {
                 value: temp.value,
                 unit: temp.unit,
             })),
