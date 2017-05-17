@@ -64,6 +64,7 @@ impl Parser {
                                  byte_range: pm.byte_range,
                                  char_range: pm.char_range,
                                  probalog: pm.probalog,
+                                 latent: pm.latent,
                              }
                          })
             })

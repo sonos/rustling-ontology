@@ -20,7 +20,7 @@ rustling_value! {
         RelativeMinute(RelativeMinuteValue),
     }
 
-    fn intermediate(v: &Dimension) -> bool {
+    fn latent(v: &Dimension) -> bool {
         match v {
             &Dimension::Number(_) => false,
             &Dimension::AmountOfMoney(_) => false,

@@ -59,6 +59,7 @@ mod tests {
                        char_range: Range(0, 6),
                        value: IntegerValue::new_with_grain(20, 1).unwrap().into(),
                        probalog: 0.0,
+                       latent: false,
                    },
                    result[0]);
     }

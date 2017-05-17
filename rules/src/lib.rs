@@ -1,4 +1,4 @@
-#[macro_use]
+//#[macro_use]
 extern crate rustling;
 extern crate rustling_ontology_moment as moment;
 extern crate rustling_ontology_values as values;
