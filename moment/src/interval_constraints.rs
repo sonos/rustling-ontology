@@ -145,11 +145,11 @@ pub struct YearMonthDay {
 
 impl YearMonthDay {
     pub fn new(y: i32, m: u32, d: u32) -> RcConstraint {
-        YearMonthDay(y, m, d).into()
+        YearMonthDay { year: y, month: m, day: d }.into()
     }
 }
 
-impl IntervalConstraint for MonthDay {
+impl IntervalConstraint for YearMonthDay {
     fn grain(&self) -> Grain {
         Grain::Day
     }
@@ -160,15 +160,15 @@ impl IntervalConstraint for MonthDay {
         } else {
             self.year
         };
-        if self.day <= last_day_in_month(normalized_year, self.month) {
+        if self.day > last_day_in_month(normalized_year, self.month) {
             BidirectionalWalker::new() 
         } else if origin.start.year() <= normalized_year {
             let moment_year = Moment(Local.ymd(normalized_year, self.month, self.day).and_hms(0, 0, 0));
-            let interval = Interval::starting_at(moment_year, Grain::Year);
+            let interval = Interval::starting_at(moment_year, Grain::Day);
             BidirectionalWalker::new().forward_values(vec![interval])
         } else {
             let moment_year = Moment(Local.ymd(normalized_year, self.month, self.day).and_hms(0, 0, 0));
-            let interval = Interval::starting_at(moment_year, Grain::Year);
+            let interval = Interval::starting_at(moment_year, Grain::Day);
             BidirectionalWalker::new().backward_values(vec![interval])
         }
     }
@@ -949,7 +949,7 @@ mod tests {
     #[test]
     fn test_year_month_day() {
         let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let ymd = YearMonthDay(2015, 6, 5);
+        let ymd = YearMonthDay::new(2015, 6, 5);
         let walker = ymd.to_walker(&context.reference, &context);
         let mut backward = walker.backward.clone();
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2015, 6, 5).and_hms(0, 0, 0)),
@@ -959,18 +959,18 @@ mod tests {
         assert_eq!(None, backward.next());
         assert_eq!(None, walker.forward.clone().next());
 
-        let ymd = YearMonthDay(2018, 6, 5);
+        let ymd = YearMonthDay::new(2018, 6, 5);
         let walker = ymd.to_walker(&context.reference, &context);
         assert_eq!(None, walker.backward.clone().next());
 
         let mut forward = walker.forward.clone();
         assert_eq!(Some(Interval::starting_at(Moment(Local.ymd(2018, 6, 5).and_hms(0, 0, 0)),
-                                              Grain::Year)),
+                                              Grain::Day)),
                    forward.next());
         assert_eq!(None, forward.next());
         assert_eq!(None, walker.backward.clone().next());
 
-        let ymd = YearMonthDay(2018, 2, 30);
+        let ymd = YearMonthDay::new(2018, 2, 30);
         let walker = ymd.to_walker(&context.reference, &context);
         assert_eq!(None, walker.backward.clone().next());
         assert_eq!(None, walker.forward.clone().next());
