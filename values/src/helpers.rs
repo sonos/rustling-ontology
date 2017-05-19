@@ -179,7 +179,7 @@ pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
 }
 
 pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
-    Ok(month(m)?.intersect(&day_of_month(d)?)?)
+    Ok(TimeValue::constraint(MonthDay::new(m, d)))
 }
 
 pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
@@ -199,9 +199,13 @@ pub fn second(s: u32) -> RuleResult<TimeValue> {
 }
 
 pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
-    Ok(hour(h, is_12_clock)?
-           .intersect(&minute(m)?)?
+    if is_12_clock {
+        Ok(TimeValue::constraint(HourMinute::clock_12(h, m))
            .form(Form::TimeOfDay(None)))
+    } else {
+        Ok(TimeValue::constraint(HourMinute::clock_24(h, m))
+           .form(Form::TimeOfDay(None)))
+    }
 }
 
 pub fn hour_minute_second(h: u32,
@@ -267,7 +271,7 @@ pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<TimeValue> {
 }
 
 pub fn ymd(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
-    Ok(year(y)?.intersect(&month_day(m, d)?)?)
+     Ok(TimeValue::constraint(YearMonthDay::new(y, m, d)))
 }
 
 impl CycleValue {

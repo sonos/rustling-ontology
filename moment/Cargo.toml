@@ -8,3 +8,10 @@ chrono = "0.3"
 enum_primitive = "0.1.1"
 vec_map = "0.7.0"
 derive-new = "0.4"
+
+[dev-dependencies]
+bencher = "0.1"
+
+[[bench]]
+name = "example"
+harness = false
