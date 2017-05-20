@@ -23,13 +23,13 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
+extern crate rustling_ontology_moment;
 extern crate rustling;
 extern crate rustling_ontology_rules;
-extern crate rustling_ontology_moment;
 extern crate rustling_ontology_values;
 extern crate rustling_ontology_training as training;
 
-pub use rustling::{AttemptTo, ParsedNode, ParserMatch, Range, Value, RustlingError,
+pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, RustlingError,
                    RustlingResult, Sym};
 pub use rustling_ontology_rules::Lang;
 pub use rustling_ontology_values::dimension;

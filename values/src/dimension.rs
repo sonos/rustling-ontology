@@ -34,7 +34,25 @@ rustling_value! {
             &Dimension::RelativeMinute(_) => true,
         }
     }
+
+    fn extract_payload(v: &Dimension) -> Option<Payload> {
+        match v {
+            &Dimension::Number(_) => None,
+            &Dimension::AmountOfMoney(_) => None,
+            &Dimension::Ordinal(_) => None,
+            &Dimension::Temperature(_) => None,
+            &Dimension::MoneyUnit(_) => None,
+            &Dimension::Time(ref tv) => Some(Payload(tv.constraint.grain())),
+            &Dimension::Duration(_) => None,
+            &Dimension::Cycle(_) => None,
+            &Dimension::UnitOfDuration(_) => None,
+            &Dimension::RelativeMinute(_) => None,
+        }
+    }
 }
+
+#[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
+pub struct Payload(pub Grain);
 
 impl fmt::Display for Dimension {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
@@ -129,9 +147,23 @@ impl From<IntegerValue> for Dimension {
     }
 }
 
+impl NodePayload for IntegerValue {
+    type Payload = Payload;
+    fn extract_payload(&self) -> Option<Self::Payload> {
+        None
+    }
+}
+
 impl From<FloatValue> for Dimension {
     fn from(v: FloatValue) -> Dimension {
         Dimension::Number(NumberValue::Float(v))
+    }
+}
+
+impl NodePayload for FloatValue {
+    type Payload = Payload;
+    fn extract_payload(&self) -> Option<Self::Payload> {
+        None
     }
 }
 
@@ -155,8 +187,8 @@ impl AttemptFrom<Dimension> for IntegerValue {
     }
 }
 
-impl AttemptTo<i64> for Dimension {
-    fn attempt_to(&self) -> Option<i64> {
+impl AttemptInto<i64> for Dimension {
+    fn attempt_into(self) -> Option<i64> {
         IntegerValue::attempt_from(self.clone()).map(|it| it.value)
     }
 }

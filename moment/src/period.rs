@@ -2,7 +2,7 @@ use std::ops;
 use vec_map::VecMap;
 
 enum_from_primitive! {
-    #[derive(Debug,PartialEq,Copy,Clone,Eq,Ord,PartialOrd)]
+    #[derive(Debug,PartialEq,Copy,Clone,Eq,Ord,PartialOrd, Hash)]
     pub enum Grain {
         Year = 0,
         Quarter = 1,

@@ -2,7 +2,11 @@ use rustling_ontology_values::dimension::*;
 use rustling;
 
 #[derive(Debug, Hash, Clone, Eq, PartialEq,Serialize,Deserialize)]
-pub struct Feat(Vec<rustling::Sym>);
+pub enum Feat {
+  Rules(Vec<rustling::Sym>),
+  Grains(Vec<usize>),
+}
+
 impl rustling::Feature for Feat {}
 
 pub struct FeatureExtractor();
@@ -13,18 +17,17 @@ impl rustling::FeatureExtractor<Dimension, Feat> for FeatureExtractor {
                        -> rustling::Input<rustling::RuleId, Feat> {
         self.for_node(&node.root_node)
     }
-    fn for_node(&self, node: &rustling::Node) -> rustling::Input<rustling::RuleId, Feat> {
+    fn for_node(&self, node: &rustling::Node<Payload>) -> rustling::Input<rustling::RuleId, Feat> {
         extract_node_features(&node)
     }
 }
 
-pub fn extract_node_features(node: &rustling::Node) -> rustling::Input<rustling::RuleId, Feat> {
-    let features = vec![Feat(node.children
-                                 .iter()
-                                 .map({
-                                          |child| child.rule_sym
-                                      })
-                                 .collect())];
+pub fn extract_node_features(node: &rustling::Node<Payload>) -> rustling::Input<rustling::RuleId, Feat> {
+    let grains_feat = node.children.iter().filter_map(|c| c.payload.map(|p| p.0 as usize)).collect::<Vec<_>>();
+    let rules_feat = node.children.iter().map({ |child| child.rule_sym }).collect::<Vec<_>>();
+    
+    let mut features = vec![Feat::Rules(rules_feat)];
+    if grains_feat.is_empty() { features.push(Feat::Grains(grains_feat)); }
 
     let children_features = node.children
         .iter()
