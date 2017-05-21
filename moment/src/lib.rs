@@ -372,127 +372,126 @@ impl<T: TimeZone> ops::Sub<Period> for Interval<T> where <T as TimeZone>::Offset
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::TimeZone;
-    use chrono::offset::local::Local;
+    use chrono::{TimeZone, FixedOffset};
 
     #[test]
     fn test_last_day_in_month() {
-        assert_eq!(last_day_in_month(2015, 2, Local), 28);
-        assert_eq!(last_day_in_month(2016, 1, Local), 31);
-        assert_eq!(last_day_in_month(2016, 2, Local), 29);
-        assert_eq!(last_day_in_month(2016, 3, Local), 31);
-        assert_eq!(last_day_in_month(2016, 4, Local), 30);
-        assert_eq!(last_day_in_month(2016, 5, Local), 31);
-        assert_eq!(last_day_in_month(2016, 6, Local), 30);
-        assert_eq!(last_day_in_month(2016, 7, Local), 31);
-        assert_eq!(last_day_in_month(2016, 8, Local), 31);
-        assert_eq!(last_day_in_month(2016, 9, Local), 30);
-        assert_eq!(last_day_in_month(2016, 10, Local), 31);
-        assert_eq!(last_day_in_month(2016, 11, Local), 30);
-        assert_eq!(last_day_in_month(2016, 12, Local), 31);
+        assert_eq!(last_day_in_month(2015, 2, Paris), 28);
+        assert_eq!(last_day_in_month(2016, 1, Paris), 31);
+        assert_eq!(last_day_in_month(2016, 2, Paris), 29);
+        assert_eq!(last_day_in_month(2016, 3, Paris), 31);
+        assert_eq!(last_day_in_month(2016, 4, Paris), 30);
+        assert_eq!(last_day_in_month(2016, 5, Paris), 31);
+        assert_eq!(last_day_in_month(2016, 6, Paris), 30);
+        assert_eq!(last_day_in_month(2016, 7, Paris), 31);
+        assert_eq!(last_day_in_month(2016, 8, Paris), 31);
+        assert_eq!(last_day_in_month(2016, 9, Paris), 30);
+        assert_eq!(last_day_in_month(2016, 10, Paris), 31);
+        assert_eq!(last_day_in_month(2016, 11, Paris), 30);
+        assert_eq!(last_day_in_month(2016, 12, Paris), 31);
     }
 
     #[test]
     fn add_months_to_moment() {
-        let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
-        assert_eq!(Moment(Local.ymd(2017, 05, 25).and_hms(9, 10, 11)),
+        let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
+        assert_eq!(Moment(Paris.ymd(2017, 05, 25).and_hms(9, 10, 11)),
                    now.add_months(1));
-        assert_eq!(Moment(Local.ymd(2018, 04, 25).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2018, 04, 25).and_hms(9, 10, 11)),
                    now.add_months(12));
-        assert_eq!(Moment(Local.ymd(2018, 01, 25).and_hms(9, 10, 11)),
-                   Moment(Local.ymd(2017, 12, 25).and_hms(9, 10, 11)).add_months(1));
-        assert_eq!(Moment(Local.ymd(2017, 06, 30).and_hms(9, 10, 11)),
-                   Moment(Local.ymd(2017, 05, 31).and_hms(9, 10, 11)).add_months(1));
+        assert_eq!(Moment(Paris.ymd(2018, 01, 25).and_hms(9, 10, 11)),
+                   Moment(Paris.ymd(2017, 12, 25).and_hms(9, 10, 11)).add_months(1));
+        assert_eq!(Moment(Paris.ymd(2017, 06, 30).and_hms(9, 10, 11)),
+                   Moment(Paris.ymd(2017, 05, 31).and_hms(9, 10, 11)).add_months(1));
         // daylight saving brainfuck
-        assert_eq!(Moment(Local.ymd(2017, 03, 26).and_hms(3, 30, 00)),
-                   Moment(Local.ymd(2017, 02, 26).and_hms(2, 30, 00)).add_months(1));
+        assert_eq!(Moment(FixedOffset::east(2*3600).ymd(2017, 03, 26).and_hms(3, 30, 00)),
+                   Moment(FixedOffset::east(1*3600).ymd(2017, 02, 26).and_hms(2, 30, 00)).add_months(1));
     }
 
     #[test]
     fn add_period_comp_to_moment() {
-        let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 21)),
+        let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
+        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 21)),
                    now + PeriodComp::seconds(10));
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 20, 11)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 20, 11)),
                    now + &PeriodComp::minutes(10));
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(19, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(19, 10, 11)),
                    now + PeriodComp::hours(10));
-        assert_eq!(Moment(Local.ymd(2017, 05, 5).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2017, 05, 5).and_hms(9, 10, 11)),
                    now + &PeriodComp::days(10));
-        assert_eq!(Moment(Local.ymd(2017, 05, 2).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2017, 05, 2).and_hms(9, 10, 11)),
                    now + PeriodComp::weeks(1));
-        assert_eq!(Moment(Local.ymd(2018, 02, 25).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2018, 02, 25).and_hms(9, 10, 11)),
                    now + &PeriodComp::months(10));
-        assert_eq!(Moment(Local.ymd(2017, 07, 25).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2017, 07, 25).and_hms(9, 10, 11)),
                    now + PeriodComp::quarters(1));
-        assert_eq!(Moment(Local.ymd(2027, 04, 25).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2027, 04, 25).and_hms(9, 10, 11)),
                    now + &PeriodComp::years(10));
     }
 
     #[test]
     fn add_period_to_moment() {
-        let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
+        let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
 
         let mut period = Period::default();
         period.0.insert(Grain::Year as usize, 2);
         period.0.insert(Grain::Month as usize, 3);
 
-        assert_eq!(Moment(Local.ymd(2019, 07, 25).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2019, 07, 25).and_hms(9, 10, 11)),
                    now + &period);
 
         period.0.insert(Grain::Hour as usize, 5);
 
-        assert_eq!(Moment(Local.ymd(2019, 07, 25).and_hms(14, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2019, 07, 25).and_hms(14, 10, 11)),
                    now + period.clone());
     }
 
     #[test]
     fn sub_months_to_moment() {
-        let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
-        assert_eq!(Moment(Local.ymd(2017, 03, 25).and_hms(9, 10, 11)),
+        let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
+        assert_eq!(Moment(Paris.ymd(2017, 03, 25).and_hms(9, 10, 11)),
                    now.add_months(-1));
-        assert_eq!(Moment(Local.ymd(2016, 04, 25).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2016, 04, 25).and_hms(9, 10, 11)),
                    now.add_months(-12));
-        assert_eq!(Moment(Local.ymd(2017, 12, 25).and_hms(9, 10, 11)),
-                   Moment(Local.ymd(2018, 01, 25).and_hms(9, 10, 11)).add_months(-1));
-        assert_eq!(Moment(Local.ymd(2017, 06, 30).and_hms(9, 10, 11)),
-                   Moment(Local.ymd(2017, 07, 31).and_hms(9, 10, 11)).add_months(-1));
+        assert_eq!(Moment(Paris.ymd(2017, 12, 25).and_hms(9, 10, 11)),
+                   Moment(Paris.ymd(2018, 01, 25).and_hms(9, 10, 11)).add_months(-1));
+        assert_eq!(Moment(Paris.ymd(2017, 06, 30).and_hms(9, 10, 11)),
+                   Moment(Paris.ymd(2017, 07, 31).and_hms(9, 10, 11)).add_months(-1));
         // daylight saving brainfuck
-        assert_eq!(Moment(Local.ymd(2017, 03, 26).and_hms(3, 30, 00)),
-                   Moment(Local.ymd(2017, 04, 26).and_hms(2, 30, 00)).add_months(-1));
+        assert_eq!(Moment(FixedOffset::east(2*3600).ymd(2017, 03, 26).and_hms(3, 30, 00)),
+                   Moment(FixedOffset::east(1*3600).ymd(2017, 04, 26).and_hms(2, 30, 00)).add_months(-1));
     }
 
     #[test]
     fn daylight_saving_aware() {
         // TODO Take a look at the offset shifting due to a period addition        // 1st March -> +1 and 31 Match -> +2        // 1st March + 30 days -> +1 instead of +2
-        assert_eq!(Moment(Local.ymd(2017, 03, 31).and_hms(0, 0, 0)),
-                   Moment(Local.ymd(2017, 03, 20).and_hms(0, 0, 0)) + PeriodComp::days(11))
+        assert_eq!(Moment(Paris.ymd(2017, 03, 31).and_hms(0, 0, 0)),
+                   Moment(Paris.ymd(2017, 03, 20).and_hms(0, 0, 0)) + PeriodComp::days(11))
     }
 
     #[test]
     fn moment_round_to() {
-        let now = Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11));
-        assert_eq!(Moment(Local.ymd(2017, 01, 01).and_hms(0, 0, 0)),
+        let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
+        assert_eq!(Moment(Paris.ymd(2017, 01, 01).and_hms(0, 0, 0)),
                    now.round_to(Grain::Year));
-        assert_eq!(Moment(Local.ymd(2017, 04, 01).and_hms(0, 0, 0)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 01).and_hms(0, 0, 0)),
                    now.round_to(Grain::Month));
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(0, 0, 0)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(0, 0, 0)),
                    now.round_to(Grain::Day));
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 0, 0)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 0, 0)),
                    now.round_to(Grain::Hour));
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 0)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 0)),
                    now.round_to(Grain::Minute));
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)),
                    now.round_to(Grain::Second));
-        assert_eq!(Moment(Local.ymd(2017, 04, 24).and_hms(0, 0, 0)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 24).and_hms(0, 0, 0)),
                    now.round_to(Grain::Week));
-        assert_eq!(Moment(Local.ymd(2017, 04, 01).and_hms(0, 0, 0)),
+        assert_eq!(Moment(Paris.ymd(2017, 04, 01).and_hms(0, 0, 0)),
                    now.round_to(Grain::Quarter));
     }
 
     #[test]
     fn interval_add_period() {
-        let now = Moment(Local.ymd(2017, 04, 25).and_hms(0, 0, 0));
+        let now = Moment(Paris.ymd(2017, 04, 25).and_hms(0, 0, 0));
         let interval = Interval {
             start: now,
             grain: Grain::Day,
@@ -506,12 +505,12 @@ mod tests {
     #[test]
     fn interval_binary() {
         let interval = Interval {
-            start: Moment(Local.ymd(2017, 04, 25).and_hms(0, 0, 0)),
+            start: Moment(Paris.ymd(2017, 04, 25).and_hms(0, 0, 0)),
             grain: Grain::Day,
             end: None,
         };
         let other = Interval {
-            start: Moment(Local.ymd(2017, 04, 26).and_hms(9, 0, 0)),
+            start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
             grain: Grain::Hour,
             end: None,
         };
@@ -529,38 +528,38 @@ mod tests {
     #[test]
     fn interval_intersect() {
         let interval = Interval {
-            start: Moment(Local.ymd(2017, 04, 25).and_hms(0, 0, 0)),
+            start: Moment(Paris.ymd(2017, 04, 25).and_hms(0, 0, 0)),
             grain: Grain::Day,
-            end: Some(Moment(Local.ymd(2017, 04, 30).and_hms(0, 0, 0))),
+            end: Some(Moment(Paris.ymd(2017, 04, 30).and_hms(0, 0, 0))),
         };
         assert_eq!(interval, interval.intersect(interval).unwrap());
         let other = Interval {
-            start: Moment(Local.ymd(2017, 04, 26).and_hms(9, 0, 0)),
+            start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
             grain: Grain::Hour,
-            end: Some(Moment(Local.ymd(2017, 04, 26).and_hms(11, 0, 0))),
+            end: Some(Moment(Paris.ymd(2017, 04, 26).and_hms(11, 0, 0))),
         };
         assert_eq!(other, interval.intersect(other).unwrap());
         let other = Interval {
-            start: Moment(Local.ymd(2017, 04, 26).and_hms(9, 0, 0)),
+            start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
             grain: Grain::Hour,
-            end: Some(Moment(Local.ymd(2017, 05, 08).and_hms(11, 0, 0))),
+            end: Some(Moment(Paris.ymd(2017, 05, 08).and_hms(11, 0, 0))),
         };
         assert_eq!(Interval {
-                       start: Moment(Local.ymd(2017, 04, 26).and_hms(9, 0, 0)),
+                       start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
                        grain: Grain::Hour,
-                       end: Some(Moment(Local.ymd(2017, 04, 30).and_hms(0, 0, 0))),
+                       end: Some(Moment(Paris.ymd(2017, 04, 30).and_hms(0, 0, 0))),
                    },
                    interval.intersect(other).unwrap());
         assert_eq!(Interval {
-                       start: Moment(Local.ymd(2017, 04, 26).and_hms(9, 0, 0)),
+                       start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
                        grain: Grain::Hour,
-                       end: Some(Moment(Local.ymd(2017, 04, 30).and_hms(0, 0, 0))),
+                       end: Some(Moment(Paris.ymd(2017, 04, 30).and_hms(0, 0, 0))),
                    },
                    other.intersect(interval).unwrap());
         let other = Interval {
-            start: Moment(Local.ymd(2017, 05, 26).and_hms(9, 0, 0)),
+            start: Moment(Paris.ymd(2017, 05, 26).and_hms(9, 0, 0)),
             grain: Grain::Hour,
-            end: Some(Moment(Local.ymd(2017, 06, 08).and_hms(11, 0, 0))),
+            end: Some(Moment(Paris.ymd(2017, 06, 08).and_hms(11, 0, 0))),
         };
         assert_eq!(None, interval.intersect(other));
     }
@@ -568,9 +567,9 @@ mod tests {
     #[test]
     fn seconds() {
         let interval = Interval {
-            start: Moment(Local.ymd(2017, 04, 25).and_hms(0, 0, 0)),
+            start: Moment(Paris.ymd(2017, 04, 25).and_hms(0, 0, 0)),
             grain: Grain::Day,
-            end: Some(Moment(Local.ymd(2017, 04, 30).and_hms(0, 0, 0))),
+            end: Some(Moment(Paris.ymd(2017, 04, 30).and_hms(0, 0, 0))),
         };
         assert_eq!(5 * 86400, interval.seconds());
     }
