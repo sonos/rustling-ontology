@@ -38,6 +38,7 @@ impl Context<Local> {
 
 impl<T: TimeZone> Context<T> where <T as TimeZone>::Offset: Copy {
     pub fn for_reference(now: Interval<T>) -> Context<T> {
+        // TODO: Should be refactor with the min, max date offer by chrono crate
         let now_end = now.end_moment();
         let max_year = if 2038 > now_end.year() + 30 { now_end.year() + 30 } else { 2038 };
         let min_year = if 1970 < now.start.year() - 30 { now.start.year() - 30  } else { 1970 };
