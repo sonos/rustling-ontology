@@ -1,5 +1,5 @@
 use rustling::{AttemptFrom, Check, ParsedNode};
-use moment::{Grain, Interval, Moment};
+use moment::{Grain, Interval, Moment, Local};
 use dimension::*;
 use output::*;
 
@@ -64,7 +64,7 @@ pub fn check_float(v: f32) -> CheckFloat {
 pub struct CheckMoment {
     pub direction: Option<Direction>,
     pub precision: Precision,
-    pub interval: Interval,
+    pub interval: Interval<Local>,
     pub context: ParsingContext,
 }
 
@@ -110,7 +110,7 @@ impl Check<Dimension> for CheckMoment {
     }
 }
 
-pub fn check_moment(context: ParsingContext, moment: Moment, grain: Grain, precision: Precision, direction: Option<Direction>)
+pub fn check_moment(context: ParsingContext, moment: Moment<Local>, grain: Grain, precision: Precision, direction: Option<Direction>)
                       -> CheckMoment {
     CheckMoment {
         direction: direction,
@@ -121,7 +121,7 @@ pub fn check_moment(context: ParsingContext, moment: Moment, grain: Grain, preci
 }
 #[derive(Debug)]
 pub struct CheckMomentSpan {
-    pub interval: Interval,
+    pub interval: Interval<Local>,
     pub context: ParsingContext,
 }
 
@@ -140,7 +140,7 @@ impl Check<Dimension> for CheckMomentSpan {
     }
 }
 
-pub fn check_moment_span(context: ParsingContext, start: Moment, end: Moment, grain: Grain)
+pub fn check_moment_span(context: ParsingContext, start: Moment<Local>, end: Moment<Local>, grain: Grain)
                       -> CheckMomentSpan {
     CheckMomentSpan { interval: Interval::new(start, Some(end), grain), context: context }
 }

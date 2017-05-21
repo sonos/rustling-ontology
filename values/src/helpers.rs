@@ -64,7 +64,7 @@ fn precision_resolution(lhs: Precision, rhs: Precision) -> Precision {
 }
 
 impl TimeValue {
-    pub fn constraint(constraint: RcConstraint) -> TimeValue {
+    pub fn constraint(constraint: RcConstraint<Local>) -> TimeValue {
         TimeValue {
             constraint: constraint,
             form: Form::Empty,

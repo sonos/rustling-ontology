@@ -14,30 +14,12 @@ use std::ops;
 use std::cmp::Ordering;
 use std::fmt;
 
-use chrono::{Duration, Datelike, Timelike, FixedOffset, NaiveDate, NaiveDateTime, LocalResult};
+use chrono::{Duration, Datelike, Timelike};
 pub use chrono::{Weekday, Local, TimeZone};
 use chrono::datetime::DateTime;
 pub use interval_constraints::*;
 pub use period::*;
 
-
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub struct Paris;
-
-impl TimeZone for Paris {
-    type Offset = FixedOffset;
-    fn from_offset(_: &FixedOffset) -> Paris { Paris }
-
-    fn offset_from_local_date(&self, _local: &NaiveDate) -> LocalResult<FixedOffset> {
-        LocalResult::Single(FixedOffset::east(2*3600))
-    }
-    fn offset_from_local_datetime(&self, _local: &NaiveDateTime) -> LocalResult<FixedOffset> {
-        LocalResult::Single(FixedOffset::east(2*3600))
-    }
-
-    fn offset_from_utc_date(&self, _utc: &NaiveDate) -> FixedOffset { FixedOffset::east(2*3600) }
-    fn offset_from_utc_datetime(&self, _utc: &NaiveDateTime) -> FixedOffset { FixedOffset::east(2*3600) }
-}
 
 #[derive(Clone)]
 pub struct Moment<T: TimeZone>(pub DateTime<T>);
@@ -372,8 +354,26 @@ impl<T: TimeZone> ops::Sub<Period> for Interval<T> where <T as TimeZone>::Offset
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{TimeZone, FixedOffset};
+    use chrono::{TimeZone, FixedOffset, NaiveDate, NaiveDateTime, LocalResult};
 
+    #[derive(Copy, Clone, PartialEq, Eq)]
+    struct Paris;
+    
+    impl TimeZone for Paris {
+        type Offset = FixedOffset;
+        fn from_offset(_: &FixedOffset) -> Paris { Paris }
+    
+        fn offset_from_local_date(&self, _local: &NaiveDate) -> LocalResult<FixedOffset> {
+            LocalResult::Single(FixedOffset::east(2*3600))
+        }
+        fn offset_from_local_datetime(&self, _local: &NaiveDateTime) -> LocalResult<FixedOffset> {
+            LocalResult::Single(FixedOffset::east(2*3600))
+        }
+    
+        fn offset_from_utc_date(&self, _utc: &NaiveDate) -> FixedOffset { FixedOffset::east(2*3600) }
+        fn offset_from_utc_datetime(&self, _utc: &NaiveDateTime) -> FixedOffset { FixedOffset::east(2*3600) }
+    }
+    
     #[test]
     fn test_last_day_in_month() {
         assert_eq!(last_day_in_month(2015, 2, Paris), 28);

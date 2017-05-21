@@ -2,7 +2,7 @@ use super::*;
 use rustling_ontology_values::check::*;
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second), 80);
+    let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "now", "right now", "just now");
     example!(v, check_moment!(c, [2013, 2, 12]), "today", "at this time");
     example!(v, check_moment!(c, [2013, 2, 11]), "yesterday");

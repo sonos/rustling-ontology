@@ -1,7 +1,7 @@
 use std::{fmt, result};
 
 use rustling::*;
-use moment::{RcConstraint, Period, Grain};
+use moment::{RcConstraint, Period, Grain, Local};
 
 /// Union of all possible values parsed by the ontology.
 rustling_value! {
@@ -312,7 +312,7 @@ impl UnitOfDurationValue {
 /// Payload for the time of Dimension
 #[derive(Clone)]
 pub struct TimeValue {
-    pub constraint: RcConstraint,
+    pub constraint: RcConstraint<Local>,
     pub form: Form,
     pub direction: Option<Direction>,
     pub precision: Precision,

@@ -13,37 +13,37 @@ pub enum Output {
     Duration(DurationOutput),
 }
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,Copy,PartialEq,Debug)]
 pub struct IntegerOutput(pub i64);
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,Copy,PartialEq,Debug)]
 pub struct FloatOutput(pub f32);
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,Copy,PartialEq,Debug)]
 pub struct OrdinalOutput(pub i64);
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,Copy,PartialEq,Debug)]
 pub struct TimeOutput {
-    pub moment: Moment, 
+    pub moment: Moment<Local>, 
     pub grain: Grain, 
     pub precision: Precision,
 }
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,Copy,PartialEq,Debug)]
 pub enum TimeIntervalOutput {
-    After(Moment),
-    Before(Moment),
-    Between(Moment, Moment)
+    After(Moment<Local>),
+    Before(Moment<Local>),
+    Between(Moment<Local>, Moment<Local>)
 }
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,Copy,PartialEq,Debug)]
 pub struct AmountOfMoneyOutput {
     pub value: f32, 
     pub precision: Precision, 
     pub unit: Option<&'static str>,
 }
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,Copy,PartialEq,Debug)]
 pub struct TemperatureOutput {
     pub value: f32, 
     pub unit: Option<&'static str>,
@@ -66,15 +66,13 @@ variant_converters!(Output, Duration, DurationOutput);
 
 #[derive(Default, Debug, Copy, Clone)]
 pub struct ParsingContext {
-    ctx: Context,
+    ctx: Context<Local>,
 }
 
 impl ParsingContext {
-    pub fn new(now: Interval, years_span: u32) -> ParsingContext {
+    pub fn new(now: Interval<Local>) -> ParsingContext {
         ParsingContext {
-           ctx: Context::new(now,
-                     now - PeriodComp::years(years_span as i64),
-                     now + PeriodComp::years(years_span as i64)) 
+           ctx: Context::for_reference(now) 
         }
     }
 }
