@@ -27,7 +27,7 @@ fn main() {
     match matches.subcommand() {
         ("parse", Some(matches)) => {
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
-            let decoder = values::output::ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second), 80);
+            let decoder = values::output::ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
             let rules = rules::rules(lang).unwrap();
             let matches = rules.apply_all(&*sentence).unwrap();
         

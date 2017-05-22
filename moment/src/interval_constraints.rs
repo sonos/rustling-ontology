@@ -943,13 +943,31 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for ShiftBy<T>  where <T as Time
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{TimeZone, Weekday};
+    use chrono::{TimeZone, Weekday, FixedOffset, NaiveDate, NaiveDateTime, LocalResult};
     use ::*;
 
     fn build_context(moment: Moment<Paris>) -> Context<Paris> {
         let now = Interval::starting_at(moment, Grain::Second);
 
         Context::for_reference(now)
+    }
+
+    #[derive(Copy, Clone, PartialEq, Eq)]
+    struct Paris;
+    
+    impl TimeZone for Paris {
+        type Offset = FixedOffset;
+        fn from_offset(_: &FixedOffset) -> Paris { Paris }
+    
+        fn offset_from_local_date(&self, _local: &NaiveDate) -> LocalResult<FixedOffset> {
+            LocalResult::Single(FixedOffset::east(2*3600))
+        }
+        fn offset_from_local_datetime(&self, _local: &NaiveDateTime) -> LocalResult<FixedOffset> {
+            LocalResult::Single(FixedOffset::east(2*3600))
+        }
+    
+        fn offset_from_utc_date(&self, _utc: &NaiveDate) -> FixedOffset { FixedOffset::east(2*3600) }
+        fn offset_from_utc_datetime(&self, _utc: &NaiveDateTime) -> FixedOffset { FixedOffset::east(2*3600) }
     }
     
     #[test]
