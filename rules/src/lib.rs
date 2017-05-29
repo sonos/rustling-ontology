@@ -52,8 +52,8 @@ impl ::std::string::ToString for Lang {
 }
 
 macro_rules! lang {
-    ($lang:ident, $settings:ident, [$($rule:ident),*], [$($dim:ident),*]) => {
-        pub mod $settings {
+    ($lang:ident, $config:ident, [$($rule:ident),*], [$($dim:ident),*]) => {
+        pub mod $config {
             use values;
             use $lang;
             pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
@@ -62,10 +62,10 @@ macro_rules! lang {
                 Ok(b.build())
             }
 
-            pub fn dims() ->  ::rustling::RustlingResult<Vec<values::DimensionKind>> {
+            pub fn dims() -> Vec<values::DimensionKind> {
                 let mut dims = vec![];
                 $( dims.push(values::DimensionKind::$dim); )*
-                Ok(dims)
+                dims
             }
         }
     }
@@ -74,24 +74,24 @@ macro_rules! lang {
 /// Obtain rules for a given language.
 pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
     match lang {
-        Lang::EN => en_settings::rule_set(),
-        Lang::FR => fr_settings::rule_set(),
-        Lang::ES => es_settings::rule_set(),
+        Lang::EN => en_config::rule_set(),
+        Lang::FR => fr_config::rule_set(),
+        Lang::ES => es_config::rule_set(),
     }
 }
 
 /// Obtain dimensions for a given language.
-pub fn dims(lang: Lang) -> ::rustling::RustlingResult<Vec<values::DimensionKind>> {
+pub fn dims(lang: Lang) -> Vec<values::DimensionKind> {
     match lang {
-        Lang::EN => en_settings::dims(),
-        Lang::FR => fr_settings::dims(),
-        Lang::ES => es_settings::dims(),
+        Lang::EN => en_config::dims(),
+        Lang::FR => fr_config::dims(),
+        Lang::ES => es_config::dims(),
     }
 }
 
-lang!(en, en_settings, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
+lang!(en, en_config, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
           [Number, Time, Duration, Temperature, AmountOfMoney]);
-lang!(es, es_settings, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
+lang!(es, es_config, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
           [Number, Time, Duration, Temperature]);
-lang!(fr, fr_settings, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
+lang!(fr, fr_config, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
           [Number, Time, Duration, Temperature]);
