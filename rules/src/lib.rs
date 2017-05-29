@@ -23,6 +23,12 @@ pub enum Lang {
     ES,
 }
 
+impl Lang {
+    pub fn all() -> Vec<Lang> {
+        vec![Lang::EN, Lang::FR, Lang::ES]
+    }
+}
+
 impl std::str::FromStr for Lang {
     type Err = String;
     fn from_str(it: &str) -> result::Result<Lang, Self::Err> {
@@ -46,11 +52,21 @@ impl ::std::string::ToString for Lang {
 }
 
 macro_rules! lang {
-    ($lang:ident, [$($rule:ident),*]) => {
-        pub fn $lang() -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
-            let mut b = ::rustling::RuleSetBuilder::default();
-            $( $lang::$rule(&mut b)?; )*
-            Ok(b.build())
+    ($lang:ident, $settings:ident, [$($rule:ident),*], [$($dim:ident),*]) => {
+        pub mod $settings {
+            use values;
+            use $lang;
+            pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
+                let mut b = ::rustling::RuleSetBuilder::default();
+                $( $lang::$rule(&mut b)?; )*
+                Ok(b.build())
+            }
+
+            pub fn dims() ->  ::rustling::RustlingResult<Vec<values::DimensionKind>> {
+                let mut dims = vec![];
+                $( dims.push(values::DimensionKind::$dim); )*
+                Ok(dims)
+            }
         }
     }
 }
@@ -58,12 +74,24 @@ macro_rules! lang {
 /// Obtain rules for a given language.
 pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
     match lang {
-        Lang::EN => en(),
-        Lang::FR => fr(),
-        Lang::ES => es(),
+        Lang::EN => en_settings::rule_set(),
+        Lang::FR => fr_settings::rule_set(),
+        Lang::ES => es_settings::rule_set(),
     }
 }
 
-lang!(en, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance]);
-lang!(es, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time]);
-lang!(fr, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration]);
+/// Obtain dimensions for a given language.
+pub fn dims(lang: Lang) -> ::rustling::RustlingResult<Vec<values::DimensionKind>> {
+    match lang {
+        Lang::EN => en_settings::dims(),
+        Lang::FR => fr_settings::dims(),
+        Lang::ES => es_settings::dims(),
+    }
+}
+
+lang!(en, en_settings, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
+          [Number, Time, Duration, Temperature, AmountOfMoney]);
+lang!(es, es_settings, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
+          [Number, Time, Duration, Temperature]);
+lang!(fr, fr_settings, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
+          [Number, Time, Duration, Temperature]);

@@ -114,20 +114,20 @@ pub fn train_parser(lang: Lang) -> RustlingResult<Parser> {
 }
 
 macro_rules! lang {
-    ($lang:ident) => {
+    ($lang:ident, $settings:ident) => {
         mod $lang {
             use rustling_ontology_rules as rules;
             use super::*;
 
             pub fn train_parser() -> RustlingResult<Parser> {
-                let rules = rules::$lang()?;
+                let rules = rules::$settings::rule_set()?;
                 let exs = ::training::$lang();
                 let model = ::rustling::train::train(&rules, exs, ::parser::FeatureExtractor())?;
                 Ok(Parser(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor())))
             }
 
             pub fn build_raw_parser() -> RustlingResult<::RawParser> {
-                let rules = rules::$lang()?;
+                let rules = rules::$settings::rule_set()?;
                 let model = ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/", stringify!($lang), ".rmp"))[..]).map_err(|e| format!("{:?}", e))?;
                 Ok(::RawParser::new(rules, model, ::parser::FeatureExtractor()))
             }
@@ -139,9 +139,9 @@ macro_rules! lang {
     }
 }
 
-lang!(en);
-lang!(es);
-lang!(fr);
+lang!(en, en_settings);
+lang!(es, es_settings);
+lang!(fr, fr_settings);
 
 #[cfg(test)]
 mod tests {

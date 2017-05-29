@@ -12,7 +12,7 @@ mod parser;
 
 
 macro_rules! lang {
-    ($lang:ident) => {
+    ($lang:ident, $settings:ident) => {
         mod $lang {
             use rustling_ontology_rules as rules;
             use std::{path, env, fs};
@@ -20,7 +20,7 @@ macro_rules! lang {
                 println!("cargo:rerun-if-changed=rules/src/{}.rs", stringify!($lang));
                 let out_dir = path::PathBuf::from(env::var("OUT_DIR").unwrap());
                 let mut file = fs::File::create(out_dir.join(concat!(stringify!($lang), ".rmp"))).unwrap(); 
-                let rules = rules::$lang().unwrap();
+                let rules = rules::$settings::rule_set().unwrap();
                 let exs = ::training::$lang();
                 let model = ::rustling::train::train(&rules, exs, ::parser::FeatureExtractor()).unwrap();
                 ::rmp_serde::encode::write(&mut file, &model).unwrap();
@@ -29,9 +29,9 @@ macro_rules! lang {
     }
 }
 
-lang!(en);
-lang!(es);
-lang!(fr);
+lang!(en, en_settings);
+lang!(es, es_settings);
+lang!(fr, fr_settings);
 
 fn main() {
     en::train();

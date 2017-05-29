@@ -8,4 +8,5 @@ pub mod check;
 pub mod helpers;
 
 pub use dimension::Dimension;
+pub use dimension::DimensionKind;
 pub use output::Output;
