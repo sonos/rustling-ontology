@@ -21,7 +21,7 @@ pub mod es;
 pub mod fr;
 
 macro_rules! lang {
-    ($lang:ident, $lang_test:ident, [$($example:ident),*]) => {
+    ($lang:ident, $lang_test:ident, $lang_config:ident, [$($example:ident),*]) => {
         pub fn $lang() -> Vec<::rustling::train::Example<Dimension>> {
             let mut v = vec![];
             $( $lang::$example(&mut v); )*
@@ -43,7 +43,7 @@ macro_rules! lang {
             }
             #[test]
             fn test_examples() {
-                let rules = ::rustling_ontology_rules::$lang().unwrap();
+                let rules = ::rustling_ontology_rules::$lang_config::rule_set().unwrap();
                 let examples = $lang();
                 assert_examples(&rules, examples);
             }
@@ -51,7 +51,7 @@ macro_rules! lang {
     }
 }
 
-lang!(en, en_test, [examples_numbers, examples_time]);
-lang!(fr, fr_test, [examples_numbers, examples_time]);
-lang!(es, es_test, [examples_numbers, examples_time]);
+lang!(en, en_test, en_config, [examples_numbers, examples_time]);
+lang!(fr, fr_test, fr_config, [examples_numbers, examples_time]);
+lang!(es, es_test, es_config, [examples_numbers, examples_time]);
 

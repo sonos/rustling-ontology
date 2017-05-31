@@ -13,7 +13,7 @@ fn run(rules: &rustling::RuleSet<Dimension>, sentence: &str) -> Vec<rustling::Pa
 
 #[test]
 fn ex_100k() {
-    let en = rules::en().unwrap();
+    let en = rules::en_config::rule_set().unwrap();
     assert!(run(&en, "100k").into_iter().any(|it| check_integer(100000).check(&it)));
     assert!(!run(&en, "100kilo").into_iter().any(|it| check_integer(100000).check(&it)));
     assert!(run(&en, "100k$").into_iter().any(|it| check_integer(100000).check(&it)));

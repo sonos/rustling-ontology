@@ -12,7 +12,7 @@
 //!
 //!     let ctx = ParsingContext::default();
 //!     let parser = build_parser(rustling_ontology::Lang::EN).unwrap();
-//!     let result = parser.parse("twenty-one", &ctx).unwrap();
+//!     let result = parser.parse("twenty-one", &ctx, true).unwrap();
 //!
 //!     let int: output::IntegerOutput= result[0].value.clone().attempt_into().unwrap();
 //!     assert_eq!(21, int.0);
@@ -74,16 +74,18 @@ impl Parser {
     pub fn parse_with_kind_order(&self,
                                  input: &str,
                                  context: &ParsingContext,
-                                 order: &[DimensionKind])
+                                 order: &[DimensionKind], 
+                                 remove_overlap:bool)
                                  -> RustlingResult<Vec<ParserMatch<Output>>> {
-        Ok(self.translate_values(self.0.parse_with_kind_order(input, order)?, context))
+        Ok(self.translate_values(self.0.parse_with_kind_order(input, order, remove_overlap)?, context))
     }
 
     pub fn parse(&self,
                  input: &str,
-                 context: &ParsingContext)
+                 context: &ParsingContext,
+                 remove_overlap:bool)
                  -> RustlingResult<Vec<ParserMatch<Output>>> {
-        Ok(self.translate_values(self.0.parse(input)?, context))
+        Ok(self.translate_values(self.0.parse(input, remove_overlap)?, context))
     }
 }
 
@@ -152,7 +154,7 @@ mod tests {
         let ctx = ParsingContext::default();
         let parser = build_parser(Lang::EN).unwrap();
         let number = "one million five hundred twenty-one thousand eighty-two";
-        let result = parser.parse_with_kind_order(number, &ctx,  &[DimensionKind::Number]).unwrap();
+        let result = parser.parse_with_kind_order(number, &ctx,  &[DimensionKind::Number], true).unwrap();
         let int: output::IntegerOutput = result[0].value.clone().attempt_into().unwrap();
         assert_eq!(1521082, int.0);
     }

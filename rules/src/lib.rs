@@ -90,8 +90,8 @@ pub fn dims(lang: Lang) -> Vec<values::DimensionKind> {
 }
 
 lang!(en, en_config, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
-          [Number, Time, Duration, Temperature, AmountOfMoney]);
+          [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
 lang!(es, es_config, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
-          [Number, Time, Duration, Temperature]);
+          [Number, Ordinal, Time, Duration, Temperature]);
 lang!(fr, fr_config, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
-          [Number, Time, Duration, Temperature]);
+          [Number, Ordinal, Time, Duration, Temperature]);

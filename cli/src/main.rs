@@ -16,6 +16,7 @@ fn main() {
         (@subcommand parse =>
              (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
              (@arg sentence: +required "Sentence to test")
+             (@arg overloap:  -o --overlap +takes_value "Remove overlap (default to true)")
         )
         (@subcommand play =>
              (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
@@ -29,8 +30,9 @@ fn main() {
         ("parse", Some(matches)) => {
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_parser(lang).unwrap();
+            let overlap: bool =  matches.value_of("overlap").unwrap_or("true").parse().unwrap();
             let context = ParsingContext::default();
-            let entities = parser.parse(&*sentence, &context).unwrap();
+            let entities = parser.parse(&*sentence, &context, overlap).unwrap();
             let mut table = Table::new();
             table.set_titles(row!["ix", "log(p)", "p", "text", "value"]);
             for (ix, c) in entities.iter().enumerate().rev() {

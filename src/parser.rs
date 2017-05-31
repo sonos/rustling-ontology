@@ -55,7 +55,7 @@ mod tests {
     fn test_twenty() {
         let parser = build_raw_parser(Lang::EN).unwrap();
         let result = parser
-            .parse_with_kind_order("twenty", &[DimensionKind::Number])
+            .parse_with_kind_order("twenty", &[DimensionKind::Number], true)
             .unwrap();
         assert_eq!(ParserMatch {
                        byte_range: Range(0, 6),
@@ -71,7 +71,7 @@ mod tests {
     fn test_21() {
         let parser = build_raw_parser(Lang::EN).unwrap();
         let result = parser
-            .parse_with_kind_order("twenty-one", &[DimensionKind::Number])
+            .parse_with_kind_order("twenty-one", &[DimensionKind::Number], true)
             .unwrap();
         assert_eq!(21,
                    IntegerValue::attempt_from(result[0].value.clone())
@@ -82,7 +82,7 @@ mod tests {
     #[test]
     fn test_2_1000() {
         let parser = build_raw_parser(Lang::EN).unwrap();
-        let result = parser.parse("twenty-one thousands").unwrap();
+        let result = parser.parse("twenty-one thousands", true).unwrap();
         assert_eq!(21000,
                    IntegerValue::attempt_from(result[0].value.clone())
                        .unwrap()
@@ -92,7 +92,7 @@ mod tests {
     #[test]
     fn test_foobar() {
         let parser = build_raw_parser(Lang::EN).unwrap();
-        let result = parser.parse("foobar twenty thousands").unwrap();
+        let result = parser.parse("foobar twenty thousands", true).unwrap();
         assert_eq!(20000,
                    IntegerValue::attempt_from(result[0].value.clone())
                        .unwrap()
