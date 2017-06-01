@@ -1,6 +1,6 @@
 [package]
 name = "rustling-cli-debug"
-version = "0.7.1"
+version = "0.8.0"
 authors = ["hdlj <hubert.delajonquiere@snips.net>", "Mathieu Poumeyrol <kali@zoy.org>"]
 
 [dependencies]
