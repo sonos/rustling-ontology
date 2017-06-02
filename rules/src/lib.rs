@@ -11,6 +11,7 @@ mod macros;
 pub mod en;
 pub mod fr;
 pub mod es;
+pub mod ko;
 
 /// Enumerates all language supported for the general purpose ontology.
 #[derive(Copy,Clone,Debug)]
