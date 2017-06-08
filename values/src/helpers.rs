@@ -2,6 +2,7 @@ use rustling::*;
 use dimension::*;
 use moment::*;
 use std::ops;
+use regex::Regex;
 
 pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberValue> {
     let grain = a.grain().unwrap_or(0) as u32;
@@ -15,6 +16,28 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
     } else {
         Err(RuleErrorKind::Invalid.into())
     }
+}
+
+pub struct RegexMatch<'a> {
+    pub full:&'a str,
+    pub groups: Vec<&'a str>,
+}
+
+pub fn find_regex_group<'a>(regex: &Regex, sentence: &'a str) -> RuleResult<Vec<RegexMatch<'a>>> {
+    let mut matches = Vec::new();
+    for cap in regex.captures_iter(&sentence) {
+        let full = cap.get(0)
+                    .ok_or_else(|| format!("No capture for regexp {} for sentence: {}", regex, sentence))?
+                    .as_str();
+        let mut groups = Vec::new();
+        for group in cap.iter() {
+            groups.push(group
+                    .ok_or_else(|| format!("No capture for regexp {} in capture: {}", regex, full))?
+                    .as_str());
+        }
+        matches.push(RegexMatch { full, groups, })
+    }
+    Ok(matches)
 }
 
 pub fn decimal_hour_in_minute(a: &str, b: &str) -> RuleResult<i64> {

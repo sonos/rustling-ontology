@@ -1,6 +1,8 @@
 use rustling::*;
 use values::dimension::*;
 use values::dimension::Precision::*;
+use values::helpers;
+use regex::Regex;
 
 pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("integer (numeric)",
@@ -34,12 +36,38 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .. IntegerValue::default()
             })
     );
-    //b.rule_1("integer - TYPE 1",
-    //    b.reg(r#"[일|이|삼|사|오|육|칠|팔|구|십|백|천|만|억|조]+"#)?,
-    //    |text_match| {
-    //        unimplemented!()
-    //    }
-    //);
+    b.rule_1("integer - TYPE 1",
+        b.reg(r#"[일|이|삼|사|오|육|칠|팔|구|십|백|천|만|억|조]+"#)?,
+        |text_match| {
+            fn map_number(s: &str) -> i64 {
+                match s {
+                    "일" => 1, 
+                    "이" => 2, 
+                    "삼" => 3, 
+                    "사" => 4, 
+                    "오" => 5, 
+                    "육" => 6, 
+                    "칠" => 7, 
+                    "팔" => 8, 
+                    "구" => 9, 
+                    "천" => 1, 
+                    "백" => 1, 
+                    "십" => 1,
+                    _ => panic!("unknow match"),
+                }
+            }
+
+            fn get_number(s: &str) -> RuleResult<i64> {
+                let regex = Regex::new(r#"(.*천)?(.*백)?(.*십)?(.*)?"#)?;
+                let match_ = helpers::find_regex_group(regex, s)
+                    .get(0)
+                    .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, s))?.groups;
+                Ok(1)
+
+            }
+            IntegerValue::new(1);
+        }
+    );
     b.rule_1("integer (1..10) - TYPE 2",
         b.reg(r#"(하나|둘|셋|넷|다섯|여섯|일곱|여덟|아홉)"#)?,
         |text_match| {
@@ -103,28 +131,30 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |text_match| FloatValue::new(text_match.group(1).parse()?)
     );
 
-    // b.rule_1("number dot number - 삼점사",
-    //     number_check!(|number: &NumberValue| !number.prefixed()),
-    //     b.reg(r#"(점|쩜)([일|이|삼|사|오|육|칠|팔|구|영]+)"#)?,
-    //     |a, text_match| {
-    //         fn number_mapping(c: char) -> char {
-    //             match c {
-    //                 "일" => "1", 
-    //                 "이" => "2", 
-    //                 "삼" => "3",
-    //                 "사" => "4", 
-    //                 "오" => "5",
-    //                 "육" => "6",
-    //                 "칠" => "7",
-    //                 "팔" => "8",
-    //                 "구" => "9", 
-    //                 "영" => "0",
-    //             }
-    //         }
-    //         text_match.group(2).chars().map(number_mapping).collect::<String>();
-    //         IntegerValue::new(1)
-    //     }
-    // );
+    b.rule_2("number dot number - 삼점사",
+        number_check!(|number: &NumberValue| !number.prefixed()),
+        b.reg(r#"(점|쩜)([일|이|삼|사|오|육|칠|팔|구|영]+)"#)?,
+        |a, text_match| {
+            fn number_mapping(c: char) -> char {
+                match c {
+                    '일' => '1', 
+                    '이' => '2', 
+                    '삼' => '3',
+                    '사' => '4', 
+                    '오' => '5',
+                    '육' => '6',
+                    '칠' => '7',
+                    '팔' => '8',
+                    '구' => '9', 
+                    '영' => '0',
+                     _   => panic!("Unknow match"),
+                }
+            }
+            let mut number: String = "0.".into();
+            number.push_str(&text_match.group(2).chars().map(number_mapping).collect::<String>());
+            IntegerValue::new(1)
+        }
+    );
 
     b.rule_1("decimal with thousands separator",
         b.reg(r#"(\d+(,\d\d\d)+\.\d+)"#)?,
@@ -159,11 +189,17 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"번째|째|째번"#)?,
         |a, _| Ok(OrdinalValue { value: a.value().value })
     );
-
-
-
-
-
-
+    b.rule_3("fraction",
+        number_check!(|number: &NumberValue| !number.prefixed()),
+        b.reg(r#"분(의|에)"#)?,
+        number_check!(|number: &NumberValue| !number.suffixed()),
+        |a, _, b| FloatValue::new(a.value().value() / b.value().value())
+    );
+    b.rule_3("fraction",
+        number_check!(|number: &NumberValue| !number.prefixed()),
+        b.reg(r#"/"#)?,
+        number_check!(|number: &NumberValue| !number.suffixed()),
+        |a, _, b| FloatValue::new(a.value().value() / b.value().value())
+    );
     Ok(())
 }

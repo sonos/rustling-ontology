@@ -2,7 +2,7 @@
 extern crate rustling;
 extern crate rustling_ontology_moment as moment;
 extern crate rustling_ontology_values as values;
-
+extern crate regex;
 use std::result;
 
 #[macro_use]
