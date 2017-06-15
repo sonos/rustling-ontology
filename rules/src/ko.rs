@@ -5,6 +5,121 @@ use values::helpers;
 use regex::Regex;
 use moment::{Weekday, Grain, PeriodComp};
 
+pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect",
+        time_check!(|time: &TimeValue| !time.latent),
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, b| a.value().intersect(b.value())
+    );
+    b.rule_3("intersect by \",\"",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#","#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_2("<date>에",
+        time_check!(),
+        b.reg(r#"에"#)?,
+        |time, _| Ok(time.value().clone())
+    );
+    b.rule_2("<named-day>에", // on Wed, March 23
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"에"#)?,
+        |time, _| Ok(time.value().clone())
+    );
+    b.rule_2("<named-month>에", //in September
+        time_check!(form!(Form::Month(_))),
+        b.reg(r#"에"#)?,
+        |time, _| Ok(time.value().clone())
+    );
+    b.rule_1("day-of-week",
+        b.reg(r#"(월|화|수|목|금|토|일)(요일|욜)"#)?,
+        |text_match| {
+            let dow = match text_match.group(1).as_ref() {
+                "월" => Weekday::Mon, 
+                "화" => Weekday::Tue, 
+                "수" => Weekday::Wed,
+                "목" => Weekday::Thu, 
+                "금" => Weekday::Fri, 
+                "토" => Weekday::Sat, 
+                "일" => Weekday::Sun,
+                _ => panic!("Unknow match {:?}", text_match),
+            };
+            helpers::day_of_week(dow)
+        }
+    );
+    b.rule_2("month",
+        integer_check!(1, 12),
+        b.reg(r#"월"#)?,
+        |integer, _| helpers::month(integer.value().value as u32)
+    );
+    b.rule_2("day",
+        integer_check!(1, 31),
+        b.reg(r#"일"#)?,
+        |integer, _| helpers::day_of_month(integer.value().value as u32)
+    );
+    b.rule_1("day with korean number - 십일..삼십일일",
+        b.reg(r#"([이|삼]?십[일|이|삼|사|오|육|칠|팔|구]?)일"#)?,
+        |text_match| {
+            fn map_number(s: char) -> i64 {
+                match s {
+                    '일' => 1, 
+                    '이' => 2, 
+                    '삼' => 3, 
+                    '사' => 4, 
+                    '오' => 5, 
+                    '육' => 6, 
+                    '칠' => 7, 
+                    '팔' => 8, 
+                    '구' => 9, 
+                    '십' => 1,
+                    _ => 0,
+                }
+            }
+
+            fn get_number(s: &str) -> RuleResult<i64> {
+                let regex = Regex::new(r#"(.*십)?(.*)?"#)?;
+                let groups = helpers::find_regex_group(&regex, s)?
+                    .into_iter()
+                    .nth(0)
+                    .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, s))?
+                    .groups;
+                let number = 10 * groups.get(1).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0)
+                            + groups.get(2).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0);
+                Ok(number)
+            }
+            let number = get_number(text_match.group(1));
+            helpers::day_of_month(number? as u32)
+        }
+    );
+    b.rule_1("day with korean number - 일일..구일",
+        b.reg(r#"([일|이|삼|사|오|육|칠|팔|구])일"#)?,
+        |text_match| {
+            let dom = match text_match.group(1).as_ref() {
+                "일" => 1, 
+                "이" => 2, 
+                "삼" => 3, 
+                "사" => 4, 
+                "오" => 5, 
+                "육" => 6, 
+                "칠" => 7, 
+                "팔" => 8, 
+                "구" => 9,
+                _ => panic!("Unknown match {:?}", text_match)
+            };
+            helpers::day_of_month(dom)
+        }
+    );
+    Ok(())
+}
+
+
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("second (unit-of-duration)",
         b.reg(r#"초"#)?,
