@@ -3,8 +3,104 @@ use values::dimension::*;
 use values::dimension::Precision::*;
 use values::helpers;
 use regex::Regex;
+use moment::{Weekday, Grain, PeriodComp};
 
-pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("second (cycle)",
+        b.reg(r#"초"#)?,
+        |_| CycleValue::new(Grain::Second)
+    );
+    b.rule_1("minute (cycle)",
+        b.reg(r#"분"#)?,
+        |_| CycleValue::new(Grain::Minute)
+    );
+    b.rule_1("hour (cycle)",
+        b.reg(r#"시간?"#)?,
+        |_| CycleValue::new(Grain::Hour)
+    );
+    b.rule_1("day (cycle)",
+        b.reg(r#"날|일(간|동안)?"#)?,
+        |_| CycleValue::new(Grain::Day)
+    );
+    b.rule_1("week (cycle)",
+        b.reg(r#"주(간|동안)?"#)?,
+        |_| CycleValue::new(Grain::Week)
+    );
+    b.rule_1("month (cycle)",
+        b.reg(r#"(달)(간|동안)?"#)?,
+        |_| CycleValue::new(Grain::Month)
+    );
+    b.rule_1("quarter (cycle)",
+        b.reg(r#"(달)(간|동안)?"#)?,
+        |_| CycleValue::new(Grain::Quarter)
+    );
+    b.rule_1("year (cycle)",
+        b.reg(r#"해|연간|년(간|동안)?"#)?,
+        |_| CycleValue::new(Grain::Year)
+    );
+    b.rule_2("this <cycle>",
+        b.reg(r#"이번|금|올"#)?,
+        cycle_check!(),
+        |_, a| helpers::cycle_nth(a.value().grain, 0)
+    );
+    b.rule_2("last <cycle>",
+        b.reg(r#"지난|작|전|저번"#)?,
+        cycle_check!(),
+        |_, a| helpers::cycle_nth(a.value().grain, -1)
+    );
+    b.rule_2("next <cycle>",
+        b.reg(r#"다음|오는|차|내"#)?,
+        cycle_check!(),
+        |_, a| helpers::cycle_nth(a.value().grain, 1)
+    );
+    b.rule_3("<time> 마지막 <cycle>",
+        time_check!(),
+        b.reg(r#"다음|오는|차|내"#)?,
+        cycle_check!(),
+        |time, _, cycle| cycle.value().last_of(time.value())
+    );
+    b.rule_3("<time> <ordinal> <cycle>",
+        time_check!(),
+        ordinal_check!(),
+        cycle_check!(),
+        |time, ordinal, cycle| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+    b.rule_1("the day after tomorrow - 내일모래",
+        b.reg(r#"(내일)?모래"#)?,
+        |_| helpers::cycle_nth_after(Grain::Day, 1, &helpers::cycle_nth(Grain::Day, 1)?)
+    );
+    b.rule_1("the day before yesterday - 엊그제",
+        b.reg(r#"엊?그[제|재]"#)?,
+        |_| helpers::cycle_nth_after(Grain::Day, -1, &helpers::cycle_nth(Grain::Day, -1)?)
+    );
+    b.rule_3("last n <cycle>",
+        b.reg(r#"지난"#)?,
+        integer_check!(1, 9999),
+        cycle_check!(),
+        |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    b.rule_3("next n <cycle>",
+        b.reg(r#"다음"#)?,
+        integer_check!(1, 9999),
+        cycle_check!(),
+        |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+    b.rule_2("<1..4> quarter",
+        integer_check!(1, 4),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        |integer, _| helpers::cycle_nth_after(Grain::Quarter, integer.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
+    );
+    b.rule_3("<year> <1..4>quarter",
+        time_check!(),
+        integer_check!(1, 4),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        |time, integer, _| helpers::cycle_nth_after(Grain::Quarter, integer.value().value - 1, time.value())
+    );
+    Ok(())
+}
+
+
+pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("integer (numeric)",
         b.reg(r#"(\d{1,18})"#)?,
         |text_match| {
@@ -98,7 +194,10 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                                             .unwrap_or(Ok(0))?
                         + 10000 * groups.get(3).and_then(|g| *g)
                                         .map(|g| if g == "만" { Ok(1) } else { get_number(g)})
-                                        .unwrap_or(Ok(0))?;
+                                        .unwrap_or(Ok(0))?
+                        + groups.get(4).and_then(|g| *g)
+                                            .map(|g| get_number(g))
+                                            .unwrap_or(Ok(0))?;
 
             IntegerValue::new(value)
         }
@@ -154,9 +253,9 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             IntegerValue::new(value)
         }
     );
-
-    b.rule_2("integer (21..99) - TYPE 2",
-        integer_check!(20, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+    // previous name "integer (21..99) - TYPE 2"
+    b.rule_2("integer (11..99) - TYPE 2",
+        integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
         integer_check!(1, 9),
         |a, b| IntegerValue::new(a.value().value + b.value().value)
     );
@@ -230,7 +329,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         number_check!(|number: &NumberValue| !number.prefixed()),
         b.reg(r#"분(의|에)"#)?,
         number_check!(|number: &NumberValue| !number.suffixed()),
-        |a, _, b| FloatValue::new(a.value().value() / b.value().value())
+        |a, _, b| FloatValue::new(b.value().value() / a.value().value())
     );
     b.rule_3("fraction",
         number_check!(|number: &NumberValue| !number.prefixed()),
