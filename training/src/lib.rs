@@ -19,6 +19,7 @@ mod macros;
 pub mod en;
 pub mod es;
 pub mod fr;
+pub mod ko;
 
 macro_rules! lang {
     ($lang:ident, $lang_test:ident, $lang_config:ident, [$($example:ident),*]) => {
@@ -38,7 +39,7 @@ macro_rules! lang {
                                 .into_iter()
                                 .filter(|candidate| candidate.root_node.byte_range == Range(0, ex.text.len()) && ex.predicate.check(&candidate))
                                 .collect::<Vec<_>>();
-                    assert!(!correct_results.is_empty(), ex.text);
+                    assert!(!correct_results.is_empty(), format!("No full match found for: {:?}", ex.text));
                 }
             }
             #[test]
@@ -54,4 +55,5 @@ macro_rules! lang {
 lang!(en, en_test, en_config, [examples_numbers, examples_time]);
 lang!(fr, fr_test, fr_config, [examples_numbers, examples_time]);
 lang!(es, es_test, es_config, [examples_numbers, examples_time]);
+lang!(ko, ko_test, ko_config, [examples_numbers]);
 
