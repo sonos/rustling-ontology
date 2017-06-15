@@ -22,11 +22,13 @@ pub enum Lang {
     FR,
     /// Spanish
     ES,
+    /// Korean
+    KO,
 }
 
 impl Lang {
     pub fn all() -> Vec<Lang> {
-        vec![Lang::EN, Lang::FR, Lang::ES]
+        vec![Lang::EN, Lang::FR, Lang::ES, Lang::KO]
     }
 }
 
@@ -37,6 +39,7 @@ impl std::str::FromStr for Lang {
             "en" => Ok(Lang::EN),
             "fr" => Ok(Lang::FR),
             "es" => Ok(Lang::ES),
+            "ko" => Ok(Lang::KO),
             _ => Err(format!("Unknown language {}", it)),
         }
     }
@@ -48,6 +51,7 @@ impl ::std::string::ToString for Lang {
             &Lang::EN => "en".to_string(),
             &Lang::FR => "fr".to_string(),
             &Lang::ES => "es".to_string(),
+            &Lang::KO => "ko".to_string(),
         }
     }
 }
@@ -78,6 +82,7 @@ pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<value
         Lang::EN => en_config::rule_set(),
         Lang::FR => fr_config::rule_set(),
         Lang::ES => es_config::rule_set(),
+        Lang::KO => ko_config::rule_set(),
     }
 }
 
@@ -87,6 +92,7 @@ pub fn dims(lang: Lang) -> Vec<values::DimensionKind> {
         Lang::EN => en_config::dims(),
         Lang::FR => fr_config::dims(),
         Lang::ES => es_config::dims(),
+        Lang::KO => ko_config::dims(),
     }
 }
 
@@ -96,3 +102,4 @@ lang!(es, es_config, [rules_numbers, rules_temperature, rules_cycle, rules_durat
           [Number, Ordinal, Time, Duration, Temperature]);
 lang!(fr, fr_config, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
           [Number, Ordinal, Time, Duration, Temperature]);
+lang!(ko, ko_config, [rules_numbers], [Number, Ordinal]);
