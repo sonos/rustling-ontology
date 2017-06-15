@@ -18,22 +18,21 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct RegexMatch<'a> {
-    pub full:&'a str,
     pub groups: Vec<Option<&'a str>>,
 }
 
 pub fn find_regex_group<'a>(regex: &Regex, sentence: &'a str) -> RuleResult<Vec<RegexMatch<'a>>> {
     let mut matches = Vec::new();
     for cap in regex.captures_iter(&sentence) {
-        let full = cap.get(0)
-                    .ok_or_else(|| format!("No capture for regexp {} for sentence: {}", regex, sentence))?
-                    .as_str();
+        let _ = cap.get(0)
+                    .ok_or_else(|| format!("No capture for regexp {} for sentence: {}", regex, sentence))?;
         let mut groups = Vec::new();
         for group in cap.iter() {
             groups.push(group.map(|g| g.as_str()));
         }
-        matches.push(RegexMatch { full, groups })
+        matches.push(RegexMatch { groups })
     }
     Ok(matches)
 }

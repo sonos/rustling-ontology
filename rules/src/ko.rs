@@ -64,19 +64,19 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .nth(0)
                     .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, s))?
                     .groups;
-                let number = 1000 * groups.get(0).and_then(|g| *g)
+                let number = 1000 * groups.get(1).and_then(|g| *g)
                                           .and_then(|g| g.chars().nth(0))
                                           .map(|g| map_number(g))
                                           .unwrap_or(0)
-                            + 100 * groups.get(1).and_then(|g| *g)
+                            + 100 * groups.get(2).and_then(|g| *g)
                                           .and_then(|g| g.chars().nth(0))
                                           .map(|g| map_number(g))
                                           .unwrap_or(0)
-                            + 10 * groups.get(2).and_then(|g| *g)
+                            + 10 * groups.get(3).and_then(|g| *g)
                                           .and_then(|g| g.chars().nth(0))
                                           .map(|g| map_number(g))
                                           .unwrap_or(0)
-                            + groups.get(3).and_then(|g| *g)
+                            + groups.get(4).and_then(|g| *g)
                                           .and_then(|g| g.chars().nth(0))
                                           .map(|g| map_number(g))
                                           .unwrap_or(0);
@@ -84,19 +84,19 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             }
 
             let regex = Regex::new(r#"(.*조)?(.*억)?(.*만)?(.*)?"#)?;
-            let groups = helpers::find_regex_group(&regex, text_match.full_match())?
+            let groups = helpers::find_regex_group(&regex, text_match.group(0))?
                     .into_iter()
                     .nth(0)
-                    .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, text_match.full_match()))?
+                    .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, text_match.group(0)))?
                     .groups;
 
-            let value = 1000000000000 * groups.get(0).and_then(|g| *g)
+            let value = 1000000000000 * groups.get(1).and_then(|g| *g)
                                               .map(|g| get_number(g))
                                               .unwrap_or(Ok(0))?
-                        + 100000000 * groups.get(1).and_then(|g| *g)
+                        + 100000000 * groups.get(2).and_then(|g| *g)
                                             .map(|g| get_number(g))
                                             .unwrap_or(Ok(0))?
-                        + 10000 * groups.get(2).and_then(|g| *g)
+                        + 10000 * groups.get(3).and_then(|g| *g)
                                         .map(|g| if g == "만" { Ok(1) } else { get_number(g)})
                                         .unwrap_or(Ok(0))?;
 
