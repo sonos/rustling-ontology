@@ -20,7 +20,7 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
 
 pub struct RegexMatch<'a> {
     pub full:&'a str,
-    pub groups: Vec<&'a str>,
+    pub groups: Vec<Option<&'a str>>,
 }
 
 pub fn find_regex_group<'a>(regex: &Regex, sentence: &'a str) -> RuleResult<Vec<RegexMatch<'a>>> {
@@ -31,11 +31,9 @@ pub fn find_regex_group<'a>(regex: &Regex, sentence: &'a str) -> RuleResult<Vec<
                     .as_str();
         let mut groups = Vec::new();
         for group in cap.iter() {
-            groups.push(group
-                    .ok_or_else(|| format!("No capture for regexp {} in capture: {}", regex, full))?
-                    .as_str());
+            groups.push(group.map(|g| g.as_str()));
         }
-        matches.push(RegexMatch { full, groups, })
+        matches.push(RegexMatch { full, groups })
     }
     Ok(matches)
 }

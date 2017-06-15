@@ -39,33 +39,68 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("integer - TYPE 1",
         b.reg(r#"[일|이|삼|사|오|육|칠|팔|구|십|백|천|만|억|조]+"#)?,
         |text_match| {
-            fn map_number(s: &str) -> i64 {
+            fn map_number(s: char) -> i64 {
                 match s {
-                    "일" => 1, 
-                    "이" => 2, 
-                    "삼" => 3, 
-                    "사" => 4, 
-                    "오" => 5, 
-                    "육" => 6, 
-                    "칠" => 7, 
-                    "팔" => 8, 
-                    "구" => 9, 
-                    "천" => 1, 
-                    "백" => 1, 
-                    "십" => 1,
-                    _ => panic!("unknow match"),
+                    '일' => 1, 
+                    '이' => 2, 
+                    '삼' => 3, 
+                    '사' => 4, 
+                    '오' => 5, 
+                    '육' => 6, 
+                    '칠' => 7, 
+                    '팔' => 8, 
+                    '구' => 9, 
+                    '천' => 1, 
+                    '백' => 1, 
+                    '십' => 1,
+                    _ => 0,
                 }
             }
 
             fn get_number(s: &str) -> RuleResult<i64> {
                 let regex = Regex::new(r#"(.*천)?(.*백)?(.*십)?(.*)?"#)?;
-                let match_ = helpers::find_regex_group(regex, s)
-                    .get(0)
-                    .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, s))?.groups;
-                Ok(1)
-
+                let groups = helpers::find_regex_group(&regex, s)?
+                    .into_iter()
+                    .nth(0)
+                    .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, s))?
+                    .groups;
+                let number = 1000 * groups.get(0).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0)
+                            + 100 * groups.get(1).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0)
+                            + 10 * groups.get(2).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0)
+                            + groups.get(3).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0);
+                Ok(number)
             }
-            IntegerValue::new(1);
+
+            let regex = Regex::new(r#"(.*조)?(.*억)?(.*만)?(.*)?"#)?;
+            let groups = helpers::find_regex_group(&regex, text_match.full_match())?
+                    .into_iter()
+                    .nth(0)
+                    .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, text_match.full_match()))?
+                    .groups;
+
+            let value = 1000000000000 * groups.get(0).and_then(|g| *g)
+                                              .map(|g| get_number(g))
+                                              .unwrap_or(Ok(0))?
+                        + 100000000 * groups.get(1).and_then(|g| *g)
+                                            .map(|g| get_number(g))
+                                            .unwrap_or(Ok(0))?
+                        + 10000 * groups.get(2).and_then(|g| *g)
+                                        .map(|g| if g == "만" { Ok(1) } else { get_number(g)})
+                                        .unwrap_or(Ok(0))?;
+
+            IntegerValue::new(value)
         }
     );
     b.rule_1("integer (1..10) - TYPE 2",
