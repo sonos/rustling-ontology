@@ -170,24 +170,26 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         number_check!(|number: &NumberValue| !number.prefixed()),
         b.reg(r#"(점|쩜)([일|이|삼|사|오|육|칠|팔|구|영]+)"#)?,
         |a, text_match| {
-            fn number_mapping(c: char) -> char {
+            fn number_mapping(c: char) -> Option<char> {
                 match c {
-                    '일' => '1', 
-                    '이' => '2', 
-                    '삼' => '3',
-                    '사' => '4', 
-                    '오' => '5',
-                    '육' => '6',
-                    '칠' => '7',
-                    '팔' => '8',
-                    '구' => '9', 
-                    '영' => '0',
-                     _   => panic!("Unknow match"),
+                    '일' => Some('1'), 
+                    '이' => Some('2'), 
+                    '삼' => Some('3'),
+                    '사' => Some('4'), 
+                    '오' => Some('5'),
+                    '육' => Some('6'),
+                    '칠' => Some('7'),
+                    '팔' => Some('8'),
+                    '구' => Some('9'), 
+                    '영' => Some('0'),
+                     _   => None,
                 }
             }
-            let mut number: String = "0.".into();
-            number.push_str(&text_match.group(2).chars().map(number_mapping).collect::<String>());
-            IntegerValue::new(1)
+            let number_string = format!("0.{}", 
+                                    text_match.group(2).chars()
+                                    .filter_map(number_mapping)
+                                    .collect::<String>());
+            FloatValue::new(a.value().value() + number_string.parse::<f32>()?)
         }
     );
 
