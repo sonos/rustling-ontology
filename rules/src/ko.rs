@@ -116,6 +116,167 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             helpers::day_of_month(dom)
         }
     );
+    b.rule_1("New Year's Day",
+        b.reg(r#"신정|설날"#)?,
+        |_| helpers::month_day(1, 1)
+    );
+    b.rule_1("Independence Movement Day",
+        b.reg(r#"삼일절"#)?,
+        |_| helpers::month_day(3, 1)
+    );
+    b.rule_1("Children's Day",
+        b.reg(r#"어린이날"#)?,
+        |_| helpers::month_day(5, 5)
+    );
+    b.rule_1("Memorial Day",
+        b.reg(r#"현충일"#)?,
+        |_| helpers::month_day(6, 6)
+    );
+    b.rule_1("Constitution Day",
+        b.reg(r#"제헌절"#)?,
+        |_| helpers::month_day(6, 17)
+    );
+    b.rule_1("Liberation Day",
+        b.reg(r#"광복절"#)?,
+        |_| helpers::month_day(8, 15)
+    );
+    b.rule_1("National Foundation Day",
+        b.reg(r#"개천절"#)?,
+        |_| helpers::month_day(10, 3)
+    );
+    b.rule_1("Hangul Day",
+        b.reg(r#"한글날"#)?,
+        |_| helpers::month_day(10, 9)
+    );
+    b.rule_1("christmas eve",
+        b.reg(r#"(크리스마스)?이브"#)?,
+        |_| helpers::month_day(12, 24)
+    );
+    b.rule_1("christmas",
+        b.reg(r#"크리스마스"#)?,
+        |_| helpers::month_day(12, 25)
+    );
+    b.rule_2("absorption of , after named day",
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#","#)?,
+        |dow, _| Ok(dow.value().clone())
+    );
+    b.rule_1("now",
+        b.reg(r#"방금|지금|방금|막"#)?,
+        |_| helpers::cycle_nth(Grain::Second, 0)
+    );
+    b.rule_1("today",
+        b.reg(r#"오늘|당일|금일"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 0)
+    );
+    b.rule_1("tomorrow",
+        b.reg(r#"내일|명일|낼"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 1)
+    );
+    b.rule_1("yesterday",
+        b.reg(r#"어제"#)?,
+        |_| helpers::cycle_nth(Grain::Day, -1)
+    );
+    b.rule_2("end of <time>",
+        time_check!(),
+        b.reg(r#"말"#)?,
+        |time, _| time.value().the_nth(1)
+    );
+    b.rule_2("this <day-of-week>",
+        b.reg(r#"이번주?|금주"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        |_, time| time.value().the_nth(0)
+    );
+    b.rule_2("this <time>",
+        b.reg(r#"이번"#)?,
+        time_check!(),
+        |_, time| time.value().the_nth(0)
+    );
+    b.rule_2("next <time>",
+        b.reg(r#"다음|오는"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |_, time| time.value().the_nth(1)
+    );
+    b.rule_2("last <time>",
+        b.reg(r#"전|저번|지난"#)?,
+        time_check!(),
+        |_, time| time.value().the_nth(-1)
+    );
+    b.rule_3("<time> 마지막 <day-of-week>",
+        time_check!(),
+        b.reg(r#"마지막"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        |a, _, b| b.value().last_of(a.value())
+    );
+    b.rule_3("<time> 마지막 <cycle>",
+        time_check!(),
+        b.reg(r#"마지막"#)?,
+        cycle_check!(),
+        |time, _, cycle| cycle.value().last_of(time.value())
+
+    );
+    b.rule_3("<time> nth <time> - 3월 첫째 화요일",
+        time_check!(),
+        ordinal_check!(),
+        time_check!(),
+        |a, ordinal, b| a.value()
+                .intersect(b.value())?
+                .the_nth(ordinal.value().value - 1)
+    );
+    b.rule_1("year",
+        integer_check!(1500, 2100),
+        |integer| helpers::year(integer.value().value as i32)
+    );
+    b.rule_1("year (latent)",
+        integer_check!(-1000, 999),
+        |integer| Ok(helpers::year(integer.value().value as i32)?.latent())
+
+    );
+    b.rule_1("year (latent)",
+        integer_check!(2101, 2300),
+        |integer| Ok(helpers::year(integer.value().value as i32)?.latent())
+
+    );
+    b.rule_2("year",
+        integer_check!(1),
+        b.reg(r#"년"#)?,
+        |integer, _| helpers::year(integer.value().value as i32)
+    );
+    b.rule_1("time-of-day (latent)",
+        integer_check!(0, 23),
+        |integer| Ok(helpers::hour(integer.value().value as u32, true)?.latent())
+    );
+    b.rule_2("time-of-day",
+        integer_check!(0, 24),
+        b.reg(r#"시"#)?,
+        |integer, _| helpers::hour(integer.value().value as u32, true)
+    );
+    b.rule_2("<time-of-day>에",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"에"#)?,
+        |time, _| Ok(time.value().clone().not_latent())
+    );
+    b.rule_2("<time-of-day> 정각",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"정각"#)?,
+        |time, _| Ok(time.value().clone().not_latent())
+    );
+    b.rule_1("hh:mm",
+        b.reg(r#"(?i)((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)"#)?,
+        |text_match| helpers::hour_minute(
+            text_match.group(1).parse()?,
+            text_match.group(2).parse()?,
+            true)
+    );
+    b.rule_1("hh:mm:ss",
+        b.reg(r#"(?i)((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)[:.]([0-5]\d)"#)?,
+        |text_match| helpers::hour_minute_second(
+            text_match.group(1).parse()?,
+            text_match.group(2).parse()?,
+            text_match.group(3).parse()?,
+            true
+        )
+    );
     Ok(())
 }
 
