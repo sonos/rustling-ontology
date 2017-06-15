@@ -5,6 +5,100 @@ use values::helpers;
 use regex::Regex;
 use moment::{Weekday, Grain, PeriodComp};
 
+pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("second (unit-of-duration)",
+        b.reg(r#"초"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Second))
+    );
+    b.rule_1("minute (unit-of-duration)",
+        b.reg(r#"분"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Minute))
+    );
+    b.rule_1("hour (unit-of-duration)",
+        b.reg(r#"시간?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Hour))
+    );
+    b.rule_1("day (unit-of-duration)",
+        b.reg(r#"날|일(간|동안)?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Day))
+    );
+    b.rule_1("week (unit-of-duration)",
+        b.reg(r#"주일?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Week))
+    );
+    b.rule_1("month (unit-of-duration)",
+        b.reg(r#"(달)(간|동안)?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Month))
+    );
+    // TODO check if the quarter duration is needed
+    b.rule_1("year (unit-of-duration)",
+        b.reg(r#"해|연간|년(간|동안)?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Year))
+    );
+    // TODO check that a cycle is ncessary for this rule and not a unit of duration (hour)
+    b.rule_2("half an hour",
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Hour),
+        b.reg(r#"반"#)?,
+        |_, _| Ok(DurationValue::new(PeriodComp::minutes(30).into()))
+    );
+    b.rule_1("a day - 하루",
+        b.reg(r#"하루"#)?,
+        |_| Ok(DurationValue::new(PeriodComp::days(1).into()))
+    );
+    b.rule_2("<integer> <unit-of-duration>",
+        integer_check!(0),
+        unit_of_duration_check!(),
+        |integer, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
+    );
+    b.rule_2("number.number hours",
+        b.reg(r#"(\d+)\.(\d+)"#)?,
+        b.reg(r#"시간"#)?,
+        |text_match, _| {
+            let decimal_hour = helpers::decimal_hour_in_minute(text_match.group(1), text_match.group(2))?;
+            Ok(DurationValue::new(PeriodComp::new(Grain::Minute, decimal_hour).into()))
+        }
+    );
+    b.rule_2("<integer> and an half hours",
+        integer_check!(0),
+        b.reg(r#"시간반"#)?,
+        |integer, _| Ok(DurationValue::new(PeriodComp::new(Grain::Minute, integer.value().value * 60 + 30).into()))
+    );
+    b.rule_2("in <duration>",
+        duration_check!(),
+        b.reg(r#"(안|내)에?"#)?,
+        |duration, _| duration.value().in_present()
+    );
+    b.rule_2("after <duration>",
+        duration_check!(),
+        b.reg(r#"이?후"#)?,
+        |duration, _| Ok(duration
+                            .value()
+                            .in_present()?
+                            .direction(Some(Direction::After)))
+    );
+    b.rule_2("<duration> from now",
+        b.reg(r#"지금부터"#)?,
+        duration_check!(),
+        |_, duration| duration.value().in_present()
+    );
+    b.rule_2("<duration> ago",
+        duration_check!(),
+        b.reg(r#"이?전"#)?,
+        |duration, _| duration.value().ago()
+    );
+    b.rule_2("about <duration>",
+        b.reg(r#"대충|약"#)?,
+        duration_check!(),
+        |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("exactly <duration>",
+        b.reg(r#"정확히"#)?,
+        duration_check!(),
+        |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
+    );
+    Ok(())
+}
+
 pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("second (cycle)",
         b.reg(r#"초"#)?,
