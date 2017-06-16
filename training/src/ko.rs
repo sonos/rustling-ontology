@@ -38,6 +38,14 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2012]), "작년");
     example!(v, check_moment!(c, [2013]), "올해");
     example!(v, check_moment!(c, [2014]), "내년");
+    example!(v, check_moment!(c, [2013, 2, 10]), "저번주 일요일", "지난주 일요일", "지난 일요일", "저번 일요일");
+    example!(v, check_moment!(c, [2013, 2, 5]), "저번주 화요일");
+    example!(v, check_moment!(c, [2013, 2, 19]), "다음주 화요일");  //when today is Tuesday, "mardi prochain" is a week from now
+    example!(v, check_moment!(c, [2013, 2, 20]), "다음주 수요일");
+    example!(v, check_moment!(c, [2013, 2, 22]), "다음주 금요일");
+    example!(v, check_moment!(c, [2013, 2, 18]), "이번주 월요일");
+    example!(v, check_moment!(c, [2013, 2, 12]), "이번주 화요일");
+    example!(v, check_moment!(c, [2013, 2, 13]), "이번주 수요일");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
