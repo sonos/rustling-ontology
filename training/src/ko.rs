@@ -31,6 +31,13 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "다음주", "오는주");
     example!(v, check_moment!(c, [2013, 1]), "저번달");
     example!(v, check_moment!(c, [2013, 3]), "다음달");
+    example!(v, check_moment!(c, [2013, 1, 1], Grain::Quarter), "이번분기");
+    example!(v, check_moment!(c, [2013, 4, 1], Grain::Quarter), "다음분기");
+    example!(v, check_moment!(c, [2013, 7, 1], Grain::Quarter), "삼분기");
+    example!(v, check_moment!(c, [2018, 10, 1], Grain::Quarter), "2018년 4분기");
+    example!(v, check_moment!(c, [2012]), "작년");
+    example!(v, check_moment!(c, [2013]), "올해");
+    example!(v, check_moment!(c, [2014]), "내년");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

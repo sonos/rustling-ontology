@@ -608,7 +608,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Month)
     );
     b.rule_1("quarter (cycle)",
-        b.reg(r#"(?:달)(?:간|동안)?"#)?,
+        b.reg(r#"분기(?:간|동안)?"#)?,
         |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_1("year (cycle)",
