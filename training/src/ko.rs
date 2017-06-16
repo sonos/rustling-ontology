@@ -115,6 +115,34 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_with_precision!(c, [2013, 2, 12, 6, 0, 0], Precision::Approximate), "약 한시간반 안에");
     example!(v, check_moment!(c, [2013, 2, 5, 4]), "7일전");
     example!(v, check_moment!(c, [2013, 1, 29, 4]), "14일전", "14일전에");
+    example!(v, check_moment!(c, [2013, 1, 22]), "3주전", "3주이전");
+    example!(v, check_moment!(c, [2011, 2]), "2년전", "2년이전");
+    example!(v, check_moment!(c, [1954]), "1954");
+    example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "이번여름");
+    example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "이번겨울");
+    example!(v, check_moment!(c, [2013, 12, 25]), "크리스마스");
+    example!(v, check_moment!(c, [2013, 12, 24]), "크리스마스이브");
+    example!(v, check_moment!(c, [2014, 1, 1]), "신정", "설날");
+    example!(v, check_moment!(c, [2013, 3, 1]), "삼일절");
+    example!(v, check_moment!(c, [2013, 5, 5]), "어린이날");
+    example!(v, check_moment!(c, [2013, 6, 6]), "현충일");
+    example!(v, check_moment!(c, [2013, 6, 17]), "제헌절");
+    example!(v, check_moment!(c, [2013, 8, 15]), "광복절");
+    example!(v, check_moment!(c, [2013, 10, 3]), "개천절");
+    example!(v, check_moment!(c, [2013, 10, 9]), "한글날");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "오늘저녁", "오늘밤");
+    example!(v, check_moment_span!(c, [2013, 2, 8, 18], [2013, 2, 11, 00]), "저번주말", "지난주말");
+    example!(v, check_moment_span!(c, [2013, 2, 13, 18], [2013, 2, 14, 00]), "내일저녁", "내일밤");
+    example!(v, check_moment_span!(c, [2013, 2, 13, 12], [2013, 2, 13, 14]), "내일점심");
+    example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 00]), "어제저녁");
+    example!(v, check_moment_span!(c, [2013, 2, 15, 18], [2013, 2, 18, 00]), "이번주말");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 4], [2013, 2, 18, 12]), "월요일 아침");
+    example!(v, check_moment_span!(c, [2013, 2, 15, 4], [2013, 2, 15, 12]), "2월 15일 아침");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "지난 2초", "지난 이초");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "다음 3초", "다음 삼초");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "지난 2분", "지난 이분");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 31], [2013, 2, 12, 4, 34]), "다음 3분", "다음 삼분");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 3], [2013, 2, 12, 4]), "지난 1시간", "지난 한시간");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
