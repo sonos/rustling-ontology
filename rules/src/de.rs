@@ -65,5 +65,21 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 ..IntegerValue::default()
             })
     );
+    b.rule_1("hundred",
+        b.reg(r#"hunderte?"#)?,
+        |_| IntegerValue::new_with_grain(1000, 3)
+    );
+    b.rule_1("thousand",
+        b.reg(r#"tausende?"#)?,
+        |_| IntegerValue::new_with_grain(1000, 3)
+    );
+    b.rule_1("million",
+        b.reg(r#"million(en)?"#)?,
+        |_| IntegerValue::new_with_grain(1000000, 6)
+    );
+    b.rule_1("couple",
+        b.reg(r#"(ein )?paar"#)?,
+        |_| IntegerValue::new(2)
+    );
     Ok(())
 }
