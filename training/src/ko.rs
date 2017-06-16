@@ -1,6 +1,38 @@
 use super::*;
 use rustling_ontology_values::check::*;
 
+pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "방금", "지금");
+    example!(v, check_moment!(c, [2013, 2, 12]), "오늘");
+    example!(v, check_moment!(c, [2013, 2, 11]), "어제");
+    example!(v, check_moment!(c, [2013, 2, 13]), "내일");
+    example!(v, check_moment!(c, [2013, 2, 18]), "월요일", "이번주 월요일");
+    example!(v, check_moment!(c, [2013, 2, 18]), "2월18일 월요일");
+    example!(v, check_moment!(c, [2013, 2, 19]), "화요일", "19일 화요일");
+    example!(v, check_moment!(c, [2013, 2, 14]), "목요일");
+    example!(v, check_moment!(c, [2013, 2, 15]), "금요일");
+    example!(v, check_moment!(c, [2013, 2, 16]), "토요일");
+    example!(v, check_moment!(c, [2013, 2, 17]), "일요일");
+    example!(v, check_moment!(c, [2013, 3, 1]), "3월 1일");
+    example!(v, check_moment!(c, [2013, 3, 3]), "3월 3일");
+    example!(v, check_moment!(c, [2015, 3, 3]), "2015년 3월 3일", "이천십오년 삼월 삼일", "2015/3/3", "2015-3-3", "2015-03-03");
+    example!(v, check_moment!(c, [2013, 2, 15]), "15일에");
+    example!(v, check_moment!(c, [2013, 2, 15]), "2월 15일", "2/15");
+    example!(v, check_moment!(c, [2013, 8, 8]), "8월 8일");
+    example!(v, check_moment!(c, [2014, 10]), "2014년 10월");
+    example!(v, check_moment!(c, [1974, 10, 31]), "1974/10/31", "74/10/31");
+    example!(v, check_moment!(c, [2015, 4, 14]), "2015년 4월 14일");
+    example!(v, check_moment!(c, [2013, 2, 19]), "다음주 화요일", "다음 화요일");
+    example!(v, check_moment!(c, [2014, 3]), "다음 3월");
+    example!(v, check_moment!(c, [2013, 2, 18]), "2월 18일 월요일");
+    example!(v, check_moment!(c, [2013, 2, 11], Grain::Week), "이번주", "금주");
+    example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "저번주", "전주");
+    example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "다음주", "오는주");
+    example!(v, check_moment!(c, [2013, 1]), "저번달");
+    example!(v, check_moment!(c, [2013, 3]), "다음달");
+}
+
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "영", "빵", "공");
     example!(v, check_integer(1), "1", "일", "하나", "한");

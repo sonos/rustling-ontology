@@ -502,7 +502,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1("day (unit-of-duration)",
-        b.reg(r#"날|일(간|동안)?"#)?,
+        b.reg(r#"날|일(?:간|동안)?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Day))
     );
     b.rule_1("week (unit-of-duration)",
@@ -510,12 +510,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Week))
     );
     b.rule_1("month (unit-of-duration)",
-        b.reg(r#"(달)(간|동안)?"#)?,
+        b.reg(r#"(?:달)(?:간|동안)?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Month))
     );
     // TODO check if the quarter duration is needed
     b.rule_1("year (unit-of-duration)",
-        b.reg(r#"해|연간|년(간|동안)?"#)?,
+        b.reg(r#"해|연간|년(?:간|동안)?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
     // TODO check that a cycle is ncessary for this rule and not a unit of duration (hour)
@@ -548,7 +548,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("in <duration>",
         duration_check!(),
-        b.reg(r#"(안|내)에?"#)?,
+        b.reg(r#"(?:안|내)에?"#)?,
         |duration, _| duration.value().in_present()
     );
     b.rule_2("after <duration>",
@@ -596,23 +596,23 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Hour)
     );
     b.rule_1("day (cycle)",
-        b.reg(r#"날|일(간|동안)?"#)?,
+        b.reg(r#"날|일(?:간|동안)?"#)?,
         |_| CycleValue::new(Grain::Day)
     );
     b.rule_1("week (cycle)",
-        b.reg(r#"주(간|동안)?"#)?,
+        b.reg(r#"주(?:간|동안)?"#)?,
         |_| CycleValue::new(Grain::Week)
     );
     b.rule_1("month (cycle)",
-        b.reg(r#"(달)(간|동안)?"#)?,
+        b.reg(r#"(?:달)(?:간|동안)?"#)?,
         |_| CycleValue::new(Grain::Month)
     );
     b.rule_1("quarter (cycle)",
-        b.reg(r#"(달)(간|동안)?"#)?,
+        b.reg(r#"(?:달)(?:간|동안)?"#)?,
         |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_1("year (cycle)",
-        b.reg(r#"해|연간|년(간|동안)?"#)?,
+        b.reg(r#"해|연간|년(?:간|동안)?"#)?,
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("this <cycle>",
@@ -643,7 +643,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |time, ordinal, cycle| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
     );
     b.rule_1("the day after tomorrow - 내일모래",
-        b.reg(r#"(내일)?모래"#)?,
+        b.reg(r#"(?:내일)?모래"#)?,
         |_| helpers::cycle_nth_after(Grain::Day, 1, &helpers::cycle_nth(Grain::Day, 1)?)
     );
     b.rule_1("the day before yesterday - 엊그제",
