@@ -78,6 +78,43 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 10]), "엊그제", "그제");
     example!(v, check_moment!(c, [2013, 2, 10, 8]), "엊그제 아침8시", "엊그제 오전8시");
     example!(v, check_moment!(c, [2013, 3, 25]), "3월 마지막 월요일");
+    example!(v, check_moment!(c, [2014, 3, 30]), "2014년 3월 마지막일요일");
+    example!(v, check_moment!(c, [2013, 10, 3]), "10월 3일");
+    example!(v, check_moment!(c, [2014, 10, 6], Grain::Week), "2014년 10월 첫번째주");
+    example!(v, check_moment!(c, [2015, 10, 31]), "2015년 10월 마지막날");
+    example!(v, check_moment!(c, [2014, 9, 22], Grain::Week), "2014년 9월 마지막주");
+    example!(v, check_moment!(c, [2013, 10, 1]), "10월 첫째화요일");
+    example!(v, check_moment!(c, [2014, 9, 16]), "2014년 9월 셋째화요일", "2014년 9월 세번째화요일");
+    example!(v, check_moment!(c, [2014, 10, 1]), "2014년 10월 첫번째 수요일", "2014년 10월 첫째 수요일");
+    example!(v, check_moment!(c, [2014, 10, 8]), "2014년 10월 두번째 수요일", "2014년 10월 둘째 수요일");
+    example!(v, check_moment!(c, [2013, 2, 13, 3]), "아침 3시", "오전 세시", "3AM");
+    example!(v, check_moment!(c, [2013, 2, 12, 3, 18]), "3:18am", "3:18a");
+    example!(v, check_moment!(c, [2013, 2, 12, 15]), "오후 세시", "3PM");
+    example!(v, check_moment!(c, [2013, 2, 12, 15, 20]), "오후세시이십분", "3:20p", "15:20", "3:20pm", "3:20PM");
+    example!(v, check_moment!(c, [2013, 2, 12, 15, 30]), "오후세시반", "15:30", "3:30pm", "3:30PM");
+    example!(v, check_moment!(c, [2013, 2, 12, 15, 45]), "네시십오분전");
+    example!(v, check_moment!(c, [2013, 2, 12, 15, 30]), "3:30", "세시반");
+    example!(v, check_moment!(c, [2013, 2, 12, 15, 23, 24]), "15:23:24", "세시이십삼분이십사초");
+    example!(v, check_moment!(c, [2013, 2, 12, 20]), "오늘밤 8시", "저녁 8시");
+    example!(v, check_moment!(c, [2013, 9, 20, 19, 30]), "9월 20일 저녁 7시 30분");
+    example!(v, check_moment!(c, [2013, 2, 16, 9]), "토요일 9시");
+    example!(v, check_moment!(c, [2014, 7, 18, 19]), "2014년 7월 18일 금요일 오후 7시");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 1]), "1초안에");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 31, 0]), "일분안에", "일분내에");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 32, 0]), "이분안에", "이분내에");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 30]),"한시간안에", "한시간내");
+    example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "한시간반안", "한시간반내");
+    example!(v, check_moment!(c, [2013, 2, 12, 7, 0, 0]), "두시간반안", "두시간반내");
+    example!(v, check_moment!(c, [2013, 2, 12, 7, 30]), "몇시간안", "몇시간내");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 7, 30], Direction::After), "몇시간후", "몇시간이후");
+    example!(v, check_moment!(c, [2013, 2, 13, 4, 30]), "24시간안에", "24시간내");
+    example!(v, check_moment!(c, [2013, 2, 13, 4]), "하루안에", "하루내");
+    example!(v, check_moment!(c, [2016, 2]), "삼년안에", "삼년내");
+    example!(v, check_moment!(c, [2013, 2, 19, 4]), "7일안에", "7일내");
+    example!(v, check_moment!(c, [2013, 2, 19]), "1주일안에", "1주일내");
+    example!(v, check_moment_with_precision!(c, [2013, 2, 12, 6, 0, 0], Precision::Approximate), "약 한시간반 안에");
+    example!(v, check_moment!(c, [2013, 2, 5, 4]), "7일전");
+    example!(v, check_moment!(c, [2013, 1, 29, 4]), "14일전", "14일전에");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

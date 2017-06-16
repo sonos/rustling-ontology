@@ -31,8 +31,8 @@ pub struct TimeOutput {
 
 #[derive(Clone,Copy,PartialEq,Debug)]
 pub enum TimeIntervalOutput {
-    After(Moment<Local>),
-    Before(Moment<Local>),
+    After(TimeOutput),
+    Before(TimeOutput),
     Between(Moment<Local>, Moment<Local>)
 }
 
@@ -96,16 +96,19 @@ impl ParsingContext {
                     .map(|interval| {
                         if let Some(end) = interval.end {
                             Output::TimeInterval(TimeIntervalOutput::Between(interval.start, end))
-                        } else if let Some(Direction::After) = tv.direction {
-                            Output::TimeInterval(TimeIntervalOutput::After(interval.start))
-                        } else if let Some(Direction::Before) = tv.direction {
-                            Output::TimeInterval(TimeIntervalOutput::Before(interval.start))
                         } else {
-                            Output::Time( TimeOutput {
-                                moment: interval.start,
-                                grain: interval.grain,
-                                precision: tv.precision,
-                            }) 
+                            let output = TimeOutput {
+                                    moment: interval.start,
+                                    grain: interval.grain,
+                                    precision: tv.precision,
+                                } ;
+                            if let Some(Direction::After) = tv.direction {
+                                Output::TimeInterval(TimeIntervalOutput::After(output))
+                            } else if let Some(Direction::Before) = tv.direction {
+                                Output::TimeInterval(TimeIntervalOutput::Before(output))
+                            } else {
+                                Output::Time(output)
+                            }
                         }
                     })
             }

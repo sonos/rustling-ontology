@@ -1,6 +1,7 @@
 extern crate rustling;
 extern crate rustling_ontology_rules;
 extern crate rustling_ontology_moment;
+#[macro_use]
 extern crate rustling_ontology_values;
 
 use rustling_ontology_moment::*;
@@ -14,8 +15,6 @@ macro_rules! example {
     };
 }
 
-#[macro_use]
-mod macros;
 pub mod en;
 pub mod es;
 pub mod fr;
