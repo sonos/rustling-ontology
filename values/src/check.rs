@@ -3,12 +3,6 @@ use moment::{Grain, Interval, Moment, Local};
 use dimension::*;
 use output::*;
 
-macro_rules! check_finance {
-    ($value:expr) => (check_finance($value, None, Precision::Exact));
-    ($value:expr, $unit:expr) => (check_finance($value, $unit, Precision::Exact));
-    ($value:expr, $unit:expr, $precision:expr) => (check_finance($value, $unit, $precision));
-}
-
 #[derive(Debug)]
 pub struct CheckInteger {
     pub value: i64,
@@ -86,7 +80,9 @@ impl Check<Dimension> for CheckMoment {
                     .and_then(|v| TimeIntervalOutput::attempt_from(v))
                     .map(|v| {
                         if let TimeIntervalOutput::After(m) = v {
-                            m == self.interval.start
+                            let check_value = m.moment == self.interval.start && m.grain == self.interval.grain;
+                            let check_precision = m.precision == self.precision;
+                            check_value && check_precision
                         } else {
                             true
                         }
@@ -98,7 +94,9 @@ impl Check<Dimension> for CheckMoment {
                     .and_then(|v| TimeIntervalOutput::attempt_from(v))
                     .map(|v| {
                         if let TimeIntervalOutput::Before(m) = v {
-                            m == self.interval.start
+                            let check_value = m.moment == self.interval.start && m.grain == self.interval.grain;
+                            let check_precision = m.precision == self.precision;
+                            check_value && check_precision
                         } else {
                             true
                         }

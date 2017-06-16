@@ -18,10 +18,6 @@ fn main() {
              (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
              (@arg sentence: +required "Sentence to test")
         )
-        (@subcommand play =>
-             (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
-             (@arg sentence: +required "Sentence to test")
-        )
     ).get_matches();
     let lang = value_t!(matches.value_of("lang"), rules::Lang).unwrap_or_else(|e| e.exit());
     match matches.subcommand() {
@@ -30,7 +26,6 @@ fn main() {
             let decoder = values::output::ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
             let rules = rules::rules(lang).unwrap();
             let matches = rules.apply_all(&*sentence).unwrap();
-        
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
             table.set_titles(row!["ix", "text", "kind", "rule", "childs"]);
@@ -58,7 +53,7 @@ fn main() {
                                             })
                                        .collect::<Vec<_>>()
                                        .join(" + ")]);
-    }
+            }
     table.printstd();
         }
         (cmd, _) => panic!("Unknown command {}", cmd),

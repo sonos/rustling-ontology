@@ -95,6 +95,7 @@ pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
         Lang::EN => en::build_parser(),
         Lang::FR => fr::build_parser(),
         Lang::ES => es::build_parser(),
+        Lang::KO => ko::build_parser(),
     }
 }
 
@@ -104,6 +105,7 @@ pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
         Lang::EN => en::build_raw_parser(),
         Lang::FR => fr::build_raw_parser(),
         Lang::ES => es::build_raw_parser(),
+        Lang::KO => ko::build_raw_parser(),
     }
 }
 
@@ -112,6 +114,7 @@ pub fn train_parser(lang: Lang) -> RustlingResult<Parser> {
         Lang::EN => en::train_parser(),
         Lang::FR => fr::train_parser(),
         Lang::ES => es::train_parser(),
+        Lang::KO => ko::train_parser(),
     }
 }
 
@@ -144,6 +147,7 @@ macro_rules! lang {
 lang!(en, en_config);
 lang!(es, es_config);
 lang!(fr, fr_config);
+lang!(ko, ko_config);
 
 #[cfg(test)]
 mod tests {
