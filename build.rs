@@ -32,9 +32,11 @@ macro_rules! lang {
 lang!(en, en_config);
 lang!(es, es_config);
 lang!(fr, fr_config);
+lang!(ko, ko_config);
 
 fn main() {
     en::train();
     es::train();
     fr::train();
+    ko::train();
 }
