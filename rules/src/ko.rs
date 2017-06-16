@@ -277,6 +277,35 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             true
         )
     );
+    b.rule_2("hhmm (military) am|pm",
+        b.reg(r#"((?:1[012]|0?\d))([0-5]\d)"#)?,
+        b.reg(r#"([ap])\.?m?\.?"#)?,
+        |a, b| {
+            let day_period = if b.group(1) == "a" {
+                helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?
+            } else {
+                helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
+            };
+            Ok(helpers::hour_minute(
+                                a.group(1).parse()?,
+                                a.group(2).parse()?, 
+                                true)?.intersect(&day_period)?.form(Form::TimeOfDay(None)))
+        }
+    );
+    // TODO: check if this rule makes sense
+    b.rule_2("<time-of-day> am|pm",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"(?:in the )?([ap])(?:\s|\.)?m?\.?"#)?,
+        |a, text_match| {
+            let day_period = if text_match.group(1) == "a" {
+                helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?
+            } else {
+                helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
+            };
+            Ok(a.value().intersect(&day_period)?.form(Form::TimeOfDay(None)))
+        }
+    );
+
     b.rule_2("am|pm <time-of-day>",
         b.reg(r#"오전|아침|오후|저녁"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
