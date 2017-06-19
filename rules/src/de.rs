@@ -2,6 +2,49 @@ use rustling::*;
 use values::dimension::*;
 use values::dimension::Precision::*;
 use values::helpers;
+use moment::{Grain};
+
+
+pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("second (cycle)",
+        b.reg(r#"sekunden?"#)?,
+        |_| CycleValue::new(Grain::Second)
+    );
+    b.rule_1("minute (cycle)",
+        b.reg(r#"minuten?"#)?,
+        |_| CycleValue::new(Grain::Minute)
+    );
+    b.rule_1("hour (cycle)",
+        b.reg(r#"stunden?"#)?,
+        |_| CycleValue::new(Grain::Hour)
+    );
+    b.rule_1("day (cycle)",
+        b.reg(r#"tage?n?"#)?,
+        |_| CycleValue::new(Grain::Day)
+    );
+    b.rule_1("week (cycle)",
+        b.reg(r#"wochen?"#)?,
+        |_| CycleValue::new(Grain::Week)
+    );
+    b.rule_1("month (cycle)",
+        b.reg(r#"monate?n?"#)?,
+        |_| CycleValue::new(Grain::Month)
+    );
+    b.rule_1("quarter (cycle)",
+        b.reg(r#"quartale?"#)?,
+        |_| CycleValue::new(Grain::Quarter)
+    );
+    b.rule_1("year (cycle)",
+        b.reg(r#"jahre?n?"#)?,
+        |_| CycleValue::new(Grain::Year)
+    );
+    b.rule_2("this <cycle>",
+        b.reg(r#"diese(r|n|s)?|kommende(r|n|s)?"#)?,
+        cycle_check!(),
+        |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
+    );
+    Ok(())
+}
 
 pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect",
