@@ -176,7 +176,123 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         number_check!(|number: &NumberValue| !number.suffixed()),
         |a, _, b| FloatValue::new(b.value().value() * 0.1 + a.value().value())
     );
-    
-
+    b.rule_1("decimal with thousands separator",
+        b.reg(r#"(\d+(\.\d\d\d)+\,\d+)"#)?,
+        |text_match| FloatValue::new(text_match.group(1).replace(",", "").replace(",", ".").parse()?)
+    );
+    b.rule_2("numbers prefix with -, negative or minus",
+        b.reg(r#"-|minus|negativ"#)?,
+        number_check!(|number: &NumberValue| !number.prefixed()),
+        |_, a| -> RuleResult<NumberValue> {
+            Ok(match a.value().clone() {
+                   NumberValue::Integer(integer) => {
+                       IntegerValue {
+                               value: integer.value * -1,
+                               prefixed: true,
+                               ..integer
+                           }
+                           .into()
+                   }
+                   NumberValue::Float(float) => {
+                       FloatValue {
+                               value: float.value * -1.0,
+                               prefixed: true,
+                               ..float
+                           }
+                           .into()
+                   }
+            })
+    });
+    b.rule_2("numbers suffixes (K, M, G)",
+        number_check!(|number: &NumberValue| !number.suffixed()),
+        b.reg(r#"([kmg])(?=[\W\$€]|$)"#)?,
+        |a, text_match| -> RuleResult<NumberValue> {
+            let multiplier = match text_match.group(0).as_ref() {
+                "k" => 1000,
+                "m" => 1000000,
+                "g" => 1000000000,
+                _ => panic!("Unknown match"),
+            };
+            Ok(match a.value().clone() { // checked
+                   NumberValue::Integer(integer) => {
+                       IntegerValue {
+                               value: integer.value * multiplier,
+                               suffixed: true,
+                               ..integer
+                           }
+                           .into()
+                   }
+                   NumberValue::Float(float) => {
+                let product = float.value * (multiplier as f32);
+                if product.floor() == product {
+                    IntegerValue {
+                            value: product as i64,
+                            suffixed: true,
+                            ..IntegerValue::default()
+                        }
+                        .into()
+                } else {
+                    FloatValue {
+                            value: product,
+                            suffixed: true,
+                            ..float
+                        }
+                        .into()
+                }
+            }
+        })
+    });
+    b.rule_1("ordinals (first..19th)",
+        b.reg(r#"(?i)(erste(r|s)?|zweite(r|s)|dritte(r|s)|vierte(r|s)|fuenfte(r|s)|sechste(r|s)|siebte(r|s)|achte(r|s)|neunte(r|s)|zehnte(r|s)|elfter|zwolfter|dreizenter|vierzehnter|funfzehnter|sechzenter|siebzehnter|achtzehnter|neunzehnter)"#)?,
+        |text_match| {
+            let value = match text_match.group(1).as_ref() {
+                "erste"       => 1, 
+                "erster"      => 1, 
+                "erstes"      => 1,
+                "zweite"      => 2, 
+                "zweiter"     => 2, 
+                "zweites"     => 2,
+                "dritte"      => 3, 
+                "dritter"     => 3, 
+                "drittes"     => 3,
+                "vierte"      => 4, 
+                "vierter"     => 4, 
+                "viertes"     => 4,
+                "funfte"      => 5, 
+                "funfter"     => 5, 
+                "funftes"     => 5,
+                "sechste"     => 6, 
+                "sechster"    => 6, 
+                "sechstes"    => 6,
+                "siebte"      => 7, 
+                "siebter"     => 7, 
+                "siebtes"     => 7,
+                "achte"       => 8, 
+                "achter"      => 8, 
+                "achtes"      => 8,
+                "neunte"      => 9, 
+                "neunter"     => 9, 
+                "neuntes"     => 9,
+                "zehnte"      => 10, 
+                "zehnter"     => 10, 
+                "zehntes"     => 10,
+                "elfter"      => 11, 
+                "zwolfter"    => 12, 
+                "dreizehnter" => 13,
+                "vierzehnter" => 14, 
+                "funfzehnter" => 15, 
+                "sechzehnter" => 16,
+                "siebzehnter" => 17, 
+                "achtzehnter" => 18, 
+                "neunzehnter" => 19,
+                _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(1), text_match),
+            };
+            Ok(OrdinalValue { value: value })
+        }
+    );
+    b.rule_1("ordinal (digits)",
+        b.reg(r#"0*(\d+)(\.| ?(te(n|r|s)?)|(ste(n|r|s)?))"#)?,
+        |text_match| Ok(OrdinalValue { value: text_match.group(1).parse()? })
+    );
     Ok(())
 }
