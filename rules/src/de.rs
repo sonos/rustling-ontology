@@ -115,6 +115,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         duration_check!(),
         |_, duration| Ok(duration.value().clone().precision(Approximate))
     );
+    b.rule_2("exactly <duration>",
+        b.reg(r#"genau|exakt"#)?,
+        duration_check!(),
+        |_, duration| Ok(duration.value().clone().precision(Exact))
+    );
     Ok(())
 }
 
