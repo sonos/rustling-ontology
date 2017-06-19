@@ -375,6 +375,38 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .intersect(&helpers::month(6)?)?
                 .intersect(&helpers::cycle_nth_after(Grain::Week, 2, &helpers::month_day(6, 1)?)?)
     );
+    b.rule_1("Mother's Day",
+        b.reg(r#"mutt?ertag|mutt?er (?:tag)?"#)?,
+        |_| helpers::day_of_week(Weekday::Sun)?
+                .intersect(&helpers::month(5)?)?
+                .intersect(&helpers::cycle_nth_after(Grain::Week, 1, &helpers::month_day(5, 1)?)?)
+    );
+    b.rule_1("halloween day",
+        b.reg(r#"hall?owe?en?"#)?,
+        |_| helpers::month_day(10, 31)
+    );
+    b.rule_1("Allerheiligen",
+        b.reg(r#"allerheiligen?|aller heiligen?"#)?,
+        |_| helpers::month_day(11, 1)
+    );
+    b.rule_1("Nikolaus",
+        b.reg(r#"nikolaus(?:tag)?|nikolaus tag|nikolo"#)?,
+        |_| helpers::month_day(12, 6)
+    );
+    b.rule_2("absorption of , after named day",
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#","#)?,
+        |time, _| Ok(time.value().clone())
+    );
+    b.rule_1("now",
+        b.reg(r#"(?:genau)? ?jetzt|diesen moment|in diesem moment|gerade eben"#)?,
+        |_| helpers::cycle_nth(Grain::Second, 0)
+    );
+    b.rule_1("today",
+        b.reg(r#"heute|(?:um diese zeit|zu dieser zeit|um diesen zeitpunkt|zu diesem zeitpunkt)"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 0)
+    );
+
     Ok(())
 }
 
