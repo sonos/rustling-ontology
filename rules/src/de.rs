@@ -406,6 +406,45 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"heute|(?:um diese zeit|zu dieser zeit|um diesen zeitpunkt|zu diesem zeitpunkt)"#)?,
         |_| helpers::cycle_nth(Grain::Day, 0)
     );
+    b.rule_1("tomorrow",
+        b.reg(r#"morgen"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 1)
+    );
+    b.rule_1("after tomorrow",
+        b.reg(r#"ubermorgen"#)?,
+        |_| helpers::cycle_nth(Grain::Day, 2)
+    );
+    b.rule_1("yesterday",
+        b.reg(r#"gestern"#)?,
+        |_| helpers::cycle_nth(Grain::Day, -1)
+    );
+    b.rule_1("before yesterday",
+        b.reg(r#"vorgestern"#)?,
+        |_| helpers::cycle_nth(Grain::Day, -2)
+    );
+    b.rule_1("EOM|End of month",
+        b.reg(r#"(?:das )?ende des monats?"#)?,
+        |_| helpers::cycle_nth(Grain::Month, 1)
+    );
+    b.rule_1("EOY|End of year",
+        b.reg(r#"(?:das )?(?:EOY|jahr(?:es)? ?ende|ende (?:des )?jahr(?:es)?)"#)?,
+        |_| helpers::cycle_nth(Grain::Year, 1)
+    );
+    b.rule_2("this|next <day-of-week>",
+        b.reg(r#"diese(?:n|r)|kommenden|nachsten"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        |_, time| time.value().the_nth_not_immediate(0)
+    );
+    b.rule_2("this <time>",
+        b.reg(r#"diese(?:n|r|s)?|(?:im )?laufenden"#)?,
+        time_check!(),
+        |_, time| time.value().the_nth(0)
+    );
+    b.rule_2("next <time>",
+        b.reg(r#"diese(?:n|r|s)?|(?:im )?laufenden"#)?,
+        time_check!(),
+        |_, time| time.value().the_nth_not_immediate(0)
+    );
 
     Ok(())
 }
