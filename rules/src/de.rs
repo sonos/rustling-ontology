@@ -2,8 +2,7 @@ use rustling::*;
 use values::dimension::*;
 use values::dimension::Precision::*;
 use values::helpers;
-use moment::{Grain, PeriodComp};
-
+use moment::{Grain, PeriodComp, Weekday};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("second (unit-of-duration)",
@@ -229,6 +228,152 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
         time_check!(),
         |ordinal, _, time| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, time.value())
+    );
+    Ok(())
+}
+
+pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect",
+        time_check!(|time: &TimeValue| !time.latent),
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, b| a.value().intersect(b.value())
+    );
+    b.rule_3("intersect by 'of', 'from', 's",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"von|der|im"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+
+    b.rule_3("intersect by ','",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#","#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_2("on <date>",
+        b.reg(r#"am"#)?,
+        time_check!(),
+        |_, time| Ok(time.value().clone())
+    );
+    b.rule_2("on a named-day",
+        b.reg(r#"an einem"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        |_, time| Ok(time.value().clone())
+    );
+    b.rule_1("named-day",
+        b.reg(r#"montags?|mo\.?"#)?,
+        |_| helpers::day_of_week(Weekday::Mon)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"die?nstags?|di\.?"#)?,
+        |_| helpers::day_of_week(Weekday::Tue)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"mittwochs?|mi\.?"#)?,
+        |_| helpers::day_of_week(Weekday::Wed)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"donn?erstags?|do\.?"#)?,
+        |_| helpers::day_of_week(Weekday::Thu)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"freitags?|fr\.?"#)?,
+        |_| helpers::day_of_week(Weekday::Fri)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"samstags?|sa\.?"#)?,
+        |_| helpers::day_of_week(Weekday::Sat)
+    );
+    b.rule_1("named-day",
+        b.reg(r#"sonntags?|so\.?"#)?,
+        |_| helpers::day_of_week(Weekday::Sun)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"januar|jan\.?"#)?,
+        |_| helpers::month(1)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"februar|feb\.?"#)?,
+        |_| helpers::month(2)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"marz|mar\.?"#)?,
+        |_| helpers::month(3)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"april|apr\.?"#)?,
+        |_| helpers::month(4)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"mai"#)?,
+        |_| helpers::month(5)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"juni|jun\.?"#)?,
+        |_| helpers::month(6)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"juli|jul\.?"#)?,
+        |_| helpers::month(7)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"august|aug\.?"#)?,
+        |_| helpers::month(8)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"september|sept?\.?"#)?,
+        |_| helpers::month(9)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"oktober|okt\.?"#)?,
+        |_| helpers::month(10)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"november|nov\.?"#)?,
+        |_| helpers::month(11)
+    );
+    b.rule_1("named-month",
+        b.reg(r#"dezember|dez\.?"#)?,
+        |_| helpers::month(12)
+    );
+    b.rule_1("christmas",
+        b.reg(r#"weih?nacht(?:en|stag)?"#)?,
+        |_| helpers::month_day(12, 25)
+    );
+    b.rule_1("christmas eve",
+        b.reg(r#"heilig(er)? abend"#)?,
+        |_| helpers::month_day(12, 24)
+    );
+    b.rule_1("new year's eve",
+        b.reg(r#"silvester"#)?,
+        |_| helpers::month_day(12, 31)
+    );
+    b.rule_1("new year's day",
+        b.reg(r#"neujahr(?:s?tag)?"#)?,
+        |_| helpers::month_day(1, 1)
+    );
+    b.rule_1("valentine's day",
+        b.reg(r#"valentin'?stag"#)?,
+        |_| helpers::month_day(2, 14)
+    );
+    b.rule_1("Tag der Deutschen Einheit",
+        b.reg(r#"tag (?:der)? deutsc?hen? einheit"#)?,
+        |_| helpers::month_day(10, 3)
+    );
+    b.rule_1("osterreichischer Nationalfeiertag",
+        b.reg(r#"(?:osterreichischer?)? nationalfeiertag|national feiertag"#)?,
+        |_| helpers::month_day(10, 26)
+    );
+    b.rule_1("Schweizer Bundesfeiertag",
+        b.reg(r#"schweiz(?:er)? (?:bundes)?feiertag|bundes feiertag"#)?,
+        |_| helpers::month_day(8, 1)
+    );
+    b.rule_1("Father's Day",  // third Sunday of June
+        b.reg(r#"vatt?ertag|vatt?er (tag)?"#)?,
+        |_| helpers::day_of_week(Weekday::Sun)?
+                .intersect(&helpers::month(6)?)?
+                .intersect(&helpers::cycle_nth_after(Grain::Week, 2, &helpers::month_day(6, 1)?)?)
     );
     Ok(())
 }
