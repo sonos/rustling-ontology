@@ -1,5 +1,6 @@
 use rustling::*;
 use values::dimension::*;
+use values::dimension::Precision::*;
 use values::helpers;
 
 pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
@@ -81,5 +82,101 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"(ein )?paar"#)?,
         |_| IntegerValue::new(2)
     );
+    b.rule_1("few",
+        b.reg(r#"mehrere"#)?,
+        |_| Ok(IntegerValue {
+            value: 3,
+            grain: Some(1),
+            precision: Approximate,
+            ..IntegerValue::default()
+        })
+    );
+    b.rule_1("integer (20..90)",
+        b.reg(r#"(zwanzig|dreissig|vierzig|funfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
+        |text_match| {
+            let value = match text_match.group(1).as_ref() {
+                "zwanzig" => 20, 
+                "dreissig" => 30, 
+                "vierzig" => 40, 
+                "funfzig" => 50, 
+                "sechzig" => 60,
+                "siebzig" => 70, 
+                "achtzig" => 80, 
+                "neunzig" => 90,
+                _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(1), text_match),
+            };
+            IntegerValue::new_with_grain(value, 1)
+        }
+    );
+    b.rule_1("integer ([2-9][1-9])",
+        b.reg(r#"(ein|zwei|drei|vier|funf|sechs|sieben|acht|neun)und(zwanzig|dreissig|vierzig|funfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
+        |text_match| {
+            let digit = match text_match.group(1).as_ref() {
+                "ein" => 1, 
+                "zwei" => 2, 
+                "drei" => 3, 
+                "vier" => 4, 
+                "funf" => 5,
+                "sechs" => 6, 
+                "sieben" => 7, 
+                "acht" => 8, 
+                "neun" => 9,
+                _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(1), text_match),
+            };
+            let tens_digit = match text_match.group(2).as_ref() {
+                "zwanzig"  => 20, 
+                "dreissig" => 30, 
+                "vierzig"  => 40, 
+                "funfzig"  => 50,
+                "sechzig"  => 60, 
+                "siebzig"  => 70, 
+                "achtzig"  => 80, 
+                "neunzig"  => 90,
+                 _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(2), text_match),
+
+            };
+            IntegerValue::new(digit + tens_digit)
+        }
+    );
+    b.rule_1("integer (numeric)",
+        b.reg(r#"(\d{1,18})"#)?,
+        |text_match| IntegerValue::new(text_match.group(1).parse()?)
+    );
+    b.rule_1("integer with thousands separator .",
+        b.reg(r#"(\d{1,3}(\.\d\d\d){1,5})"#)?,
+        |text_match| IntegerValue::new(text_match.group(1).replace(".", "").parse()?)
+    );
+    
+    b.rule_2("number hundreds",
+        integer_check!(1, 99),
+        integer_check!(100, 100),
+        |a, b| Ok(IntegerValue {
+            value: a.value().value * b.value().value,
+            grain: b.value().grain,
+            ..IntegerValue::default()
+        })
+    );
+
+    b.rule_2("number millions",
+        integer_check!(1, 99),
+        integer_check!(1000, 1000),
+        |a, b| Ok(IntegerValue {
+            value: a.value().value * b.value().value,
+            grain: b.value().grain,
+            ..IntegerValue::default()
+        })
+    );
+    b.rule_1("decimal number",
+        b.reg(r#"(\d*,\d+)"#)?,
+        |text_match| FloatValue::new(text_match.group(1).replace(",", ".").parse()?)
+    );
+    b.rule_3("number dot number",
+        number_check!(|number: &NumberValue| !number.prefixed()),
+        b.reg(r#"(?i)komma"#)?,
+        number_check!(|number: &NumberValue| !number.suffixed()),
+        |a, _, b| FloatValue::new(b.value().value() * 0.1 + a.value().value())
+    );
+    
+
     Ok(())
 }
