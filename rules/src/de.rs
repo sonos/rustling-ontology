@@ -39,9 +39,78 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("this <cycle>",
-        b.reg(r#"diese(r|n|s)?|kommende(r|n|s)?"#)?,
+        b.reg(r#"diese(?:r|n|s)?|kommende(?:r|n|s)?"#)?,
         cycle_check!(),
         |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
+    );
+    b.rule_2("last <cycle>",
+        b.reg(r#"letzte(?:r|n|s)?|vergangene(?:r|n|s)?"#)?,
+        cycle_check!(),
+        |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    b.rule_2("next <cycle>",
+        b.reg(r#"nachste(?:r|n|s)?|kommende(?:r|n|s)?"#)?,
+        cycle_check!(),
+        |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_4("the <cycle> after <time>",
+        b.reg(r#"der"#)?,
+        cycle_check!(),
+        b.reg(r#"nach"#)?,
+        time_check!(),
+        |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, 1, time.value())
+    );
+    b.rule_4("the <cycle> before <time>",
+        b.reg(r#"der"#)?,
+        cycle_check!(),
+        b.reg(r#"vor"#)?,
+        time_check!(),
+        |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, -1, time.value())
+    );
+    b.rule_3("last n <cycle>",
+        b.reg(r#"letzten?|vergangenen?"#)?,
+        integer_check!(1, 9999),
+        cycle_check!(),
+        |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    b.rule_3("next n <cycle>",
+        b.reg(r#"nachsten?|kommenden?"#)?,
+        integer_check!(1, 9999),
+        cycle_check!(),
+        |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+    b.rule_4("<ordinal> <cycle> of <time>",
+        ordinal_check!(),
+        cycle_check!(),
+        b.reg(r#"im|in|von"#)?,
+        time_check!(),
+        |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+    b.rule_5("the <ordinal> <cycle> of <time>",
+        b.reg(r#"der|die|das"#)?,
+        ordinal_check!(),
+        cycle_check!(),
+        b.reg(r#"im|in|von"#)?,
+        time_check!(),
+        |_, ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+    b.rule_4("<ordinal> <cycle> after <time>",
+        ordinal_check!(),
+        cycle_check!(),
+        b.reg(r#"nach"#)?,
+        time_check!(),
+        |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+    b.rule_2("<ordinal> quarter",
+        ordinal_check!(),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        |ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
+    );
+    b.rule_3("<ordinal> quarter <year>",
+        ordinal_check!(),
+        cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
+        time_check!(),
+        |ordinal, _, time| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, time.value())
     );
     Ok(())
 }
@@ -118,11 +187,11 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| IntegerValue::new_with_grain(1000, 3)
     );
     b.rule_1("million",
-        b.reg(r#"million(en)?"#)?,
+        b.reg(r#"million(?:en)?"#)?,
         |_| IntegerValue::new_with_grain(1000000, 6)
     );
     b.rule_1("couple",
-        b.reg(r#"(ein )?paar"#)?,
+        b.reg(r#"(?:ein )?paar"#)?,
         |_| IntegerValue::new(2)
     );
     b.rule_1("few",
@@ -215,7 +284,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("number dot number",
         number_check!(|number: &NumberValue| !number.prefixed()),
-        b.reg(r#"(?i)komma"#)?,
+        b.reg(r#"komma"#)?,
         number_check!(|number: &NumberValue| !number.suffixed()),
         |a, _, b| FloatValue::new(b.value().value() * 0.1 + a.value().value())
     );
@@ -248,7 +317,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     });
     b.rule_2("numbers suffixes (K, M, G)",
         number_check!(|number: &NumberValue| !number.suffixed()),
-        b.reg(r#"([kmg])(?=[\W\$€]|$)"#)?,
+        b.reg_neg_lh(r#"([kmg])"#, r#"^[^\W\$€]"#)?,
         |a, text_match| -> RuleResult<NumberValue> {
             let multiplier = match text_match.group(0).as_ref() {
                 "k" => 1000,
@@ -286,7 +355,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         })
     });
     b.rule_1("ordinals (first..19th)",
-        b.reg(r#"(?i)(erste(r|s)?|zweite(r|s)|dritte(r|s)|vierte(r|s)|fuenfte(r|s)|sechste(r|s)|siebte(r|s)|achte(r|s)|neunte(r|s)|zehnte(r|s)|elfter|zwolfter|dreizenter|vierzehnter|funfzehnter|sechzenter|siebzehnter|achtzehnter|neunzehnter)"#)?,
+        b.reg(r#"(erste(r|s)?|zweite(r|s)|dritte(r|s)|vierte(r|s)|fuenfte(r|s)|sechste(r|s)|siebte(r|s)|achte(r|s)|neunte(r|s)|zehnte(r|s)|elfter|zwolfter|dreizenter|vierzehnter|funfzehnter|sechzenter|siebzehnter|achtzehnter|neunzehnter)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
                 "erste"       => 1, 
