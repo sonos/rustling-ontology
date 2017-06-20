@@ -441,7 +441,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, time| time.value().the_nth(0)
     );
     b.rule_2("next <time>",
-        b.reg(r#"diese(?:n|r|s)?|(?:im )?laufenden"#)?,
+        b.reg(r#"nachsten?|nachstes|kommenden?|kommendes"#)?,
         time_check!(),
         |_, time| time.value().the_nth_not_immediate(0)
     );
@@ -553,6 +553,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
         |time, ordinal| time.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
     );
+    b.rule_2("<named-month> <day-of-month> (non ordinal)",
+        time_check!(form!(Form::Month(_))),
+        integer_check!(1, 31),
+        |time, integer| time.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
     b.rule_3("<day-of-month> (non ordinal) of <named-month>",
         integer_check!(1, 31),
         b.reg(r#"vom|von"#)?,
@@ -565,6 +570,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |integer, month| month.value()
             .intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
+    b.rule_2("<day-of-month>(ordinal) <named-month>",
+        ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
+        time_check!(form!(Form::Month(_))),
+        |ordinal, month| month.value()
+            .intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
+    );
+
     b.rule_3("<day-of-month>(ordinal) <named-month> year",
         ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
         time_check!(form!(Form::Month(_))),
@@ -714,8 +726,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("mm/dd",
         b.reg(r#"([012]?[1-9]|10|20|30|31)\.(0?[1-9]|10|11|12)\."#)?,
         |text_match| helpers::month_day(
-            text_match.group(1).parse()?,
-            text_match.group(2).parse()?)
+            text_match.group(2).parse()?,
+            text_match.group(1).parse()?)
     );
     b.rule_1("morning",
         b.reg(r#"morgens|(?:in der )?fruh|vor ?mittags?|am morgen"#)?,

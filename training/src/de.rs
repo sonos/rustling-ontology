@@ -3,7 +3,49 @@ use rustling_ontology_values::check::*;
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "jetzt", "genau jetzt", "gerade eben");
+    example!(v, check_moment!(c, [2013, 2, 12]), "heute", "zu dieser zeit");
+    example!(v, check_moment!(c, [2013, 2, 11]), "gestern");
+    example!(v, check_moment!(c, [2013, 2, 13]), "morgen");
+    example!(v, check_moment!(c, [2013, 2, 18]), "montag", "mo.", "diesen montag");
+    example!(v, check_moment!(c, [2013, 2, 18]), "Montag, Feb 18", "Montag, Februar 18");
+    example!(v, check_moment!(c, [2013, 2, 19]), "dienstag");
+    example!(v, check_moment!(c, [2013, 2, 14]), "donnerstag", "do", "do.");
+    example!(v, check_moment!(c, [2013, 2, 15]), "freitag", "fr.");
+    example!(v, check_moment!(c, [2013, 2, 16]), "samstag", "sa.");
+    example!(v, check_moment!(c, [2013, 2, 17]), "sonntag", "so.");
+    example!(v, check_moment!(c, [2013, 3, 1]), "1 marz", "erster marz"); //"1 märz", "erster märz"
+    example!(v, check_moment!(c, [2013, 3, 3]), "marz 3"); //"märz 3"
+    example!(v, check_moment!(c, [2015, 3, 3]), "marz 3 2015"); // "märz 3 2015"
+    example!(v, check_moment!(c, [2013, 2, 15]), "am 15ten");
+    example!(v, check_moment!(c, [2013, 2, 15]), "15. februar", "februar 15", "15te februar", "15.2.", "am 15.2.", "februar 15");
+    example!(v, check_moment!(c, [2013, 8, 8]), "Aug 8");
+    example!(v, check_moment!(c, [2014, 10]), "Oktober 2014");
+    example!(v, check_moment!(c, [1974, 10, 31]), "31.10.1974", "31.10.74");
+    example!(v, check_moment!(c, [2015, 4, 14]), "14 april 2015", "April 14, 2015", "14te April 15");
+    example!(v, check_moment!(c, [2013, 2, 19]), "nachsten dienstag"); //"nächsten dienstag"
+    example!(v, check_moment!(c, [2013, 2, 22]), "ubernachsten freitag"); // "übernächsten freitag"
+    example!(v, check_moment!(c, [2013, 3]), "nachsten marz"); // "nachsten marz"
+    example!(v, check_moment!(c, [2014, 3]), "ubernachsten marz"); // "ubernachsten marz"
+    example!(v, check_moment!(c, [2013, 2, 10]), "Sonntag, Feb 10");
+    example!(v, check_moment!(c, [2013, 2, 13]), "Mittwoch, Feb 13");
+    example!(v, check_moment!(c, [2013, 2, 18]), "Montag, Feb 18");
+    example!(v, check_moment!(c, [2013, 2, 11], Grain::Week), "diese woche", "kommende woche");
+    example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "letzte woche");
+    example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "nachste woche"); //"nächste woche"
+    example!(v, check_moment!(c, [2013, 1]), "letzten monat");
+    example!(v, check_moment!(c, [2013, 3]), "nachsten monat"); //"nächsten monat"
+    example!(v, check_moment!(c, [2013, 1, 1], Grain::Quarter), "dieses quartal");
+    example!(v, check_moment!(c, [2013, 4, 1], Grain::Quarter), "nachstes quartal"); //"nachstes quartal"
+    example!(v, check_moment!(c, [2013, 7, 1], Grain::Quarter), "drittes quartal");
+    example!(v, check_moment!(c, [2018, 10, 1], Grain::Quarter), "4tes quartal 2018");
+    example!(v, check_moment!(c, [2012]), "letztes jahr");
+    example!(v, check_moment!(c, [2013]), "dieses jahr");
+    example!(v, check_moment!(c, [2014]), "nachstes jahr"); //"nächstes jahr"
+    example!(v, check_moment!(c, [2013, 2, 10]), "letzten sonntag", "sonntag der letzten woche", "sonntag letzte woche");
+
 }
+
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "null");
     example!(v, check_integer(1), "1", "eins");
