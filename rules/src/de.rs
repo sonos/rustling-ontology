@@ -856,6 +856,65 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             start.span_to(&end, true)
         }
     );
+    b.rule_3("<datetime> - <datetime> (interval)",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"\-|bis"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |start, _, end| start.value().span_to(end.value(), true)
+    );
+    b.rule_4("between <datetime> and <datetime> (interval)",
+        b.reg(r#"zwischen"#)?,
+        time_check!(),
+        b.reg(r#"und"#)?,
+        time_check!(),
+        |_, start, _, end| start.value().span_to(end.value(), true)
+    );
+    b.rule_3("<time-of-day> - <time-of-day> (interval)",
+        time_check!(|time: &TimeValue| if let Form::TimeOfDay(_) = time.form { !time.latent } else { false }),
+        b.reg(r#"\-|bis"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |start, _, end| start.value().span_to(end.value(), true) 
+    );
+    b.rule_4("from <time-of-day> - <time-of-day> (interval)",
+        b.reg(r#"(?:von|nach|ab|fruhestens (?:um)?)"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"(?:(?:noch|aber|jedoch)? vor)|\-|bis"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, start, _, end| start.value().span_to(end.value(), true)
+    );
+    b.rule_4("between <time-of-day> and <time-of-day> (interval)",
+        b.reg(r#"zwischen"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"und"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, start, _, end| start.value().span_to(end.value(), true)
+    );
+    b.rule_2("within <duration>",
+        b.reg(r#"binnen|innerhalb(?: von)?"#)?,
+        duration_check!(),
+        |_, duration| helpers::cycle_nth(Grain::Second, 0)?
+            .span_to(&duration.value().in_present()?, false)
+    );
+    b.rule_2("by the end of <time>",
+        b.reg(r#"bis (?:zum)? ende (?:von)?|(?:noch)? vor"#)?,
+        time_check!(),
+        |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
+    );
+    b.rule_2("until <time-of-day>",
+        b.reg(r#"vor|bis(?: zu[rm]?)?"#)?,
+        time_check!(),
+        |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
+    );
+    b.rule_2("until <time-of-day>",
+        b.reg(r#"vor|bis(?: zu[rm]?)?"#)?,
+        time_check!(),
+        |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
+    );
+    b.rule_2("after <time-of-day>",
+        b.reg(r#"nach"#)?,
+        time_check!(),
+        |_, time| Ok(time.value().clone().direction(Some(Direction::After)))
+    );
     Ok(())
 }
 
