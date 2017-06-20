@@ -791,6 +791,71 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(form!(Form::PartOfDay)),
         |a, b| b.value().intersect(a.value())
     );
+    b.rule_3("<part-of-day> of <time>",
+        time_check!(form!(Form::PartOfDay)),
+        b.reg(r#"des|von|vom|am"#)?,
+        time_check!(),
+        |a, _, b| a.value().intersect(b.value())
+    );
+    b.rule_1("week-end",
+        b.reg(r#"wochen ?ende?"#)?,
+        |_| {
+            let friday = helpers::day_of_week(Weekday::Fri)?
+                                .intersect(&helpers::hour(18, false)?)?;
+            let monday = helpers::day_of_week(Weekday::Mon)?
+                                .intersect(&helpers::hour(0, false)?)?;
+            friday.span_to(&monday, false)
+        }
+    );
+    b.rule_1("season",
+        b.reg(r#"sommer"#)?,
+        |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
+    );
+    b.rule_1("season",
+        b.reg(r#"herbst"#)?,
+        |_| helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
+    );
+    b.rule_1("season",
+        b.reg(r#"winter"#)?,
+        |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
+    );
+    b.rule_1("season",
+        b.reg(r#"frhling|fruhjahr"#)?,
+        |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
+    );
+    b.rule_2("<time-of-day> approximately",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"(?:um )?zirka|ungefahr|etwa"#)?,
+        |time, _| Ok(time.value().clone().not_latent().precision(Approximate))
+    );
+    b.rule_2("<time-of-day> approximately",
+        time_check!(form!(Form::TimeOfDay(_))),
+        b.reg(r#"genau|exakt|punktlich|punkt(?: um)?"#)?,
+        |time, _| Ok(time.value().clone().not_latent().precision(Exact))
+    );
+    b.rule_2("about <time-of-day>",
+        b.reg(r#"(?:um )?zirka|ungefahr|etwa"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, time| Ok(time.value().clone().not_latent().precision(Approximate))
+    );
+    b.rule_2("exactly <time-of-day>",
+        b.reg(r#"genau|exakt|punktlich|punkt(?: um)?"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, time| Ok(time.value().clone().not_latent().precision(Exact))
+    );
+    b.rule_4("<month> dd-dd (interval)",
+        b.reg(r#"([012]?\d|30|31)(ter|\.)?"#)?,
+        b.reg(r#"\-|bis"#)?,
+        b.reg(r#"([012]?\d|30|31)(ter|\.)?"#)?,
+        time_check!(form!(Form::Month(_))),
+        |d1, _, d2, month| {
+            let start = month.value()
+                .intersect(&helpers::day_of_month(d1.group(1).parse()?)?)?;
+            let end = month.value()
+                .intersect(&helpers::day_of_month(d2.group(1).parse()?)?)?;
+            start.span_to(&end, true)
+        }
+    );
     Ok(())
 }
 
