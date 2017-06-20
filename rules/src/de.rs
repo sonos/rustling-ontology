@@ -844,9 +844,9 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, time| Ok(time.value().clone().not_latent().precision(Exact))
     );
     b.rule_4("<month> dd-dd (interval)",
-        b.reg(r#"([012]?\d|30|31)(ter|\.)?"#)?,
+        b.reg(r#"([012]?\d|30|31)(?:ter|\.)?"#)?,
         b.reg(r#"\-|bis"#)?,
-        b.reg(r#"([012]?\d|30|31)(ter|\.)?"#)?,
+        b.reg(r#"([012]?\d|30|31)(?:ter|\.)?"#)?,
         time_check!(form!(Form::Month(_))),
         |d1, _, d2, month| {
             let start = month.value()
@@ -930,7 +930,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
     b.rule_1("integer (0..19)",
-        b.reg(r#"(keine?|keine?s|keiner|keinen|null|nichts|eins?(er)?|zwei|dreizehn|drei|vierzehn|vier|funf|sechzehn|sechs|siebzehn|sieben|achtzehn|acht|neunzehn|neun|elf|zwolf|fufzehn)"#)?,
+        b.reg(r#"(keine?|keine?s|keiner|keinen|null|nichts|eins?(?:er)?|zwei|dreizehn|drei|vierzehn|vier|funf|sechzehn|sechs|siebzehn|sieben|achtzehn|acht|neunzehn|neun|elf|zwolf|fufzehn)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
                 "kein"      => 0, 
@@ -983,7 +983,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1("hundred",
         b.reg(r#"hunderte?"#)?,
-        |_| IntegerValue::new_with_grain(1000, 3)
+        |_| IntegerValue::new_with_grain(100, 2)
     );
     b.rule_1("thousand",
         b.reg(r#"tausende?"#)?,
@@ -1072,9 +1072,19 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         })
     );
 
+    b.rule_2("number thousands",
+        integer_check!(1, 999),
+        integer_check!(1000, 1000),
+        |a, b| Ok(IntegerValue {
+            value: a.value().value * b.value().value,
+            grain: b.value().grain,
+            ..IntegerValue::default()
+        })
+    );
+
     b.rule_2("number millions",
         integer_check!(1, 99),
-        integer_check!(1000, 1000),
+        integer_check!(1000000, 1000000),
         |a, b| Ok(IntegerValue {
             value: a.value().value * b.value().value,
             grain: b.value().grain,
@@ -1092,8 +1102,8 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _, b| FloatValue::new(b.value().value() * 0.1 + a.value().value())
     );
     b.rule_1("decimal with thousands separator",
-        b.reg(r#"(\d+(\.\d\d\d)+\,\d+)"#)?,
-        |text_match| FloatValue::new(text_match.group(1).replace(",", "").replace(",", ".").parse()?)
+        b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
+        |text_match| FloatValue::new(text_match.group(1).replace(".", "").replace(",", ".").parse()?)
     );
     b.rule_2("numbers prefix with -, negative or minus",
         b.reg(r#"-|minus|negativ"#)?,
@@ -1158,7 +1168,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         })
     });
     b.rule_1("ordinals (first..19th)",
-        b.reg(r#"(erste(r|s)?|zweite(r|s)|dritte(r|s)|vierte(r|s)|fuenfte(r|s)|sechste(r|s)|siebte(r|s)|achte(r|s)|neunte(r|s)|zehnte(r|s)|elfter|zwolfter|dreizenter|vierzehnter|funfzehnter|sechzenter|siebzehnter|achtzehnter|neunzehnter)"#)?,
+        b.reg(r#"(erste(?:r|s)?|zweite(?:r|s)|dritte(?:r|s)|vierte(?:r|s)|fuenfte(?:r|s)|sechste(?:r|s)|siebte(?:r|s)|achte(?:r|s)|neunte(?:r|s)|zehnte(?:r|s)|elfter|zwolfter|dreizenter|vierzehnter|funfzehnter|sechzenter|siebzehnter|achtzehnter|neunzehnter)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
                 "erste"       => 1, 
@@ -1206,7 +1216,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1("ordinal (digits)",
-        b.reg(r#"0*(\d+)(\.| ?(te(n|r|s)?)|(ste(n|r|s)?))"#)?,
+        b.reg(r#"0*(\d+)(?:\.| ?(?:te(?:n|r|s)?)|(?:ste(?:n|r|s)?))"#)?,
         |text_match| Ok(OrdinalValue { value: text_match.group(1).parse()? })
     );
     Ok(())
