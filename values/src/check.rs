@@ -120,6 +120,7 @@ pub fn check_moment(context: ParsingContext, moment: Moment<Local>, grain: Grain
 #[derive(Debug)]
 pub struct CheckMomentSpan {
     pub interval: Interval<Local>,
+    pub precision: Precision,
     pub context: ParsingContext,
 }
 
@@ -128,8 +129,8 @@ impl Check<Dimension> for CheckMomentSpan {
         self.context.resolve(&pn.value)
             .and_then(|v| TimeIntervalOutput::attempt_from(v))
             .map(|v| {
-                if let TimeIntervalOutput::Between(s, e) = v {
-                    s == self.interval.start && Some(e) == self.interval.end
+                if let TimeIntervalOutput::Between(s, e, precision) = v {
+                    s == self.interval.start && Some(e) == self.interval.end && precision == self.precision
                 } else {
                     false
                 }
@@ -138,9 +139,9 @@ impl Check<Dimension> for CheckMomentSpan {
     }
 }
 
-pub fn check_moment_span(context: ParsingContext, start: Moment<Local>, end: Moment<Local>, grain: Grain)
+pub fn check_moment_span(context: ParsingContext, precision: Precision, start: Moment<Local>, end: Moment<Local>, grain: Grain)
                       -> CheckMomentSpan {
-    CheckMomentSpan { interval: Interval::new(start, Some(end), grain), context: context }
+    CheckMomentSpan { interval: Interval::new(start, Some(end), grain), precision, context }
 }
 
 #[derive(Debug)]

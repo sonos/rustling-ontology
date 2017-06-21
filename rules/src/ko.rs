@@ -493,6 +493,14 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |duration, _| helpers::cycle_nth(Grain::Second, 0)?
             .span_to(&duration.value().in_present()?, false)
     );
+    
+    b.rule_2("within <duration>",
+        duration_check!(),
+        b.reg(r#"(?:안|내)에?"#)?,
+        |duration, _| helpers::cycle_nth(Grain::Second, 0)?
+            .span_to(&duration.value().in_present()?, false)
+    );
+
     b.rule_2("by <time> - 까지",
         time_check!(),
         b.reg(r#"까지"#)?,
@@ -577,7 +585,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("in <duration>",
         duration_check!(),
-        b.reg(r#"(?:안|내)에?"#)?,
+        b.reg(r#"이?\s*후에|뒤에"#)?,
         |duration, _| duration.value().in_present()
     );
     b.rule_2("after <duration>",
@@ -629,7 +637,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Day)
     );
     b.rule_1("week (cycle)",
-        b.reg(r#"주(?:간|동안)?"#)?,
+        b.reg(r#"주"#)?,
         |_| CycleValue::new(Grain::Week)
     );
     b.rule_1("month (cycle)",
