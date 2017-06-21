@@ -6,7 +6,7 @@ use moment::{Grain, PeriodComp, Weekday};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("second (unit-of-duration)",
-        b.reg(r#"sek(?:unde)?nb?"#)?,
+        b.reg(r#"sek(?:unde)?n?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Second))
     );
     b.rule_1("minute (unit-of-duration)",
@@ -370,7 +370,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::month_day(8, 1)
     );
     b.rule_1("Father's Day",  // third Sunday of June
-        b.reg(r#"vatt?ertag|vatt?er (tag)?"#)?,
+        b.reg(r#"vatt?ertag|vatt?er (?:tag)?"#)?,
         |_| helpers::day_of_week(Weekday::Sun)?
                 .intersect(&helpers::month(6)?)?
                 .intersect(&helpers::cycle_nth_after(Grain::Week, 2, &helpers::month_day(6, 1)?)?)
@@ -731,7 +731,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1("morning",
         b.reg(r#"morgens|(?:in der )?fruh|vor ?mittags?|am morgen"#)?,
-        |_| Ok(helpers::hour(4, false)?
+        |_| Ok(helpers::hour(3, false)?
                 .span_to(&helpers::hour(12, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
