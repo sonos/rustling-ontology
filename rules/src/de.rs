@@ -917,11 +917,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(),
         |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
     );
-    b.rule_2("until <time-of-day>",
-        b.reg(r#"vor|bis(?: zu[rm]?)?"#)?,
-        time_check!(),
-        |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
-    );
     b.rule_2("after <time-of-day>",
         b.reg(r#"nach"#)?,
         time_check!(),
