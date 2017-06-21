@@ -222,5 +222,5 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(-3), "-3", "마이너스3", "마이너스삼", "마이너스 3", "마이나스3", "마이나스 3");
     example!(v, check_float(3.0 / 4.0), "3/4", "사분의삼");
     example!(v, check_ordinal(25), "스물다섯번째", "이십오번째");
-    example!(v, check_ordinal(1), "첫번째", "첫째");
+    example!(v, check_ordinal(1), "첫번째", "첫째", "첫번", "첫");
 }

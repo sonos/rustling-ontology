@@ -223,6 +223,15 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .intersect(b.value())?
                 .the_nth(ordinal.value().value - 1)
     );
+    b.rule_4("<time> of nth <time> - 3월 첫째 화요일",
+        time_check!(),
+        b.reg(r#"의"#)?,
+        ordinal_check!(),
+        time_check!(),
+        |a, _, ordinal, b| a.value()
+                .intersect(b.value())?
+                .the_nth(ordinal.value().value - 1)
+    );
     b.rule_1("year",
         integer_check!(1500, 2100),
         |integer| helpers::year(integer.value().value as i32)
@@ -835,11 +844,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1("integer (1..4) - for ordinals",
-        b.reg(r#"(한|첫|두|세|네)"#)?,
+        b.reg(r#"(한|두|세|네)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
                 "한" => 1,
-                "첫" => 1, 
                 "두" => 2,
                 "세" => 3,
                 "네" => 4,
@@ -848,20 +856,23 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             IntegerValue::new(value)
         }
     );
-
+    b.rule_1("first ordinal",
+        b.reg(r#"첫(?:번째|번|째|째번)?"#)?,
+        |_| Ok(OrdinalValue { value: 1 })
+    );
     b.rule_1("integer (20..90) - TYPE 2 and ordinals",
         b.reg(r#"(열|스물|서른|마흔|쉰|예순|일흔|여든|아흔)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
-                "열"   => 10, 
-                "스물" => 20, 
-                "서른" => 30, 
-                "마흔" => 40, 
-                "쉰"   => 50,
-                "예순" => 60, 
-                "일흔" => 70, 
-                "여든" => 80, 
-                "아흔" => 90,
+                "열"    => 10, 
+                "스물"  => 20, 
+                "서른"  => 30, 
+                "마흔"  => 40, 
+                "쉰"    => 50,
+                "예순"  => 60, 
+                "일흔"  => 70, 
+                "여든"  => 80, 
+                "아흔"  => 90,
                 _ => panic!("Unknow match"),
             };
             IntegerValue::new(value)
