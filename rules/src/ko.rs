@@ -232,6 +232,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .intersect(b.value())?
                 .the_nth(ordinal.value().value - 1)
     );
+
     b.rule_1("year",
         integer_check!(1500, 2100),
         |integer| helpers::year(integer.value().value as i32)
@@ -652,10 +653,6 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("month (cycle)",
         b.reg(r#"(?:달)(?:간|동안)?"#)?,
         |_| CycleValue::new(Grain::Month)
-    );
-    b.rule_1("quarter (cycle)",
-        b.reg(r#"분기(?:간|동안)?"#)?,
-        |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_1("year (cycle)",
         b.reg(r#"해|연간|년(?:간|동안)?"#)?,
