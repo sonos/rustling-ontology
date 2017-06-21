@@ -127,6 +127,26 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 13, 12], [2013, 2, 13, 14]), "morgen mittag", "morgen zu mittag");
     example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 00]), "gestern abend");
     example!(v, check_moment_span!(c, [2013, 2, 15, 18], [2013, 2, 18, 00]), "dieses wochenende");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 3], [2013, 2, 18, 12]), "montag morgens");
+    example!(v, check_moment_span!(c, [2013, 2, 15, 3], [2013, 2, 15, 12]), "morgens am 15. februar", "15. februar morgens", "am morgen des 15. februar");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "letzte 2 sekunden", "letzten zwei sekunden");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "nachste 3 sekunden", "nachsten drei sekunden"); //"nächste 3 sekunden", "nächsten drei sekunden"
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "letzte 2 minuten", "letzten zwei minuten");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 31], [2013, 2, 12, 4, 34]), "nachste 3 minuten", "nachsten drei minuten"); // "nächste 3 minuten", "nächsten drei minuten"
+    example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 8]), "nachste 3 stunden", "nachsten drei stunden"); // "nächste 3 stunden", "nächsten drei stunden"
+    example!(v, check_moment_span!(c, [2013, 2, 10], [2013, 2, 12]), "letzte 2 tage", "letzten zwei tage", "vergangenen zwei tage");
+    example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "nachsten 3 tagen", "nachsten drei tage", "kommenden drei tagen"); // "nächsten 3 tagen", "nächsten drei tage", "kommenden drei tagen"
+    example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 15]), "nachsten paar tagen", "kommenden paar tagen"); // "nächsten paar tagen", "kommenden paar tagen"
+    example!(v, check_moment_span!(c, [2013, 1, 28], [2013, 2, 11], Grain::Week), "letzten 2 wochen", "letzte zwei wochen", "vergangenen 2 wochen");
+    example!(v, check_moment_span!(c, [2013, 2, 18], [2013, 3, 11], Grain::Week), "nachsten 3 wochen", "nachste drei wochen", "kommenden drei wochen"); // "nächsten 3 wochen", "nächste drei wochen", "kommenden drei wochen"
+    example!(v, check_moment_span!(c, [2012, 12], [2013, 02]), "letzten 2 monaten", "letzte zwei monate", "vergangenen zwei monaten");
+    example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "nachsten 3 monaten", "nachste drei monate", "kommenden drei monaten"); // "nächsten 3 monaten", "nächste drei monate", "kommenden drei monaten"
+    example!(v, check_moment_span!(c, [2011], [2013]), "letzten 2 jahren", "letzten zwei jahre", "vergangenen zwei jahren");
+    example!(v, check_moment_span!(c, [2014], [2017]), "nachsten 3 jahren", "kommenden drei jahren", "nachste drei jahre"); // "nächsten 3 jahren", "kommenden drei jahren", "nächste drei jahre"
+    example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13. - 15. Juli", "13ter bis 15ter Juli", "13 bis 15 Juli", "13 - 15 Juli", "Juli 13 - Juli 15");
+    example!(v, check_moment_span!(c, [2013, 8, 8], [2013, 8, 13]), "Aug 8 - Aug 12");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 1]), "9:30 - 11:00");
+    
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
