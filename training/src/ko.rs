@@ -182,10 +182,9 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "이제");
     example!(v, check_moment!(c, [2013, 2, 11]), "작일", "어저께");
     example!(v, check_moment!(c, [2013, 2, 15]), "돌아오는 금요일", "이번주 금요일");
-    //3월의 첫번째 화요일
     example!(v, check_moment!(c, [2013, 3, 5]), "3월의 첫번째 화요일");
     example!(v, check_moment!(c, [2013, 6, 16]), "6월의 3번째 일요일");
-    // "5월의 둘째 주 일요일"
+    example!(v, check_moment!(c, [2013, 5, 19]), "5월의 둘째 주 일요일");
 }   
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
