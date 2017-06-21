@@ -181,6 +181,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 19, 4]), "7일 이후에", "7일 후에", "7일 이 후에", "7일 뒤에");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "이제");
     example!(v, check_moment!(c, [2013, 2, 11]), "작일", "어저께");
+    example!(v, check_moment!(c, [2013, 2, 15]), "돌아오는 금요일", "이번주 금요일");
 }   
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

@@ -183,12 +183,12 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |time, _| time.value().the_nth(1)
     );
     b.rule_2("this <day-of-week>",
-        b.reg(r#"이번주?|금주"#)?,
+        b.reg(r#"이번\s*주?|돌아오는|금주"#)?,
         time_check!(form!(Form::DayOfWeek{..})),
         |_, time| time.value().the_nth(0)
     );
     b.rule_2("this <time>",
-        b.reg(r#"이번"#)?,
+        b.reg(r#"이번|이|금|올|돌아오는"#)?,
         time_check!(),
         |_, time| time.value().the_nth(0)
     );
