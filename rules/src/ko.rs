@@ -17,6 +17,12 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(|time: &TimeValue| !time.latent),
         |a, _, b| a.value().intersect(b.value())
     );
+    b.rule_3("intersect by \"의\"",
+        time_check!(|time: &TimeValue| !time.latent),
+        b.reg(r#"의"#)?,
+        time_check!(|time: &TimeValue| !time.latent),
+        |a, _, b| a.value().intersect(b.value())
+    );
     b.rule_2("<date>에",
         time_check!(),
         b.reg(r#"에"#)?,
@@ -223,7 +229,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .intersect(b.value())?
                 .the_nth(ordinal.value().value - 1)
     );
-    b.rule_4("<time> of nth <time> - 3월 첫째 화요일",
+    b.rule_4("nth <time> - 3월 첫째 화요일",
         time_check!(),
         b.reg(r#"의"#)?,
         ordinal_check!(),
@@ -231,6 +237,26 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _, ordinal, b| a.value()
                 .intersect(b.value())?
                 .the_nth(ordinal.value().value - 1)
+    );
+    b.rule_3("<time> nth <cycle> - 3월 첫째 화요일",
+        time_check!(),
+        ordinal_check!(),
+        cycle_check!(),
+        |time, ordinal, cycle| helpers::cycle_nth_after_not_immediate(
+                        cycle.value().grain, 
+                        ordinal.value().value - 1, 
+                        time.value())
+    );
+
+    b.rule_4("<time> nth of <cycle> - 3월 첫째 화요일",
+        time_check!(),
+        b.reg(r#"의"#)?,
+        ordinal_check!(),
+        cycle_check!(),
+        |time, _, ordinal, cycle| helpers::cycle_nth_after_not_immediate(
+                        cycle.value().grain, 
+                        ordinal.value().value - 1, 
+                        time.value())
     );
 
     b.rule_1("year",
