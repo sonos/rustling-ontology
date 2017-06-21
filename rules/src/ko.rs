@@ -162,7 +162,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |dow, _| Ok(dow.value().clone())
     );
     b.rule_1("now",
-        b.reg(r#"방금|지금|방금|막"#)?,
+        b.reg(r#"방금|지금|방금|막|이제"#)?,
         |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1("today",
@@ -174,7 +174,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::cycle_nth(Grain::Day, 1)
     );
     b.rule_1("yesterday",
-        b.reg(r#"어제"#)?,
+        b.reg(r#"어제|작일|어저께"#)?,
         |_| helpers::cycle_nth(Grain::Day, -1)
     );
     b.rule_2("end of <time>",
