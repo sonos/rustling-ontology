@@ -372,6 +372,16 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             true
         )
     );
+    b.rule_2("<hour-of-day> <integer>",
+        time_check!(form!(Form::TimeOfDay(Some(_)))),
+        integer_check!(0, 59),
+        |tod, integer| helpers::hour_minute(
+            tod.value().form_time_of_day()?.full_hour,
+            integer.value().value as u32,
+            true
+        )
+
+    );
     b.rule_3("<integer> (hour-of-day) relative minutes 전",
         time_check!(form!(Form::TimeOfDay(Some(_)))),
         relative_minute_check!(),
