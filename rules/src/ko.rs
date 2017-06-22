@@ -798,7 +798,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::cycle_nth_after(Grain::Day, 1, &helpers::cycle_nth(Grain::Day, 1)?)
     );
     b.rule_1("the day before yesterday - 엊그제",
-        b.reg(r#"엊?그[제|재]"#)?,
+        b.reg(r#"그(?:제|재)|그저께|전전 ?날|재작일"#)?,
         |_| helpers::cycle_nth_after(Grain::Day, -1, &helpers::cycle_nth(Grain::Day, -1)?)
     );
     b.rule_3("last n <cycle>",
