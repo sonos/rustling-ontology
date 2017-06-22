@@ -278,19 +278,19 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |time, _| Ok(time.value().clone().not_latent())
     );
     b.rule_2("<time-of-day> 정각",
-        time_check!(form!(Form::TimeOfDay(_))),
         b.reg(r#"정각"#)?,
-        |time, _| Ok(time.value().clone().not_latent())
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, time| Ok(time.value().clone().not_latent())
     );
     b.rule_1("hh:mm",
-        b.reg(r#"(?i)((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)"#)?,
+        b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)"#)?,
         |text_match| helpers::hour_minute(
             text_match.group(1).parse()?,
             text_match.group(2).parse()?,
             true)
     );
     b.rule_1("hh:mm:ss",
-        b.reg(r#"(?i)((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)[:.]([0-5]\d)"#)?,
+        b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)[:.]([0-5]\d)"#)?,
         |text_match| helpers::hour_minute_second(
             text_match.group(1).parse()?,
             text_match.group(2).parse()?,
