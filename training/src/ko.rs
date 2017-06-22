@@ -185,6 +185,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 6, 16]), "6월의 3번째 일요일");
     example!(v, check_moment!(c, [2013, 5, 19]), "5월의 둘째 주 일요일");
     example!(v, check_moment!(c, [2013, 2, 12, 19]), "저녁 7시");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 12]), "늦은 아침", "오전 늦게", "아침 늦게", "아침 느지막이");
 }   
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
