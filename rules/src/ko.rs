@@ -444,9 +444,31 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
 
     );
+    b.rule_1("late afternoon",
+        b.reg(r#"늦은 오후|오후 늦게"#)?,
+        |_| Ok(helpers::hour(17, false)?
+                .span_to(&helpers::hour(19, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+
+    );
+    b.rule_1("early evening",
+        b.reg(r#"이른 저녁|초저녁|저녁 일찍"#)?,
+        |_| Ok(helpers::hour(18, false)?
+                .span_to(&helpers::hour(21, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
     b.rule_1("evening|night",
         b.reg(r#"저녁|밤"#)?,
         |_| Ok(helpers::hour(18, false)?
+                .span_to(&helpers::hour(0, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
+    b.rule_1("late evening",
+        b.reg(r#"늦은 저녁|저녁 늦게"#)?,
+        |_| Ok(helpers::hour(21, false)?
                 .span_to(&helpers::hour(0, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
