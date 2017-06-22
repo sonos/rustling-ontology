@@ -31,7 +31,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<date>동안",
         time_check!(),
         b.reg(r#"동안"#)?,
-        |duration, _| Ok(duration.value().clone().not_latent())
+        |time, _| Ok(time.value().clone().not_latent())
     );
     b.rule_2("<named-day>에", // on Wed, March 23
         time_check!(form!(Form::DayOfWeek{..})),
@@ -585,13 +585,13 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("<datetime> - <datetime> (interval)",
         time_check!(|time: &TimeValue| !time.latent),
-        b.reg(r#"\-|\~|부터"#)?,
+        b.reg(r#"\-|\~"#)?,
         time_check!(|time: &TimeValue| !time.latent),
         |a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
         time_check!(|time: &TimeValue| if let Form::TimeOfDay(_) = time.form { !time.latent } else { false }),
-        b.reg(r#"\-|\~|부터"#)?,
+        b.reg(r#"\-|\~"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         |a, _, b| a.value().span_to(b.value(), true)
     );
@@ -630,6 +630,43 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"(이래|이후)로?"#)?,
         |time, _| Ok(time.value().the_nth(-1)?.direction(Some(Direction::After)))
     );
+    b.rule_4("from <time> to <time>",
+        time_check!(),
+        b.reg(r#"부터"#)?,
+        time_check!(),
+        b.reg(r#"까지"#)?,
+        |a, _, b, _| a.value().span_to(b.value(), true)
+    );
+    b.rule_3("during the last n cycle",
+        b.reg(r#"과거"#)?,
+        integer_check!(0),
+        cycle_check!(),
+        |_, integer, cycle| {
+            let end = helpers::cycle_nth(cycle.value().grain, 0)?;
+            let start = helpers::cycle_nth(cycle.value().grain, -1 * integer.value().value)?;
+            start.span_to(&end, false)
+        } 
+    );
+    b.rule_3("during the next n cycle",
+        b.reg(r#"앞으로"#)?,
+        integer_check!(1),
+        cycle_check!(),
+        |_, integer, cycle| {
+            let start = helpers::cycle_nth(cycle.value().grain, 1)?;
+            let end = helpers::cycle_nth(cycle.value().grain, integer.value().value)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_4("<duration> from <time>",
+        time_check!(),
+        b.reg(r#"보다"#)?,
+        duration_check!(),
+        b.reg(r#"후에|뒤에"#)?,
+        |time, _, duration, _| {
+            duration.value().after(time.value())
+        }
+    );
+
     Ok(())
 }
 
@@ -647,7 +684,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1("day (unit-of-duration)",
-        b.reg(r#"날|일(?:간)?"#)?,
+        b.reg(r#"날|일간?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Day))
     );
     b.rule_1("week (unit-of-duration)",
@@ -665,7 +702,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<duration>동안",
         duration_check!(),
-        b.reg(r#"동안"#)?,
+        b.reg(r#"동안|사이에"#)?,
         |duration, _| Ok(duration.value().clone())
     );
     // TODO check that a cycle is ncessary for this rule and not a unit of duration (hour)

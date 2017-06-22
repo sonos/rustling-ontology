@@ -154,11 +154,11 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "다음 3달", "다음 세달");
     example!(v, check_moment_span!(c, [2011], [2013]), "지난 2년", "지난 이년");
     example!(v, check_moment_span!(c, [2014], [2017]), "다음 3년", "다음 삼년");
-    example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "7월 13일 - 15일", "7월 13일 부터 15일");
-    example!(v, check_moment_span!(c, [2013, 8, 8], [2013, 8, 14]), "8월 8일 - 8월 13일", "8월 8일부터 8월 13일");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 1]), "9:30 부터 11:00", "9:30 ~ 11:00");
-    example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11, 1]), "목요일 9:30 부터 11:00", "목요일 9:30 ~ 11:00");
-    example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 12]), "목요일 오전9시 부터 오전11시");
+    example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "7월 13일 - 15일", "7월 13일 부터 15일 까지");
+    example!(v, check_moment_span!(c, [2013, 8, 8], [2013, 8, 14]), "8월 8일 - 8월 13일", "8월 8일부터 8월 13일까지");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 1]), "9:30 부터 11:00 까지", "9:30 ~ 11:00");
+    example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11, 1]), "목요일 9:30 부터 11:00 까지", "목요일 9:30 ~ 11:00");
+    example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 12]), "목요일 오전9시 부터 오전11시 까지");
     example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 31]), "11:30-1:30");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "2주 이내에");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 14]), "오후 2시까지");
@@ -203,6 +203,9 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 6, 3]), "6월 3번째 일");
     example!(v, check_moment!(c, [2013, 2, 12, 7, 30]), "현시간부터 3시간 후에");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 35], Grain::Second), "딱 5분 후에");
+    example!(v, check_moment_span!(c, [2006], [2013]), "과거 7년간");
+    example!(v, check_moment_span!(c, [2014], [2017]), "앞으로 3년간");
+    example!(v, check_moment!(c, [2013, 2, 15], Grain::Hour), "오늘보다 3일 후에"); // Unexpected grain
 }
 
 
