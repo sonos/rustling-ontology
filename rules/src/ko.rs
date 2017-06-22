@@ -688,22 +688,22 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("in <duration>",
         duration_check!(),
-        b.reg(r#"(?:이 ?)?후에|뒤에"#)?,
+        b.reg(r#"후|뒤|되면|지나(?:고|서|면)|있다가"#)?,
         |duration, _| duration.value().in_present()
     );
     b.rule_2("after <duration>",
         duration_check!(),
-        b.reg(r#"이?후에?|뒤에|되면|지나(?:고|서|면)|있다가"#)?,
+        b.reg(r#"(?:이 ?)후|부터"#)?,
         |duration, _| Ok(duration
                             .value()
                             .in_present()?
                             .direction(Some(Direction::After)))
     );
-    b.rule_2("<duration> from now",
-        b.reg(r#"지금부터"#)?,
+    b.rule_3("<duration> from now",
+        b.reg(r#"지금부터|현시간부터"#)?,
         duration_check!(),
-        b.reg(r#"후에|뒤에"#),
-        |_, duration| duration.value().in_present()
+        b.reg(r#"후에|뒤에"#)?,
+        |_, duration, _| duration.value().in_present()
     );
     b.rule_2("<duration> ago",
         duration_check!(),
@@ -716,7 +716,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
     );
     b.rule_2("exactly <duration>",
-        b.reg(r#"정확히"#)?,
+        b.reg(r#"정확히|딱"#)?,
         duration_check!(),
         |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
     );

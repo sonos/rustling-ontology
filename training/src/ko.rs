@@ -105,7 +105,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 6, 0, 0]), "한시간반안", "한시간반내");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 7, 0, 0]), "두시간반안", "두시간반내");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30], [2013, 2, 12, 7, 30]), "몇시간안", "몇시간내");
-    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 7, 30], Direction::After), "몇시간후", "몇시간이후");
+    example!(v, check_moment!(c, [2013, 2, 12, 7, 30]), "몇시간후");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 7, 30], Direction::After), "몇시간이후");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30], [2013, 2, 13, 4, 30]), "24시간안에", "24시간내");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30], [2013, 2, 13, 4]), "하루안에", "하루내");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30], [2016, 2]), "삼년안에", "삼년내");
@@ -167,7 +168,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 4, 25, 16]), "4/25 오후4시에");
     example!(v, check_moment!(c, [2013, 2, 13, 15]), "내일 오후 3시");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14], Direction::After), "오후2시 이후");
-    example!(v, check_moment_with_direction!(c, [2013, 2, 17, 4], Direction::After), "5일 후");
+    example!(v, check_moment!(c, [2013, 2, 17, 4]), "5일 후");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 11], Direction::Before), "오전11시 전", "오전11시 이전");
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "오후에");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 4, 45, 0]), "15분안");
@@ -179,7 +180,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 3]), "3월", "3월에");
 
     // Grammar addition
-    example!(v, check_moment!(c, [2013, 2, 19, 4]), "7일 이후에", "7일 후에", "7일 이 후에", "7일 뒤에");
+    example!(v, check_moment!(c, [2013, 2, 19, 4]), "7일 후에", "7일 뒤에");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 19, 4], Direction::After), "7일 이후에", "7일 이 후에");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "이제");
     example!(v, check_moment!(c, [2013, 2, 11]), "작일", "어저께");
     example!(v, check_moment!(c, [2013, 2, 15]), "돌아오는 금요일", "이번주 금요일");
@@ -198,9 +200,13 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 14]), "브런취", "브런치", "아침 겸 점심", "늦은 아침", "아점");
     example!(v, check_moment!(c, [2013, 5, 19]), "5월의 둘째 주 일요일");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 5], Direction::After), "5시 되면");
-    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 4, 32, 00], Direction::After), "2분 있다가", "2분 뒤에", "2분 후");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 32, 00]), "2분 있다가", "2분 뒤에", "2분 후");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 32, 00]), "지금부터 2분 후에");
-}   
+    example!(v, check_moment!(c, [2013, 6, 3]), "6월 3번째 일");
+    example!(v, check_moment!(c, [2013, 2, 12, 7, 30]), "현시간부터 3시간 후에");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 35], Grain::Second), "딱 5분 후에");
+}
+
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "영", "빵", "공");
