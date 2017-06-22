@@ -106,8 +106,7 @@ fn main() {
                                        .iter()
                                        .map(|n| {
                                            let name = parser.resolve_sym(&n.rule_sym).unwrap_or("");
-                                                let max_length = min(20, name.len());
-                                                &name[..max_length]
+                                                name.chars().take(20).collect::<String>()
                                             })
                                        .collect::<Vec<_>>()
                                        .join(" + ")]);
