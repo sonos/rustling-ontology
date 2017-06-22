@@ -46,7 +46,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 18]), "이번주 월요일");
     example!(v, check_moment!(c, [2013, 2, 12]), "이번주 화요일");
     example!(v, check_moment!(c, [2013, 2, 13]), "이번주 수요일");
-    example!(v, check_moment!(c, [2013, 2, 14]), "내일모래", "모래");
+    example!(v, check_moment!(c, [2013, 2, 14]), "내일모레", "모레");
     example!(v, check_moment!(c, [2013, 2, 13, 17]), "내일 저녁다섯시");
     example!(v, check_moment!(c, [2013, 2, 10]), "엊그제", "그제");
     example!(v, check_moment!(c, [2013, 2, 10, 8]), "엊그제 아침8시", "엊그제 오전8시");
@@ -73,7 +73,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 9, 20, 19, 30]), "9월 20일 저녁 7시 30분");
     example!(v, check_moment!(c, [2013, 2, 16, 9]), "토요일 9시");
     example!(v, check_moment!(c, [2014, 7, 18, 19]), "2014년 7월 18일 금요일 오후 7시");
-    example!(v, check_moment!(c, [2013, 2, 14]), "내일모래", "모래");
+    example!(v, check_moment!(c, [2013, 2, 14]), "내일모레", "모레");
     example!(v, check_moment!(c, [2013, 2, 13, 17]), "내일 저녁다섯시");
     example!(v, check_moment!(c, [2013, 2, 10]), "엊그제", "그제");
     example!(v, check_moment!(c, [2013, 2, 10, 8]), "엊그제 아침8시", "엊그제 오전8시");

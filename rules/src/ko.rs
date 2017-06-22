@@ -28,6 +28,11 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"에|때"#)?,
         |time, _| Ok(time.value().clone())
     );
+    b.rule_2("<date>동안",
+        time_check!(),
+        b.reg(r#"동안"#)?,
+        |duration, _| Ok(duration.value().clone().not_latent())
+    );
     b.rule_2("<named-day>에", // on Wed, March 23
         time_check!(form!(Form::DayOfWeek{..})),
         b.reg(r#"에"#)?,
@@ -658,7 +663,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"해|연간?|년간?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
-    b.rule_2("<unit-of-duration>동안",
+    b.rule_2("<duration>동안",
         duration_check!(),
         b.reg(r#"동안"#)?,
         |duration, _| Ok(duration.value().clone())
@@ -762,17 +767,17 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("this <cycle>",
-        b.reg(r#"이번|금|올"#)?,
+        b.reg(r#"이번?|금|올|돌아오는"#)?,
         cycle_check!(),
         |_, a| helpers::cycle_nth(a.value().grain, 0)
     );
     b.rule_2("last <cycle>",
-        b.reg(r#"지난|작|전|저번"#)?,
+        b.reg(r#"지난|작|전|저번|거"#)?,
         cycle_check!(),
         |_, a| helpers::cycle_nth(a.value().grain, -1)
     );
     b.rule_2("next <cycle>",
-        b.reg(r#"다음|오는|차|내"#)?,
+        b.reg(r#"다음|차|오는|내|새|훗"#)?,
         cycle_check!(),
         |_, a| helpers::cycle_nth(a.value().grain, 1)
     );
@@ -789,7 +794,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |time, ordinal, cycle| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
     );
     b.rule_1("the day after tomorrow - 내일모래",
-        b.reg(r#"(?:내일)?모래"#)?,
+        b.reg(r#"(?:내일)?모레|명후일|다음다음 ?날"#)?,
         |_| helpers::cycle_nth_after(Grain::Day, 1, &helpers::cycle_nth(Grain::Day, 1)?)
     );
     b.rule_1("the day before yesterday - 엊그제",
