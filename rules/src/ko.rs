@@ -642,21 +642,26 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1("day (unit-of-duration)",
-        b.reg(r#"날|일(?:간|동안)?"#)?,
+        b.reg(r#"날|일(?:간)?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Day))
     );
     b.rule_1("week (unit-of-duration)",
-        b.reg(r#"주일?"#)?,
+        b.reg(r#"주(?:일|간)?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Week))
     );
     b.rule_1("month (unit-of-duration)",
-        b.reg(r#"(?:달)(?:간|동안)?"#)?,
+        b.reg(r#"달간?|개월"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Month))
     );
     // TODO check if the quarter duration is needed
     b.rule_1("year (unit-of-duration)",
-        b.reg(r#"해|연간|년(?:간|동안)?"#)?,
+        b.reg(r#"해|연간?|년간?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
+    );
+    b.rule_2("<unit-of-duration>동안",
+        duration_check!(),
+        b.reg(r#"동안"#)?,
+        |duration, _| Ok(duration.value().clone())
     );
     // TODO check that a cycle is ncessary for this rule and not a unit of duration (hour)
     b.rule_2("half an hour",
@@ -737,23 +742,23 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Hour)
     );
     b.rule_1("day (cycle)",
-        b.reg(r#"날|일(?:간|동안)?"#)?,
+        b.reg(r#"날|일간?"#)?,
         |_| CycleValue::new(Grain::Day)
     );
     b.rule_1("week (cycle)",
-        b.reg(r#"주"#)?,
+        b.reg(r#"주(?:간|일)?"#)?,
         |_| CycleValue::new(Grain::Week)
     );
     b.rule_1("month (cycle)",
-        b.reg(r#"(?:달)(?:간|동안)?"#)?,
+        b.reg(r#"(?:달|개?월)"#)?,
         |_| CycleValue::new(Grain::Month)
     );
     b.rule_1("quarter (cycle)",
-        b.reg(r#"분기(?:간|동안)?"#)?,
+        b.reg(r#"분기"#)?,
         |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_1("year (cycle)",
-        b.reg(r#"해|연간|년(?:간|동안)?"#)?,
+        b.reg(r#"해|(?:연|년)간?"#)?,
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("this <cycle>",
