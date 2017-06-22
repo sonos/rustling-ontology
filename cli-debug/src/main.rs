@@ -44,15 +44,15 @@ fn main() {
                                    decoder.resolve(&m.value).map(|v| format!("{:?}", v)).unwrap_or("".into()),
                                    rules.resolve_sym(&m.root_node.rule_sym).unwrap_or(""),
                                    m.root_node
-                                       .children
-                                       .iter()
-                                       .map(|n| {
-                                           let name = rules.resolve_sym(&n.rule_sym).unwrap_or("");
-                                                let max_length = min(20, name.len());
-                                                &name[..max_length]
-                                            })
-                                       .collect::<Vec<_>>()
-                                       .join(" + ")]);
+                                      .children
+                                      .iter()
+                                      .map(|n| {
+                                          let name = rules.resolve_sym(&n.rule_sym).unwrap_or("");
+                                               name.chars().take(20).collect::<String>()
+                                           })
+                                      .collect::<Vec<_>>()
+                                      .join(" + ")
+                                   ]);
             }
     table.printstd();
         }
