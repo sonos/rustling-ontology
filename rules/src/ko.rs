@@ -429,6 +429,13 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
 
     );
+    b.rule_1("early afternoon",
+        b.reg(r#"이른 오후|낮곁|오후 들어|오후 일찍"#)?,
+        |_| Ok(helpers::hour(12, false)?
+                .span_to(&helpers::hour(16, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
     b.rule_1("afternoon",
         b.reg(r#"오후"#)?,
         |_| Ok(helpers::hour(12, false)?
