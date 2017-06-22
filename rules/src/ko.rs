@@ -617,12 +617,12 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("after <time-of-day>",
         time_check!(),
-        b.reg(r#"지나서|이?후에?"#)?,
+        b.reg(r#"지나(?:서|고)|되면|이?후에?|뒤에?"#)?,
         |time, _| Ok(time.value().clone().direction(Some(Direction::After)))
     );
     b.rule_2("since <time-of-day>",
         time_check!(),
-        b.reg(r#"이래로"#)?,
+        b.reg(r#"(이래|이후)로?"#)?,
         |time, _| Ok(time.value().the_nth(-1)?.direction(Some(Direction::After)))
     );
     Ok(())
@@ -688,12 +688,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("in <duration>",
         duration_check!(),
-        b.reg(r#"(?:이\s*)?후에|뒤에"#)?,
+        b.reg(r#"(?:이 ?)?후에|뒤에"#)?,
         |duration, _| duration.value().in_present()
     );
     b.rule_2("after <duration>",
         duration_check!(),
-        b.reg(r#"이?후"#)?,
+        b.reg(r#"이?후에?|뒤에|되면|지나(?:고|서|면)|있다가"#)?,
         |duration, _| Ok(duration
                             .value()
                             .in_present()?
@@ -702,6 +702,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<duration> from now",
         b.reg(r#"지금부터"#)?,
         duration_check!(),
+        b.reg(r#"후에|뒤에"#),
         |_, duration| duration.value().in_present()
     );
     b.rule_2("<duration> ago",
