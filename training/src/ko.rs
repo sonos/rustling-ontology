@@ -129,9 +129,11 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 8, 15]), "광복절");
     example!(v, check_moment!(c, [2013, 10, 3]), "개천절");
     example!(v, check_moment!(c, [2013, 10, 9]), "한글날");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "오늘저녁", "오늘밤");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "오늘저녁");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 19], [2013, 2, 13, 00]), "오늘밤");
     example!(v, check_moment_span!(c, [2013, 2, 8, 18], [2013, 2, 11, 00]), "저번주말", "지난주말");
-    example!(v, check_moment_span!(c, [2013, 2, 13, 18], [2013, 2, 14, 00]), "내일저녁", "내일밤");
+    example!(v, check_moment_span!(c, [2013, 2, 13, 18], [2013, 2, 14, 00]), "내일저녁");
+    example!(v, check_moment_span!(c, [2013, 2, 13, 19], [2013, 2, 14, 00]), "내일밤");
     example!(v, check_moment_span!(c, [2013, 2, 13, 12], [2013, 2, 13, 14]), "내일점심");
     example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 00]), "어제저녁");
     example!(v, check_moment_span!(c, [2013, 2, 15, 18], [2013, 2, 18, 00]), "이번주말");
@@ -190,6 +192,10 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "늦은 오후", "오후 늦게");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 12, 21]), "이른 저녁", "초저녁", "저녁 일찍");
     example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 0]), "늦은 저녁", "저녁 늦게");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 0]),  "이른 밤", "밤에 일찍");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 6], [2013, 2, 12, 9]), "아침때", "아침 식사때", "아침밥", "조반");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17, 30], [2013, 2, 12, 21]), "저녁", "저녁 식사", "저녁밥");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 14]), "브런취", "브런치", "아침 겸 점심", "늦은 아침", "아점");
 }   
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

@@ -25,7 +25,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<date>에",
         time_check!(),
-        b.reg(r#"에"#)?,
+        b.reg(r#"에|때"#)?,
         |time, _| Ok(time.value().clone())
     );
     b.rule_2("<named-day>에", // on Wed, March 23
@@ -459,8 +459,8 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .latent()
                 .form(Form::PartOfDay))
     );
-    b.rule_1("evening|night",
-        b.reg(r#"저녁|밤"#)?,
+    b.rule_1("evening",
+        b.reg(r#"저녁"#)?,
         |_| Ok(helpers::hour(18, false)?
                 .span_to(&helpers::hour(0, false)?, false)?
                 .latent()
@@ -473,12 +473,56 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .latent()
                 .form(Form::PartOfDay))
     );
+    b.rule_1("early night",
+        b.reg(r#"이른 밤|밤에 일찍"#)?,
+        |_| Ok(helpers::hour(21, false)?
+                .span_to(&helpers::hour(0, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
+    b.rule_1("night",
+        b.reg(r#"밤"#)?,
+        |_| Ok(helpers::hour(19, false)?
+                .span_to(&helpers::hour(0, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
+    b.rule_1("late night",
+        b.reg(r#"늦은 밤|밤 늦게|깊은 밤"#)?,
+        |_| Ok(helpers::hour(1, false)?
+                .span_to(&helpers::hour(4, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
+    b.rule_1("breakfast",
+        b.reg(r#"아침(?: ?(?:식사|밥))?|조반"#)?,
+        |_| Ok(helpers::hour(6, false)?
+                .span_to(&helpers::hour(9, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+
+    );
+    b.rule_1("brunch",
+        b.reg(r#"브런취|브런치|아침 겸 점심|늦은 아침|아점"#)?,
+        |_| Ok(helpers::hour(11, false)?
+                .span_to(&helpers::hour(14, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
     b.rule_1("lunch",
-        b.reg(r#"점심(?:\s*(?:식사|밥))?"#)?,
+        b.reg(r#"점심(?: ?(?:식사|밥))?"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
+    );
+    b.rule_1("dinner",
+        b.reg(r#"저녁(?: ?(?:식사|밥))?"#)?,
+        |_| Ok(helpers::hour_minute(17, 30, false)?
+                .span_to(&helpers::hour(21, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+
     );
     b.rule_2("in|during the <part-of-day>",
         time_check!(form!(Form::PartOfDay)),
