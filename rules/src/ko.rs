@@ -336,7 +336,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::hour(12, false)
     );
     b.rule_1("midnight|EOD|end of day",
-        b.reg(r#"자정"#)?,
+        b.reg(r#"자정|영시"#)?,
         |_| helpers::hour(0, false)
     );
     b.rule_1("half (relative minutes)",

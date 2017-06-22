@@ -173,7 +173,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 10, 30]), "10:30");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 12]), "아침");
     example!(v, check_moment!(c, [2013, 2, 12, 12]), "오후12시", "정오", "오정", "한낮");
-    example!(v, check_moment!(c, [2013, 2, 13, 0]), "오전12시", "자정");
+    example!(v, check_moment!(c, [2013, 2, 13, 0]), "오전12시", "자정", "영시");
     example!(v, check_moment!(c, [2013, 3]), "3월", "3월에");
 
     // Grammar addition
