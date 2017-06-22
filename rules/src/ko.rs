@@ -404,8 +404,17 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |text_match| helpers::month_day(text_match.group(1).parse()?, text_match.group(2).parse()?)
 
     );
+
+    b.rule_1("early morning",
+        b.reg(r#"이른 아침|조조|아침 일찍"#)?,
+        |_| Ok(helpers::hour(4, false)?
+                .span_to(&helpers::hour(9, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+
+    );
     b.rule_1("morning",
-        b.reg(r#"아침"#)?,
+        b.reg(r#"아침|오전"#)?,
         |_| Ok(helpers::hour(4, false)?
                 .span_to(&helpers::hour(12, false)?, false)?
                 .latent()
@@ -428,7 +437,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
     );
     b.rule_1("lunch",
-        b.reg(r#"점심"#)?,
+        b.reg(r#"점심(?:\s*(?:식사|밥))?"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .latent()
@@ -438,8 +447,8 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(form!(Form::PartOfDay)),
         b.reg(r#"에|동안"#)?,
         |time, _| Ok(time.value().clone().not_latent())
-
     );
+
     // b.rule_2("after <part-of-day>",
     //     time_check!(form!(Form::PartOfDay)),
     //     b.reg(r#"지나서|후에"#)?,
@@ -608,7 +617,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("in <duration>",
         duration_check!(),
-        b.reg(r#"이?\s*후에|뒤에"#)?,
+        b.reg(r#"(?:이\s*)?후에|뒤에"#)?,
         |duration, _| duration.value().in_present()
     );
     b.rule_2("after <duration>",
