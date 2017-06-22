@@ -258,21 +258,6 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         ordinal.value().value - 1, 
                         time.value())
     );
-
-    b.rule_1("year",
-        integer_check!(1500, 2100),
-        |integer| helpers::year(integer.value().value as i32)
-    );
-    b.rule_1("year (latent)",
-        integer_check!(-1000, 999),
-        |integer| Ok(helpers::year(integer.value().value as i32)?.latent())
-
-    );
-    b.rule_1("year (latent)",
-        integer_check!(2101, 2300),
-        |integer| Ok(helpers::year(integer.value().value as i32)?.latent())
-
-    );
     b.rule_2("year",
         integer_check!(1),
         b.reg(r#"년"#)?,
@@ -572,6 +557,11 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("season",
         b.reg(r#"봄"#)?,
         |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
+    );
+    b.rule_2("<time> approximately",
+        time_check!(),
+        b.reg(r#"경"#)?,
+        |time, _| Ok(time.value().clone().precision(Precision::Approximate))
     );
     b.rule_2("<time-of-day> approximately",
         time_check!(form!(Form::TimeOfDay(_))),
