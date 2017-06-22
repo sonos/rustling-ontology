@@ -328,17 +328,22 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                                 true)?.intersect(&day_period)?.form(Form::TimeOfDay(None)))
         }
     );
-
-    b.rule_2("am|pm <time-of-day>",
-        b.reg(r#"오전|아침|오후|저녁"#)?,
+    // From "am|pm <time-of-day>" rules in the original grammar version
+    b.rule_2("<time-of-day> am",
+        b.reg(r#"오전|아침|새벽"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
-        |text_match, time| {
-            let day_period = if text_match.group(0) == "오전" || text_match.group(0) == "아침" {
-                helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?
-            } else {
-                helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
-            };
-            Ok(time.value().intersect(&day_period)?.form(Form::TimeOfDay(None)))
+        |_, tod| {
+            let day_period = helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?;
+            Ok(tod.value().intersect(&day_period)?.form(Form::TimeOfDay(None)))
+        }
+    );
+    // From "am|pm <time-of-day>" rules in the original grammar version
+    b.rule_2("<time-of-day> pm",
+        b.reg(r#"오후|저녁|밤"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, tod| {
+            let day_period = helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?;
+            Ok(tod.value().intersect(&day_period)?.form(Form::TimeOfDay(None)))
         }
     );
     b.rule_1("noon",
