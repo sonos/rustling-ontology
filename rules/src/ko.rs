@@ -5,6 +5,104 @@ use values::helpers;
 use regex::Regex;
 use moment::{Weekday, Grain, PeriodComp};
 
+pub fn rule_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect (X cents)",
+         amount_of_money_check!(),
+         amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
+         |a, b| helpers::compose_money(a.value(), b.value())
+    );
+    b.rule_1("₩",
+        b.reg(r#"\₩|원|krw"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("KRW") })
+    );
+    b.rule_1("$",
+        b.reg(r#"\$|달러|불"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("$") })
+    );
+    b.rule_1("cent",
+        b.reg(r#"cents?|센[트|츠]|c|¢"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("cent") })
+    );
+    b.rule_1("€",
+        b.reg(r#"€|유로|euro?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("EUR") })
+    );
+    b.rule_1("£",
+        b.reg(r#"£|파운드|영국파운드"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("£") })
+    );
+    b.rule_1("GBP",
+        b.reg(r#"gbp"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("GBP") })
+    );
+    b.rule_1("AUD",
+        b.reg(r#"aud|호주달러"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("AUD") })
+    );
+    b.rule_1("USD",
+        b.reg(r#"us[d\$]"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("USD") })
+    );
+    b.rule_1("PTS",
+        b.reg(r#"pta?s?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("PTS") })
+    );
+    b.rule_1("INR",
+        b.reg(r#"inr|rs(. )?|(R|r)upees?|루피|인도루피"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("INR") })
+    );
+    b.rule_1("AED", //  Emirates Currency
+        b.reg(r#"aed|dirhams?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("AED") })
+    );
+    b.rule_2("<unit> <amount>", 
+        money_unit!(), 
+        number_check!(), 
+        |a, b| { Ok(AmountOfMoneyValue {
+               value: b.value().value(),
+               unit: a.value().unit,
+               ..AmountOfMoneyValue::default()
+           })
+    });
+    b.rule_2("<amount> <unit>", 
+        number_check!(), 
+        money_unit!(),
+        |a, b| Ok(AmountOfMoneyValue {
+               value: a.value().value(),
+               unit: b.value().unit,
+               ..AmountOfMoneyValue::default()
+           })
+    );
+    b.rule_2("about <amount-of-money>",
+        b.reg(r#"약|대충|얼추"#)?,
+        amount_of_money_check!(),
+        |_, a| {
+            Ok(AmountOfMoneyValue {
+                   precision: Approximate,
+                   ..a.value().clone()
+               })
+    });
+    b.rule_2("<amount-of-money> about",
+        amount_of_money_check!(),
+        b.reg(r#"정도|쯤"#)?,
+        |a, _| {
+            Ok(AmountOfMoneyValue {
+                   precision: Approximate,
+                   ..a.value().clone()
+               })
+    });
+    b.rule_2("exactly <amount-of-money>",
+        b.reg(r#"딱|정확히"#)?,
+        amount_of_money_check!(),
+        |_, a| {
+            Ok(AmountOfMoneyValue {
+                   precision: Exact,
+                   ..a.value().clone()
+               })
+        });
+    Ok(())
+}
+
 pub fn rule_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("number as temp", 
         number_check!(), 
