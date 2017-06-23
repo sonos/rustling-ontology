@@ -5,14 +5,14 @@ use values::helpers;
 use regex::Regex;
 use moment::{Weekday, Grain, PeriodComp};
 
-pub fn rule_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect (X cents)",
          amount_of_money_check!(),
          amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
          |a, b| helpers::compose_money(a.value(), b.value())
     );
     b.rule_1("₩",
-        b.reg(r#"\₩|원|krw"#)?,
+        b.reg(r#"₩|원|krw"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
     b.rule_1("$",
@@ -48,11 +48,11 @@ pub fn rule_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("PTS") })
     );
     b.rule_1("INR",
-        b.reg(r#"inr|rs(. )?|(R|r)upees?|루피|인도루피"#)?,
+        b.reg(r#"inr|rs(?:. )?|(?:R|r)upees?|루피|인도루피"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_1("AED", //  Emirates Currency
-        b.reg(r#"aed|dirhams?"#)?,
+        b.reg(r#"디르함|aed|dirhams?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("AED") })
     );
     b.rule_2("<unit> <amount>", 
@@ -74,7 +74,7 @@ pub fn rule_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
            })
     );
     b.rule_2("about <amount-of-money>",
-        b.reg(r#"약|대충|얼추"#)?,
+        b.reg(r#"대략|약|대충|얼추"#)?,
         amount_of_money_check!(),
         |_, a| {
             Ok(AmountOfMoneyValue {
@@ -1260,7 +1260,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"영|공|빵"#)?,
         |_| IntegerValue::new(0)
     );
-
     b.rule_1("half - 반",
         b.reg(r#"반"#)?,
         |_| FloatValue::new(0.5)
@@ -1361,6 +1360,36 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             IntegerValue::new(value)
         }
     );
+    b.rule_2("number hundreds",
+        integer_check!(1, 99),
+        integer_check!(100, 100),
+        |a, b| {
+            Ok(IntegerValue {
+                   value: a.value().value * b.value().value,
+                   grain: b.value().grain,
+                   ..IntegerValue::default()
+               })
+    });
+    b.rule_2("number thousands",
+        integer_check!(1, 999),
+        integer_check!(1000, 1000),
+        |a, b| {
+            Ok(IntegerValue {
+                   value: a.value().value * b.value().value,
+                   grain: b.value().grain,
+                   ..IntegerValue::default()
+               })
+    });
+    b.rule_2("number millions",
+        integer_check!(1, 99),
+        integer_check!(1000000, 1000000),
+        |a, b| {
+            Ok(IntegerValue {
+                   value: a.value().value * b.value().value,
+                   grain: b.value().grain,
+                   ..IntegerValue::default()
+               })
+    });
     b.rule_1("integer (1..4) - for ordinals",
         b.reg(r#"(한|두|세|네)"#)?,
         |text_match| {
