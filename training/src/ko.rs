@@ -120,7 +120,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "이번겨울");
     example!(v, check_moment!(c, [2013, 12, 25]), "크리스마스");
     example!(v, check_moment!(c, [2013, 12, 24]), "크리스마스이브");
-    example!(v, check_moment!(c, [2014, 1, 1]), "신정", "설날");
+    example!(v, check_moment!(c, [2014, 1, 1]), "신정");
     example!(v, check_moment!(c, [2013, 3, 1]), "삼일절");
     example!(v, check_moment!(c, [2013, 5, 5]), "어린이날");
     example!(v, check_moment!(c, [2013, 6, 6]), "현충일");
@@ -226,6 +226,24 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2010]), "재재작년");
     example!(v, check_moment!(c, [2016]), "내후년", "명후년", "후후년");
     example!(v, check_moment!(c, [2015]), "후년", "재명년", "내명년");
+
+    // Holidays
+    example!(v, check_moment!(c, [2013, 6, 16]), "아버지날");
+    example!(v, check_moment!(c, [2013, 5, 12]), "어머니날");
+    example!(v, check_moment!(c, [2013, 5, 8]), "어버이날");
+    example!(v, check_moment!(c, [2013, 5, 15]), "스승의 날");
+    example!(v, check_moment!(c, [2013, 5, 1]), "노동절", "노동일", "근로자의날");
+    example!(v, check_moment!(c, [2013, 2, 14]), "발렌타인 데이");
+    example!(v, check_moment!(c, [2013, 3, 14]), "화이트 데이");
+    example!(v, check_moment!(c, [2013, 5, 20]), "성년의날");
+    example!(v, check_moment!(c, [2013, 5, 21]), "부부의날");
+    example!(v, check_moment!(c, [2013, 7, 13]), "초복");
+    example!(v, check_moment!(c, [2013, 7, 23]), "중복");
+    example!(v, check_moment!(c, [2013, 8, 12]), "말복");
+    example!(v, check_moment!(c, [2013, 8, 31]), "핼러윈", "핼러윈데이");
+    example!(v, check_moment!(c, [2013, 8, 1]), "국군의날");
+    example!(v, check_moment!(c, [2013, 8, 2]), "노인의날");
+    example!(v, check_moment!(c, [2013, 8, 25]), "독도의 날");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

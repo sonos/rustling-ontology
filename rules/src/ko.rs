@@ -128,9 +128,31 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1("New Year's Day",
-        b.reg(r#"신정|설날"#)?,
+        b.reg(r#"신정|새해 첫 날"#)?,
         |_| helpers::month_day(1, 1)
     );
+    
+    // b.rule_1("Korean New Year",
+    //     b.reg(r#"설날|설|원일|구정"#)?,
+    //     based on the lunear calendar which is not supported yet
+    // );
+
+    // b.rule_1("Buddha’s Birthday",
+    //     b.reg(r#"부처님 오신 날|석존성탄절|석가탄신일|석탄일|석탄절"#)?,
+    //     based on the lunear calendar which is not supported yet
+    // );
+
+    // b.rule_1("Chuseok",
+    //     b.reg(r#"추석|한가위"#)?,
+    //     based on the lunear calendar which is not supported yet
+    // );
+
+    // b.rule_1("Chuseok Holidays",
+    //     b.reg(r#"추석연휴"#),
+    //     based on the lunear calendar which is not supported yet
+    // );
+
+
     b.rule_1("Independence Movement Day",
         b.reg(r#"삼일절"#)?,
         |_| helpers::month_day(3, 1)
@@ -164,13 +186,89 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::month_day(12, 24)
     );
     b.rule_1("christmas",
-        b.reg(r#"크리스마스"#)?,
+        b.reg(r#"크리스마스|성탄절"#)?,
         |_| helpers::month_day(12, 25)
     );
     b.rule_2("absorption of , after named day",
         time_check!(form!(Form::DayOfWeek{..})),
         b.reg(r#","#)?,
         |dow, _| Ok(dow.value().clone())
+    );
+    b.rule_1("Father's day",
+        b.reg(r#"아버지\s?날"#)?,
+        |_| {
+            let sundays_of_june = helpers::month(6)?.intersect(&helpers::day_of_week(Weekday::Sun)?)?;
+            let second_week_of_june = helpers::cycle_nth_after(Grain::Week, 2, &helpers::month_day(6, 1)?)?;
+            sundays_of_june.intersect(&second_week_of_june) // third sunday of June
+        }
+    );
+    b.rule_1("Mother's day",
+        b.reg(r#"어머니\s?날"#)?,
+        |_| {
+            let sundays_of_may = helpers::month(5)?.intersect(&helpers::day_of_week(Weekday::Sun)?)?;
+            let first_week_of_may = helpers::cycle_nth_after(Grain::Week, 1, &helpers::month_day(5, 1)?)?;
+            sundays_of_may.intersect(&first_week_of_may) // second sunday of May
+        }
+    );
+    b.rule_1("Parents day",
+        b.reg(r"어버이\s?날")?,
+        |_| helpers::month_day(5, 8)
+    );
+    b.rule_1("Teachers' day",
+        b.reg(r#"스승의\s?날"#)?,
+        |_| helpers::month_day(5, 15)
+    );
+    b.rule_1("Labor Day",
+        b.reg(r#"노동절|노동일|근로자의\s?날"#)?,
+        |_| helpers::month_day(5, 1)
+    );
+    b.rule_1("Valentine’s Day",
+        b.reg(r#"발렌타인\s?데이"#)?,
+        |_| helpers::month_day(2, 14)
+    );
+    b.rule_1("White Day",
+        b.reg(r#"화이트\s?데이"#)?,
+        |_| helpers::month_day(3, 14)
+    );
+    b.rule_1("Coming-of-Age Day",
+        b.reg(r#"성년의\s?날"#)?,
+        |_| {
+            let mondays_of_may = helpers::month(5)?.intersect(&helpers::day_of_week(Weekday::Mon)?)?;
+            let third_week_of_may = helpers::cycle_nth_after(Grain::Week, 3, &helpers::month_day(5, 1)?)?;
+            mondays_of_may.intersect(&third_week_of_may) // third monday of May
+        }
+    );
+    b.rule_1("First Dog Days",
+        b.reg(r#"초복"#)?,
+        |_| helpers::month_day(7, 13)
+    );
+    b.rule_1("Second Dog Days",
+        b.reg(r#"중복"#)?,
+        |_| helpers::month_day(7, 23)
+    );
+    b.rule_1("Last Dog Days",
+        b.reg(r#"말복"#)?,
+        |_| helpers::month_day(8, 12)
+    );
+    b.rule_1("Halloween",
+        b.reg(r#"핼러윈|핼러윈\s?데이"#)?,
+        |_| helpers::month_day(10, 31)
+    );
+    b.rule_1("Armed Forces Day",
+        b.reg(r#"국군의\s?날"#)?,
+        |_| helpers::month_day(10, 1)
+    );
+    b.rule_1("Couple’s Day",
+        b.reg(r#"부부의\s?날"#)?,
+        |_| helpers::month_day(5, 21)
+    );
+    b.rule_1("Elderly Day",
+        b.reg(r#"노인의\s?날"#)?,
+        |_| helpers::month_day(10, 2)
+    );
+    b.rule_1("Dokdo Day",
+        b.reg(r#"독도의\s?날"#)?,
+        |_| helpers::month_day(10, 25)
     );
     b.rule_1("now",
         b.reg(r#"방금|지금|방금|막|이제"#)?,
