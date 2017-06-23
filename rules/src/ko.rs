@@ -14,8 +14,39 @@ pub fn rule_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()>
                latent: true,
            })
     );
+    b.rule_2("below <temp>", 
+        b.reg(r#"영하"#)?,
+        temperature_check!(|temp: &TemperatureValue| !temp.latent),
+        |_, temp| {
+            if temp.value().value >= 0.0 {
+                Ok(TemperatureValue {
+                    value: -1.0 * temp.value().value,
+                    unit: temp.value().unit,
+                    latent: false,
+                })
+            } else {
+                Ok(temp.value().clone())
+            }
+        }
+    );
+    b.rule_2("above <temp>",
+        b.reg(r#"영상"#)?,
+        temperature_check!(|temp: &TemperatureValue| !temp.latent),
+        |_, temp| {
+            if temp.value().value <= 0.0 {
+                Ok(TemperatureValue {
+                    value: -1.0 * temp.value().value,
+                    unit: temp.value().unit,
+                    latent: false,
+                })
+            } else {
+                Ok(temp.value().clone())
+            }
+        }
+    );
+
     b.rule_2("<latent temp> degrees",
-        temperature_check!(),
+        temperature_check!(), 
         b.reg(r#"도|°"#)?,
         |a, _| Ok(TemperatureValue {
                     value: a.value().value,
@@ -25,7 +56,7 @@ pub fn rule_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()>
     );
     b.rule_2("섭씨 <temp> (celsius)",
         b.reg(r#"섭씨"#)?,
-        temperature_check!(),
+        temperature_check!(), 
         |_, a| Ok(TemperatureValue {
                     value: a.value().value,
                     unit: Some("celsius"),

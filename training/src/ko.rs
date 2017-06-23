@@ -5,6 +5,12 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
     example!(v, check_temperature(37.0, Some("celsius")), "37°C", "섭씨37°", "섭씨37도");
     example!(v, check_temperature(70.0, Some("fahrenheit")), "70°F", "화씨70°", "화씨70도");
     example!(v, check_temperature(45.0, Some("degree")), "45°", "45도");
+    example!(v, check_temperature(-15.0, Some("degree")), "영하 15도");
+    example!(v, check_temperature(-3.0, Some("degree")), "영하 삼도");
+    example!(v, check_temperature(15.0, Some("degree")), "영상 15도");
+    example!(v, check_temperature(3.0, Some("degree")), "영상 삼도");
+    example!(v, check_temperature(6.0, Some("celsius")), "섭씨 6도");
+    example!(v, check_temperature(32.0, Some("fahrenheit")), "화씨 32도");
 }
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
