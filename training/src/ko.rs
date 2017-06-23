@@ -224,8 +224,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2014, 1], [2014, 4]), "2014년 초에");
     example!(v, check_moment!(c, [2011]), "재작년");
     example!(v, check_moment!(c, [2010]), "재재작년");
-    example!(v, check_moment!(c, [2016]), "내후년");
-    example!(v, check_moment!(c, [2015]), "후년");
+    example!(v, check_moment!(c, [2016]), "내후년", "명후년", "후후년");
+    example!(v, check_moment!(c, [2015]), "후년", "재명년", "내명년");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

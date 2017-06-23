@@ -189,7 +189,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::cycle_nth(Grain::Day, -1)
     );
     b.rule_1("in two years",
-        b.reg(r#"후년"#)?,
+        b.reg(r#"후년|재명년|내명년"#)?,
         |_| helpers::cycle_nth(Grain::Year, 2),
     );
     b.rule_1("in three years",
@@ -294,7 +294,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, time| time.value().the_nth(1)
     );
     b.rule_2("last <time>",
-        b.reg(r#"전|저번|지난"#)?,
+        b.reg(r#"전|저번|지난|거"#)?,
         time_check!(),
         |_, time| time.value().the_nth(-1)
     );
