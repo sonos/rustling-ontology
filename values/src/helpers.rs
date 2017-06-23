@@ -177,7 +177,7 @@ impl TimeValue {
 }
 
 pub fn year(y: i32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Year::new(y)))
+    Ok(TimeValue::constraint(Year::new(y)).form(Form::Year(y)))
 }
 
 pub fn month(m: u32) -> RuleResult<TimeValue> {
@@ -262,15 +262,15 @@ pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<Tim
 }
 
 pub fn cycle(grain: Grain) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain)))
+    Ok(TimeValue::constraint(Cycle::rc(grain)).form(Form::Cycle(grain)))
 }
 
 pub fn cycle_nth(grain: Grain, n: i64) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).take_the_nth(n)))
+    Ok(TimeValue::constraint(Cycle::rc(grain).take_the_nth(n)).form(Form::Cycle(grain)))
 }
 
 pub fn cycle_nth_after(grain: Grain, n: i64, after_value: &TimeValue) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).the_nth(n).after(&after_value.constraint)))
+    Ok(TimeValue::constraint(Cycle::rc(grain).the_nth(n).after(&after_value.constraint)).form(Form::Cycle(grain)))
 }
 
 pub fn cycle_nth_after_not_immediate(grain: Grain,
@@ -279,15 +279,15 @@ pub fn cycle_nth_after_not_immediate(grain: Grain,
                                      -> RuleResult<TimeValue> {
     Ok(TimeValue::constraint(Cycle::rc(grain)
                                  .the_nth(n)
-                                 .after_not_immediate(&after_value.constraint)))
+                                 .after_not_immediate(&after_value.constraint)).form(Form::Cycle(grain)))
 }
 
 pub fn cycle_n(grain: Grain, n: i64) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).take(n)))
+    Ok(TimeValue::constraint(Cycle::rc(grain).take(n)).form(Form::Cycle(grain)))
 }
 
 pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).take_not_immediate(n)))
+    Ok(TimeValue::constraint(Cycle::rc(grain).take_not_immediate(n)).form(Form::Cycle(grain)))
 }
 
 pub fn ymd(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {

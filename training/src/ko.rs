@@ -213,8 +213,16 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 14, 4], Grain::Hour), "지금부터 양일 후");
     example!(v, check_moment!(c, [2013, 2, 15, 4], Grain::Hour), "지금부터 사흘 후");
     example!(v, check_moment!(c, [2013, 2, 16, 4], Grain::Hour), "지금부터 나흘 후");
-}
 
+    // beginning of / end of
+    example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 6]), "7월 초에");
+    example!(v, check_moment_span!(c, [2013, 7, 25], [2013, 8, 1]), "7월 말에");
+    example!(v, check_moment_span!(c, [2014, 3, 1], [2014, 3, 6]), "2014년 3번째 달 초에");
+    example!(v, check_moment_span!(c, [2014, 3, 25], [2014, 4, 1]), "2014년 3번째 달 말에");
+    example!(v, check_moment_span!(c, [2013, 3, 18], [2013, 3, 20]), "3월의 3번째 주 초에");
+    example!(v, check_moment_span!(c, [2013, 3, 22], [2013, 3, 25]), "3월의 3번째 주 말에");
+    example!(v, check_moment_span!(c, [2014, 1], [2014, 4]), "2014년 초에");
+}
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "영", "빵", "공");

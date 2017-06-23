@@ -335,6 +335,8 @@ impl ::std::fmt::Debug for TimeValue {
 
 #[derive(Debug,PartialEq,Clone)]
 pub enum Form {
+    Cycle(Grain),
+    Year(i32),
     Month(u32),
     TimeOfDay(Option<TimeOfDayForm>),
     DayOfWeek { not_immediate: bool },
@@ -345,6 +347,8 @@ pub enum Form {
 impl Form {
     pub fn not_immediate(&self) -> Option<bool> {
         match self {
+            &Form::Cycle(_) => None,
+            &Form::Year(_) => None,
             &Form::Month(_) => None,
             &Form::TimeOfDay(_) => None,
             &Form::DayOfWeek { not_immediate } => Some(not_immediate),

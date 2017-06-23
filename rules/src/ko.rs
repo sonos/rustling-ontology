@@ -188,10 +188,79 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"어제|작일|어저께"#)?,
         |_| helpers::cycle_nth(Grain::Day, -1)
     );
-    b.rule_2("end of <time>",
-        time_check!(),
+    b.rule_2("start of week",
+        time_check!(form!(Form::Cycle(Grain::Week))),
+        b.reg(r#"초"#)?,
+        |week, _| {
+            let start = week.value().intersect(&helpers::day_of_week(Weekday::Mon)?)?;
+            let end = week.value().intersect(&helpers::day_of_week(Weekday::Tue)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("end of week",
+        time_check!(form!(Form::Cycle(Grain::Week))),
         b.reg(r#"말"#)?,
-        |time, _| time.value().the_nth(1)
+        |week, _| {
+            let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
+            let end = week.value().intersect(&helpers::day_of_week(Weekday::Sun)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("beginning of year",
+        time_check!(|time: &TimeValue| {
+            match time.form {
+                Form::Year(_) | Form::Cycle(Grain::Year) => true,
+                _ => false
+            }
+        }),
+        b.reg(r#"초"#)?,
+        |year, _| {
+            let start = year.value().intersect(&helpers::month(1)?)?;
+            let end = year.value().intersect(&helpers::month(3)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("end of year",
+        time_check!(|time: &TimeValue| {
+            match time.form {
+                Form::Year(_) | Form::Cycle(Grain::Year) => true,
+                _ => false
+            }
+        }),
+        b.reg(r#"말"#)?,
+        |year, _| {
+            let start = year.value().intersect(&helpers::month(10)?)?;
+            let end = year.value().intersect(&helpers::month(12)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("beginning of month",
+        time_check!(|time: &TimeValue| {
+            match time.form {
+                Form::Month(_) | Form::Cycle(Grain::Month) => true,
+                _ => false
+            }
+        }),
+        b.reg(r#"초"#)?,
+        |month, _| {
+            let start = month.value().intersect(&helpers::day_of_month(1)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(5)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("end of month",
+        time_check!(|time: &TimeValue| {
+            match time.form {
+                Form::Month(_) | Form::Cycle(Grain::Month) => true,
+                _ => false
+            }
+        }),
+        b.reg(r#"말"#)?,
+        |month, _| {
+            let start = month.value().intersect(&helpers::day_of_month(25)?)?;
+            let end = helpers::cycle(Grain::Day)?.last_of(month.value())?;
+            start.span_to(&end, true)
+        }
     );
     b.rule_2("this <day-of-week>",
         b.reg(r#"이번\s*주?|돌아오는|금주"#)?,
