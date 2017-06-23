@@ -188,6 +188,22 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"어제|작일|어저께"#)?,
         |_| helpers::cycle_nth(Grain::Day, -1)
     );
+    b.rule_1("in two years",
+        b.reg(r#"후년"#)?,
+        |_| helpers::cycle_nth(Grain::Year, 2),
+    );
+    b.rule_1("in three years",
+        b.reg(r#"내후년|명후년|후후년"#)?,
+        |_| helpers::cycle_nth(Grain::Year, 3),
+    );
+    b.rule_1("two years ago",
+        b.reg(r#"재작년"#)?,
+        |_| helpers::cycle_nth(Grain::Year, -2)
+    );
+    b.rule_1("three years ago",
+        b.reg(r#"재재작년"#)?,
+        |_| helpers::cycle_nth(Grain::Year, -3)
+    );
     b.rule_2("start of week",
         time_check!(form!(Form::Cycle(Grain::Week))),
         b.reg(r#"초"#)?,
@@ -588,17 +604,6 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"에|동안"#)?,
         |time, _| Ok(time.value().clone().not_latent())
     );
-
-    // b.rule_2("after <part-of-day>",
-    //     time_check!(form!(Form::PartOfDay)),
-    //     b.reg(r#"지나서|후에"#)?,
-    //     |time, _|
-    //         helpers::cycle_nth(Grain::Day, 0)?
-    //             intersect( & helpers
-
-    //                 )
-
-    // );
 
     b.rule_2("<time> <part-of-day>",
         time_check!(),

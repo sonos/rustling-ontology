@@ -222,6 +222,10 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 3, 18], [2013, 3, 20]), "3월의 3번째 주 초에");
     example!(v, check_moment_span!(c, [2013, 3, 22], [2013, 3, 25]), "3월의 3번째 주 말에");
     example!(v, check_moment_span!(c, [2014, 1], [2014, 4]), "2014년 초에");
+    example!(v, check_moment!(c, [2011]), "재작년");
+    example!(v, check_moment!(c, [2010]), "재재작년");
+    example!(v, check_moment!(c, [2016]), "내후년");
+    example!(v, check_moment!(c, [2015]), "후년");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
