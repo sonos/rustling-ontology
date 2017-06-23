@@ -206,6 +206,13 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2006], [2013]), "과거 7년간");
     example!(v, check_moment_span!(c, [2014], [2017]), "앞으로 3년간");
     example!(v, check_moment!(c, [2013, 2, 15], Grain::Hour), "오늘보다 3일 후에"); // Unexpected grain
+
+    // Specific day counting
+    example!(v, check_moment!(c, [2013, 2, 13, 4], Grain::Hour), "지금부터 하루 후");
+    example!(v, check_moment!(c, [2013, 2, 14, 4], Grain::Hour), "지금부터 이틀 후");
+    example!(v, check_moment!(c, [2013, 2, 14, 4], Grain::Hour), "지금부터 양일 후");
+    example!(v, check_moment!(c, [2013, 2, 15, 4], Grain::Hour), "지금부터 사흘 후");
+    example!(v, check_moment!(c, [2013, 2, 16, 4], Grain::Hour), "지금부터 나흘 후");
 }
 
 

@@ -666,7 +666,6 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             duration.value().after(time.value())
         }
     );
-
     Ok(())
 }
 
@@ -749,7 +748,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_3("<duration> from now",
         b.reg(r#"지금부터|현시간부터"#)?,
         duration_check!(),
-        b.reg(r#"후에|뒤에"#)?,
+        b.reg(r#"후|뒤"#)?,
         |_, duration, _| duration.value().in_present()
     );
     b.rule_2("<duration> ago",
@@ -766,6 +765,26 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"정확히|딱"#)?,
         duration_check!(),
         |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
+    );
+    b.rule_1("Specific number of days",
+        b.reg(r#"(하루|이틀|양일|(?:사|나)흘|(?:닷|엿)새|(?:이|여드|아흐)레|열흘|열하루)"#)?,
+        |text_match| {
+            let number_of_days = match text_match.group(1).as_ref() {
+                "하루" => 1,
+                "이틀" | "양일" => 2,
+                "사흘" => 3,
+                "나흘" => 4,
+                "닷새" => 5,
+                "엿새" => 6,
+                "이레" => 7,
+                "여드레" => 8,
+                "아흐레" => 9,
+                "열흘" => 10,
+                "열하루" => 11,
+                _ => panic!("Unknown match {:?}", text_match.group(1)),
+            };
+            Ok(DurationValue::new(PeriodComp::new(Grain::Day, number_of_days).into()))
+        }
     );
     Ok(())
 }
