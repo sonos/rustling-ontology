@@ -1,6 +1,12 @@
 use super::*;
 use rustling_ontology_values::check::*;
 
+pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_temperature(37.0, Some("celsius")), "37°C", "섭씨37°", "섭씨37도");
+    example!(v, check_temperature(70.0, Some("fahrenheit")), "70°F", "화씨70°", "화씨70도");
+    example!(v, check_temperature(45.0, Some("degree")), "45°", "45도");
+}
+
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "방금", "지금");
@@ -240,10 +246,10 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 7, 13]), "초복");
     example!(v, check_moment!(c, [2013, 7, 23]), "중복");
     example!(v, check_moment!(c, [2013, 8, 12]), "말복");
-    example!(v, check_moment!(c, [2013, 8, 31]), "핼러윈", "핼러윈데이");
-    example!(v, check_moment!(c, [2013, 8, 1]), "국군의날");
-    example!(v, check_moment!(c, [2013, 8, 2]), "노인의날");
-    example!(v, check_moment!(c, [2013, 8, 25]), "독도의 날");
+    example!(v, check_moment!(c, [2013, 10, 31]), "핼러윈", "핼러윈데이");
+    example!(v, check_moment!(c, [2013, 10, 1]), "국군의날");
+    example!(v, check_moment!(c, [2013, 10, 2]), "노인의날");
+    example!(v, check_moment!(c, [2013, 10, 25]), "독도의 날");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

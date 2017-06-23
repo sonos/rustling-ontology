@@ -5,6 +5,63 @@ use values::helpers;
 use regex::Regex;
 use moment::{Weekday, Grain, PeriodComp};
 
+pub fn rule_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("number as temp", 
+        number_check!(), 
+        |a| Ok(TemperatureValue {
+               value: a.value().value(),
+               unit: None,
+               latent: true,
+           })
+    );
+    b.rule_2("<latent temp> degrees",
+        temperature_check!(),
+        b.reg(r#"도|°"#)?,
+        |a, _| Ok(TemperatureValue {
+                    value: a.value().value,
+                    unit: Some("degree"),
+                    latent: false,
+            })
+    );
+    b.rule_2("섭씨 <temp> (celsius)",
+        b.reg(r#"섭씨"#)?,
+        temperature_check!(),
+        |_, a| Ok(TemperatureValue {
+                    value: a.value().value,
+                    unit: Some("celsius"),
+                    latent: false,
+            })
+    );
+    b.rule_2("<temp> °C",
+        temperature_check!(),
+        b.reg(r#"c"#)?,
+        |a, _| Ok(TemperatureValue {
+                    value: a.value().value,
+                    unit: Some("celsius"),
+                    latent: false,
+        })
+    );
+    b.rule_2("화씨 <temp>",
+        b.reg(r#"화씨"#)?,
+        temperature_check!(),
+        |_, a| Ok(TemperatureValue {
+                    value: a.value().value,
+                    unit: Some("fahrenheit"),
+                    latent: false,
+        })
+    );
+    b.rule_2("<temp> °F",
+        temperature_check!(),
+        b.reg(r#"f"#)?,
+        |a, _| Ok(TemperatureValue {
+                    value: a.value().value,
+                    unit: Some("fahrenheit"),
+                    latent: false,
+        })
+    );
+    Ok(())
+}
+
 pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect",
         time_check!(|time: &TimeValue| !time.latent),
@@ -152,7 +209,6 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //     based on the lunear calendar which is not supported yet
     // );
 
-
     b.rule_1("Independence Movement Day",
         b.reg(r#"삼일절"#)?,
         |_| helpers::month_day(3, 1)
@@ -251,7 +307,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::month_day(8, 12)
     );
     b.rule_1("Halloween",
-        b.reg(r#"핼러윈|핼러윈\s?데이"#)?,
+        b.reg(r#"핼러윈\s?데이|핼러윈"#)?,
         |_| helpers::month_day(10, 31)
     );
     b.rule_1("Armed Forces Day",

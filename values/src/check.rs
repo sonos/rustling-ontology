@@ -166,3 +166,24 @@ pub fn check_finance(value: f32, unit: Option<&'static str>, precision: Precisio
         unit: unit,
     }
 }
+
+#[derive(Debug)]
+pub struct CheckTemperature {
+    pub value: f32,
+    pub unit: Option<&'static str>,
+}
+
+impl Check<Dimension> for CheckTemperature {
+    fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
+        TemperatureValue::attempt_from(pn.value.clone())
+            .map(|v| v.value == self.value && v.unit == self.unit)
+            .unwrap_or(false)
+    }
+}
+
+pub fn check_temperature(value: f32, unit: Option<&'static str>) -> CheckTemperature {
+    CheckTemperature {
+        value: value,
+        unit: unit,
+    }
+}
