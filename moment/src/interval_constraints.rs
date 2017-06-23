@@ -133,7 +133,7 @@ impl<T: TimeZone> IntervalConstraint<T> for Year where <T as TimeZone>::Offset: 
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
-        let normalized_year = if self.0 < 99 {
+        let normalized_year = if self.0 <= 99 {
             (self.0 + 50) % 100 + 2000 - 50
         } else {
             self.0

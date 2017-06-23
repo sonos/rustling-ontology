@@ -33,7 +33,7 @@ pub struct TimeOutput {
 pub enum TimeIntervalOutput {
     After(TimeOutput),
     Before(TimeOutput),
-    Between(Moment<Local>, Moment<Local>)
+    Between(Moment<Local>, Moment<Local>, Precision)
 }
 
 #[derive(Clone,Copy,PartialEq,Debug)]
@@ -95,7 +95,7 @@ impl ParsingContext {
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
                         if let Some(end) = interval.end {
-                            Output::TimeInterval(TimeIntervalOutput::Between(interval.start, end))
+                            Output::TimeInterval(TimeIntervalOutput::Between(interval.start, end, tv.precision))
                         } else {
                             let output = TimeOutput {
                                     moment: interval.start,

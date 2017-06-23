@@ -102,5 +102,5 @@ lang!(es, es_config, [rules_numbers, rules_temperature, rules_cycle, rules_durat
           [Number, Ordinal, Time, Duration, Temperature]);
 lang!(fr, fr_config, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
           [Number, Ordinal, Time, Duration, Temperature]);
-lang!(ko, ko_config, [rules_numbers, rule_time, rules_cycle, rules_duration], [Number, Ordinal, Time, Duration]);
+lang!(ko, ko_config, [rules_numbers, rule_time, rule_temperature, rules_finance, rules_cycle, rules_duration], [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
 
