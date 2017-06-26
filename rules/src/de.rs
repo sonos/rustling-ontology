@@ -110,7 +110,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |duration, _, time| duration.value().before(time.value())
     );
     b.rule_2("about <duration>",
-        b.reg(r#"ungefahr|zirka"#)?,
+        b.reg(r#"ungef[äa]hr|zirka"#)?,
         duration_check!(),
         |_, duration| Ok(duration.value().clone().precision(Approximate))
     );
@@ -166,7 +166,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
     );
     b.rule_2("next <cycle>",
-        b.reg(r#"nachste(?:r|n|s)?|kommende(?:r|n|s)?"#)?,
+        b.reg(r#"n[äa]chste(?:r|n|s)?|kommende(?:r|n|s)?"#)?,
         cycle_check!(),
         |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
     );
@@ -191,7 +191,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
     b.rule_3("next n <cycle>",
-        b.reg(r#"nachsten?|kommenden?"#)?,
+        b.reg(r#"n[äa]chsten?|kommenden?"#)?,
         integer_check!(1, 9999),
         cycle_check!(),
         |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
@@ -298,7 +298,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::month(2)
     );
     b.rule_1("named-month",
-        b.reg(r#"marz|mar\.?"#)?,
+        b.reg(r#"m[äa]rz|m[äa]r\.?"#)?,
         |_| helpers::month(3)
     );
     b.rule_1("named-month",
@@ -361,8 +361,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"tag (?:der)? deutsc?hen? einheit"#)?,
         |_| helpers::month_day(10, 3)
     );
-    b.rule_1("osterreichischer Nationalfeiertag",
-        b.reg(r#"(?:osterreichischer?)? nationalfeiertag|national feiertag"#)?,
+    b.rule_1("Österreichischer Nationalfeiertag",
+        b.reg(r#"([öo]sterreichischer?)? nationalfeiertag|national feiertag"#)?,
         |_| helpers::month_day(10, 26)
     );
     b.rule_1("Schweizer Bundesfeiertag",
@@ -411,7 +411,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::cycle_nth(Grain::Day, 1)
     );
     b.rule_1("after tomorrow",
-        b.reg(r#"ubermorgen"#)?,
+        b.reg(r#"[üu]bermorgen"#)?,
         |_| helpers::cycle_nth(Grain::Day, 2)
     );
     b.rule_1("yesterday",
@@ -431,7 +431,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::cycle_nth(Grain::Year, 1)
     );
     b.rule_2("this|next <day-of-week>",
-        b.reg(r#"diese(?:n|r)|kommenden|nachsten"#)?,
+        b.reg(r#"diese(?:n|r)|kommenden|n[äa]chsten"#)?,
         time_check!(form!(Form::DayOfWeek{..})),
         |_, time| time.value().the_nth_not_immediate(0)
     );
@@ -441,7 +441,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, time| time.value().the_nth(0)
     );
     b.rule_2("next <time>",
-        b.reg(r#"nachsten?|nachstes|kommenden?|kommendes"#)?,
+        b.reg(r#"n[äa]chsten?|n[äa]chstes|kommenden?|kommendes"#)?,
         time_check!(),
         |_, time| time.value().the_nth_not_immediate(0)
     );
@@ -451,13 +451,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, time| time.value().the_nth(-1)
     );
     b.rule_2("after next <time>",
-        b.reg(r#"ubernachsten?|uber ?nachstes?"#)?,
+        b.reg(r#"[üu]bern[äa]chsten?|[üu]ber ?n[äa]chstes?"#)?,
         time_check!(),
         |_, time| time.value().the_nth_not_immediate(1)
     );
     b.rule_2("<time> after next",
         time_check!(),
-        b.reg(r#"nach dem nachsten"#)?,
+        b.reg(r#"nach dem n[äa]chsten"#)?,
         |time, _| time.value().the_nth_not_immediate(1)
     );
     b.rule_2("<time> before last",
@@ -730,7 +730,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             text_match.group(1).parse()?)
     );
     b.rule_1("morning",
-        b.reg(r#"morgens|(?:in der )?fruh|vor ?mittags?|am morgen"#)?,
+        b.reg(r#"morgens|(?:in der )?fr[üu]h|vor ?mittags?|am morgen"#)?,
         |_| Ok(helpers::hour(3, false)?
                 .span_to(&helpers::hour(12, false)?, false)?
                 .latent()
@@ -766,7 +766,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     );
     b.rule_2("in|during the <part-of-day>",
-        b.reg(r#"(?:in|an|am|wäh?rend)(?: der| dem| des)?"#)?,
+        b.reg(r#"(?:in|an|am|w[äa]h?rend)(?: der| dem| des)?"#)?,
         time_check!(form!(Form::PartOfDay)),
         |_, time| Ok(time.value().clone().not_latent()) 
     );
@@ -778,7 +778,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
     );
     b.rule_1("tonight",
-        b.reg(r#"heute? (am)? abends?"#)?,
+        b.reg(r#"heute? (?:am)? abends?"#)?,
         |_| Ok(helpers::cycle_nth(Grain::Day, 0)?
                 .intersect(&helpers::hour(18, false)?
                             .span_to(&helpers::hour(0, false)?, false)?)?
@@ -832,26 +832,26 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     );
     b.rule_1("season",
-        b.reg(r#"frhling|fruhjahr"#)?,
+        b.reg(r#"fr[üu]hling|fr[üu]hjahr"#)?,
         |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     );
     b.rule_2("<time-of-day> approximately",
         time_check!(form!(Form::TimeOfDay(_))),
-        b.reg(r#"(?:um )?zirka|ungefahr|etwa"#)?,
+        b.reg(r#"(?:um )?zirka|ungef[äa]hr|etwa"#)?,
         |time, _| Ok(time.value().clone().not_latent().precision(Approximate))
     );
     b.rule_2("<time-of-day> approximately",
         time_check!(form!(Form::TimeOfDay(_))),
-        b.reg(r#"genau|exakt|punktlich|punkt(?: um)?"#)?,
+        b.reg(r#"genau|exakt|p[üu]nktlich|punkt(?: um)?"#)?,
         |time, _| Ok(time.value().clone().not_latent().precision(Exact))
     );
     b.rule_2("about <time-of-day>",
-        b.reg(r#"(?:um )?zirka|ungefahr|etwa"#)?,
+        b.reg(r#"(?:um )?zirka|ungef[äa]hr|etwa"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         |_, time| Ok(time.value().clone().not_latent().precision(Approximate))
     );
     b.rule_2("exactly <time-of-day>",
-        b.reg(r#"genau|exakt|punktlich|punkt(?: um)?"#)?,
+        b.reg(r#"genau|exakt|p[üu]nktlich|punkt(?: um)?"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         |_, time| Ok(time.value().clone().not_latent().precision(Exact))
     );
@@ -888,7 +888,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |start, _, end| start.value().span_to(end.value(), true) 
     );
     b.rule_4("from <time-of-day> - <time-of-day> (interval)",
-        b.reg(r#"(?:von|nach|ab|fruhestens (?:um)?)"#)?,
+        b.reg(r#"(?:von|nach|ab|fr[üu]hestens (?:um)?)"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         b.reg(r#"(?:(?:noch|aber|jedoch)? vor)|\-|bis"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
@@ -937,39 +937,41 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
     b.rule_1("integer (0..19)",
-        b.reg(r#"(keine?|keine?s|keiner|keinen|null|nichts|eins?(?:er)?|zwei|dreizehn|drei|vierzehn|vier|funf|sechzehn|sechs|siebzehn|sieben|achtzehn|acht|neunzehn|neun|elf|zwolf|fufzehn)"#)?,
+        b.reg(r#"(kein(?:er|en|e?s?)|null|nichts|eins?(?:er|e)?|zwei|drei(?:zehn)?|vier(?:zehn)?|f[üu]nf(?:zehn)?|sech(?:s|zehn)|sieb(?:en|zehn)|acht(?:zehn)?|neun(?:zehn)?|elf|zw[öo]lf)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
-                "kein"      => 0, 
-                "keine"     => 0, 
-                "keins"     => 0, 
-                "keines"    => 0, 
-                "keiner"    => 0, 
-                "keinen"    => 0, 
-                "null"      => 0, 
-                "nichts"    => 0,
-                "ein"       => 1, 
-                "eins"      => 1, 
-                "eine"      => 1, 
-                "einer"     => 1, 
-                "zwei"      => 2, 
-                "drei"      => 3, 
-                "vier"      => 4, 
-                "funf"      => 5, 
-                "sechs"     => 6,
-                "sieben"    => 7, 
-                "acht"      => 8, 
-                "neun"      => 9, 
-                "zehn"      => 10, 
-                "elf"       => 11, 
-                "zwolf"     => 12, 
-                "dreizehn"  => 13, 
-                "vierzehn"  => 14,
-                "funfzehn"  => 15, 
-                "sechzehn"  => 16, 
-                "siebzehn"  => 17, 
-                "achtzehn"  => 18, 
-                "neunzehn"  => 19,
+                    "kein"     => 0,
+                    "keine"    => 0, 
+                    "keins"    => 0, 
+                    "keines"   => 0, 
+                    "keiner"   => 0, 
+                    "keinen"   => 0, 
+                    "null"     => 0, 
+                    "nichts"   => 0,
+                    "ein"      => 1, 
+                    "eins"     => 1, 
+                    "eine"     => 1, 
+                    "einer"    => 1, 
+                    "zwei"     => 2,
+                    "drei"     => 3, 
+                    "vier"     => 4, 
+                    "fünf"     => 5,
+                    "funf"     => 5,
+                    "sechs"    => 6, 
+                    "sieben"   => 7, 
+                    "acht"     => 8, 
+                    "neun"     => 9, 
+                    "elf"      => 11,
+                    "zwölf"    => 12,
+                    "zwolf"    => 12,
+                    "dreizehn" => 13,
+                    "vierzehn" => 14,
+                    "fünfzehn" => 15,
+                    "funfzehn" => 15,
+                    "sechzehn" => 16,
+                    "siebzehn" => 17,
+                    "achtzehn" => 18,
+                    "neunzehn" => 19,
                 _ => panic!("Unknown match {:?}", text_match.group(1)),
             };
             IntegerValue::new(value)
@@ -1014,13 +1016,14 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         })
     );
     b.rule_1("integer (20..90)",
-        b.reg(r#"(zwanzig|dreissig|vierzig|funfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
+        b.reg(r#"(zwanzig|dreissig|vierzig|f[üu]nfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
                 "zwanzig"   => 20, 
                 "dreissig"  => 30, 
                 "vierzig"   => 40, 
-                "funfzig"   => 50, 
+                "funfzig"   => 50,
+                "fünfzig"   => 50, 
                 "sechzig"   => 60,
                 "siebzig"   => 70, 
                 "achtzig"   => 80, 
@@ -1031,7 +1034,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1("integer ([2-9][1-9])",
-        b.reg(r#"(ein|zwei|drei|vier|funf|sechs|sieben|acht|neun)und(zwanzig|dreissig|vierzig|funfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
+        b.reg(r#"(ein|zwei|drei|vier|f[üu]nf|sechs|sieben|acht|neun)und(zwanzig|dreissig|vierzig|f[üu]nfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
         |text_match| {
             let digit = match text_match.group(1).as_ref() {
                 "ein"       => 1, 
@@ -1039,6 +1042,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "drei"      => 3, 
                 "vier"      => 4, 
                 "funf"      => 5,
+                "fünf"      => 5,
                 "sechs"     => 6, 
                 "sieben"    => 7, 
                 "acht"      => 8, 
@@ -1050,6 +1054,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "dreissig" => 30, 
                 "vierzig"  => 40, 
                 "funfzig"  => 50,
+                "fünfzig"  => 50,
                 "sechzig"  => 60, 
                 "siebzig"  => 70, 
                 "achtzig"  => 80, 
@@ -1175,7 +1180,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         })
     });
     b.rule_1("ordinals (first..19th)",
-        b.reg(r#"(erste(?:r|s)?|zweite(?:r|s)|dritte(?:r|s)|vierte(?:r|s)|fuenfte(?:r|s)|sechste(?:r|s)|siebte(?:r|s)|achte(?:r|s)|neunte(?:r|s)|zehnte(?:r|s)|elfter|zwolfter|dreizenter|vierzehnter|funfzehnter|sechzenter|siebzehnter|achtzehnter|neunzehnter)"#)?,
+        b.reg(r#"(erste(?:r|s)?|zweite(?:r|s)|dritte(?:r|s)|vierte(?:r|s)|fuenfte(?:r|s)|sechste(?:r|s)|siebte(?:r|s)|achte(?:r|s)|neunte(?:r|s)|zehnte(?:r|s)|elfter|zw[öo]lfter|dreizenter|vierzehnter|f[üu]nfzehnter|sechzenter|siebzehnter|achtzehnter|neunzehnter)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
                 "erste"       => 1, 
@@ -1208,10 +1213,12 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "zehnte"      => 10, 
                 "zehnter"     => 10, 
                 "zehntes"     => 10,
-                "elfter"      => 11, 
+                "elfter"      => 11,
+                "zwölfter" => 12,
                 "zwolfter"    => 12, 
                 "dreizehnter" => 13,
-                "vierzehnter" => 14, 
+                "vierzehnter" => 14,
+                "fünfzehnter" => 15,
                 "funfzehnter" => 15, 
                 "sechzehnter" => 16,
                 "siebzehnter" => 17, 
