@@ -92,6 +92,7 @@ impl Parser {
 /// Obtain a parser for a given language.
 pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
     match lang {
+        Lang::DE => de::build_parser(),
         Lang::EN => en::build_parser(),
         Lang::FR => fr::build_parser(),
         Lang::ES => es::build_parser(),
@@ -102,6 +103,7 @@ pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
 /// Obtain a parser for a given language.
 pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
     match lang {
+        Lang::DE => de::build_raw_parser(),
         Lang::EN => en::build_raw_parser(),
         Lang::FR => fr::build_raw_parser(),
         Lang::ES => es::build_raw_parser(),
@@ -111,6 +113,7 @@ pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
 
 pub fn train_parser(lang: Lang) -> RustlingResult<Parser> {
     match lang {
+        Lang::DE => de::train_parser(),
         Lang::EN => en::train_parser(),
         Lang::FR => fr::train_parser(),
         Lang::ES => es::train_parser(),
@@ -144,6 +147,7 @@ macro_rules! lang {
     }
 }
 
+lang!(de, de_config);
 lang!(en, en_config);
 lang!(es, es_config);
 lang!(fr, fr_config);
