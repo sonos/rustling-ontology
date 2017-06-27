@@ -14,26 +14,25 @@ pub mod es;
 pub mod fr;
 pub mod ko;
 
-/// Enumerates all language supported for the general purpose ontology.
-#[derive(Copy,Clone,Debug)]
-pub enum Lang {
-    /// Germain
-    DE,
-    /// English
-    EN,
-    /// Spanish
-    ES,
-    /// French
-    FR,
-    /// Korean
-    KO,
-}
+macro_rules! lang_enum {
+    ([$($lang:ident),*]) => {
+        /// Enumerates all language supported for the general purpose ontology.
+        #[derive(Copy,Clone,Debug)]
+        pub enum Lang {
+            $( $lang, )*
+        }
 
-impl Lang {
-    pub fn all() -> Vec<Lang> {
-        vec![Lang::EN, Lang::FR, Lang::ES, Lang::KO]
+        impl Lang {
+            pub fn all() -> Vec<Lang> {
+                vec![
+                    $( Lang::$lang, )*
+                ]
+            }
+        }
     }
 }
+
+lang_enum!([DE, EN, ES, FR, KO]);
 
 impl std::str::FromStr for Lang {
     type Err = String;
