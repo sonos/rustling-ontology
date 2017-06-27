@@ -3,7 +3,7 @@ extern crate bencher;
 extern crate rustling_ontology;
 
 use rustling_ontology::*;
-use rustling_ontology::AttemptTo;
+use rustling_ontology::AttemptInto;
 use bencher::Bencher;
 
 fn train_parser_en(bench: &mut Bencher) {
@@ -17,32 +17,32 @@ fn load_parser_en(bench: &mut Bencher) {
 fn parse_small_number_en(bench: &mut Bencher) {
     let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "eighty-two";
-    let result = parser.parse(number).unwrap();
-    let int: i64 = result[0].value.attempt_to().unwrap();
+    let result = parser.parse(number, true).unwrap();
+    let int: i64 = result[0].clone().value.attempt_into().unwrap();
     assert_eq!(82, int);
 
-    bench.iter(|| parser.parse(number));
+    bench.iter(|| parser.parse(number, true));
 }
 
 fn parse_big_number_en(bench: &mut Bencher) {
     let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "one million five hundred twenty-one thousand eighty-two";
-    let result = parser.parse(number).unwrap();
-    let int: i64 = result[0].value.attempt_to().unwrap();
+    let result = parser.parse(number, true).unwrap();
+    let int: i64 = result[0].clone().value.attempt_into().unwrap();
     assert_eq!(1521082, int);
 
-    bench.iter(|| parser.parse(number));
+    bench.iter(|| parser.parse(number, true));
 }
 
 fn parse_book_restaurant(bench: &mut Bencher) {
     let parser = build_raw_parser(Lang::EN).unwrap();
     let number = "book a restaurant for four people";
-    let result = parser.parse(number).unwrap();
+    let result = parser.parse(number, true).unwrap();
     //println!("{:?}", result);
-    let int: i64 = result[0].value.attempt_to().unwrap();
+    let int: i64 = result[0].clone().value.attempt_into().unwrap();
     assert_eq!(4, int);
 
-    bench.iter(|| parser.parse(number));
+    bench.iter(|| parser.parse(number, true));
 }
 
 fn parse_batch_sentence(bench: &mut Bencher) {
@@ -77,7 +77,7 @@ fn parse_batch_sentence(bench: &mut Bencher) {
    let decoder = ParsingContext::default();
    bench.iter(|| {
         for i in input.iter() {
-            parser.parse(&*i, &decoder);
+            parser.parse(&*i, &decoder, true);
         }
    });
 
@@ -86,14 +86,14 @@ fn parse_batch_sentence(bench: &mut Bencher) {
 fn parse_complex_train_sentence_en(bench: &mut Bencher) {
     let parser = build_raw_parser(Lang::EN).unwrap();
     let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
-    bench.iter(|| parser.parse(&*sent));
+    bench.iter(|| parser.parse(&*sent, true));
 }
 
 fn parse_complex_train_sentence_en_end_to_end(bench: &mut Bencher) {
     let parser = build_parser(Lang::EN).unwrap();
     let decoder = ParsingContext::default();
     let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
-    bench.iter(|| parser.parse(&*sent, &decoder));
+    bench.iter(|| parser.parse(&*sent, &decoder, true));
 }
 
 fn time_resolve_complex_train_sentence_en(bench: &mut Bencher) {
@@ -106,7 +106,7 @@ fn time_resolve_complex_train_sentence_en(bench: &mut Bencher) {
     }
     */
     let resolve = parser
-        .parse(&*sent)
+        .parse(&*sent, true)
         .unwrap()
         .into_iter()
         .rev()
