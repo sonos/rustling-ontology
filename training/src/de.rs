@@ -179,6 +179,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2]), "in diesem Monat", "diesem Monat");
     example!(v, check_moment!(c, [2013]), "in diesem Jahr");
     example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "vorige woche", "vorherige Woche");
+    example!(v, check_moment!(c, [2013, 5, 3]), "den dritten tag in mai");
+    example!(v, check_moment!(c, [2014, 1, 20], Grain::Week), "die vierte Woche nach Weihnachten");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
