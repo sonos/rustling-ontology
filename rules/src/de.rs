@@ -217,7 +217,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
     b.rule_2("last <cycle>",
-        b.reg(r#"letzte(?:r|n|s)?|vergangene(?:r|n|s)?"#)?,
+        b.reg(r#"letzte(?:r|n|s)?|vergangene(?:r|n|s)?|vor(?:her)?ige(?:r|n|s)?"#)?,
         cycle_check!(),
         |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
     );
