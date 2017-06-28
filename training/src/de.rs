@@ -173,6 +173,11 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in eineinhalb std", "in eineinhalb Std.", "in der nächsten eineinhalb Stunde");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "in der nächsten Stunde");
     example!(v, check_moment_with_precision!(c, [2013, 3, 5], Precision::Approximate), "in fast drei Wochen");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 45, 0]), "in einer Stunde und eine viertelstunde");
+    example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in einer Stunde und dreissig minuten");
+    example!(v, check_moment!(c, [2013, 2, 12, 7, 30]), "In drei Stunden ab sofort");
+    example!(v, check_moment!(c, [2013, 2]), "in diesem Monat", "diesem Monat");
+    example!(v, check_moment!(c, [2013]), "in diesem Jahr");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

@@ -39,15 +39,15 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, 3).into()))
     );
     b.rule_1("1/4 hour",
-        b.reg(r#"(?:1/4\s?|viertel)stunde"#)?,
+        b.reg(r#"(?:1/4\s?|(?:eine?r? )viertel)stunde"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
     );
     b.rule_1("half an hour",
-        b.reg(r#"(?:1/2\s?|(?:einer )halbe?n? )stunde"#)?,
+        b.reg(r#"(?:1/2\s?|(?:eine?r? )halbe?n? )stunde"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(30).into()))
     );
     b.rule_1("3/4 hour",
-        b.reg(r#"(?:3/4\s?|dreiviertel)stunde"#)?,
+        b.reg(r#"(?:3/4\s?|(?:eine?r? )dreiviertel)stunde"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
     );
     b.rule_2("a <duration>",
@@ -128,18 +128,19 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<duration> from now",
         duration_check!(),
-        b.reg(r#"ab (heute|jetzt)"#)?,
+        b.reg(r#"ab (?:heute|jetzt|sofort)"#)?,
         |duration, _| duration.value().in_present()
+    );
+    b.rule_3("in <duration> from now",
+        b.reg(r#"in"#)?,
+        duration_check!(),
+        b.reg(r#"ab (?:heute|jetzt|sofort)"#)?,
+        |_, duration, _| duration.value().in_present()
     );
     b.rule_2("<duration> ago",
         b.reg(r#"vor"#)?,
         duration_check!(),
         |_, duration| duration.value().ago()
-    );
-    b.rule_2("<duration> hence",
-        duration_check!(),
-        b.reg(r#"hence"#)?,
-        |duration, _| duration.value().in_present()
     );
     b.rule_3("<duration> after <time>",
         duration_check!(),
@@ -162,6 +163,17 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"genau|exakt"#)?,
         duration_check!(),
         |_, duration| Ok(duration.value().clone().precision(Exact))
+    );
+    b.rule_3("<duration> and <duration>",
+        duration_check!(),
+        b.reg(r#"und"#)?,
+        duration_check!(),
+        |a, _, b| Ok(a.value() + b.value())
+    );
+    b.rule_2("<duration> <duration>",
+        duration_check!(),
+        duration_check!(),
+        |a, b| Ok(a.value() + b.value())
     );
     Ok(())
 }
@@ -200,7 +212,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("this <cycle>",
-        b.reg(r#"diese(?:r|n|s)?|kommende(?:r|n|s)?"#)?,
+        b.reg(r#"(?:in )?diese(?:r|n|s|m)?|kommende(?:r|n|s|m)?"#)?,
         cycle_check!(),
         |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
