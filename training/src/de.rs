@@ -167,6 +167,12 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 18]), "nächsten montag", "kommenden montag");
     example!(v, check_moment!(c, [2013, 12, 10]), "10.12.");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18, 30], [2013, 2, 12, 19, 1]), "18:30h - 19:00h");
+
+    // Additional examples
+    example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in anderthalb stunde");
+    example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in eineinhalb std", "in eineinhalb Std.", "in der nächsten eineinhalb Stunde");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "in der nächsten Stunde");
+    example!(v, check_moment_with_precision!(c, [2013, 3, 5], Precision::Approximate), "in fast drei Wochen");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

@@ -6,15 +6,15 @@ use moment::{Grain, PeriodComp, Weekday};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("second (unit-of-duration)",
-        b.reg(r#"sek(?:unde)?n?"#)?,
+        b.reg(r#"sek(?:unden?|\.?)|s(?:ec)?\.?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Second))
     );
     b.rule_1("minute (unit-of-duration)",
-        b.reg(r#"min(?:ute)?n?"#)?,
+        b.reg(r#"min(?:uten?|\.?)"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Minute))
     );
     b.rule_1("hour (unit-of-duration)",
-        b.reg(r#"stunden?"#)?,
+        b.reg(r#"st(?:unden?|dn?\.?)"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1("day (unit-of-duration)",
@@ -33,13 +33,22 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"jahre?n?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
+    b.rule_2("few unit of duration",
+        b.reg(r#"wenigen"#)?,
+        unit_of_duration_check!(),
+        |_, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, 3).into()))
+    );
+    b.rule_1("1/4 hour",
+        b.reg(r#"(?:1/4\s?|viertel)stunde"#)?,
+        |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
+    );
     b.rule_1("half an hour",
         b.reg(r#"(?:1/2\s?|(?:einer )halbe?n? )stunde"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(30).into()))
     );
-    b.rule_1("fortnight",
-        b.reg(r#"(?:a|one)? fortnight"#)?,
-        |_| Ok(DurationValue::new(PeriodComp::days(14).into()))
+    b.rule_1("3/4 hour",
+        b.reg(r#"(?:3/4\s?|dreiviertel)stunde"#)?,
+        |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
     );
     b.rule_2("a <duration>",
         b.reg(r#"(?:in )?eine?(?:r|n)?"#)?,
@@ -53,7 +62,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("number.number hours",
         b.reg(r#"(\d+)\.(\d+)"#)?,
-        b.reg(r#"stunden?"#)?,
+        unit_of_duration_check!(|uod: &UnitOfDurationValue| uod.grain == Grain::Hour),
         |text_match, _| Ok(DurationValue::new(
                     PeriodComp::new(
                         Grain::Minute, 
@@ -61,19 +70,54 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     ).into()
                 ))
     );
-    b.rule_2("<integer> and an half hours",
+    b.rule_2("1..12 and an half hour",
+        b.reg(r#"(ein|zwei|drei|vier|f[üu]nf|sechs|sieben|acht|neun|zehn|elf|zw[öo]lf)einhalb"#)?,
+        unit_of_duration_check!(|uod: &UnitOfDurationValue| uod.grain == Grain::Hour),
+        |text_match, _| {
+            let value = match text_match.group(1).as_ref() {
+                "ein" => 1,
+                "zwei" => 2,
+                "drei" => 3,
+                "vier" => 4,
+                "funf" => 5,
+                "fünf" => 5,
+                "sechs" => 6,
+                "sieben" => 7,
+                "acht" => 8,
+                "neun" => 9,
+                "zehn" => 10,
+                "elf" => 11,
+                "zwolf" => 12,
+                "zwölf" => 12,
+                _ => panic!("No match found for: {:?}", text_match),
+            };
+            Ok(DurationValue::new(PeriodComp::minutes(value * 60 + 30).into()))
+        }
+    );
+    b.rule_2("half an hour",
+        b.reg(r#"anderthalb"#)?,
+        unit_of_duration_check!(|uod: &UnitOfDurationValue| uod.grain == Grain::Hour),
+        |_, _| Ok(DurationValue::new(PeriodComp::minutes(90).into()))
+    );
+    b.rule_3("<integer> and an half hours",
         integer_check!(0),
-        b.reg(r#"ein ?halb stunden?"#)?,
-        |integer, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
+        b.reg(r#"ein ?halb"#)?,
+        unit_of_duration_check!(|uod: &UnitOfDurationValue| uod.grain == Grain::Hour),
+        |integer, _, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
     );
     b.rule_2("a <unit-of-duration>",
         b.reg(r#"eine?(?:r|n)?"#)?,
         unit_of_duration_check!(),
         |_, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, 1).into()))
     );
-    // TODO check this rule
+    b.rule_2("in next <unit-of-duration>",
+        b.reg(r#"in de(?:n|r|m) (?:n[äa]chste(?:n|r|m)|kommende(?:r|n|m))"#)?,
+        unit_of_duration_check!(),
+        |_, uod| DurationValue::new(PeriodComp::new(uod.value().grain, 1).into())
+                    .in_present()
+    );
     b.rule_2("in <duration>",
-        b.reg(r#"in"#)?,
+        b.reg(r#"in(?:\s(?:de(?:n|r|m)\s)?(?:n[äa]chste(?:n|r|m)|kommende(?:r|n|m)))?"#)?,
         duration_check!(),
         |_, duration| duration.value().in_present()
     );
@@ -110,7 +154,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |duration, _, time| duration.value().before(time.value())
     );
     b.rule_2("about <duration>",
-        b.reg(r#"ungef[äa]hr|zirka"#)?,
+        b.reg(r#"ungef[äa]hr|zirka|circa|ca.|etwa|fast"#)?,
         duration_check!(),
         |_, duration| Ok(duration.value().clone().precision(Approximate))
     );
