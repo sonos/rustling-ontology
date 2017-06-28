@@ -18,7 +18,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1("day (unit-of-duration)",
-        b.reg(r#"tage?n?"#)?,
+        b.reg(r#"tage?n?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Day))
     );
     b.rule_1("week (unit-of-duration)",
@@ -26,11 +26,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Week))
     );
     b.rule_1("month (unit-of-duration)",
-        b.reg(r#"monate?n?"#)?,
+        b.reg(r#"monate?n?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Month))
     );
     b.rule_1("year (unit-of-duration)",
-        b.reg(r#"jahre?n?"#)?,
+        b.reg(r#"jahre?n?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
     b.rule_2("few unit of duration",
@@ -192,7 +192,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Hour)
     );
     b.rule_1("day (cycle)",
-        b.reg(r#"tage?n?"#)?,
+        b.reg(r#"tage?n?s?"#)?,
         |_| CycleValue::new(Grain::Day)
     );
     b.rule_1("week (cycle)",
@@ -200,7 +200,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Week)
     );
     b.rule_1("month (cycle)",
-        b.reg(r#"monate?n?"#)?,
+        b.reg(r#"monate?n?s?"#)?,
         |_| CycleValue::new(Grain::Month)
     );
     b.rule_1("quarter (cycle)",
@@ -208,7 +208,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_1("year (cycle)",
-        b.reg(r#"jahre?n?"#)?,
+        b.reg(r#"jahre?n?s?"#)?,
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("this <cycle>",
@@ -259,14 +259,6 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(),
         |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
     );
-    b.rule_5("the <ordinal> <cycle> of/nach <time>",
-        b.reg(r#"de(?:r|n|m)|die|das"#)?,
-        ordinal_check!(),
-        cycle_check!(),
-        b.reg(r#"im|in|von|nach"#)?,
-        time_check!(),
-        |_, ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
-    );
     b.rule_2("<ordinal> quarter",
         ordinal_check!(),
         cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
@@ -289,7 +281,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("intersect by 'of', 'from', 's",
         time_check!(|time: &TimeValue| !time.latent),
-        b.reg(r#"von|der|im"#)?,
+        b.reg(r#"von|de(?:r|s|n|m)|im"#)?,
         time_check!(|time: &TimeValue| !time.latent),
         |a, _, b| a.value().intersect(b.value())
     );
@@ -564,14 +556,24 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, ordinal, a, _, b| a.value().the_nth_after(ordinal.value().value - 1, b.value())
     );
 
+    b.rule_2("im <month>",
+        b.reg(r#"im"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, month| Ok(month.value().clone())
+    );
+    b.rule_2("im <year>",
+        b.reg(r#"im(?: jahre?n?)|in"#)?,
+        time_check!(form!(Form::Year(_))),
+        |_, year| Ok(year.value().clone())
+    );
     b.rule_1("year",
-        integer_check!(1000, 2100),
+        integer_check!(1900, 2100),
         |integer| {
             helpers::year(integer.value().value as i32)
         }
     );  
     b.rule_1("year (latent)",
-        integer_check!(-1000, 999),
+        integer_check!(-1000, 1899),
         |integer| {
             Ok(helpers::year(integer.value().value as i32)?.latent())
         }
@@ -1262,6 +1264,11 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("ordinal (digits)",
         b.reg(r#"0*(\d+)(?:\.| ?(?:te(?:n|r|s)?)|(?:ste(?:n|r|s)?))"#)?,
         |text_match| Ok(OrdinalValue { value: text_match.group(1).parse()? })
+    );
+    b.rule_2("der <ordinal>",
+        b.reg(r#"de(?:r|s|n|m)|das|die"#)?,
+        ordinal_check!(),
+        |_, ordinal| Ok(ordinal.value().clone())
     );
     Ok(())
 }
