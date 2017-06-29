@@ -158,7 +158,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 13, 15]), "morgen um 15 Uhr");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14], Direction::After), "nach 14 Uhr", "nach 14h", "nach 2");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 11], Direction::Before), "bis 11 uhr", "bis 11h vormittags", "bis 11 am vormittag");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "am nachmittag");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 19]), "am nachmittag");
     example!(v, check_moment!(c, [2013, 2, 12, 13, 30]), "um 13:30 am nachmittag", "nachmittags um 1 uhr 30", "13:30");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "in 15 minuten");
     example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "nach dem mittagessen");
@@ -182,6 +182,10 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 5, 3]), "den dritten tag in mai");
     example!(v, check_moment!(c, [2014, 1, 20], Grain::Week), "die vierte Woche nach Weihnachten");
     //example!(v, check_moment!(c, [2013, 6, ]), "männertag"); // TODO Lunear Calendar
+    example!(v, check_moment!(c, [2017, 5, 12, 10, 32]), "Freitag, der Zwölfte Mai um 10 Uhr 32 vormittags");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "am frühen vormittag", "bei tagesanbruch", "beim morgengrauen", "im morgengrauen", "in der morgenfrühe", "frühmorgens", "am frühen morgen");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 13]), "kurz vor mittag", "am späten vormittag");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "am späten nachmittag","in den späten nachmittagsstunden","zu später nachmittagsstunde","spätnachmittags","spätnachmittag");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
