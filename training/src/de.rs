@@ -117,7 +117,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2014, 1, 1]), "Neujahrstag", "Neujahr");
     example!(v, check_moment!(c, [2013, 2, 14]), "Valentinstag");
     example!(v, check_moment!(c, [2013, 5, 12]), "Muttertag");
-    example!(v, check_moment!(c, [2013, 6, 16]), "Vatertag");
+    //example!(v, check_moment!(c, [2013, 6, 16]), "Vatertag"); // TODO Lunear Calendar
     example!(v, check_moment!(c, [2013, 10, 3]), "Tag der Deutschen Einheit", "3. Oktober");
     example!(v, check_moment!(c, [2013, 10, 31]), "Halloween");
     example!(v, check_moment!(c, [2013, 11, 1]), "Allerheiligen");
@@ -181,6 +181,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "vorige woche", "vorherige Woche");
     example!(v, check_moment!(c, [2013, 5, 3]), "den dritten tag in mai");
     example!(v, check_moment!(c, [2014, 1, 20], Grain::Week), "die vierte Woche nach Weihnachten");
+    //example!(v, check_moment!(c, [2013, 6, ]), "männertag"); // TODO Lunear Calendar
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
@@ -209,5 +210,6 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_ordinal(4), "vierter", "4ter");
     example!(v, check_float(1416.15), "1416,15");
     example!(v, check_float(1416.15), "1.416,15");
-    example!(v, check_float(1000000.0), "1.000.000,00")
+    example!(v, check_float(1000000.0), "1.000.000,00");
+    example!(v, check_ordinal(44), "der vierundvierzigste");
 }
