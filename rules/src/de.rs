@@ -1316,7 +1316,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     Ok(())
 }
 
-pub fn rule_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("number as temp", 
         number_check!(), 
         |a| Ok(TemperatureValue {
