@@ -4,6 +4,91 @@ use values::dimension::Precision::*;
 use values::helpers;
 use moment::{Grain, PeriodComp, Weekday};
 
+pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect (X cents)",
+         amount_of_money_check!(),
+         amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
+         |a, b| helpers::compose_money(a.value(), b.value())
+    );
+    b.rule_1("cent",
+        b.reg(r#"cents?|penn(?:y|ies)|c|cts?|¢"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("cent") })
+    );
+    b.rule_1("₩",
+        b.reg(r#"₩|krw|(?:s[üu]dkoreanische[rnms]? )?won"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("KRW") })
+    );
+    b.rule_1("$",
+        b.reg(r#"\$|dollar"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("$") })
+    );
+    b.rule_1("€",
+        b.reg(r#"€|euro?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("EUR") })
+    );
+    b.rule_1("£",
+        b.reg(r#"£|pfund sterling|pfund|pfd."#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("£") })
+    );
+    b.rule_1("GBP",
+        b.reg(r#"gbp"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("GBP") })
+    );
+    b.rule_1("AUD",
+        b.reg(r#"aud|australische[rnms]? dollar"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("AUD") })
+    );
+    b.rule_1("USD",
+        b.reg(r#"us[d\$]|us[ -]dollar"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("USD") })
+    );
+    b.rule_1("PTS",
+        b.reg(r#"pta?s?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("PTS") })
+    );
+    b.rule_1("INR",
+        b.reg(r#"inr|₹|(?:indische[rn]? )rupien?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("INR") })
+    );
+    b.rule_2("<unit> <amount>", 
+        money_unit!(), 
+        number_check!(), 
+        |a, b| { Ok(AmountOfMoneyValue {
+               value: b.value().value(),
+               unit: a.value().unit,
+               ..AmountOfMoneyValue::default()
+           })
+    });
+    b.rule_2("<amount> <unit>", 
+        number_check!(), 
+        money_unit!(),
+        |a, b| Ok(AmountOfMoneyValue {
+               value: a.value().value(),
+               unit: b.value().unit,
+               ..AmountOfMoneyValue::default()
+           })
+    );
+    b.rule_2("about <amount-of-money>",
+        b.reg(r#"[cz]irka|nahezu|beinahe|ungef[äa]hr|fast|ca\.?"#)?,
+        amount_of_money_check!(),
+        |_, a| {
+            Ok(AmountOfMoneyValue {
+                   precision: Approximate,
+                   ..a.value().clone()
+               })
+    });
+    b.rule_2("exactly <amount-of-money>",
+        b.reg(r#"(?:haar|ganz |sehr )?genau|exakt|gerade|pr[äa]zise"#)?,
+        amount_of_money_check!(),
+        |_, a| {
+            Ok(AmountOfMoneyValue {
+                   precision: Exact,
+                   ..a.value().clone()
+               })
+        });
+    Ok(())
+}
+
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("second (unit-of-duration)",
         b.reg(r#"sek(?:unden?|\.?)|s(?:ec)?\.?"#)?,
@@ -811,7 +896,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
     );
     b.rule_1("lunch",
-        b.reg(r#"mittags"#)?,
+        b.reg(r#"mittags(?:pause)?"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .form(Form::PartOfDay))
@@ -951,7 +1036,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _, b| a.value().intersect(b.value())
     );
     b.rule_1("week-end",
-        b.reg(r#"wochen ?ende?"#)?,
+        b.reg(r#"wochen ?enden?"#)?,
         |_| {
             let friday = helpers::day_of_week(Weekday::Fri)?
                                 .intersect(&helpers::hour(18, false)?)?;
@@ -961,19 +1046,19 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1("season",
-        b.reg(r#"sommer"#)?,
+        b.reg(r#"sommer(?:zeit)?"#)?,
         |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
     );
     b.rule_1("season",
-        b.reg(r#"herbst"#)?,
+        b.reg(r#"herbst(?:zeit)?"#)?,
         |_| helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
     );
     b.rule_1("season",
-        b.reg(r#"winter"#)?,
+        b.reg(r#"winter(?:zeit)?"#)?,
         |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     );
     b.rule_1("season",
-        b.reg(r#"fr[üu]hling|fr[üu]hjahr"#)?,
+        b.reg(r#"(?:fr[üu]hling|fr[üu]hjahr)(?:zeit)?"#)?,
         |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     );
     b.rule_2("<time-of-day> approximately",
@@ -981,13 +1066,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"(?:um )?zirka|ungef[äa]hr|etwa"#)?,
         |time, _| Ok(time.value().clone().not_latent().precision(Approximate))
     );
-    b.rule_2("<time-of-day> approximately",
+    b.rule_2("<time-of-day> exactly",
         time_check!(form!(Form::TimeOfDay(_))),
         b.reg(r#"genau|exakt|p[üu]nktlich|punkt(?: um)?"#)?,
         |time, _| Ok(time.value().clone().not_latent().precision(Exact))
     );
     b.rule_2("about <time-of-day>",
-        b.reg(r#"(?:um )?zirka|ungef[äa]hr|etwa"#)?,
+        b.reg(r#"(?:um )?zirka|ungef[äa]hr|etwa|gegen"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         |_, time| Ok(time.value().clone().not_latent().precision(Approximate))
     );
@@ -1028,8 +1113,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(form!(Form::TimeOfDay(_))),
         |start, _, end| start.value().span_to(end.value(), true) 
     );
+    b.rule_4("from <time> to <time>",
+        b.reg(r#"von|ab|nach"#)?,
+        time_check!(),
+        b.reg(r#"bis(?: zum?r?)?"#)?,
+        time_check!(),
+        |_, start, _, end| start.value().span_to(end.value(), true)
+    );
     b.rule_4("from <time-of-day> - <time-of-day> (interval)",
-        b.reg(r#"(?:von|nach|ab|fr[üu]hestens (?:um)?)"#)?,
+        b.reg(r#"(?:von|nach|ab|(?:fr[üu]h|sp[äa]t)estens(?: um| ab)?)"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         b.reg(r#"(?:(?:noch|aber|jedoch)? vor)|\-|bis"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
@@ -1054,7 +1146,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
     );
     b.rule_2("until <time-of-day>",
-        b.reg(r#"vor|bis(?: zu[rm]?)?"#)?,
+        b.reg(r#"vor|bis(?:(?: zu[rm]?)| in d(?:en|ie|as))?"#)?,
         time_check!(),
         |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
     );
@@ -1062,6 +1154,218 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"nach"#)?,
         time_check!(),
         |_, time| Ok(time.value().clone().direction(Some(Direction::After)))
+    );
+    b.rule_1("start of week",
+        b.reg(r#"(?:der )?(anfang|beginn) der woche"#)?,
+        |_| {
+            let current_week = helpers::cycle_nth(Grain::Week, 0)?;
+            let start = current_week.intersect(&helpers::day_of_week(Weekday::Mon)?)?;
+            let end = current_week.intersect(&helpers::day_of_week(Weekday::Tue)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("start of week",
+        b.reg(r#"(?:der )?(anfang|beginn) der"#)?,
+        time_check!(form!(Form::Cycle(Grain::Week))),
+        |_, week| {
+            let start = week.value().intersect(&helpers::day_of_week(Weekday::Mon)?)?;
+            let end = week.value().intersect(&helpers::day_of_week(Weekday::Tue)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("middle of week",
+        b.reg(r#"(?:der )?mitte der"#)?,
+        time_check!(form!(Form::Cycle(Grain::Week))),
+        |_, week| {
+            let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
+            let end = week.value().intersect(&helpers::day_of_week(Weekday::Sun)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("end of week",
+        b.reg(r#"(?:das )?ende der"#)?,
+        time_check!(form!(Form::Cycle(Grain::Week))),
+        |_, week| {
+            let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
+            let end = week.value().intersect(&helpers::day_of_week(Weekday::Sun)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_1("end of week",
+        b.reg(r#"bis(?: zum?)? ende der woche"#)?,
+        |_| {
+            let current_week = helpers::cycle_nth(Grain::Week, 0)?;
+            let end = current_week.intersect(&helpers::day_of_week(Weekday::Sun)?)?;
+            helpers::cycle_nth(Grain::Second, 0)?.span_to(&end, true)
+        }
+    );
+    b.rule_1("beginning of year",
+        b.reg(r#"(?:de[rmsn] )?jahres(?:anfang|beginn)|(?:de[rmsn] )?(?:anfang|beginn) des jahres"#)?,
+        |_| {
+            let current_year = helpers::cycle_nth(Grain::Year, 0)?;
+            let start = current_year.intersect(&helpers::month(1)?)?;
+            let end = current_year.intersect(&helpers::month(3)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("beginning of year",
+        b.reg(r#"(?:de[rmsn] )?anfang(?: de[sr])?"#)?,
+        time_check!(|time: &TimeValue| {
+            match time.form {
+                Form::Year(_) | Form::Cycle(Grain::Year) => true,
+                _ => false
+            }
+        }),
+        |_, year| {
+            let start = year.value().intersect(&helpers::month(1)?)?;
+            let end = year.value().intersect(&helpers::month(3)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_1("end of year",
+        b.reg(r#"jahres(?:ende|schluss)|(?:(?:das|de[ms] ))?ende des jahres"#)?,
+        |_| {
+            let current_year = helpers::cycle_nth(Grain::Year, 0)?;
+            let start = current_year.intersect(&helpers::month(10)?)?;
+            let end = current_year.intersect(&helpers::month(12)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("end of year",
+        b.reg(r#"(?:(?:das|de[ms] ))?ende(?: de[sr])?"#)?,
+        time_check!(|time: &TimeValue| {
+            match time.form {
+                Form::Year(_) | Form::Cycle(Grain::Year) => true,
+                _ => false
+            }
+        }),
+        |_, year| {
+            let start = year.value().intersect(&helpers::month(10)?)?;
+            let end = year.value().intersect(&helpers::month(12)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("since <time-of-day>",
+        b.reg(r#"seit"#)?,
+        time_check!(),
+        |_, a| Ok(a.value().the_nth(-1)?.direction(Some(Direction::After)))
+    );
+    Ok(())
+}
+
+pub fn rule_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("number as temp", 
+        number_check!(), 
+        |a| Ok(TemperatureValue {
+               value: a.value().value(),
+               unit: None,
+               latent: true,
+           })
+    );
+    b.rule_2("below <temp>", 
+        b.reg(r#"minus"#)?,
+        temperature_check!(),
+        |_, temp| {
+            if temp.value().value >= 0.0 {
+                Ok(TemperatureValue {
+                    value: -1.0 * temp.value().value,
+                    unit: temp.value().unit,
+                    latent: temp.value().latent,
+                })
+            } else {
+                Ok(temp.value().clone())
+            }
+        }
+    );
+    b.rule_2("<temp> below", 
+        temperature_check!(),
+        b.reg(r#"unter(?:m| de[mn])? (?:gefrierpunkt|null| 0)"#)?,
+        |temp, _| {
+            if temp.value().value >= 0.0 {
+                Ok(TemperatureValue {
+                    value: -1.0 * temp.value().value,
+                    unit: temp.value().unit,
+                    latent: false,
+                })
+            } else {
+                Ok(temp.value().clone())
+            }
+        }
+    );
+    b.rule_2("above <temp>",
+        b.reg(r#"plus"#)?,
+        temperature_check!(|temp: &TemperatureValue| !temp.latent),
+        |_, temp| {
+            if temp.value().value <= 0.0 {
+                Ok(TemperatureValue {
+                    value: -1.0 * temp.value().value,
+                    unit: temp.value().unit,
+                    latent: false,
+                })
+            } else {
+                Ok(temp.value().clone())
+            }
+        }
+    );
+    b.rule_2("<temp> above",
+        temperature_check!(),
+        b.reg(r#"[üu]ber(?:m| de[mn])? (?:gefrierpunkt|null| 0)"#)?,
+        |temp, _| {
+            if temp.value().value <= 0.0 {
+                Ok(TemperatureValue {
+                    value: -1.0 * temp.value().value,
+                    unit: temp.value().unit,
+                    latent: false,
+                })
+            } else {
+                Ok(temp.value().clone())
+            }
+        }
+    );
+    b.rule_2("<latent temp> degrees",
+        temperature_check!(), 
+        b.reg(r#"grad|°"#)?,
+        |temp, _| Ok(TemperatureValue {
+                    value: temp.value().value,
+                    unit: Some("degree"),
+                    latent: false,
+            })
+    );
+    b.rule_2("<temp> celsius",
+        temperature_check!(),
+        b.reg(r#"c(?:elsius)?\.?"#)?,
+        |temp, _| Ok(TemperatureValue {
+                    value: temp.value().value,
+                    unit: Some("celsius"),
+                    latent: false,
+            })
+    );
+    b.rule_2("<temp> kelvin",
+        temperature_check!(),
+        b.reg(r#"k(?:elvin)?"#)?,
+        |temp, _| Ok(TemperatureValue {
+                    value: temp.value().value,
+                    unit: Some("kelvin"),
+                    latent: false,
+            })
+    );
+    b.rule_2("<temp> fahrenheit",
+        temperature_check!(),
+        b.reg(r#"f(?:ahrenheit)?"#)?,
+        |temp, _| Ok(TemperatureValue {
+                    value: temp.value().value,
+                    unit: Some("fahrenheit"),
+                    latent: false,
+        })
+    );
+    b.rule_2("<temp> °F",
+        temperature_check!(),
+        b.reg(r#"f"#)?,
+        |temp, _| Ok(TemperatureValue {
+                    value: temp.value().value,
+                    unit: Some("fahrenheit"),
+                    latent: false,
+        })
     );
     Ok(())
 }

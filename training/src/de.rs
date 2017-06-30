@@ -1,6 +1,55 @@
 use super::*;
 use rustling_ontology_values::check::*;
 
+pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_temperature(10.0, Some("degree")), "10 Grad");
+    example!(v, check_temperature(-20.0, None), "minus 20");
+    example!(v, check_temperature(-20.0, Some("degree")), "minus 20 Grad");
+    example!(v, check_temperature(3.0, Some("degree")), "plus 3 Grad");
+    example!(v, check_temperature(71.0, Some("degree")), "71 Grad");
+    example!(v, check_temperature(-7.0, Some("degree")), "sieben Grad unter null");
+    example!(v, check_temperature(-10.0, None), "10 unterm gefrierpunkt");
+    example!(v, check_temperature(5.0, Some("degree")), "5 grad über null");
+    example!(v, check_temperature(20.0, Some("degree")), "20 grad über null");
+    example!(v, check_temperature(15.0, Some("celsius")), "15 C", "15°C");
+    example!(v, check_temperature(23.0, Some("degree")), "plus 23 °", "23°");
+    example!(v, check_temperature(-24.0, Some("degree")), "minus 24 grad");
+    example!(v, check_temperature(-15.0, Some("degree")), "15 grad unter den gefrierpunkt");
+    example!(v, check_temperature(-34.0, Some("degree")), "34 grad unterm gefrierpunkt");
+    example!(v, check_temperature(13.0, Some("degree")), "plus 13 grad");
+    example!(v, check_temperature(130.0, Some("kelvin")), "130 kelvin");
+    example!(v, check_temperature(223.0, Some("kelvin")), "223 k");
+    example!(v, check_temperature(78.0, Some("fahrenheit")), "78 fahrenheit", "78 f");
+    example!(v, check_temperature(19.0, Some("degree")), "19 grad über null");
+}
+
+pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_finance(30.0, Some("EUR"), Precision::Exact), "dreissig Euro");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 dollar");
+    //example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
+    example!(v, check_finance(300.0, Some("cent"), Precision::Exact), "300 pennies");
+    example!(v, check_finance(1.0, Some("cent"), Precision::Exact), "1 penny", "1 cent", "1 cts", "1 ct");
+    example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
+    /*
+    ganz genau neunhundertachtzig Won 900 W (edited)
+    478 US-Dollar
+    2134 $
+    9840 £ 
+    fast 902 Pfd.
+    ungefähr 849 €
+    haargenau 4775 Euro
+    präzise neunzig $ 90 Dollar (edited)
+    674 australische dollar
+    7438 AUD
+    cirka 6739 €
+    ca 839 €
+    zirka 293 €
+    beinahe 230983 £
+    nahezu hundertfünfzig Euro 150 € (edited)
+    sehr genau hundert indische Rupien
+    */
+}
+
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "jetzt", "genau jetzt", "gerade eben");
@@ -216,4 +265,5 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_float(1416.15), "1.416,15");
     example!(v, check_float(1000000.0), "1.000.000,00");
     example!(v, check_ordinal(44), "der vierundvierzigste");
+    example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");
 }
