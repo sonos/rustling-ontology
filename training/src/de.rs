@@ -1,6 +1,53 @@
 use super::*;
 use rustling_ontology_values::check::*;
 
+pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_temperature(10.0, Some("degree")), "10 Grad");
+    example!(v, check_temperature(-20.0, None), "minus 20");
+    example!(v, check_temperature(-20.0, Some("degree")), "minus 20 Grad");
+    example!(v, check_temperature(3.0, Some("degree")), "plus 3 Grad");
+    example!(v, check_temperature(71.0, Some("degree")), "71 Grad");
+    example!(v, check_temperature(-7.0, Some("degree")), "sieben Grad unter null");
+    example!(v, check_temperature(-10.0, None), "10 unterm gefrierpunkt");
+    example!(v, check_temperature(5.0, Some("degree")), "5 grad über null");
+    example!(v, check_temperature(20.0, Some("degree")), "20 grad über null");
+    example!(v, check_temperature(15.0, Some("celsius")), "15 C", "15°C");
+    example!(v, check_temperature(23.0, Some("degree")), "plus 23 °", "23°");
+    example!(v, check_temperature(-24.0, Some("degree")), "minus 24 grad");
+    example!(v, check_temperature(-15.0, Some("degree")), "15 grad unter den gefrierpunkt");
+    example!(v, check_temperature(-34.0, Some("degree")), "34 grad unterm gefrierpunkt");
+    example!(v, check_temperature(13.0, Some("degree")), "plus 13 grad");
+    example!(v, check_temperature(130.0, Some("kelvin")), "130 kelvin");
+    example!(v, check_temperature(223.0, Some("kelvin")), "223 k");
+    example!(v, check_temperature(78.0, Some("fahrenheit")), "78 fahrenheit", "78 f");
+    example!(v, check_temperature(19.0, Some("degree")), "19 grad über null");
+}
+
+pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_finance(30.0, Some("EUR"), Precision::Exact), "dreissig Euro");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 dollar");
+    //example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
+    example!(v, check_finance(300.0, Some("cent"), Precision::Exact), "300 pennies");
+    example!(v, check_finance(1.0, Some("cent"), Precision::Exact), "1 penny", "1 cent", "1 cts", "1 ct");
+    //example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
+    //example!(v, check_finance(900.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
+    example!(v, check_finance(478.0, Some("USD"), Precision::Exact), "478 US-Dollar");
+    example!(v, check_finance(2134.0, Some("$"), Precision::Exact), "2134 $");
+    example!(v, check_finance(9840.0, Some("£"), Precision::Exact), "9840 £");
+    example!(v, check_finance(902.0, Some("£"), Precision::Approximate), "fast 902 Pfd.");
+    example!(v, check_finance(849.0, Some("EUR"), Precision::Approximate), "ungefähr 849 €");
+    example!(v, check_finance(4775.0, Some("EUR"), Precision::Exact), "haargenau 4775 Euro");
+    example!(v, check_finance(90.0, Some("$"), Precision::Exact), "präzise neunzig $");
+    example!(v, check_finance(674.0, Some("AUD"), Precision::Exact), "674 australische dollar");
+    example!(v, check_finance(7438.0, Some("AUD"), Precision::Exact), "7438 AUD");
+    example!(v, check_finance(6739.0, Some("EUR"), Precision::Approximate), "cirka 6739 €");
+    example!(v, check_finance(839.0, Some("EUR"), Precision::Approximate), "ca 839 €");
+    example!(v, check_finance(293.0, Some("EUR"), Precision::Approximate), "zirka 293 €");
+    example!(v, check_finance(230983.0, Some("£"), Precision::Approximate), "beinahe 230983 £");
+    //example!(v, check_finance(150.0, Some("EUR"), Precision::Exact), "nahezu hundertfünfzig Euro 150 €");
+    example!(v, check_finance(100.0, Some("INR"), Precision::Exact), "sehr genau hundert indische Rupien");
+}
+
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "jetzt", "genau jetzt", "gerade eben");
@@ -117,7 +164,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2014, 1, 1]), "Neujahrstag", "Neujahr");
     example!(v, check_moment!(c, [2013, 2, 14]), "Valentinstag");
     example!(v, check_moment!(c, [2013, 5, 12]), "Muttertag");
-    example!(v, check_moment!(c, [2013, 6, 16]), "Vatertag");
+    //example!(v, check_moment!(c, [2013, 6, 16]), "Vatertag"); // TODO Lunear Calendar
     example!(v, check_moment!(c, [2013, 10, 3]), "Tag der Deutschen Einheit", "3. Oktober");
     example!(v, check_moment!(c, [2013, 10, 31]), "Halloween");
     example!(v, check_moment!(c, [2013, 11, 1]), "Allerheiligen");
@@ -158,7 +205,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 13, 15]), "morgen um 15 Uhr");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14], Direction::After), "nach 14 Uhr", "nach 14h", "nach 2");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 11], Direction::Before), "bis 11 uhr", "bis 11h vormittags", "bis 11 am vormittag");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "am nachmittag");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 19]), "am nachmittag");
     example!(v, check_moment!(c, [2013, 2, 12, 13, 30]), "um 13:30 am nachmittag", "nachmittags um 1 uhr 30", "13:30");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "in 15 minuten");
     example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "nach dem mittagessen");
@@ -167,6 +214,25 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 18]), "nächsten montag", "kommenden montag");
     example!(v, check_moment!(c, [2013, 12, 10]), "10.12.");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18, 30], [2013, 2, 12, 19, 1]), "18:30h - 19:00h");
+
+    // Additional examples
+    example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in anderthalb stunde");
+    example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in eineinhalb std", "in eineinhalb Std.", "in der nächsten eineinhalb Stunde");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "in der nächsten Stunde");
+    example!(v, check_moment_with_precision!(c, [2013, 3, 5], Precision::Approximate), "in fast drei Wochen");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 45, 0]), "in einer Stunde und eine viertelstunde");
+    example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in einer Stunde und dreissig minuten");
+    example!(v, check_moment!(c, [2013, 2, 12, 7, 30]), "In drei Stunden ab sofort");
+    example!(v, check_moment!(c, [2013, 2]), "in diesem Monat", "diesem Monat");
+    example!(v, check_moment!(c, [2013]), "in diesem Jahr");
+    example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "vorige woche", "vorherige Woche");
+    example!(v, check_moment!(c, [2013, 5, 3]), "den dritten tag in mai");
+    example!(v, check_moment!(c, [2014, 1, 20], Grain::Week), "die vierte Woche nach Weihnachten");
+    //example!(v, check_moment!(c, [2013, 6, ]), "männertag"); // TODO Lunear Calendar
+    example!(v, check_moment!(c, [2017, 5, 12, 10, 32]), "Freitag, der Zwölfte Mai um 10 Uhr 32 vormittags");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "am frühen vormittag", "bei tagesanbruch", "beim morgengrauen", "im morgengrauen", "in der morgenfrühe", "frühmorgens", "am frühen morgen");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 13]), "kurz vor mittag", "am späten vormittag");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "am späten nachmittag","in den späten nachmittagsstunden","zu später nachmittagsstunde","spätnachmittags","spätnachmittag");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
@@ -195,5 +261,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_ordinal(4), "vierter", "4ter");
     example!(v, check_float(1416.15), "1416,15");
     example!(v, check_float(1416.15), "1.416,15");
-    example!(v, check_float(1000000.0), "1.000.000,00")
+    example!(v, check_float(1000000.0), "1.000.000,00");
+    example!(v, check_ordinal(44), "der vierundvierzigste");
+    //example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");
 }

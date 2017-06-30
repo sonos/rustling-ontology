@@ -39,6 +39,7 @@ macro_rules! cycle_check {
 
 macro_rules! unit_of_duration_check {
     () => ( $crate::rustling::core::AnyNodePattern::<UnitOfDurationValue>::new() );
+    ($predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<UnitOfDurationValue>::filter(vec![b!($predicate)]) );
 }
 
 macro_rules! temperature_check {
