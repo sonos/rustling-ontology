@@ -29,25 +29,23 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
     example!(v, check_finance(300.0, Some("cent"), Precision::Exact), "300 pennies");
     example!(v, check_finance(1.0, Some("cent"), Precision::Exact), "1 penny", "1 cent", "1 cts", "1 ct");
-    example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
-    /*
-    ganz genau neunhundertachtzig Won 900 W (edited)
-    478 US-Dollar
-    2134 $
-    9840 £ 
-    fast 902 Pfd.
-    ungefähr 849 €
-    haargenau 4775 Euro
-    präzise neunzig $ 90 Dollar (edited)
-    674 australische dollar
-    7438 AUD
-    cirka 6739 €
-    ca 839 €
-    zirka 293 €
-    beinahe 230983 £
-    nahezu hundertfünfzig Euro 150 € (edited)
-    sehr genau hundert indische Rupien
-    */
+    //example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
+    //example!(v, check_finance(900.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
+    example!(v, check_finance(478.0, Some("USD"), Precision::Exact), "478 US-Dollar");
+    example!(v, check_finance(2134.0, Some("$"), Precision::Exact), "2134 $");
+    example!(v, check_finance(9840.0, Some("£"), Precision::Exact), "9840 £");
+    example!(v, check_finance(902.0, Some("£"), Precision::Approximate), "fast 902 Pfd.");
+    example!(v, check_finance(849.0, Some("EUR"), Precision::Approximate), "ungefähr 849 €");
+    example!(v, check_finance(4775.0, Some("EUR"), Precision::Exact), "haargenau 4775 Euro");
+    example!(v, check_finance(90.0, Some("$"), Precision::Exact), "präzise neunzig $");
+    example!(v, check_finance(674.0, Some("AUD"), Precision::Exact), "674 australische dollar");
+    example!(v, check_finance(7438.0, Some("AUD"), Precision::Exact), "7438 AUD");
+    example!(v, check_finance(6739.0, Some("EUR"), Precision::Approximate), "cirka 6739 €");
+    example!(v, check_finance(839.0, Some("EUR"), Precision::Approximate), "ca 839 €");
+    example!(v, check_finance(293.0, Some("EUR"), Precision::Approximate), "zirka 293 €");
+    example!(v, check_finance(230983.0, Some("£"), Precision::Approximate), "beinahe 230983 £");
+    //example!(v, check_finance(150.0, Some("EUR"), Precision::Exact), "nahezu hundertfünfzig Euro 150 €");
+    example!(v, check_finance(100.0, Some("INR"), Precision::Exact), "sehr genau hundert indische Rupien");
 }
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
@@ -265,5 +263,5 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_float(1416.15), "1.416,15");
     example!(v, check_float(1000000.0), "1.000.000,00");
     example!(v, check_ordinal(44), "der vierundvierzigste");
-    example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");
+    //example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");
 }

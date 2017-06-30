@@ -11,7 +11,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
          |a, b| helpers::compose_money(a.value(), b.value())
     );
     b.rule_1("cent",
-        b.reg(r#"cents?|penn(?:y|ies)|c|cts?|¢"#)?,
+        b.reg(r#"cents?|penn(?:y|ies)|cts?|c|¢"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("cent") })
     );
     b.rule_1("₩",
@@ -479,23 +479,86 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"neujahr(?:s?tag)?"#)?,
         |_| helpers::month_day(1, 1)
     );
+    b.rule_1("Epiphanias",
+        b.reg(r#"heilige drei k[öo]nige "#)?,
+        |_| helpers::month_day(1, 6)
+    );
     b.rule_1("valentine's day",
         b.reg(r#"valentin'?stag"#)?,
         |_| helpers::month_day(2, 14)
     );
-    b.rule_1("Tag der Deutschen Einheit",
-        b.reg(r#"tag (?:der)? deutsc?hen? einheit"#)?,
-        |_| helpers::month_day(10, 3)
-    );
-    b.rule_1("Österreichischer Nationalfeiertag",
-        b.reg(r#"([öo]sterreichischer?)? nationalfeiertag|national feiertag"#)?,
-        |_| helpers::month_day(10, 26)
+    b.rule_1("labor day",
+        b.reg(r#"tag der arbeit"#)?,
+        |_| helpers::month_day(5, 1)
     );
     b.rule_1("Schweizer Bundesfeiertag",
         b.reg(r#"schweiz(?:er)? (?:bundes)?feiertag|bundes feiertag"#)?,
         |_| helpers::month_day(8, 1)
     );
-    
+    b.rule_1("Augsburg Celebration",
+        b.reg(r#"augsburger hohe[smn] friedensfest"#)?,
+        |_| helpers::month_day(8, 8)
+    );
+    b.rule_1("assumption day",
+        b.reg(r#"mari[äa] himmelfahrt(?:stag)?"#)?,
+        |_| helpers::month_day(8, 15)
+    );
+    b.rule_1("reformation day",
+        b.reg(r#"reformations(?:tag|fest)?"#)?,
+        |_| helpers::month_day(10, 31)
+    );
+    b.rule_1("All saint's day",
+        b.reg(r#"allerheiligen(?:tag)?"#)?,
+        |_| helpers::month_day(11, 1)
+    );
+    b.rule_1("Saint Joseph",
+        b.reg(r#"sankt josef"#)?,
+        |_| helpers::month_day(3, 19)
+    );
+    b.rule_1("Saint Florian",
+        b.reg(r#"sankt florian"#)?,
+        |_| helpers::month_day(5, 4)
+    );
+    b.rule_1("Saint Rupert",
+        b.reg(r#"sankt rupert"#)?,
+        |_| helpers::month_day(9, 24)
+    );
+    b.rule_1("German national celebration",
+        b.reg(r#"tag (?:der)? deutsc?hen? einheit"#)?,
+        |_| helpers::month_day(10, 3)
+    );
+    b.rule_1("Day of popular vote",
+        b.reg(r#"tag der volksabtimmun"#)?,
+        |_| helpers::month_day(10, 10)
+    );
+    b.rule_1("Austrian national celebration",
+        b.reg(r#"([öo]sterreichischer?)? nationalfeiertag|national feiertag"#)?,
+        |_| helpers::month_day(10, 26)
+    );
+    b.rule_1("Armistice Celebration",
+        b.reg(r#"waffenstillstandserkl[äa]rung"#)?,
+        |_| helpers::month_day(11, 11)
+    );
+    b.rule_1("Saint Martin",
+        b.reg(r#"sankt martin"#)?,
+        |_| helpers::month_day(11, 11)
+    );
+    b.rule_1("Saint Leopold",
+        b.reg(r#"sankt leopold"#)?,
+        |_| helpers::month_day(11, 15)
+    );
+    b.rule_1("Immaculate conception",
+        b.reg(r#"mari[äa] empf[äa]ngnis"#)?,
+        |_| helpers::month_day(12, 8)
+    );
+    b.rule_1("Stephanie's day",
+        b.reg(r#"stefanitag"#)?,
+        |_| helpers::month_day(12, 26)
+    );
+    b.rule_1("Women's day",
+        b.reg(r#"(?:internationale[rnm] )?frauentag"#)?,
+        |_| helpers::month_day(3, 8)
+    );
     // TODO needs the lunar calendar feature
     // b.rule_1("Ascension celebration",
     //     b.reg(r#"himmelfahrt"#)?,
@@ -1116,7 +1179,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("from <time> to <time>",
         b.reg(r#"von|ab|nach"#)?,
         time_check!(),
-        b.reg(r#"bis(?: zum?r?)?"#)?,
+        b.reg(r#"bis(?: zum?r?)?|auf"#)?,
         time_check!(),
         |_, start, _, end| start.value().span_to(end.value(), true)
     );
