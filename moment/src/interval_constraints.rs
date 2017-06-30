@@ -495,7 +495,6 @@ impl<T: TimeZone+'static> NthConstraint<T> where <T as TimeZone>::Offset: Copy {
     }
 }
 
-
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Cycle(pub Grain);
 
