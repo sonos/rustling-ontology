@@ -26,11 +26,11 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(30.0, Some("EUR"), Precision::Exact), "dreissig Euro");
     example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 dollar");
-    //example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
+    example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
     example!(v, check_finance(300.0, Some("cent"), Precision::Exact), "300 pennies");
     example!(v, check_finance(1.0, Some("cent"), Precision::Exact), "1 penny", "1 cent", "1 cts", "1 ct");
-    //example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
-    //example!(v, check_finance(900.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
+    example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
+    example!(v, check_finance(980.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
     example!(v, check_finance(478.0, Some("USD"), Precision::Exact), "478 US-Dollar");
     example!(v, check_finance(2134.0, Some("$"), Precision::Exact), "2134 $");
     example!(v, check_finance(9840.0, Some("£"), Precision::Exact), "9840 £");
@@ -44,7 +44,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(839.0, Some("EUR"), Precision::Approximate), "ca 839 €");
     example!(v, check_finance(293.0, Some("EUR"), Precision::Approximate), "zirka 293 €");
     example!(v, check_finance(230983.0, Some("£"), Precision::Approximate), "beinahe 230983 £");
-    //example!(v, check_finance(150.0, Some("EUR"), Precision::Exact), "nahezu hundertfünfzig Euro 150 €");
+    example!(v, check_finance(150.0, Some("EUR"), Precision::Approximate), "nahezu hundertfünfzig Euro");
     example!(v, check_finance(100.0, Some("INR"), Precision::Exact), "sehr genau hundert indische Rupien");
 }
 

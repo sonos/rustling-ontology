@@ -47,7 +47,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("PTS") })
     );
     b.rule_1("INR",
-        b.reg(r#"inr|₹|(?:indische[rn]? )rupien?"#)?,
+        b.reg(r#"inr|₹|(?:indische[rn]? )?rupien?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_2("<unit> <amount>", 
@@ -119,7 +119,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
     b.rule_2("few unit of duration",
-        b.reg(r#"wenigen"#)?,
+        b.reg(r#"wenigen?"#)?,
         unit_of_duration_check!(),
         |_, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, 3).into()))
     );
