@@ -666,8 +666,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(),
         |_, time| time.value().the_nth(-1)
     );
-    b.rule_2("last of last <time>",
-        b.reg(r#"vorvergangene[rnm]?"#)?,
+    b.rule_2("before last <time>",
+        b.reg(r#"vorvergangene[rnm]?|vorletzte[rnm]?"#)?,
         time_check!(),
         |_, time| time.value().the_nth(-2)
     );
@@ -680,11 +680,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(),
         b.reg(r#"nach de(?:m|r|n) n[äa]chsten"#)?,
         |time, _| time.value().the_nth_not_immediate(1)
-    );
-    b.rule_2("<time> before last",
-        b.reg(r#"vor ?letzte(?:n|s|m|r)?"#)?,
-        time_check!(),
-        |_, time| time.value().the_nth(-2)
     );
     b.rule_4("last <day-of-week> of <time>",
         b.reg(r#"letzte(?:r|n|s)?"#)?,
@@ -1233,12 +1228,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             .span_to(&duration.value().in_present()?, false)
     );
     b.rule_2("by the end of <time>",
-        b.reg(r#"bis (?:zum)? ende (?:von)?|(?:noch)? vor"#)?,
+        b.reg(r#"bis (?:zum)? ende (?:von)?|(?:noch )?vor"#)?,
         time_check!(),
         |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
     );
     b.rule_2("until <time-of-day>",
-        b.reg(r#"vor|bis(?:(?: zu[rm]?)| in d(?:en|ie|as))?"#)?,
+        b.reg(r#"vor |bis(?:(?: zu[rm]?) |in d(?:en|ie|as))?"#)?,
         time_check!(),
         |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
     );
