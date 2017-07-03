@@ -233,6 +233,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "am frühen vormittag", "bei tagesanbruch", "beim morgengrauen", "im morgengrauen", "in der morgenfrühe", "frühmorgens", "am frühen morgen");
     example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 13]), "kurz vor mittag", "am späten vormittag");
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "am späten nachmittag","in den späten nachmittagsstunden","zu später nachmittagsstunde","spätnachmittags","spätnachmittag");
+    example!(v, check_moment!(c, [2013, 7, 15], Grain::Week), "die dritte juliwoche");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

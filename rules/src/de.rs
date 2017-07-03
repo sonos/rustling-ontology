@@ -344,6 +344,12 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(),
         |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
     );
+    b.rule_3("<ordinal> <time> <cycle>",
+        ordinal_check!(),
+        time_check!(),
+        cycle_check!(),
+        |ordinal, time, cycle| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
     b.rule_2("<ordinal> quarter",
         ordinal_check!(),
         cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
@@ -939,7 +945,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
     );
     b.rule_1("morning",
-        b.reg(r#"morgens|(?:in der )?fr[üu]h|vor ?mittags?|am morgen"#)?,
+        b.reg(r#"morgens|in der fr[üu]h|vor ?mittags?|am morgen"#)?,
         |_| Ok(helpers::hour(3, false)?
                 .span_to(&helpers::hour(12, false)?, false)?
                 .form(Form::PartOfDay))
@@ -1110,19 +1116,32 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1("season",
         b.reg(r#"sommer(?:zeit)?"#)?,
-        |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
+        |_| Ok(helpers::month_day(6, 21)?
+            .span_to(&helpers::month_day(9, 23)?, false)?
+            .form(Form::PartOfYear))
     );
     b.rule_1("season",
-        b.reg(r#"herbst(?:zeit)?"#)?,
-        |_| helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
+        b.reg(r#"herbst(?:zeit)?|sp[äa]tjahr"#)?,
+        |_| Ok(helpers::month_day(9, 23)?
+            .span_to(&helpers::month_day(12, 21)?, false)?
+            .form(Form::PartOfYear))
     );
     b.rule_1("season",
         b.reg(r#"winter(?:zeit)?"#)?,
-        |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
+        |_| Ok(helpers::month_day(12, 21)?
+            .span_to(&helpers::month_day(3, 20)?, false)?
+            .form(Form::PartOfYear))
     );
     b.rule_1("season",
         b.reg(r#"(?:fr[üu]hling|fr[üu]hjahr)(?:zeit)?"#)?,
-        |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
+        |_| Ok(helpers::month_day(3, 20)?
+            .span_to(&helpers::month_day(6, 21)?, false)?
+            .form(Form::PartOfYear))
+    );
+    b.rule_2("im <part-of-year>",
+        b.reg(r#"(?:(?:in )?(?:de[nrms]|die|das)|im|ins)"#)?,
+        time_check!(form!(Form::PartOfYear)),
+        |_, time| Ok(time.value().clone())
     );
     b.rule_2("<time-of-day> approximately",
         time_check!(form!(Form::TimeOfDay(_))),
@@ -1541,37 +1560,11 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             IntegerValue::new_with_grain(value, 1)
         }
     );
-    b.rule_1("integer ([2-9][1-9])",
-        b.reg(r#"(ein|zwei|drei|vier|f[üu]nf|sechs|sieben|acht|neun)und(zwanzig|dreissig|vierzig|f[üu]nfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
-        |text_match| {
-            let digit = match text_match.group(1).as_ref() {
-                "ein"       => 1, 
-                "zwei"      => 2, 
-                "drei"      => 3, 
-                "vier"      => 4, 
-                "funf"      => 5,
-                "fünf"      => 5,
-                "sechs"     => 6, 
-                "sieben"    => 7, 
-                "acht"      => 8, 
-                "neun"      => 9,
-                _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(1), text_match),
-            };
-            let tens_digit = match text_match.group(2).as_ref() {
-                "zwanzig"  => 20, 
-                "dreissig" => 30, 
-                "vierzig"  => 40, 
-                "funfzig"  => 50,
-                "fünfzig"  => 50,
-                "sechzig"  => 60, 
-                "siebzig"  => 70, 
-                "achtzig"  => 80, 
-                "neunzig"  => 90,
-                 _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(2), text_match),
-
-            };
-            IntegerValue::new(digit + tens_digit)
-        }
+    b.rule_3("integer ([2-9][1-9])",
+        integer_check!(1, 9),
+        b.reg(r#"und"#)?,
+        integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+        |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
     b.rule_1("integer (numeric)",
         b.reg(r#"(\d{1,18})"#)?,
@@ -1745,37 +1738,11 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             Ok(OrdinalValue { value })
         }
     );
-    b.rule_1("ordinal ([2-9][1-9])",
-        b.reg(r#"(ein|zwei|drei|vier|f[üu]nf|sechs|sieben|acht|neun)und(zwanzigste|dreissigste|vierzigste|f[üu]nfzigste|sechzigste|siebzigste|achtzigste|neunzigste)(?:r|n|m|s)?"#)?,
-        |text_match| {
-            let digit = match text_match.group(1).as_ref() {
-                "ein"       => 1, 
-                "zwei"      => 2, 
-                "drei"      => 3, 
-                "vier"      => 4, 
-                "funf"      => 5,
-                "fünf"      => 5,
-                "sechs"     => 6, 
-                "sieben"    => 7, 
-                "acht"      => 8, 
-                "neun"      => 9,
-                _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(1), text_match),
-            };
-            let tens_digit = match text_match.group(2).as_ref() {
-                "zwanzigste"   => 20, 
-                "dreissigste"  => 30, 
-                "vierzigste"   => 40, 
-                "funfzigste"   => 50,
-                "fünfzigste"   => 50, 
-                "sechzigste"   => 60,
-                "siebzigste"   => 70, 
-                "achtzigste"   => 80, 
-                "neunzigste"   => 90,
-                 _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(2), text_match),
-
-            };
-            Ok(OrdinalValue { value: digit + tens_digit })
-        }
+    b.rule_3("ordinal [2-9][1-9]",
+        integer_check!(1, 9),
+        b.reg(r#"und"#)?,
+        ordinal_check!(|ordinal: &OrdinalValue| ordinal.value % 10 == 0),
+        |integer, _, ordinal| Ok(OrdinalValue { value: integer.value().value + ordinal.value().value })
     );
     Ok(())
 }
