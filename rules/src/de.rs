@@ -78,7 +78,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                })
     });
     b.rule_2("exactly <amount-of-money>",
-        b.reg(r#"(?:haar|ganz |sehr )?genau|exakt|gerade|pr[äa]zise"#)?,
+        b.reg(r#"(?:haar|ganz |sehr )?genau|exakt|rund|gerade|pr[äa]zise"#)?,
         amount_of_money_check!(),
         |_, a| {
             Ok(AmountOfMoneyValue {
@@ -134,6 +134,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("3/4 hour",
         b.reg(r#"(?:3/4\s?|(?:eine?r? )dreiviertel)stunde"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
+    );
+    b.rule_2("while <duration>",
+        duration_check!(),
+        b.reg(r#"lang"#)?,
+        |duration, _| Ok(duration.value().clone())
     );
     b.rule_2("a <duration>",
         b.reg(r#"(?:in )?eine?(?:r|n)?"#)?,
@@ -602,7 +607,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //     |time, _| Ok(time.value().clone())
     // );
     b.rule_1("now",
-        b.reg(r#"(?:genau ?)?jetzt|diesen moment|in diesem moment|gerade (?:eben|jetzt)"#)?,
+        b.reg(r#"(?:genau ?)?jetzt|diesen moment|nun|in diesem moment|gerade (?:eben|jetzt)"#)?,
         |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1("today",
@@ -660,6 +665,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"(?:letzt|vor(?:her)?ig)e(?:n|s|m|r)?"#)?,
         time_check!(),
         |_, time| time.value().the_nth(-1)
+    );
+    b.rule_2("last of last <time>",
+        b.reg(r#"vorvergangene[rnm]?"#)?,
+        time_check!(),
+        |_, time| time.value().the_nth(-2)
     );
     b.rule_2("after next <time>",
         b.reg(r#"[üu]ber ?n[äa]chste(?:r|s|n|m)?"#)?,
@@ -1238,7 +1248,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, time| Ok(time.value().clone().direction(Some(Direction::After)))
     );
     b.rule_1("start of week",
-        b.reg(r#"(?:der )?(anfang|beginn) der woche"#)?,
+        b.reg(r#"(?:de[rnms]|zu )?(anfang|beginn) der woche"#)?,
         |_| {
             let current_week = helpers::cycle_nth(Grain::Week, 0)?;
             let start = current_week.intersect(&helpers::day_of_week(Weekday::Mon)?)?;
@@ -1247,7 +1257,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("start of week",
-        b.reg(r#"(?:der )?(anfang|beginn) der"#)?,
+        b.reg(r#"(?:de[rmns] )?(anfang|beginn) der"#)?,
         time_check!(form!(Form::Cycle(Grain::Week))),
         |_, week| {
             let start = week.value().intersect(&helpers::day_of_week(Weekday::Mon)?)?;
@@ -1256,7 +1266,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("middle of week",
-        b.reg(r#"(?:der )?mitte der"#)?,
+        b.reg(r#"(?:der |die )?mitte der"#)?,
         time_check!(form!(Form::Cycle(Grain::Week))),
         |_, week| {
             let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
@@ -1327,10 +1337,21 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             start.span_to(&end, true)
         }
     );
-    b.rule_2("since <time-of-day>",
+    b.rule_2("since <time-of-day> (past)",
         b.reg(r#"seit"#)?,
         time_check!(),
         |_, a| Ok(a.value().the_nth(-1)?.direction(Some(Direction::After)))
+    );
+    b.rule_2("since <time-of-day> (futur)",
+        b.reg(r#"ab"#)?,
+        time_check!(),
+        |_, a| Ok(a.value().clone().direction(Some(Direction::After)))
+    );
+    b.rule_3("since <time>",
+        b.reg(r#"von"#)?,
+        time_check!(),
+        b.reg(r#"an"#)?,
+        |_, time, _| Ok(time.value().clone().direction(Some(Direction::After)))
     );
     Ok(())
 }

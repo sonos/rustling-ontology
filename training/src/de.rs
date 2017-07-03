@@ -264,5 +264,5 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_float(1416.15), "1.416,15");
     example!(v, check_float(1000000.0), "1.000.000,00");
     example!(v, check_ordinal(44), "der vierundvierzigste");
-    //example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");
+    example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");
 }
