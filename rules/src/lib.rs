@@ -61,12 +61,12 @@ impl ::std::string::ToString for Lang {
 }
 
 macro_rules! lang {
-    ($lang:ident, $config:ident, [$($rule:ident),*], [$($dim:ident),*]) => {
+    ($lang:ident, $config:ident, $boundaries_checker:ident, [$($rule:ident),*], [$($dim:ident),*]) => {
         pub mod $config {
             use values;
             use $lang;
             pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
-                let mut b = ::rustling::RuleSetBuilder::default();
+                let mut b = ::rustling::RuleSetBuilder::new(::rustling::BoundariesChecker::$boundaries_checker);
                 $( $lang::$rule(&mut b)?; )*
                 Ok(b.build())
             }
@@ -102,12 +102,14 @@ pub fn dims(lang: Lang) -> Vec<values::DimensionKind> {
     }
 }
 
-lang!(de, de_config, [rules_numbers, rules_time, rules_cycle, rules_duration], [Number, Ordinal, Time, Duration]);
-lang!(en, en_config, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
+lang!(de, de_config, ComposedWordOrDetailed, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
-lang!(es, es_config, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
+lang!(en, en_config, Detailed, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
+          [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
+lang!(es, es_config, Detailed, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
           [Number, Ordinal, Time, Duration, Temperature]);
-lang!(fr, fr_config, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
+lang!(fr, fr_config, Detailed, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
           [Number, Ordinal, Time, Duration, Temperature]);
-lang!(ko, ko_config, [rules_numbers, rule_time, rule_temperature, rules_finance, rules_cycle, rules_duration], [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
+lang!(ko, ko_config, Detailed, [rules_numbers, rule_time, rule_temperature, rules_finance, rules_cycle, rules_duration], 
+          [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
 

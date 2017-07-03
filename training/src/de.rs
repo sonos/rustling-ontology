@@ -26,11 +26,11 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(30.0, Some("EUR"), Precision::Exact), "dreissig Euro");
     example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 dollar");
-    //example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
+    example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
     example!(v, check_finance(300.0, Some("cent"), Precision::Exact), "300 pennies");
     example!(v, check_finance(1.0, Some("cent"), Precision::Exact), "1 penny", "1 cent", "1 cts", "1 ct");
-    //example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
-    //example!(v, check_finance(900.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
+    example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
+    example!(v, check_finance(980.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
     example!(v, check_finance(478.0, Some("USD"), Precision::Exact), "478 US-Dollar");
     example!(v, check_finance(2134.0, Some("$"), Precision::Exact), "2134 $");
     example!(v, check_finance(9840.0, Some("£"), Precision::Exact), "9840 £");
@@ -44,7 +44,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(839.0, Some("EUR"), Precision::Approximate), "ca 839 €");
     example!(v, check_finance(293.0, Some("EUR"), Precision::Approximate), "zirka 293 €");
     example!(v, check_finance(230983.0, Some("£"), Precision::Approximate), "beinahe 230983 £");
-    //example!(v, check_finance(150.0, Some("EUR"), Precision::Exact), "nahezu hundertfünfzig Euro 150 €");
+    example!(v, check_finance(150.0, Some("EUR"), Precision::Approximate), "nahezu hundertfünfzig Euro");
     example!(v, check_finance(100.0, Some("INR"), Precision::Exact), "sehr genau hundert indische Rupien");
 }
 
@@ -233,6 +233,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "am frühen vormittag", "bei tagesanbruch", "beim morgengrauen", "im morgengrauen", "in der morgenfrühe", "frühmorgens", "am frühen morgen");
     example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 13]), "kurz vor mittag", "am späten vormittag");
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "am späten nachmittag","in den späten nachmittagsstunden","zu später nachmittagsstunde","spätnachmittags","spätnachmittag");
+    example!(v, check_moment!(c, [2013, 7, 15], Grain::Week), "die dritte juliwoche");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
@@ -263,5 +264,5 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_float(1416.15), "1.416,15");
     example!(v, check_float(1000000.0), "1.000.000,00");
     example!(v, check_ordinal(44), "der vierundvierzigste");
-    //example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");
+    example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");
 }
