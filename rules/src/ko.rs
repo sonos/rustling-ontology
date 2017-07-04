@@ -182,7 +182,7 @@ pub fn rule_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()>
     b.rule_2("<temp> °F",
         temperature_check!(),
         b.reg(r#"f"#)?,
-        |a, _| Ok(-TemperatureValue {
+        |a, _| Ok(TemperatureValue {
                     value: a.value().value,
                     unit: Some("fahrenheit"),
                     latent: false,
@@ -1299,7 +1299,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 }
             }
 
-            fn get_number(s: &str) -> RuleResult<(i64, Option<i32>)> {
+            fn get_number(s: &str) -> RuleResult<(i64, Option<u8>)> {
                 let regex = Regex::new(r#"(.*천)?(.*백)?(.*십)?(.*)?"#)?;
                 let groups = helpers::find_regex_group(&regex, s)?
                     .into_iter()
@@ -1323,37 +1323,55 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                                           .map(|g| map_number(g))
                                           .unwrap_or(0);
                 let number = 1000 * coef_1000 + 100 * coef_100 + 10 * coef_10 + coef_1;
-                let grain = if number != 0 && (coef_1 != 0 ||coef_10 != 0) { 
-                    1
-                } else if number != 0 && coef_100 != 0 {
-                    2
+                let grain = if coef_1 != 0 || coef_10 != 0 { 
+                    Some(1)
+                } else if coef_100 != 0 {
+                    Some(2)
+                } else if coef_1000 != 0 {
+                    Some(3)
                 } else {
-                    3
-                }
-                Ok(number)
+                    None
+                };
+                Ok((number, grain))
             }
 
             let regex = Regex::new(r#"(.*조)?(.*억)?(.*만)?(.*)?"#)?;
+            
             let groups = helpers::find_regex_group(&regex, text_match.group(0))?
                     .into_iter()
                     .nth(0)
                     .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, text_match.group(0)))?
                     .groups;
-
-            let value = 1000000000000 * groups.get(1).and_then(|g| *g)
+            
+            let coef_1000000000000 = groups.get(1).and_then(|g| *g)
                                               .map(|g| get_number(g))
-                                              .unwrap_or(Ok(0))?
-                        + 100000000 * groups.get(2).and_then(|g| *g)
+                                              .unwrap_or(Ok((0, None)))?;
+            let coef_100000000 = groups.get(2).and_then(|g| *g)
                                             .map(|g| get_number(g))
-                                            .unwrap_or(Ok(0))?
-                        + 10000 * groups.get(3).and_then(|g| *g)
-                                        .map(|g| if g == "만" { Ok(1) } else { get_number(g)})
-                                        .unwrap_or(Ok(0))?
-                        + groups.get(4).and_then(|g| *g)
+                                            .unwrap_or(Ok((0, None)))?;
+            let coef_10000 = groups.get(3).and_then(|g| *g)
+                                        .map(|g| if g == "만" { Ok((1, Some(1))) } else { get_number(g)})
+                                        .unwrap_or(Ok((0, None)))?;
+            let coef_1 = groups.get(4).and_then(|g| *g)
                                             .map(|g| get_number(g))
-                                            .unwrap_or(Ok(0))?;
-
-            IntegerValue::new(value)
+                                            .unwrap_or(Ok((0, None)))?;
+            let number = 1000000000000 * coef_1000000000000.0 + 100000000 * coef_100000000.0 + 10000 * coef_10000.0 + coef_1.0;
+            let grain = if coef_1.0 != 0 {  
+                coef_1.1
+            } else if coef_10000.0 != 0 {
+                coef_10000.1.map(|g| 4 + g - 1)
+            } else if coef_100000000.0 != 0 {
+                coef_100000000.1.map(|g| 8 + g - 1)
+            } else if coef_1000000000000.0 != 0 {
+                coef_1000000000000.1.map(|g| 12 + g -1)
+            } else {
+                None
+            };
+            Ok(IntegerValue {
+                   value: number,
+                   grain: grain,
+                   ..IntegerValue::default()
+               })
         }
     );
     b.rule_1("integer (1..10) - TYPE 2",
