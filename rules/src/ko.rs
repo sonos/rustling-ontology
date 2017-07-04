@@ -772,14 +772,19 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     );
     b.rule_1("morning",
-        b.reg(r#"아침|오전"#)?,
+        b.reg(r#"아침"#)?,
+        |_| Ok(helpers::hour(4, false)?
+                .span_to(&helpers::hour(12, false)?, false)?
+                .form(Form::PartOfDay))
+    );
+    b.rule_1("morning (latent)",
+        b.reg(r#"오전"#)?,
         |_| Ok(helpers::hour(4, false)?
                 .span_to(&helpers::hour(12, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
-
     );
-    b.rule_1("late morning",
+    b.rule_1("late morning (latent)",
         b.reg(r#"늦은 아침|오전 늦게|아침 늦게|아침 느지막이"#)?,
         |_| Ok(helpers::hour(11, false)?
                 .span_to(&helpers::hour(12, false)?, false)?
@@ -787,7 +792,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
 
     );
-    b.rule_1("early afternoon",
+    b.rule_1("early afternoon (latent)",
         b.reg(r#"이른 오후|낮곁|오후 들어|오후 일찍"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(16, false)?, false)?
@@ -798,11 +803,10 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"오후"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(19, false)?, false)?
-                .latent()
                 .form(Form::PartOfDay))
 
     );
-    b.rule_1("late afternoon",
+    b.rule_1("late afternoon (latent)",
         b.reg(r#"늦은 오후|오후 늦게"#)?,
         |_| Ok(helpers::hour(17, false)?
                 .span_to(&helpers::hour(19, false)?, false)?
@@ -810,7 +814,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
 
     );
-    b.rule_1("early evening",
+    b.rule_1("early evening (latent)",
         b.reg(r#"이른 저녁|초저녁|저녁 일찍"#)?,
         |_| Ok(helpers::hour(18, false)?
                 .span_to(&helpers::hour(21, false)?, false)?
@@ -821,17 +825,16 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"저녁"#)?,
         |_| Ok(helpers::hour(18, false)?
                 .span_to(&helpers::hour(0, false)?, false)?
-                .latent()
                 .form(Form::PartOfDay))
     );
-    b.rule_1("late evening",
+    b.rule_1("late evening (latent)",
         b.reg(r#"늦은 저녁|저녁 늦게"#)?,
         |_| Ok(helpers::hour(21, false)?
                 .span_to(&helpers::hour(0, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
     );
-    b.rule_1("early night",
+    b.rule_1("early night (latent)",
         b.reg(r#"이른 밤|밤에 일찍"#)?,
         |_| Ok(helpers::hour(21, false)?
                 .span_to(&helpers::hour(0, false)?, false)?
@@ -842,17 +845,16 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"밤"#)?,
         |_| Ok(helpers::hour(19, false)?
                 .span_to(&helpers::hour(0, false)?, false)?
-                .latent()
                 .form(Form::PartOfDay))
     );
-    b.rule_1("late night",
+    b.rule_1("late night (latent)",
         b.reg(r#"늦은 밤|밤 늦게|깊은 밤"#)?,
         |_| Ok(helpers::hour(1, false)?
                 .span_to(&helpers::hour(4, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
     );
-    b.rule_1("breakfast",
+    b.rule_1("breakfast (latent)",
         b.reg(r#"아침(?: ?(?:식사|밥))?|조반"#)?,
         |_| Ok(helpers::hour(6, false)?
                 .span_to(&helpers::hour(9, false)?, false)?
@@ -860,21 +862,21 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
 
     );
-    b.rule_1("brunch",
+    b.rule_1("brunch (latent)",
         b.reg(r#"브런취|브런치|아침 겸 점심|늦은 아침|아점"#)?,
         |_| Ok(helpers::hour(11, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
     );
-    b.rule_1("lunch",
+    b.rule_1("lunch (latent)",
         b.reg(r#"점심(?: ?(?:식사|밥))?"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
     );
-    b.rule_1("dinner",
+    b.rule_1("dinner (latent)",
         b.reg(r#"저녁(?: ?(?:식사|밥))?"#)?,
         |_| Ok(helpers::hour_minute(17, 30, false)?
                 .span_to(&helpers::hour(21, false)?, false)?
@@ -884,7 +886,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("in|during the <part-of-day>",
         time_check!(form!(Form::PartOfDay)),
-        b.reg(r#"에|동안"#)?,
+        b.reg(r#"에|동안|때"#)?,
         |time, _| Ok(time.value().clone().not_latent())
     );
 
@@ -1242,6 +1244,10 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
 
 pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect",
+             number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
+             number_check!(),
+             |a, b| helpers::compose_numbers(&a.value(), &b.value()));
     b.rule_1("integer (numeric)",
         b.reg(r#"(\d{1,18})"#)?,
         |text_match| {
@@ -1293,53 +1299,79 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 }
             }
 
-            fn get_number(s: &str) -> RuleResult<i64> {
+            fn get_number(s: &str) -> RuleResult<(i64, Option<u8>)> {
                 let regex = Regex::new(r#"(.*천)?(.*백)?(.*십)?(.*)?"#)?;
                 let groups = helpers::find_regex_group(&regex, s)?
                     .into_iter()
                     .nth(0)
                     .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, s))?
                     .groups;
-                let number = 1000 * groups.get(1).and_then(|g| *g)
-                                          .and_then(|g| g.chars().nth(0))
-                                          .map(|g| map_number(g))
-                                          .unwrap_or(0)
-                            + 100 * groups.get(2).and_then(|g| *g)
-                                          .and_then(|g| g.chars().nth(0))
-                                          .map(|g| map_number(g))
-                                          .unwrap_or(0)
-                            + 10 * groups.get(3).and_then(|g| *g)
-                                          .and_then(|g| g.chars().nth(0))
-                                          .map(|g| map_number(g))
-                                          .unwrap_or(0)
-                            + groups.get(4).and_then(|g| *g)
+                let coef_1 = groups.get(4).and_then(|g| *g)
                                           .and_then(|g| g.chars().nth(0))
                                           .map(|g| map_number(g))
                                           .unwrap_or(0);
-                Ok(number)
+                let coef_10 = groups.get(3).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0);
+                let coef_100 = groups.get(2).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0);
+                let coef_1000 = groups.get(1).and_then(|g| *g)
+                                          .and_then(|g| g.chars().nth(0))
+                                          .map(|g| map_number(g))
+                                          .unwrap_or(0);
+                let number = 1000 * coef_1000 + 100 * coef_100 + 10 * coef_10 + coef_1;
+                let grain = if coef_1 != 0 || coef_10 != 0 { 
+                    Some(1)
+                } else if coef_100 != 0 {
+                    Some(2)
+                } else if coef_1000 != 0 {
+                    Some(3)
+                } else {
+                    None
+                };
+                Ok((number, grain))
             }
 
             let regex = Regex::new(r#"(.*조)?(.*억)?(.*만)?(.*)?"#)?;
+            
             let groups = helpers::find_regex_group(&regex, text_match.group(0))?
                     .into_iter()
                     .nth(0)
                     .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, text_match.group(0)))?
                     .groups;
-
-            let value = 1000000000000 * groups.get(1).and_then(|g| *g)
+            
+            let coef_1000000000000 = groups.get(1).and_then(|g| *g)
                                               .map(|g| get_number(g))
-                                              .unwrap_or(Ok(0))?
-                        + 100000000 * groups.get(2).and_then(|g| *g)
+                                              .unwrap_or(Ok((0, None)))?;
+            let coef_100000000 = groups.get(2).and_then(|g| *g)
                                             .map(|g| get_number(g))
-                                            .unwrap_or(Ok(0))?
-                        + 10000 * groups.get(3).and_then(|g| *g)
-                                        .map(|g| if g == "만" { Ok(1) } else { get_number(g)})
-                                        .unwrap_or(Ok(0))?
-                        + groups.get(4).and_then(|g| *g)
+                                            .unwrap_or(Ok((0, None)))?;
+            let coef_10000 = groups.get(3).and_then(|g| *g)
+                                        .map(|g| if g == "만" { Ok((1, Some(1))) } else { get_number(g)})
+                                        .unwrap_or(Ok((0, None)))?;
+            let coef_1 = groups.get(4).and_then(|g| *g)
                                             .map(|g| get_number(g))
-                                            .unwrap_or(Ok(0))?;
-
-            IntegerValue::new(value)
+                                            .unwrap_or(Ok((0, None)))?;
+            let number = 1000000000000 * coef_1000000000000.0 + 100000000 * coef_100000000.0 + 10000 * coef_10000.0 + coef_1.0;
+            let grain = if coef_1.0 != 0 {  
+                coef_1.1
+            } else if coef_10000.0 != 0 {
+                coef_10000.1.map(|g| 4 + g - 1)
+            } else if coef_100000000.0 != 0 {
+                coef_100000000.1.map(|g| 8 + g - 1)
+            } else if coef_1000000000000.0 != 0 {
+                coef_1000000000000.1.map(|g| 12 + g -1)
+            } else {
+                None
+            };
+            Ok(IntegerValue {
+                   value: number,
+                   grain: grain,
+                   ..IntegerValue::default()
+               })
         }
     );
     b.rule_1("integer (1..10) - TYPE 2",
