@@ -1,10 +1,10 @@
 [package]
 name = "rustling-cli-debug"
-version = "0.12.0"
+version = "0.12.1"
 authors = ["hdlj <hubert.delajonquiere@snips.net>", "Mathieu Poumeyrol <kali@zoy.org>"]
 
 [dependencies]
-rustling = { git="http://github.com/snipsco/rustling", rev="0.5.0" }
+rustling = { git="http://github.com/snipsco/rustling", rev="0.5.1" }
 rustling-ontology-values = { path = "../values"}
 rustling-ontology-rules = { path = "../rules"}
 rustling-ontology-moment = { path = "../moment"}
