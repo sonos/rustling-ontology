@@ -1387,7 +1387,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      "일곱" => 7,
                      "여덟" => 8,
                      "아홉" => 9,
-                     _ => panic!("Unknow match"),
+                     _ => return Err(RuleErrorKind::Invalid.into()),
                  };
             IntegerValue::new(value)
         }
@@ -1430,7 +1430,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "두" => 2,
                 "세" => 3,
                 "네" => 4,
-                _ => panic!("Unknow match"),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             IntegerValue::new(value)
         }
@@ -1452,7 +1452,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "일흔"  => 70, 
                 "여든"  => 80, 
                 "아흔"  => 90,
-                _ => panic!("Unknow match"),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             IntegerValue::new(value)
         }

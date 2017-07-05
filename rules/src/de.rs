@@ -179,7 +179,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "elf" => 11,
                 "zwolf" => 12,
                 "zwölf" => 12,
-                _ => panic!("No match found for: {:?}", text_match),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             Ok(DurationValue::new(PeriodComp::minutes(value * 60 + 30).into()))
         }
@@ -381,7 +381,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(|time: &TimeValue| !time.latent),
         |a, _, b| a.value().intersect(b.value())
     );
-
     b.rule_3("intersect by ','",
         time_check!(|time: &TimeValue| !time.latent),
         b.reg(r#","#)?,
@@ -1479,24 +1478,20 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
         |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
-    b.rule_1("integer (0..19)",
-        b.reg(r#"(kein(?:er|en|e?s?)|null|nichts|eins?(?:er|e)?|zwei|drei(?:zehn)?|vier(?:zehn)?|f[üu]nf(?:zehn)?|sech(?:s|zehn)|sieb(?:en|zehn)|acht(?:zehn)?|neun(?:zehn)?|elf|zw[öo]lf)"#)?,
+    b.rule_1("null",
+        b.reg(r#"kein(?:er|en|e?s?)|null|nichts"#)?,
+        |_| IntegerValue::new(0)
+    );
+    b.rule_1("integer one",
+        b.reg(r#"ein(?:e(?:n|r|s|m)?|s)?"#)?,
+        |_| IntegerValue::new(1)
+    );
+    b.rule_1("integer (2..19)",
+        b.reg(r#"(zwei|drei(?:zehn)?|vier(?:zehn)?|f[üu]nf(?:zehn)?|sech(?:s|zehn)|sieb(?:en|zehn)|acht(?:zehn)?|neun(?:zehn)?|elf|zw[öo]lf)"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
-                    "kein"     => 0,
-                    "keine"    => 0, 
-                    "keins"    => 0, 
-                    "keines"   => 0, 
-                    "keiner"   => 0, 
-                    "keinen"   => 0, 
-                    "null"     => 0, 
-                    "nichts"   => 0,
-                    "ein"      => 1, 
-                    "eins"     => 1, 
-                    "eine"     => 1, 
-                    "einer"    => 1, 
                     "zwei"     => 2,
-                    "drei"     => 3, 
+                    "drei"     => 3,
                     "vier"     => 4, 
                     "fünf"     => 5,
                     "funf"     => 5,
@@ -1515,7 +1510,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     "siebzehn" => 17,
                     "achtzehn" => 18,
                     "neunzehn" => 19,
-                _ => panic!("Unknown match {:?}", text_match.group(1)),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             IntegerValue::new(value)
         }
@@ -1571,7 +1566,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "siebzig"   => 70, 
                 "achtzig"   => 80, 
                 "neunzig"   => 90,
-                _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(1), text_match),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             IntegerValue::new_with_grain(value, 1)
         }
@@ -1665,7 +1660,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "k" => 1000,
                 "m" => 1000000,
                 "g" => 1000000000,
-                _   => panic!("Unknown match"),
+                _   => return Err(RuleErrorKind::Invalid.into()),
             };
             Ok(match a.value().clone() { // checked
                    NumberValue::Integer(integer) => {
@@ -1722,7 +1717,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "siebzehnte"  => 17, 
                 "achtzehnte"  => 18, 
                 "neunzehnte"  => 19,
-                _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(1), text_match),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             Ok(OrdinalValue { value: value })
         }
@@ -1749,7 +1744,7 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "siebzigste"   => 70, 
                 "achtzigste"   => 80, 
                 "neunzigste"   => 90,
-                _ => panic!("Unknown match {:?} with a text match: {:?}", text_match.group(1), text_match),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             Ok(OrdinalValue { value })
         }

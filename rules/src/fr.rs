@@ -1200,7 +1200,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         "quatorze" => 14,
                         "quinze" => 15,
                         "seize" => 16,
-                        _ => panic!("Unknow match"),
+                        _ => return Err(RuleErrorKind::Invalid.into()),
                     };
                     IntegerValue::new(value) 
             });
@@ -1213,7 +1213,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             "quarante" => 40,
             "cinquante" => 50,
             "soixante" => 60,
-            _ => panic!("Unknow match"),
+            _ => return Err(RuleErrorKind::Invalid.into()),
         };
         IntegerValue::new(value)
     });
@@ -1307,7 +1307,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             "k" => 1000,
             "m" => 1000000,
             "g" => 1000000000,
-            _ => panic!("Unknown match"),
+            _ => return Err(RuleErrorKind::Invalid.into()),
         };
         Ok(match a.value().clone() { // checked
                NumberValue::Integer(integer) => {
@@ -1376,7 +1376,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     "quatorzième" => 14,
                     "quinzième" => 15,
                     "seizième" => 16,
-                     _ => panic!("Unknow match"),
+                     _ => return Err(RuleErrorKind::Invalid.into()),
                  };
                  Ok(OrdinalValue { value: value })
             });
