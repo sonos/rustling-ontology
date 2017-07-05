@@ -182,14 +182,14 @@ pub fn year(y: i32) -> RuleResult<TimeValue> {
 
 pub fn month(m: u32) -> RuleResult<TimeValue> {
     if !(1 <= m && m <= 12) {
-        unimplemented!();
+        return Err(RuleErrorKind::Invalid.into())
     }
     Ok(TimeValue::constraint(Month::new(m)).form(Form::Month(m)))
 }
 
 pub fn day_of_month(dom: u32) -> RuleResult<TimeValue> {
     if !(1 <= dom && dom <= 31) {
-        unimplemented!();
+        return Err(RuleErrorKind::Invalid.into())
     }
     Ok(TimeValue::constraint(DayOfMonth::new(dom)).form(Form::Empty))
 }
