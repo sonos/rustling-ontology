@@ -1072,7 +1072,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay)) 
     );
     b.rule_2("in|during the <part-of-day>",
-        b.reg(r#"(?:in|an|zu|beim?|am|um|w[äa]h?rend)(?: de(?:r|m|s|n)|die|das)?"#)?,
+        b.reg(r#"(?:i[nm]s?|a[nm]|zu[rm]?|beim?|um|w[äa]h?rend) ?(?:de(?:r|m|s|n)|die|das)?"#)?,
         time_check!(form!(Form::PartOfDay)),
         |_, time| Ok(time.value().clone().not_latent()) 
     );
