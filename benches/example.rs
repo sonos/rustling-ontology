@@ -25,7 +25,7 @@ benchmark_group!(benches,
                  //parse_book_restaurant_ko,
                  parse_complex_train_sentence_ko,
                  parse_batch_sentence_ko,
-                 parse_complex_train_sentence_end_to_end_ko,
+                 parse_complex_train_sentence_end_to_end_ko
                  //time_resolve_complex_train_sentence_ko
                  );
 benchmark_main!(benches);
