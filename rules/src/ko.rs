@@ -240,7 +240,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "금" => Weekday::Fri, 
                 "토" => Weekday::Sat, 
                 "일" => Weekday::Sun,
-                _ => panic!("Unknow match {:?}", text_match),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             helpers::day_of_week(dow)
         }
@@ -308,7 +308,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "칠" => 7, 
                 "팔" => 8, 
                 "구" => 9,
-                _ => panic!("Unknown match {:?}", text_match)
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             helpers::day_of_month(dom)
         }
@@ -1140,7 +1140,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "아흐레" => 9,
                 "열흘" => 10,
                 "열하루" => 11,
-                _ => panic!("Unknown match {:?}", text_match.group(1)),
+                _ => return Err(RuleErrorKind::Invalid.into()),
             };
             Ok(DurationValue::new(PeriodComp::new(Grain::Day, number_of_days).into()))
         }
