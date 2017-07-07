@@ -77,7 +77,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 10]), "Sonntag, Feb 10");
     example!(v, check_moment!(c, [2013, 2, 13]), "Mittwoch, Feb 13");
     example!(v, check_moment!(c, [2013, 2, 18]), "Montag, Feb 18");
-    example!(v, check_moment!(c, [2013, 2, 11], Grain::Week), "diese woche", "kommende woche");
+    example!(v, check_moment!(c, [2013, 2, 11], Grain::Week), "diese woche");
+    example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "kommende woche");
     example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "letzte woche");
     example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "nächste woche");
     example!(v, check_moment!(c, [2013, 1]), "letzten monat");

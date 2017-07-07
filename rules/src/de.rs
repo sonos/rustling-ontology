@@ -630,7 +630,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("today",
-        b.reg(r#"heute?|((?:um diese|zur|der) )zeit|zu dieser zeit|um diesen zeitpunkt|zu diesem zeitpunkt|derzeitig|momentan"#)?,
+        b.reg(r#"heute?|(?:um diese |zu dieser |zur|der)zeit|um diesen zeitpunkt|zu diesem zeitpunkt|derzeitig|momentan"#)?,
         |_| helpers::cycle_nth(Grain::Day, 0)
     );
     b.rule_1_terminal("tomorrow",
