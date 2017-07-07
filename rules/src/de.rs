@@ -4,6 +4,14 @@ use values::dimension::Precision::*;
 use values::helpers;
 use moment::{Grain, PeriodComp, Weekday};
 
+fn german_article_regex() -> &'static str {
+    r#"(?:i[nm]s?|a[nm]|zu[rm]?|beim?|um|w[äa]h?rend) ?(?:de(?:r|m|s|n)|die|das)?"#
+}
+
+fn german_article_before_cycle() -> &'static str {
+    r#"(?:i[nm]s?|a[nm]|zu[rm]?) ?(?:de(?:r|m|s|n)|die|das)"#
+}
+
 pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect (X cents)",
          amount_of_money_check!(),
@@ -303,7 +311,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("this <cycle>",
-        b.reg(r#"(?:in )?diese(?:r|n|s|m)?|kommende(?:r|n|s|m)?"#)?,
+        b.reg(r#"(?:in )?diese(?:r|n|s|m)?"#)?,
         cycle_check!(),
         |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
@@ -318,14 +326,14 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
     );
     b.rule_4("the <cycle> after <time>",
-        b.reg(r#"de(?:r|n|m|s)|die|das"#)?,
+        b.reg(german_article_before_cycle())?,
         cycle_check!(),
         b.reg(r#"nach"#)?,
         time_check!(),
         |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, 1, time.value())
     );
     b.rule_4("the <cycle> before <time>",
-        b.reg(r#"de(?:r|n|m|s)|die|das"#)?,
+        b.reg(german_article_before_cycle())?,
         cycle_check!(),
         b.reg(r#"vor"#)?,
         time_check!(),
@@ -1084,7 +1092,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay)) 
     );
     b.rule_2("<article> <time>",
-        b.reg(r#"(?:i[nm]s?|a[nm]|zu[rm]?|beim?|um|w[äa]h?rend) ?(?:de(?:r|m|s|n)|die|das)?"#)?,
+        b.reg(german_article_regex())?,
         time_check!(),
         |_, time| Ok(time.value().clone().not_latent()) 
     );
@@ -1244,12 +1252,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(),
         |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
     );
-    b.rule_2("until <time-of-day>",
+    b.rule_2("until <time>",
         b.reg(r#"vor |bis(?:(?: zu[rm]?) |in d(?:en|ie|as))?"#)?,
         time_check!(),
         |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
     );
-    b.rule_2("after <time-of-day>",
+    b.rule_2("after <time>",
         b.reg(r#"nach"#)?,
         time_check!(),
         |_, time| Ok(time.value().clone().direction(Some(Direction::After)))
@@ -1367,18 +1375,18 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             start.span_to(&end, true)
         }
     );
-    b.rule_2("since <time-of-day> (past)",
-        b.reg(r#"seit"#)?,
+    b.rule_2("since <time> (past)",
+        b.reg(r#"seit(?: de[rm])?"#)?,
         time_check!(),
         |_, a| Ok(a.value().the_nth(-1)?.direction(Some(Direction::After)))
     );
-    b.rule_2("since <time-of-day> (futur)",
-        b.reg(r#"ab"#)?,
+    b.rule_2("since <time> (futur)",
+        b.reg(r#"ab(?: de[rm])?"#)?,
         time_check!(),
         |_, a| Ok(a.value().clone().direction(Some(Direction::After)))
     );
     b.rule_3("since <time>",
-        b.reg(r#"von"#)?,
+        b.reg(r#"von(?: de[rm])?"#)?,
         time_check!(),
         b.reg(r#"an"#)?,
         |_, time, _| Ok(time.value().clone().direction(Some(Direction::After)))
