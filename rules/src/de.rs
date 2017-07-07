@@ -5,7 +5,7 @@ use values::helpers;
 use moment::{Grain, PeriodComp, Weekday};
 
 fn german_article_regex() -> &'static str {
-    r#"(?:i[nm]s?|a[nm]|zu[rm]?|beim?|um|w[äa]h?rend) ?(?:de(?:r|m|s|n)|die|das)?"#
+    r#"(?:i[nm]s?|a[nm]|zu[rm]?|beim?|um|w[äa]h?rend|f[uü]r) ?(?:de(?:r|m|s|n)|die|das)?"#
 }
 
 fn german_article_before_cycle() -> &'static str {
@@ -311,7 +311,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| CycleValue::new(Grain::Year)
     );
     b.rule_2("this <cycle>",
-        b.reg(r#"(?:in )?diese(?:r|n|s|m)?"#)?,
+        b.reg(r#"(?:in )?diese(?:r|n|s|m)?|de[sr]"#)?,
         cycle_check!(),
         |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
@@ -354,9 +354,16 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("<ordinal> <cycle> of/nach <time>",
         ordinal_check!(),
         cycle_check!(),
-        b.reg(r#"im|in|von|nach"#)?,
+        b.reg(r#"im|in(?: de[mr])?|von|nach|de[sr]"#)?,
         time_check!(),
         |ordinal, cycle, _, time| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
+    );
+    b.rule_4("<ordinal> <cycle> of/nach <time>",
+        ordinal_check!(),
+        cycle_check!(),
+        b.reg(r#"de[sr]"#)?,
+        cycle_check!(),
+        |ordinal, a, _, b| helpers::cycle_nth_after_not_immediate(a.value().grain, ordinal.value().value - 1, &helpers::cycle_nth(b.value().grain, 0)?)
     );
     b.rule_3("<ordinal> <time> <cycle>",
         ordinal_check!(),
@@ -404,11 +411,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#","#)?,
         time_check!(|time: &TimeValue| !time.latent),
         |a, _, b| a.value().intersect(b.value())
-    );
-    b.rule_2("on <date>",
-        b.reg(r#"am"#)?,
-        time_check!(),
-        |_, time| Ok(time.value().clone())
     );
     b.rule_2("on a named-day",
         b.reg(r#"an einem|an dem"#)?,
@@ -624,11 +626,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //     |time, _| Ok(time.value().clone())
     // );
     b.rule_1_terminal("now",
-        b.reg(r#"(?:genau ?)?jetzt|diesen moment|nun|sofort|in diesem moment|gerade (?:eben|jetzt)"#)?,
+        b.reg(r#"(?:genau ?)?jetzt|(?:diesen|im|in diesem) (?:moment|augenblick)|nun|sofort|gerade (?:eben|jetzt)"#)?,
         |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("today",
-        b.reg(r#"heute?|um diese zeit|zu dieser zeit|um diesen zeitpunkt|zu diesem zeitpunkt|derzeitig|momentan|zurzeit"#)?,
+        b.reg(r#"heute?|((?:um diese|zur|der) )zeit|zu dieser zeit|um diesen zeitpunkt|zu diesem zeitpunkt|derzeitig|momentan"#)?,
         |_| helpers::cycle_nth(Grain::Day, 0)
     );
     b.rule_1_terminal("tomorrow",
@@ -654,11 +656,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("before before yesterday",
         b.reg(r#"vorvorgestern"#)?,
         |_| helpers::cycle_nth(Grain::Day, -3)
-    );
-    b.rule_2("this|next <day-of-week>",
-        b.reg(r#"diese(?:n|r)|kommenden|n[äa]chsten"#)?,
-        time_check!(form!(Form::DayOfWeek{..})),
-        |_, time| time.value().the_nth_not_immediate(0)
     );
     b.rule_2("this <time>",
         b.reg(r#"diese(?:n|r|s|m)?|(?:im )?laufende(?:n|r|s)"#)?,
@@ -1306,6 +1303,25 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             helpers::cycle_nth(Grain::Second, 0)?.span_to(&end, true)
         }
     );
+    b.rule_1_terminal("start of month",
+        b.reg(r#"(?:de[rnms]|zu )?(anfang|beginn) des monate?s"#)?,
+        |_| {
+            let current_month = helpers::cycle_nth(Grain::Month, 0)?;
+            let start = current_month.intersect(&helpers::day_of_month(1)?)?;
+            let end = current_month.intersect(&helpers::day_of_month(10)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("start of month",
+        b.reg(r#"(?:de[rmns] )?(anfang|beginn) des"#)?,
+        time_check!(form!(Form::Cycle(Grain::Month))),
+        |_, month| {
+            let start = month.value().intersect(&helpers::day_of_month(1)?)?;
+            let end = month.value().intersect(&helpers::day_of_month(10)?)?;
+            start.span_to(&end, true)
+        }
+    );
+
     b.rule_1_terminal("beginning of year",
         b.reg(r#"(?:de[rmsn] )?jahres(?:anfang|beginn)|(?:de[rmsn] )?(?:anfang|beginn) des jahres"#)?,
         |_| {
