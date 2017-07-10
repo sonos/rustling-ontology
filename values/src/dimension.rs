@@ -154,6 +154,13 @@ impl NodePayload for IntegerValue {
     }
 }
 
+impl InnerStashIndexable for IntegerValue {
+    type Index = DimensionKind;
+    fn index() -> Self::Index {
+        DimensionKind::Number
+    }
+}
+
 impl From<FloatValue> for Dimension {
     fn from(v: FloatValue) -> Dimension {
         Dimension::Number(NumberValue::Float(v))
@@ -164,6 +171,13 @@ impl NodePayload for FloatValue {
     type Payload = Payload;
     fn extract_payload(&self) -> Option<Self::Payload> {
         None
+    }
+}
+
+impl InnerStashIndexable for FloatValue {
+    type Index = DimensionKind;
+    fn index() -> Self::Index {
+        DimensionKind::Number
     }
 }
 
