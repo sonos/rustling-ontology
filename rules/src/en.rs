@@ -1394,16 +1394,21 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
              integer_check!(1, 9),
              |a, b| IntegerValue::new(a.value().value + b.value().value));
+    b.rule_3("integer 21..99",
+             integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+             b.reg(r#"-"#)?,
+             integer_check!(1, 9),
+             |a, _, b| IntegerValue::new(a.value().value + b.value().value));
     b.rule_1_terminal("integer (numeric)",
-        b.reg(r#"(\d{1,18})"#)?,
-        |text_match| IntegerValue::new(text_match.group(0).parse()?));
+             b.reg(r#"(\d{1,18})"#)?,
+             |text_match| IntegerValue::new(text_match.group(0).parse()?));
     b.rule_1_terminal("integer with thousands separator ,",
-        b.reg(r#"(\d{1,3}(,\d\d\d){1,5})"#)?,
-        |text_match| {
-            let reformatted_string = text_match.group(1).replace(",", "");
-            let value: i64 = reformatted_string.parse()?;
-            IntegerValue::new(value)
-        });
+             b.reg(r#"(\d{1,3}(,\d\d\d){1,5})"#)?,
+             |text_match| {
+                 let reformatted_string = text_match.group(1).replace(",", "");
+                 let value: i64 = reformatted_string.parse()?;
+                 IntegerValue::new(value)
+             });
     b.rule_2("special composition for missing hundreds like in one twenty two",
              integer_check!(1, 9),
              integer_check!(10, 99),

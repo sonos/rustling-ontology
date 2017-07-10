@@ -6,4 +6,4 @@ authors = ["Mathieu Poumeyrol <kali@zoy.org>"]
 [dependencies]
 regex = "0.2"
 rustling-ontology-moment = { path="../moment"}
-rustling = { git="http://github.com/snipsco/rustling", branch="task/terminal-rules" }
+rustling = { git="http://github.com/snipsco/rustling", tag="0.6.0" }
