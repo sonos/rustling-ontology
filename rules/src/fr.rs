@@ -1221,34 +1221,19 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check!(10, 10),
              integer_check!(7, 9),
              |_, b| IntegerValue::new(b.value().value + 10));
-    b.rule_3("number (17..19)",
-             integer_check!(10, 10),
-             b.reg(r"-")?,
-             integer_check!(7, 9),
-             |_, _, b| IntegerValue::new(b.value().value + 10));
-    b.rule_2("number 80",
+    b.rule_2("number 80", //
              b.reg(r#"quatre"#)?,
              b.reg(r#"vingts?"#)?,
              |_, _| IntegerValue::new(80));
-    b.rule_3("number 80",
-             b.reg(r#"quatre"#)?,
-             b.reg(r"-")?,
-             b.reg(r#"vingts?"#)?,
-             |_, _, _| IntegerValue::new(80));
     b.rule_3("numbers 21 31 41 51",
              integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
-             b.reg(r#"-?et-?"#)?,
+             b.reg(r#"et"#)?,
              integer_check!(1, 1),
              |a, _, b| IntegerValue::new(a.value().value + b.value().value));
     b.rule_2("numbers 22..29 32..39 .. 52..59",
              integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
              integer_check!(2, 9),
              |a, b| IntegerValue::new(a.value().value + b.value().value));
-    b.rule_3("numbers 22..29 32..39 .. 52..59",
-             integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
-             b.reg(r"-")?,
-             integer_check!(2, 9),
-             |a, _, b| IntegerValue::new(a.value().value + b.value().value));
     b.rule_3("numbers 61 71",
              integer_check!(60, 60),
              b.reg(r#"-?et-?"#)?,
@@ -1262,31 +1247,15 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                             11,
                             |integer: &IntegerValue| integer.value == 1 || integer.value == 11),
              |a, b| IntegerValue::new(a.value().value + b.value().value));
-    b.rule_3("numbers 81 91",
-             integer_check!(80, 80),
-             b.reg(r#"-"#)?,
-             integer_check!(1,
-                            11,
-                            |integer: &IntegerValue| integer.value == 1 || integer.value == 11),
-             |a, _, b| IntegerValue::new(a.value().value + b.value().value));
     b.rule_2("numbers 62..69 .. 92..99",
              integer_check!(60,
                             80,
                             |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
              integer_check!(2, 19),
              |a, b| IntegerValue::new(a.value().value + b.value().value));
-    b.rule_3("numbers 62..69 .. 92..99",
-             integer_check!(60,
-                            80,
-                            |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
-             b.reg(r"-")?,
-             integer_check!(2, 19),
-             |a, _, b| IntegerValue::new(a.value().value + b.value().value));
-    b.rule_1("integer (numeric)", 
-        b.reg(r#"(\d{1,18})"#)?, 
-        |text_match| {
-            let value: i64 = text_match.group(1).parse()?;
-            IntegerValue::new(value)
+    b.rule_1("integer (numeric)", b.reg(r#"(\d{1,18})"#)?, |text_match| {
+        let value: i64 = text_match.group(1).parse()?;
+        IntegerValue::new(value)
     });
     b.rule_1("integer with thousands separator .",
              b.reg(r#"(\d{1,3}(\.\d\d\d){1,5})"#)?,
@@ -1295,12 +1264,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  let value: i64 = reformatted_string.parse()?;
                  IntegerValue::new(value)
              });
-    b.rule_1("decimal number", 
-        b.reg(r#"(\d*,\d+)"#)?, 
-        |text_match| {
-            let reformatted_string = text_match.group(1).replace(",", ".");
-            let value: f32 = reformatted_string.parse()?;
-            FloatValue::new(value)
+    b.rule_1("decimal number", b.reg(r#"(\d*,\d+)"#)?, |text_match| {
+        let reformatted_string = text_match.group(1).replace(",", ".");
+        let value: f32 = reformatted_string.parse()?;
+        FloatValue::new(value)
     });
     b.rule_1("decimal with thousands separator",
              b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
