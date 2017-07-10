@@ -1362,6 +1362,11 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
              integer_check!(1, 9),
              |a, b| IntegerValue::new(a.value().value + b.value().value));
+    b.rule_3("integer 21..99",
+             integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+             b.reg(r#"-"#)?,
+             integer_check!(1, 9),
+             |a, _, b| IntegerValue::new(a.value().value + b.value().value));
     b.rule_1("integer (numeric)",
              b.reg(r#"(\d{1,18})"#)?,
              |text_match| IntegerValue::new(text_match.group(0).parse()?));
