@@ -21,6 +21,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
     example!(v, check_temperature(223.0, Some("kelvin")), "223 k");
     example!(v, check_temperature(78.0, Some("fahrenheit")), "78 fahrenheit", "78 f");
     example!(v, check_temperature(19.0, Some("degree")), "19 grad über null");
+    example!(v, check_temperature(-18.0, Some("degree")), "Bei -18 Grad");
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {

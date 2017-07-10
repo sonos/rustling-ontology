@@ -422,6 +422,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(|time: &TimeValue| !time.latent),
         |a, _, b| a.value().intersect(b.value())
     );
+    b.rule_2("during period of time",
+        b.reg(r#"im (?:laufe|verlauf)"#)?,
+        time_check!(),
+        |_, time| Ok(time.value().clone())
+    );
     b.rule_2("on a named-day",
         b.reg(r#"an einem|an dem"#)?,
         time_check!(form!(Form::DayOfWeek{..})),
@@ -454,6 +459,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("named-day",
         b.reg(r#"sonntags?|so\.?"#)?,
         |_| helpers::day_of_week(Weekday::Sun)
+    );
+    b.rule_2("the month <named-month>",
+        b.reg(r#"de[srnm] monats"#)?,
+        time_check!(form!(Form::Month(_))),
+        |_, month| Ok(month.value().clone())
     );
     b.rule_1_terminal("named-month",
         b.reg(r#"januars?|j[äa]nners?|j[äa]n\.?"#)?,
@@ -914,10 +924,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         integer_check!(1, 59),
         |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
     );
-    b.rule_2("<hour-of-day> <integer> (as relative minutes)",
+    b.rule_3("<hour-of-day> <integer> (as relative minutes)",
         time_check!(form!(Form::TimeOfDay(Some(_)))),
+        b.reg(r#"\s"#)?,
         relative_minute_check!(),
-        |time, relative_minute| helpers::hour_relative_minute(
+        |time, _, relative_minute| helpers::hour_relative_minute(
                                         time.value().form_time_of_day()?.full_hour, 
                                         relative_minute.value().0, 
                                         time.value().form_time_of_day()?.is_12_clock)
@@ -1263,6 +1274,20 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             start.span_to(&end, true)
         }
     );
+    b.rule_5("dd-dd (interval) <month>",
+        b.reg(r#"vo[nm]|ab|nach"#)?,
+        ordinal_check!(|ordinal: &OrdinalValue| ordinal.value >= 1 && ordinal.value <= 31),
+        b.reg(r#"bis(?: zum?r?)?|auf|\-"#)?,
+        ordinal_check!(|ordinal: &OrdinalValue| ordinal.value >= 1 && ordinal.value <= 31),
+        time_check!(form!(Form::Month(_))),
+        |_, d1, _, d2, month| {
+            let start = month.value()
+                .intersect(&helpers::day_of_month(d1.value().value as u32)?)?;
+            let end = month.value()
+                .intersect(&helpers::day_of_month(d2.value().value as u32)?)?;
+            start.span_to(&end, true)
+        }
+    );
     b.rule_3("<datetime> - <datetime> (interval)",
         time_check!(|time: &TimeValue| !time.latent),
         b.reg(r#"\-|bis"#)?,
@@ -1378,15 +1403,19 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("start of month",
-        b.reg(r#"(?:de[rmns] )?(anfang|beginn) des"#)?,
-        time_check!(form!(Form::Cycle(Grain::Month))),
+        b.reg(r#"(?:de[rmns] )?(anfang|beginn)(?: des)?"#)?,
+        time_check!(|time: &TimeValue| {
+            match time.form {
+                Form::Month(_) | Form::Cycle(Grain::Month) => true,
+                _ => false
+            }
+        }),
         |_, month| {
             let start = month.value().intersect(&helpers::day_of_month(1)?)?;
             let end = month.value().intersect(&helpers::day_of_month(10)?)?;
             start.span_to(&end, true)
         }
     );
-
     b.rule_1_terminal("beginning of year",
         b.reg(r#"(?:de[rmsn] )?jahres(?:anfang|beginn)|(?:de[rmsn] )?(?:anfang|beginn) des jahres"#)?,
         |_| {
@@ -1476,6 +1505,25 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    // TODO
+    // b.rule_2("under <temp>",
+    //     b.reg(r#"bis(?: zu)?|unter|weniger als"#)?,
+    //     temperature_check!(|temp: &TemperatureValue| !temp.latent),
+    // );
+    // b.rule_2("above <temp>",
+    //     b.reg(r#"[uü]ber|mehr als"#)?,
+    //     temperature_check!(|temp: &TemperatureValue| !temp.latent),
+    // );
+
+    b.rule_2("<article> temp",
+        b.reg(r#"bei"#)?,
+        temperature_check!(),
+        |_, temp| Ok(TemperatureValue {
+               value: temp.value().value,
+               unit: temp.value().unit,
+               latent: false,
+           })
+    );
     b.rule_1("number as temp", 
         number_check!(), 
         |a| Ok(TemperatureValue {
@@ -1501,7 +1549,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
     );
     b.rule_2("<temp> below", 
         temperature_check!(),
-        b.reg(r#"unter(?:m| de[mn])? (?:gefrierpunkt|null| 0)"#)?,
+        b.reg(r#"unter(?:m| de[mn])? (?:gefrierpunkt|null|0)"#)?,
         |temp, _| {
             if temp.value().value >= 0.0 {
                 Ok(TemperatureValue {
