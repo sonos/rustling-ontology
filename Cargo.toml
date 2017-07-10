@@ -20,6 +20,7 @@ rustling-ontology-training = { path="training"}
 
 [dev-dependencies]
 bencher = "0.1"
+serde_json = "1.0"
 
 [build-dependencies]
 bincode = "0.8"
