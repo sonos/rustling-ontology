@@ -19,7 +19,7 @@ rustling-ontology-rules = { path="rules"}
 rustling-ontology-training = { path="training"}
 
 [dev-dependencies]
-bencher = "0.1"
+bencher = { git="https://github.com/snipsco/bencher", rev="63910ace" }
 serde_json = "1.0"
 
 [build-dependencies]
