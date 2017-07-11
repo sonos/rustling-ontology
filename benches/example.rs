@@ -162,6 +162,6 @@ benchmark_group!(benches,
                  parse_complex_train_sentence,
                  parse_batch_sentence,
                  parse_complex_train_sentence_end_to_end,
-                 time_resolve_complex_train_sentence);
+                 /*time_resolve_complex_train_sentence*/);
 
 benchmark_main!(benches);
