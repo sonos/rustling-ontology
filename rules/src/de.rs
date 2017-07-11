@@ -1003,25 +1003,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             text_match.group(2).parse()?,
             text_match.group(1).parse()?)
     );
-    b.rule_1_terminal("early morning",
-        b.reg(r#"fr[üu]hen vormittag|tagesanbruch|morgen(?:grauen|fr[üu]he)|fr[üu]h(?:en )?morgens?|am morgen fruh"#)?,
-        |_| Ok(helpers::hour(4, false)?
-                .span_to(&helpers::hour(9, false)?, false)?
-                .form(Form::PartOfDay).latent())
-    );
-    b.rule_1_terminal("morning",
-        b.reg(r#"morgens|in der fr[üu]h|vor ?mittag(?:s(?:zeit)?)?|am morgen"#)?,
-        |_| Ok(helpers::hour(3, false)?
-                .span_to(&helpers::hour(12, false)?, false)?
-                .form(Form::PartOfDay))
-    );
-    b.rule_1_terminal("late morning",
-        b.reg(r#"(?:kurz|am sp[äa]ten) vor ?mittag"#)?,
-        |_| Ok(helpers::hour(11, false)?
-                .span_to(&helpers::hour(13, false)?, false)?
-                .form(Form::PartOfDay))
-
-    );
     b.rule_1_terminal("breakfast (latent)",
         b.reg(r#"fr[üu]hst[üu]ck(?:szeit|spause)?"#)?,
         |_| Ok(helpers::hour(6, false)?
@@ -1041,7 +1022,33 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .form(Form::PartOfDay))
-    );    
+    ); 
+    b.rule_1_terminal("dinner",
+        b.reg(r#"dinner|souper|abendessen"#)?,
+        |_| Ok(helpers::hour_minute(17, 30, false)?
+                .span_to(&helpers::hour(21, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
+    b.rule_1_terminal("early morning",
+        b.reg(r#"fr[üu]hen vormittag|tagesanbruch|morgen(?:grauen|fr[üu]he)|fr[üu]h(?:en )?morgens?|am morgen fruh"#)?,
+        |_| Ok(helpers::hour(4, false)?
+                .span_to(&helpers::hour(9, false)?, false)?
+                .form(Form::PartOfDay).latent())
+    );
+    b.rule_1_terminal("morning",
+        b.reg(r#"morgens|in der fr[üu]h|vor ?mittag(?:s(?:zeit)?)?|am morgen"#)?,
+        |_| Ok(helpers::hour(3, false)?
+                .span_to(&helpers::hour(12, false)?, false)?
+                .form(Form::PartOfDay))
+    );
+    b.rule_1_terminal("late morning",
+        b.reg(r#"(?:kurz|am sp[äa]ten) vor ?mittag"#)?,
+        |_| Ok(helpers::hour(11, false)?
+                .span_to(&helpers::hour(13, false)?, false)?
+                .form(Form::PartOfDay))
+
+    );   
     b.rule_1_terminal("early afternoon (latent)",
         b.reg(r#"fr[üu]hen nachmittags?(?:stunden?)?"#)?,
         |_| Ok(helpers::hour(13, false)?
