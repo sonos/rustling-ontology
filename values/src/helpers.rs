@@ -191,7 +191,7 @@ pub fn day_of_month(dom: u32) -> RuleResult<TimeValue> {
     if !(1 <= dom && dom <= 31) {
         return Err(RuleErrorKind::Invalid.into())
     }
-    Ok(TimeValue::constraint(DayOfMonth::new(dom)).form(Form::Empty))
+    Ok(TimeValue::constraint(DayOfMonth::new(dom)).form(Form::DayOfMonth))
 }
 
 pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {

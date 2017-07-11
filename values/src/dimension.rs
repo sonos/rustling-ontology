@@ -352,6 +352,7 @@ pub enum Form {
     Cycle(Grain),
     Year(i32),
     Month(u32),
+    DayOfMonth,
     TimeOfDay(Option<TimeOfDayForm>),
     DayOfWeek { not_immediate: bool },
     PartOfDay,
@@ -370,6 +371,7 @@ impl Form {
             &Form::Empty => None,
             &Form::PartOfDay => None,
             &Form::PartOfYear => None,
+            &Form::DayOfMonth => None,
         }
     }
 }
