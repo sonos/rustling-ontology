@@ -15,3 +15,13 @@ Ontology for rustling
 | AmountOfMoney | AmountOfMoney |
 | Duration | Duration |
 
+
+## Benches
+
+If you want to bench the project you will need to an environment variable named `SNIPS_RUSTLING_BENCH_INPUT` with one of these values:
+
+| Language | File |
+| -------- | ---- |
+| English | en.json |
+| Korean | ko.json |
+
