@@ -232,6 +232,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         duration_check!(),
         |_, duration| duration.value().ago()
     );
+    // TODO wrong production rules output
     b.rule_3("<duration> after <time>",
         duration_check!(),
         b.reg(r#"nach"#)?,
@@ -355,6 +356,15 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         cycle_check!(),
         |ordinal, time, cycle| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
     );
+    // TODO wrong production rule
+    // b.rule_3("next <month> <cycle>",
+    //     b.reg(r#"n[äa]chsten?|kommenden?"#)?,
+    //     time_check!(form!(Form::Month(_))),
+    //     cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Week),
+    //     |_, month, cycle| Ok(helpers::cycle(cycle.value().grain)?
+    //             .intersect(month.value())?
+    //             .latent())
+    // );
     b.rule_2("<ordinal> quarter",
         ordinal_check!(),
         cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
@@ -606,7 +616,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //     |time, _| Ok(time.value().clone())
     // );
     b.rule_1_terminal("now",
-        b.reg(r#"(?:genau ?)?jetzt|diesen moment|nun|in diesem moment|gerade (?:eben|jetzt)"#)?,
+        b.reg(r#"(?:genau ?)?jetzt|diesen moment|nun|sofort|in diesem moment|gerade (?:eben|jetzt)"#)?,
         |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("today",
@@ -636,14 +646,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("before before yesterday",
         b.reg(r#"vorvorgestern"#)?,
         |_| helpers::cycle_nth(Grain::Day, -3)
-    );
-    b.rule_1_terminal("EOM|End of month",
-        b.reg(r#"(?:(?:das|am) )?ende (?:des|vom) monate?s?|monatsende"#)?,
-        |_| helpers::cycle_nth(Grain::Month, 1)
-    );
-    b.rule_1_terminal("EOY|End of year",
-        b.reg(r#"(?:das )?(?:eoy|jahr(?:es)?(?:ende|schluss)|ende (?:des|vom) jahr(?:e?s)?)"#)?,
-        |_| helpers::cycle_nth(Grain::Year, 1)
     );
     b.rule_2("this|next <day-of-week>",
         b.reg(r#"diese(?:n|r)|kommenden|n[äa]chsten"#)?,
@@ -845,7 +847,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("noon",
-        b.reg(r#"mittags?|zwolf (?:uhr)?"#)?,
+        b.reg(r#"mittag|zwolf(?: uhr)?"#)?,
         |_| helpers::hour(12, false)
     );
     b.rule_1_terminal("midnight|end of day",
@@ -961,19 +963,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
 
     );
+    b.rule_1_terminal("breakfast (latent)",
+        b.reg(r#"fr[üu]hst[üu]ck(?:szeit|spause)?"#)?,
+        |_| Ok(helpers::hour(6, false)?
+                .span_to(&helpers::hour(9, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay))
+    );
     b.rule_1_terminal("lunch (latent)",
-        b.reg(r#"mittag(?:szeit)?"#)?,
+        b.reg(r#"mittag(?:szeit|pause|essen)?"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay))
     );
     b.rule_1_terminal("lunch",
-        b.reg(r#"mittags(?:pause)?"#)?,
+        b.reg(r#"mittags"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .form(Form::PartOfDay))
-    );    
+    );
+    b.rule_1_terminal(
+
+    );
     b.rule_1_terminal("early afternoon (latent)",
         b.reg(r#"fr[üu]hen nachmittags?(?:stunden)?"#)?,
         |_| Ok(helpers::hour(13, false)?
@@ -1071,11 +1083,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .span_to(&helpers::hour(4, false)?, false)?
                 .form(Form::PartOfDay)) 
     );
-    b.rule_2("in|during the <part-of-day>",
+    b.rule_2("<article> <time>",
         b.reg(r#"(?:i[nm]s?|a[nm]|zu[rm]?|beim?|um|w[äa]h?rend) ?(?:de(?:r|m|s|n)|die|das)?"#)?,
-        time_check!(form!(Form::PartOfDay)),
+        time_check!(),
         |_, time| Ok(time.value().clone().not_latent()) 
     );
+
     b.rule_2("this <part-of-day>",
         b.reg(r#"diesen?|dieses|heute"#)?,
         time_check!(form!(Form::PartOfDay)),
@@ -1309,7 +1322,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("end of year",
-        b.reg(r#"jahres(?:ende|schluss)|(?:(?:das|de[ms] ))?ende des jahres"#)?,
+        b.reg(r#"(?:(?:das|de[mnsr]) )?(?:jahr(?:es)?(?:ende|schluss)|ende (?:des|vom) jahr(?:e?s)?)"#)?,
         |_| {
             let current_year = helpers::cycle_nth(Grain::Year, 0)?;
             let start = current_year.intersect(&helpers::month(10)?)?;
@@ -1328,6 +1341,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, year| {
             let start = year.value().intersect(&helpers::month(10)?)?;
             let end = year.value().intersect(&helpers::month(12)?)?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_2("end of month", 
+        b.reg(r#"ende"#)?,
+        time_check!(|time: &TimeValue| {
+            match time.form {
+                Form::Month(_) | Form::Cycle(Grain::Month) => true,
+                _ => false
+            }
+        }),
+        |_, month| {
+            let start = month.value().intersect(&helpers::day_of_month(25)?)?;
+            let end = helpers::cycle(Grain::Day)?.last_of(month.value())?;
+            start.span_to(&end, true)
+        }
+    );
+    b.rule_1("end of month",
+        b.reg(r#"(?:(?:das|am) )?ende (?:des|vom) monate?s?|monatsende"#)?,
+        |_| {
+            let current_month = helpers::cycle_nth(Grain::Month, 0)?;
+            let start = current_month.intersect(&helpers::day_of_month(25)?)?;
+            let end = helpers::cycle(Grain::Day)?.last_of(&current_month)?;
             start.span_to(&end, true)
         }
     );
