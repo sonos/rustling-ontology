@@ -24,6 +24,7 @@ If you want to bench the project you will need to an environment variable named 
 | -------- | ---- |
 | English | en.json |
 | Korean | ko.json |
+| German | de.json |
 
 # License
 
