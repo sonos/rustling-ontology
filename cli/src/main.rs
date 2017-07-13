@@ -36,7 +36,7 @@ fn main() {
                   });
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_parser(lang).unwrap();
-            let context = ParsingContext::default();
+            let context = ResolverContext::default();
             let entities = if let Some(kinds) = kinds {
                 parser.parse_with_kind_order(&*sentence, &context, &kinds).unwrap()
             } else {
@@ -73,13 +73,13 @@ fn main() {
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_raw_parser(lang).unwrap();
             
-            let context = ParsingContext::default();
+            let context = ResolverContext::default();
             let tagger = CandidateTagger {
                 order: &kinds,
                 context: &context,
                 resolve_all_candidates: true,
             };
-            let candidates = parser.candidates(&*sentence, tagger).unwrap();
+            let candidates = parser.candidates(&*sentence, &tagger).unwrap();
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
             table.set_titles(row!["ix", "best", "log(p)", "p", "text", "value", "latent", "rule", "childs"]);
