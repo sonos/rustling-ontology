@@ -62,47 +62,45 @@ fn parser_loading(bench: &mut Bencher) {
 fn parse_small_number(bench: &mut Bencher) {
     let input = parse_bench_input();
 
-    let parser = build_raw_parser(input.rustling_lang()).unwrap();
+    let parser = build_parser(input.rustling_lang()).unwrap();
     let number = input.small_number;
-    let context = IdentityContext::new();
+    let context = ResolverContext::default();
     let dims = DimensionKind::all();
-    let tagger = parsing_tagger(&dims, &context);
     //let result = parser.parse(&number, true).unwrap();
     //let int: i64 = result[0].clone().value.attempt_into().unwrap();
     //assert_eq!(82, int);
 
-    bench.iter(|| parser.parse(&number, &tagger));
+    bench.iter(|| parser.parse(&number, &context));
 }
 
 fn parse_big_number(bench: &mut Bencher) {
     let input = parse_bench_input();
 
-    let parser = build_raw_parser(input.rustling_lang()).unwrap();
+    let parser = build_parser(input.rustling_lang()).unwrap();
     let number = input.big_number;
-    let context = IdentityContext::new();
+    let context = ResolverContext::default();
     let dims = DimensionKind::all();
-    let tagger = parsing_tagger(&dims, &context);
+    //let tagger = parsing_tagger(&dims, &context);
     //let result = parser.parse(&number, true).unwrap();
     //let int: i64 = result[0].clone().value.attempt_into().unwrap();
     //assert_eq!(1521082, int);
 
-    bench.iter(|| parser.parse(&number, &tagger));
+    bench.iter(|| parser.parse(&number, &context));
 }
 
 fn parse_book_restaurant(bench: &mut Bencher) {
     let input = parse_bench_input();
 
-    let parser = build_raw_parser(input.rustling_lang()).unwrap();
+    let parser = build_parser(input.rustling_lang()).unwrap();
     let sentence = input.book_restaurant;
-    let context = IdentityContext::new();
+    let context = ResolverContext::default();
     let dims = DimensionKind::all();
-    let tagger = parsing_tagger(&dims, &context);
     //let result = parser.parse(&sentence, true).unwrap();
     //println!("{:?}", result);
     //let int: i64 = result[0].clone().value.attempt_into().unwrap();
     //assert_eq!(4, int);
 
-    bench.iter(|| parser.parse(&sentence, &tagger));
+    bench.iter(|| parser.parse(&sentence, &context));
 }
 
 fn parse_batch_sentence(bench: &mut Bencher) {
@@ -177,14 +175,15 @@ fn file_path(file_name: &str) -> path::PathBuf {
 }
 
 benchmark_group!(benches,
-                 parser_training,
+                 //parser_training,
                  parser_loading,
                  parse_small_number,
                  parse_big_number,
                  parse_book_restaurant,
-                 parse_complex_train_sentence,
+                 //parse_complex_train_sentence,
                  parse_batch_sentence,
-                 parse_complex_train_sentence_end_to_end,
-                 /*time_resolve_complex_train_sentence*/);
+                 parse_complex_train_sentence_end_to_end
+                 //time_resolve_complex_train_sentence
+                 );
 
 benchmark_main!(benches);
