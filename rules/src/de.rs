@@ -879,11 +879,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"uhr|h|u"#)?,
         |time, _| Ok(time.value().clone().not_latent())
     );
-    b.rule_2("at <time-of-day>",
-        b.reg(r#"um|@"#)?,
-        time_check!(form!(Form::TimeOfDay(_))),
-        |_, time| Ok(time.value().clone().not_latent())
-    );
     b.rule_1_terminal("hh:mm",
         b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)(?:(?i)uhr|h)?"#)?,
         |text_match| Ok(helpers::hour_minute(
@@ -1299,7 +1294,9 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(|time: &TimeValue| !time.latent),
         b.reg(r#"\-|bis"#)?,
         time_check!(|time: &TimeValue| !time.latent),
-        |start, _, end| start.value().span_to(end.value(), true)
+        |start, _, end| {
+            start.value().span_to(end.value(), true)
+        }
     );
     b.rule_4("between <datetime> and <datetime> (interval)",
         b.reg(r#"zwischen"#)?,
@@ -1899,17 +1896,17 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "neunzehnte"  => 19,
                 _ => return Err(RuleErrorKind::Invalid.into()),
             };
-            Ok(OrdinalValue { value: value })
+            Ok(OrdinalValue::new(value))
         }
     );
     b.rule_1_terminal("ordinal (digits)",
         b.reg(r#"0*(\d+)(?:\.| ?(?:te(?:n|r|s)?)|(?:ste(?:n|r|s)?))"#)?,
-        |text_match| Ok(OrdinalValue { value: text_match.group(1).parse()? })
+        |text_match| Ok(OrdinalValue::new(text_match.group(1).parse()?))
     );
     b.rule_2("der <ordinal>",
         b.reg(r#"de(?:r|s|n|m)|das|die"#)?,
         ordinal_check!(),
-        |_, ordinal| Ok(ordinal.value().clone())
+        |_, ordinal| Ok(ordinal.value().clone().prefixed())
     );
     b.rule_1_terminal("ordinal (20..90)",
         b.reg(r#"(zwanzigste|dreissigste|vierzigste|f[üu]nfzigste|sechzigste|siebzigste|achtzigste|neunzigste)(?:r|n|m|s)?"#)?,
@@ -1926,14 +1923,14 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "neunzigste"   => 90,
                 _ => return Err(RuleErrorKind::Invalid.into()),
             };
-            Ok(OrdinalValue { value })
+            Ok(OrdinalValue::new(value))
         }
     );
     b.rule_3("ordinal [2-9][1-9]",
         integer_check!(1, 9),
         b.reg(r#"und"#)?,
         ordinal_check!(|ordinal: &OrdinalValue| ordinal.value % 10 == 0),
-        |integer, _, ordinal| Ok(OrdinalValue { value: integer.value().value + ordinal.value().value })
+        |integer, _, ordinal| Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
     );
     Ok(())
 }

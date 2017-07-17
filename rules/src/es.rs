@@ -1005,7 +1005,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     "decimas" => 10,
                     _ => return Err(RuleErrorKind::Invalid.into())
                 };
-                Ok(OrdinalValue { value: value})
+                Ok(OrdinalValue::new(value))
             });
     Ok(())
 }
