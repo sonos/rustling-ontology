@@ -29,8 +29,8 @@ extern crate rustling_ontology_rules;
 extern crate rustling_ontology_values;
 extern crate rustling_ontology_training as training;
 
-pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, RustlingError,
-                   RustlingResult, Sym};
+pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, Sym};
+pub use rustling::errors::*;
 pub use rustling_ontology_rules::{Lang, dims};
 pub use rustling_ontology_values::dimension;
 pub use rustling_ontology_values::dimension::{Dimension, DimensionKind, NumberValue};
