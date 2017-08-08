@@ -12,7 +12,7 @@
 //!
 //!     let ctx = ResolverContext::default();
 //!     let parser = build_parser(rustling_ontology::Lang::EN).unwrap();
-//!     let result = parser.parse("twenty-one", &ctx, true).unwrap();
+//!     let result = parser.parse("twenty-one", &ctx).unwrap();
 //!
 //!     let int: output::IntegerOutput= result[0].value.clone().attempt_into().unwrap();
 //!     assert_eq!(21, int.0);
