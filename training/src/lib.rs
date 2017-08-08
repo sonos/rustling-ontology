@@ -7,7 +7,7 @@ extern crate rustling_ontology_values;
 use rustling_ontology_moment::*;
 pub use rustling_ontology_values::dimension::*;
 pub use rustling_ontology_values::output::*;
-pub use rustling_ontology_values::output::ParsingContext;
+pub use rustling_ontology_values::ResolverContext;
 
 macro_rules! example {
     ($v:expr, $check:expr, $($ex:expr),*) => {

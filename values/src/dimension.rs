@@ -80,6 +80,23 @@ impl fmt::Display for Dimension {
 #[derive(Debug,PartialEq,Copy,Clone)]
 pub struct OrdinalValue {
     pub value: i64,
+    pub prefixed: bool,
+}
+
+impl OrdinalValue {
+    pub fn new(value: i64) -> OrdinalValue {
+        OrdinalValue {
+            value,
+            prefixed: false,
+        }
+    }
+
+    pub fn prefixed(self) -> OrdinalValue {
+        OrdinalValue {
+            value: self.value,
+            prefixed: false,
+        }
+    }
 }
 
 #[derive(Debug,PartialEq,Copy,Clone)]

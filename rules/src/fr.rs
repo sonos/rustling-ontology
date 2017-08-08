@@ -1411,17 +1411,18 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     "seizième" => 16,
                      _ => return Err(RuleErrorKind::Invalid.into()),
                  };
-                 Ok(OrdinalValue { value: value })
+                 Ok(OrdinalValue::new(value))
             });
     b.rule_1("ordinal (digits)",
              b.reg(r#"0*(\d+) ?(ere?|ère|ème|eme|ieme|ième)"#)?,
              |text_match| {
                  let value: i64 = text_match.group(1).parse()?;
-                 Ok(OrdinalValue { value: value })
+                 Ok(OrdinalValue::new(value))
              });
     b.rule_2("le <ordinal>",
-             b.reg(r#"le"#)?,
+             b.reg(r#"l[ea]"#)?,
              ordinal_check!(),
-             |_, a| Ok(*a.value()));
+             |_, a| Ok((*a.value()).prefixed())
+    );
     Ok(())
 }

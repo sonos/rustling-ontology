@@ -2,7 +2,7 @@ use super::*;
 use rustling_ontology_values::check::*;
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    let c = ParsingContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
+    let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "now", "right now", "just now");
     example!(v, check_moment!(c, [2013, 2, 12]), "today", "at this time");
     example!(v, check_moment!(c, [2013, 2, 11]), "yesterday");
@@ -176,6 +176,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 13, 0]), "at 12am", "at midnight");
     example!(v, check_moment!(c, [2013, 3]), "March", "in March");
     example!(v, check_moment!(c, [2016, 12, 15]), "12.15.2016", "12.15.16");
+    example!(v, check_moment!(c, [2017, 05, 10]), "wednesday the 10th of may");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

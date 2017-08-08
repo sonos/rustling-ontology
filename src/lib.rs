@@ -10,9 +10,9 @@
 //! fn main() {
 //!     use rustling_ontology::*;
 //!
-//!     let ctx = ParsingContext::default();
+//!     let ctx = ResolverContext::default();
 //!     let parser = build_parser(rustling_ontology::Lang::EN).unwrap();
-//!     let result = parser.parse("twenty-one", &ctx, true).unwrap();
+//!     let result = parser.parse("twenty-one", &ctx).unwrap();
 //!
 //!     let int: output::IntegerOutput= result[0].value.clone().attempt_into().unwrap();
 //!     assert_eq!(21, int.0);
@@ -35,11 +35,14 @@ pub use rustling_ontology_rules::{Lang, dims};
 pub use rustling_ontology_values::dimension;
 pub use rustling_ontology_values::dimension::{Dimension, DimensionKind, NumberValue};
 pub use rustling_ontology_values::output;
-pub use rustling_ontology_values::output::{ParsingContext, Output};
+pub use rustling_ontology_values::output::Output;
+pub use rustling_ontology_values::{ResolverContext, IdentityContext, ParsingContext};
 pub use rustling_ontology_moment::Interval;
 pub use rustling_ontology_moment::Grain;
 
 mod parser;
+mod tagger;
+pub use tagger::CandidateTagger;
 
 // Rustling raw parser. Don't use directly
 #[doc(hidden)]
@@ -49,43 +52,42 @@ pub type RawParser = rustling::Parser<dimension::Dimension, parser::Feat, parser
 pub struct Parser(RawParser);
 
 impl Parser {
-    fn translate_values(&self,
-                        input: Vec<ParserMatch<Dimension>>,
-                        context: &ParsingContext)
-                        -> Vec<ParserMatch<Output>> {
-        input
-            .into_iter()
-            .filter_map(|pm| {
-                context
-                    .resolve(&pm.value)
-                    .map(|o| {
-                             ParserMatch {
-                                 value: o,
-                                 byte_range: pm.byte_range,
-                                 char_range: pm.char_range,
-                                 probalog: pm.probalog,
-                                 latent: pm.latent,
-                             }
-                         })
-            })
-            .collect()
-    }
-
     pub fn parse_with_kind_order(&self,
                                  input: &str,
-                                 context: &ParsingContext,
-                                 order: &[DimensionKind], 
-                                 remove_overlap:bool)
+                                 context: &ResolverContext,
+                                 order: &[DimensionKind])
                                  -> RustlingResult<Vec<ParserMatch<Output>>> {
-        Ok(self.translate_values(self.0.parse_with_kind_order(input, order, remove_overlap)?, context))
+        let tagger = CandidateTagger {
+            order: order,
+            context: context,
+            resolve_all_candidates: false,
+        };
+        Ok(self.0.parse(input, &tagger)?
+            .into_iter()
+            .filter_map(|m| {
+                if let Some(v) = m.value {
+                    Some(ParserMatch {
+                        byte_range: m.byte_range, 
+                        char_range: m.char_range,
+                        parsing_tree_height: m.parsing_tree_height,
+                        parsing_tree_num_nodes: m.parsing_tree_num_nodes,
+                        value: v, 
+                        probalog: m.probalog, 
+                        latent: m.latent,
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect())
     }
 
     pub fn parse(&self,
                  input: &str,
-                 context: &ParsingContext,
-                 remove_overlap:bool)
+                 context: &ResolverContext)
                  -> RustlingResult<Vec<ParserMatch<Output>>> {
-        Ok(self.translate_values(self.0.parse(input, remove_overlap)?, context))
+        let all_dimension = DimensionKind::all();
+        self.parse_with_kind_order(input, context, &all_dimension)
     }
 }
 
@@ -159,10 +161,10 @@ mod tests {
 
     #[test]
     fn test_long_number_en() {
-        let ctx = ParsingContext::default();
+        let ctx = ResolverContext::default();
         let parser = build_parser(Lang::EN).unwrap();
         let number = "one million five hundred twenty-one thousand eighty-two";
-        let result = parser.parse_with_kind_order(number, &ctx,  &[DimensionKind::Number], true).unwrap();
+        let result = parser.parse_with_kind_order(number, &ctx,  &[DimensionKind::Number]).unwrap();
         let int: output::IntegerOutput = result[0].value.clone().attempt_into().unwrap();
         assert_eq!(1521082, int.0);
     }
@@ -173,7 +175,12 @@ mod tests {
         let parser = build_raw_parser(Lang::EN).unwrap();
         //        let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm";
         let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
-        let result = parser.candidates(&*sent, |_| Some(0)).unwrap();
+        let tagger = CandidateTagger {
+            order: &DimensionKind::all(),
+            context: &ResolverContext::default(),
+            resolve_all_candidates: false,
+        };
+        let result = parser.candidates(&*sent, &tagger).unwrap();
         println!("{}", result.len());
         for r in &result {
             println!("{:?}", &sent[r.node.root_node.byte_range.0..r.node.root_node.byte_range.1]);

@@ -50,17 +50,26 @@ mod tests {
     use ::*;
     use rustling::ParserMatch;
     use rustling_ontology_values::dimension::*;
+    use rustling_ontology_values::IdentityContext;
 
     #[test]
     fn test_twenty() {
         let parser = build_raw_parser(Lang::EN).unwrap();
+        let tagger = CandidateTagger {
+            order: &[DimensionKind::Number],
+            context: &IdentityContext::new(),
+            resolve_all_candidates: false,
+        };
         let result = parser
-            .parse_with_kind_order("twenty", &[DimensionKind::Number], true)
+            .parse("twenty", &tagger)
             .unwrap();
+        // TODO: check why `parsing_tree_height` and `parsing_tree_num_nodes` equal 2 instead of 1
         assert_eq!(ParserMatch {
                        byte_range: Range(0, 6),
                        char_range: Range(0, 6),
-                       value: IntegerValue::new_with_grain(20, 1).unwrap().into(),
+                       parsing_tree_height: 2,
+                       parsing_tree_num_nodes: 2,
+                       value: Some(IntegerValue::new_with_grain(20, 1).unwrap().into()),
                        probalog: 0.0,
                        latent: false,
                    },
@@ -70,21 +79,31 @@ mod tests {
     #[test]
     fn test_21() {
         let parser = build_raw_parser(Lang::EN).unwrap();
+        let tagger = CandidateTagger {
+            order: &[DimensionKind::Number],
+            context: &IdentityContext::new(),
+            resolve_all_candidates: false,
+        };
         let result = parser
-            .parse_with_kind_order("twenty-one", &[DimensionKind::Number], true)
+            .parse("twenty-one", &tagger)
             .unwrap();
         assert_eq!(21,
-                   IntegerValue::attempt_from(result[0].value.clone())
+                   IntegerValue::attempt_from(result[0].value.clone().unwrap())
                        .unwrap()
                        .value);
     }
 
     #[test]
     fn test_2_1000() {
+        let tagger = CandidateTagger {
+            order: &[DimensionKind::Number],
+            context: &IdentityContext::new(),
+            resolve_all_candidates: false,
+        };
         let parser = build_raw_parser(Lang::EN).unwrap();
-        let result = parser.parse("twenty-one thousands", true).unwrap();
+        let result = parser.parse("twenty-one thousands", &tagger).unwrap();
         assert_eq!(21000,
-                   IntegerValue::attempt_from(result[0].value.clone())
+                   IntegerValue::attempt_from(result[0].value.clone().unwrap())
                        .unwrap()
                        .value);
     }
@@ -92,9 +111,14 @@ mod tests {
     #[test]
     fn test_foobar() {
         let parser = build_raw_parser(Lang::EN).unwrap();
-        let result = parser.parse("foobar twenty thousands", true).unwrap();
+        let tagger = CandidateTagger {
+            order: &[DimensionKind::Number],
+            context: &IdentityContext::new(),
+            resolve_all_candidates: false,
+        };
+        let result = parser.parse("foobar twenty thousands", &tagger).unwrap();
         assert_eq!(20000,
-                   IntegerValue::attempt_from(result[0].value.clone())
+                   IntegerValue::attempt_from(result[0].value.clone().unwrap())
                        .unwrap()
                        .value);
     }

@@ -39,6 +39,14 @@ fn parse_bench_input() -> BenchInput {
     serde_json::from_reader(file).unwrap()
 }
 
+fn parsing_tagger<'a>(kinds: &'a [DimensionKind], context: &'a IdentityContext<Dimension>) -> CandidateTagger<'a, IdentityContext<Dimension>> {
+    CandidateTagger {
+        order: kinds,
+        context: context,
+        resolve_all_candidates: false,
+    }
+}
+
 fn parser_training(bench: &mut Bencher) {
     let input = parse_bench_input();
 
@@ -54,38 +62,45 @@ fn parser_loading(bench: &mut Bencher) {
 fn parse_small_number(bench: &mut Bencher) {
     let input = parse_bench_input();
 
-    let parser = build_raw_parser(input.rustling_lang()).unwrap();
+    let parser = build_parser(input.rustling_lang()).unwrap();
     let number = input.small_number;
+    let context = ResolverContext::default();
+    let dims = DimensionKind::all();
     //let result = parser.parse(&number, true).unwrap();
     //let int: i64 = result[0].clone().value.attempt_into().unwrap();
     //assert_eq!(82, int);
 
-    bench.iter(|| parser.parse(&number, true));
+    bench.iter(|| parser.parse(&number, &context));
 }
 
 fn parse_big_number(bench: &mut Bencher) {
     let input = parse_bench_input();
 
-    let parser = build_raw_parser(input.rustling_lang()).unwrap();
+    let parser = build_parser(input.rustling_lang()).unwrap();
     let number = input.big_number;
+    let context = ResolverContext::default();
+    let dims = DimensionKind::all();
+    //let tagger = parsing_tagger(&dims, &context);
     //let result = parser.parse(&number, true).unwrap();
     //let int: i64 = result[0].clone().value.attempt_into().unwrap();
     //assert_eq!(1521082, int);
 
-    bench.iter(|| parser.parse(&number, true));
+    bench.iter(|| parser.parse(&number, &context));
 }
 
 fn parse_book_restaurant(bench: &mut Bencher) {
     let input = parse_bench_input();
 
-    let parser = build_raw_parser(input.rustling_lang()).unwrap();
+    let parser = build_parser(input.rustling_lang()).unwrap();
     let sentence = input.book_restaurant;
+    let context = ResolverContext::default();
+    let dims = DimensionKind::all();
     //let result = parser.parse(&sentence, true).unwrap();
     //println!("{:?}", result);
     //let int: i64 = result[0].clone().value.attempt_into().unwrap();
     //assert_eq!(4, int);
 
-    bench.iter(|| parser.parse(&sentence, true));
+    bench.iter(|| parser.parse(&sentence, &context));
 }
 
 fn parse_batch_sentence(bench: &mut Bencher) {
@@ -93,10 +108,10 @@ fn parse_batch_sentence(bench: &mut Bencher) {
 
     let parser = build_parser(input.rustling_lang()).unwrap();
     let sentences = input.batch_sentences;
-    let decoder = ParsingContext::default();
+    let decoder = ResolverContext::default();
     bench.iter(|| {
         for i in sentences.iter() {
-            let _ = parser.parse(&*i, &decoder, true);
+            let _ = parser.parse(&*i, &decoder);
         }
     });
 }
@@ -106,23 +121,29 @@ fn parse_complex_train_sentence(bench: &mut Bencher) {
 
     let parser = build_raw_parser(input.rustling_lang()).unwrap();
     let sent = input.complex_sentence.to_lowercase();
-    bench.iter(|| parser.parse(&*sent, true));
+    let context = IdentityContext::new();
+    let dims = DimensionKind::all();
+    let tagger = parsing_tagger(&dims, &context);
+    bench.iter(|| parser.parse(&*sent, &tagger));
 }
 
 fn parse_complex_train_sentence_end_to_end(bench: &mut Bencher) {
     let input = parse_bench_input();
 
     let parser = build_parser(input.rustling_lang()).unwrap();
-    let decoder = ParsingContext::default();
+    let decoder = ResolverContext::default();
     let sent = input.complex_sentence.to_lowercase();
-    bench.iter(|| parser.parse(&*sent, &decoder, true));
+    bench.iter(|| parser.parse(&*sent, &decoder));
 }
 
 fn time_resolve_complex_train_sentence(bench: &mut Bencher) {
     let input = parse_bench_input();
 
     let parser = build_raw_parser(input.rustling_lang()).unwrap();
-    let decoder = ParsingContext::default();
+    let decoder = ResolverContext::default();
+    let context = IdentityContext::new();
+    let dims = DimensionKind::all();
+    let tagger = parsing_tagger(&dims, &context);
     let sent = input.complex_sentence.to_lowercase();
     /*
     for it in parser.parse(&*sent).unwrap() {
@@ -130,14 +151,14 @@ fn time_resolve_complex_train_sentence(bench: &mut Bencher) {
     }
     */
     let resolve = parser
-        .parse(&*sent, true)
+        .parse(&*sent, &tagger)
         .unwrap()
         .into_iter()
         .rev()
-        .filter(|r| decoder.resolve(&r.value).is_some())
+        .filter(|r| decoder.resolve(r.value.as_ref().unwrap()).is_some())
         .max_by_key(|r| r.byte_range.1 - r.byte_range.0)
         .unwrap();
-    bench.iter(|| decoder.resolve(&resolve.value));
+    bench.iter(|| decoder.resolve(resolve.value.as_ref().unwrap()));
 }
 
 fn file_path(file_name: &str) -> path::PathBuf {
@@ -154,14 +175,15 @@ fn file_path(file_name: &str) -> path::PathBuf {
 }
 
 benchmark_group!(benches,
-                 parser_training,
+                 //parser_training,
                  parser_loading,
                  parse_small_number,
                  parse_big_number,
                  parse_book_restaurant,
-                 parse_complex_train_sentence,
+                 //parse_complex_train_sentence,
                  parse_batch_sentence,
-                 parse_complex_train_sentence_end_to_end,
-                 /*time_resolve_complex_train_sentence*/);
+                 parse_complex_train_sentence_end_to_end
+                 //time_resolve_complex_train_sentence
+                 );
 
 benchmark_main!(benches);

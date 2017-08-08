@@ -8,7 +8,6 @@ use std::str::FromStr;
 
 use rustling_ontology::*;
 use prettytable::Table;
-use std::cmp::min;
 
 fn main() {
     let matches = clap_app!(rustling_cli =>
@@ -16,7 +15,6 @@ fn main() {
         (@subcommand parse =>
              (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
              (@arg sentence: +required "Sentence to test")
-             (@arg overlap:  -o --overlap +takes_value "Remove overlap (default to true)")
         )
         (@subcommand play =>
              (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
@@ -37,12 +35,11 @@ fn main() {
                   });
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_parser(lang).unwrap();
-            let overlap =  matches.value_of("overlap").unwrap_or("true").parse().unwrap();
-            let context = ParsingContext::default();
+            let context = ResolverContext::default();
             let entities = if let Some(kinds) = kinds {
-                parser.parse_with_kind_order(&*sentence, &context, &kinds, overlap).unwrap()
+                parser.parse_with_kind_order(&*sentence, &context, &kinds).unwrap()
             } else {
-                parser.parse(&*sentence, &context, overlap).unwrap()
+                parser.parse(&*sentence, &context).unwrap()
             };
             let mut table = Table::new();
             table.set_titles(row!["ix", "log(p)", "p", "text", "value"]);
@@ -71,19 +68,22 @@ fn main() {
                              .map(|s| DimensionKind::from_str(s).unwrap())
                              .collect()
                      })
-                .unwrap_or(vec![]);
+                .unwrap_or(DimensionKind::all());
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_raw_parser(lang).unwrap();
-            let candidates = parser.candidates(&*sentence, |_| Some(12)).unwrap();
+            
+            let context = IdentityContext::new();
+            let tagger = CandidateTagger {
+                order: &kinds,
+                context: &context,
+                resolve_all_candidates: true,
+            };
+            let candidates = parser.candidates(&*sentence, &tagger).unwrap();
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
             table.set_titles(row!["ix", "best", "log(p)", "p", "text", "value", "latent", "rule", "childs"]);
-            let decoder = ParsingContext::default();
 
             for (ix, c) in candidates.iter().enumerate().rev() {
-                if !kinds.is_empty() && !kinds.contains(&c.match_.value.kind()) {
-                    continue;
-                }
                 let mut hilite = String::new();
                 for _ in 0..c.match_.byte_range.0 {
                     hilite.push('_');
@@ -97,8 +97,8 @@ fn main() {
                                    c.match_.probalog,
                                    f32::exp(c.match_.probalog),
                                    hilite,
-                                   decoder.resolve(&c.match_.value).map(|v| format!("{:?}", v)).unwrap_or("".into()),
-                                   c.match_.value.latent(),
+                                   c.match_.value.as_ref().map(|v| format!("{:?}", v)).unwrap_or("".into()),
+                                   c.node.value.latent(),
                                    parser.resolve_sym(&c.node.root_node.rule_sym).unwrap_or(""),
                                    c.node
                                        .root_node

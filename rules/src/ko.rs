@@ -1437,7 +1437,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("first ordinal",
         b.reg(r#"첫(?:번째|번|째|째번)?"#)?,
-        |_| Ok(OrdinalValue { value: 1 })
+        |_| Ok(OrdinalValue::new(1))
     );
     b.rule_1_terminal("integer (20..90) - TYPE 2 and ordinals",
         b.reg(r#"(열|스물|서른|마흔|쉰|예순|일흔|여든|아흔)"#)?,
@@ -1527,7 +1527,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("ordinals (첫번째)",
         integer_check!(),
         b.reg(r#"번째|째|째번"#)?,
-        |a, _| Ok(OrdinalValue { value: a.value().value })
+        |a, _| Ok(OrdinalValue::new(a.value().value))
     );
     b.rule_3("fraction",
         number_check!(|number: &NumberValue| !number.prefixed()),

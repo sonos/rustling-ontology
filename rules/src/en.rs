@@ -1582,23 +1582,23 @@ pub fn rules_numbers(b:&mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  "thirty-first" => 31,
                  _ => return Err(RuleErrorKind::Invalid.into()),
              };
-             Ok(OrdinalValue { value: value })
+             Ok(OrdinalValue::new(value))
     });
     b.rule_2("<number> <ordinal>",
              integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
              ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 9),
              |integer, ordinal| {
-                 Ok(OrdinalValue { value: integer.value().value + ordinal.value().value })
+                 Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
              });
     b.rule_1_terminal("ordinal (digits)",
         b.reg(r#"0*(\d+) ?(st|nd|rd|th)"#)?,
         |text_match| {
             let value: i64 = text_match.group(1).parse()?;
-            Ok(OrdinalValue { value: value })
+            Ok(OrdinalValue::new(value))
     });
     b.rule_2("the <ordinal>",
              b.reg(r#"the"#)?,
              ordinal_check!(),
-             |_, ordinal| Ok(*ordinal.value()));
+             |_, ordinal| Ok((*ordinal.value()).prefixed()));
     Ok(())
 }

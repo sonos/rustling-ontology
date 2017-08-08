@@ -2,6 +2,7 @@ use rustling::{AttemptFrom, Check, ParsedNode};
 use moment::{Grain, Interval, Moment, Local};
 use dimension::*;
 use output::*;
+use context::{ParsingContext, ResolverContext};
 
 #[derive(Debug)]
 pub struct CheckInteger {
@@ -59,7 +60,7 @@ pub struct CheckMoment {
     pub direction: Option<Direction>,
     pub precision: Precision,
     pub interval: Interval<Local>,
-    pub context: ParsingContext,
+    pub context: ResolverContext,
 }
 
 impl Check<Dimension> for CheckMoment {
@@ -108,7 +109,7 @@ impl Check<Dimension> for CheckMoment {
     }
 }
 
-pub fn check_moment(context: ParsingContext, moment: Moment<Local>, grain: Grain, precision: Precision, direction: Option<Direction>)
+pub fn check_moment(context: ResolverContext, moment: Moment<Local>, grain: Grain, precision: Precision, direction: Option<Direction>)
                       -> CheckMoment {
     CheckMoment {
         direction: direction,
@@ -121,7 +122,7 @@ pub fn check_moment(context: ParsingContext, moment: Moment<Local>, grain: Grain
 pub struct CheckMomentSpan {
     pub interval: Interval<Local>,
     pub precision: Precision,
-    pub context: ParsingContext,
+    pub context: ResolverContext,
 }
 
 impl Check<Dimension> for CheckMomentSpan {
@@ -139,7 +140,7 @@ impl Check<Dimension> for CheckMomentSpan {
     }
 }
 
-pub fn check_moment_span(context: ParsingContext, precision: Precision, start: Moment<Local>, end: Moment<Local>, grain: Grain)
+pub fn check_moment_span(context: ResolverContext, precision: Precision, start: Moment<Local>, end: Moment<Local>, grain: Grain)
                       -> CheckMomentSpan {
     CheckMomentSpan { interval: Interval::new(start, Some(end), grain), precision, context }
 }
