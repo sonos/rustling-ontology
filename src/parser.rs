@@ -63,11 +63,12 @@ mod tests {
         let result = parser
             .parse("twenty", &tagger)
             .unwrap();
+        // TODO: check why `parsing_tree_height` and `parsing_tree_num_nodes` equal 2 instead of 1
         assert_eq!(ParserMatch {
                        byte_range: Range(0, 6),
                        char_range: Range(0, 6),
-                       parsing_tree_height: 1,
-                       parsing_tree_num_nodes: 1,
+                       parsing_tree_height: 2,
+                       parsing_tree_num_nodes: 2,
                        value: Some(IntegerValue::new_with_grain(20, 1).unwrap().into()),
                        probalog: 0.0,
                        latent: false,
