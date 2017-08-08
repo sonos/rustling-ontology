@@ -10,7 +10,6 @@ extern crate prettytable;
 use rustling_ontology_moment::*;
 use prettytable::Table;
 use values::{ParsingContext, ResolverContext};
-use std::cmp::min;
 
 fn main() {
     let matches = clap_app!(rustling_cli =>

@@ -8,7 +8,6 @@ use std::str::FromStr;
 
 use rustling_ontology::*;
 use prettytable::Table;
-use std::cmp::min;
 
 fn main() {
     let matches = clap_app!(rustling_cli =>
