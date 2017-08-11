@@ -1,7 +1,7 @@
 use rustling::*;
 use values::dimension::*;
 use values::helpers;
-use moment::{Weekday, Grain, PeriodComp};
+use moment::{Weekday, Grain, PeriodComp, Period};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("seconde (unit-of-duration)",
@@ -49,8 +49,31 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              unit_of_duration_check!(),
              |integer, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, integer.value().value).into()))
     );
+    b.rule_3("<number> h <number>",
+             integer_check!(0),
+             b.reg(r#"h(?:eures?)?"#)?,
+             integer_check!(0,59),
+             |hour, _, minute| {
+                 let hour_period = Period::from(PeriodComp::new(Grain::Hour, hour.value().clone().value));
+                 let minute_period = Period::from(PeriodComp::new(Grain::Minute, minute.value().clone().value));
+                 Ok(DurationValue::new(hour_period + minute_period))
+             }
+    );
+    b.rule_3("<duration> et <duration>",
+             duration_check!(),
+             b.reg(r#"(?:et)?"#)?,
+             duration_check!(),
+             |d1, _, d2| {
+                 let precision = if d1.value().precision == Precision::Approximate || d2.value().precision == Precision::Approximate {
+                     Precision::Approximate
+                 } else {
+                     Precision::Exact
+                 };
+                 Ok(DurationValue::new(d1.value().clone().period + d2.value().clone().period).precision(precision))
+             }
+    );
     b.rule_2("une <unit-of-duration>",
-             b.reg(r#"une|la|le?"#)?,
+             b.reg(r#"une?|la|le?"#)?,
              unit_of_duration_check!(),
              |_, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, 0).into()))
     );
@@ -62,7 +85,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("environ <duration>",
              b.reg(r#"environ"#)?,
              duration_check!(),
-             |_, duration| duration.value().in_present()
+             |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("pendant <duration>",
+             b.reg(r#"pendant|durant"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone())
     );
     b.rule_2("il y a <duration>",
              b.reg(r#"il y a"#)?,
