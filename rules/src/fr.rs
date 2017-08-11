@@ -1058,44 +1058,50 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_3("<datetime> - <datetime> (interval)",
-        time_check!(|time: &TimeValue| !time.latent),
-        b.reg(r#"\-|au|jusqu'(?:au|[aà])"#)?,
-        time_check!(|time: &TimeValue| !time.latent),
-        |a, _, b| a.value().span_to(b.value(), true)
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
+             b.reg(r#"\-|au|[aà]|jusqu'(?:au|[aà])"#)?,
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
+             |a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_3("<datetime> avant <time-of-day> (interval)",
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
+             b.reg(r#"jusqu'(?:au|[aà])|avant"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("de <datetime> - <datetime> (interval)",
-        b.reg(r#"de|depuis|du"#)?,
-        time_check!(),
-        b.reg(r#"\-|au|jusqu'(?:au|[aà])"#)?,
-        time_check!(),
-        |_, a, _, b| a.value().span_to(b.value(), true)
+             b.reg(r#"de|depuis|du"#)?,
+             time_check!(excluding_form!(Form::TimeOfDay(_))),
+             b.reg(r#"\-|au|[aà]|jusqu'(?:au|[aà])"#)?,
+             time_check!(excluding_form!(Form::TimeOfDay(_))),
+             |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_4("entre <datetime> et <datetime> (interval)",
-        b.reg(r#"entre"#)?,
-        time_check!(),
-        b.reg(r#"et"#)?,
-        time_check!(),
-        |_, a, _, b| a.value().span_to(b.value(), true)
+             b.reg(r#"entre"#)?,
+             time_check!(excluding_form!(Form::TimeOfDay(_))),
+             b.reg(r#"et"#)?,
+             time_check!(excluding_form!(Form::TimeOfDay(_))),
+             |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
-        time_check!(form!(Form::TimeOfDay(_))),
-        b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
-        time_check!(form!(Form::TimeOfDay(_))),
-        |a, _, b| a.value().span_to(b.value(), true)
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("de <time-of-day> - <time-of-day> (interval)",
-        b.reg(r#"(?:midi )?de"#)?,
-        time_check!(form!(Form::TimeOfDay(_))),
-        b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
-        time_check!(form!(Form::TimeOfDay(_))),
-        |_, a, _, b| a.value().span_to(b.value(), true)
+             b.reg(r#"(?:midi )?de"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("entre <time-of-day> et <time-of-day> (interval)",
-        b.reg(r#"entre"#)?,
-        time_check!(form!(Form::TimeOfDay(_))),
-        b.reg(r#"et"#)?,
-        time_check!(form!(Form::TimeOfDay(_))),
-        |_, a, _, b| a.value().span_to(b.value(), true)
+             b.reg(r#"entre"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"et"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_2("d'ici <duration>",
         b.reg(r#"d'ici|dans l(?:'|es?)"#)?,
