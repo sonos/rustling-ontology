@@ -75,7 +75,7 @@ impl Period {
     pub fn comps(&self) -> Vec<PeriodComp> {
         use enum_primitive::FromPrimitive;
         self.0.iter()
-            .filter_map(|(g, q)|  {
+            .filter_map(|(g, q)| {
                 if let Some(grain) = Grain::from_usize(g) {
                     Some(PeriodComp::new(grain, *q))
                 } else {
@@ -186,7 +186,7 @@ impl<'a> ops::Neg for &'a Period {
 }
 
 
-#[derive(Debug,PartialEq,Copy,Clone,Eq)]
+#[derive(Debug, PartialEq, Copy, Clone, Eq)]
 pub struct PeriodComp {
     pub grain: Grain,
     pub quantity: i64,

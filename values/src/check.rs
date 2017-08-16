@@ -94,7 +94,7 @@ impl Check<Dimension> for CheckMoment {
                         check_value && check_precision
                     })
                     .unwrap_or(false)
-            },
+            }
             Some(Direction::After) => {
                 self.context.resolve(&pn.value)
                     .and_then(|v| TimeIntervalOutput::attempt_from(v))
@@ -108,7 +108,7 @@ impl Check<Dimension> for CheckMoment {
                         }
                     })
                     .unwrap_or(false)
-            },
+            }
             Some(Direction::Before) => {
                 self.context.resolve(&pn.value)
                     .and_then(|v| TimeIntervalOutput::attempt_from(v))
@@ -123,13 +123,12 @@ impl Check<Dimension> for CheckMoment {
                     })
                     .unwrap_or(false)
             }
-
         }
     }
 }
 
 pub fn check_moment(context: ResolverContext, moment: Moment<Local>, grain: Grain, precision: Precision, direction: Option<Direction>)
-                      -> CheckMoment {
+                    -> CheckMoment {
     CheckMoment {
         direction: direction,
         precision: precision,
@@ -137,6 +136,7 @@ pub fn check_moment(context: ResolverContext, moment: Moment<Local>, grain: Grai
         context: context
     }
 }
+
 #[derive(Debug)]
 pub struct CheckMomentSpan {
     pub interval: Interval<Local>,
@@ -160,7 +160,7 @@ impl Check<Dimension> for CheckMomentSpan {
 }
 
 pub fn check_moment_span(context: ResolverContext, precision: Precision, start: Moment<Local>, end: Moment<Local>, grain: Grain)
-                      -> CheckMomentSpan {
+                         -> CheckMomentSpan {
     CheckMomentSpan { interval: Interval::new(start, Some(end), grain), precision, context }
 }
 
