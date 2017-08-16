@@ -77,7 +77,7 @@ impl fmt::Display for Dimension {
 }
 
 /// Payload for the ordinal numbers of Dimension
-#[derive(Debug,PartialEq,Copy,Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub struct OrdinalValue {
     pub value: i64,
     pub prefixed: bool,
@@ -99,7 +99,7 @@ impl OrdinalValue {
     }
 }
 
-#[derive(Debug,PartialEq,Copy,Clone)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Precision {
     Approximate,
     Exact,
@@ -126,7 +126,7 @@ pub struct MoneyUnitValue {
 }
 
 /// Payload for the integral numbers of Dimension
-#[derive(Debug,PartialEq,Clone,Default)]
+#[derive(Debug, PartialEq, Clone, Default)]
 pub struct IntegerValue {
     pub value: i64,
     #[doc(hidden)]
@@ -144,17 +144,17 @@ pub struct IntegerValue {
 impl IntegerValue {
     pub fn new(value: i64) -> RuleResult<IntegerValue> {
         Ok(IntegerValue {
-               value: value,
-               grain: None,
-               ..IntegerValue::default()
-           })
+            value: value,
+            grain: None,
+            ..IntegerValue::default()
+        })
     }
     pub fn new_with_grain(value: i64, grain: u8) -> RuleResult<IntegerValue> {
         Ok(IntegerValue {
-               value: value,
-               grain: Some(grain),
-               ..IntegerValue::default()
-           })
+            value: value,
+            grain: Some(grain),
+            ..IntegerValue::default()
+        })
     }
 }
 
@@ -239,7 +239,7 @@ impl AttemptFrom<Dimension> for FloatValue {
 }
 
 /// Payload for the floating numbers of Dimension
-#[derive(Debug,PartialEq,Clone,Default)]
+#[derive(Debug, PartialEq, Clone, Default)]
 pub struct FloatValue {
     pub value: f32,
     #[doc(hidden)]
@@ -253,9 +253,9 @@ pub struct FloatValue {
 impl FloatValue {
     pub fn new(value: f32) -> RuleResult<FloatValue> {
         Ok(FloatValue {
-               value: value,
-               ..FloatValue::default()
-           })
+            value: value,
+            ..FloatValue::default()
+        })
     }
 }
 
@@ -307,7 +307,7 @@ impl NumberValue {
 }
 
 /// Payload for the temperatures of Dimension
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct TemperatureValue {
     pub value: f32,
     /// Celsius, Fahrenheit, ...
@@ -317,7 +317,7 @@ pub struct TemperatureValue {
 }
 
 /// Payload for the cycle of Dimension
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CycleValue {
     pub grain: Grain,
 }
@@ -329,7 +329,7 @@ impl CycleValue {
 }
 
 /// Payload for the unit of duration of Dimension
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct UnitOfDurationValue {
     pub grain: Grain,
 }
@@ -359,12 +359,12 @@ impl PartialEq for TimeValue {
 }
 
 impl ::std::fmt::Debug for TimeValue {
-    fn fmt(&self,fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
+    fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
         write!(fmt, "<TimeValue>")
     }
 }
 
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Form {
     Cycle(Grain),
     Year(i32),
@@ -399,15 +399,15 @@ pub enum Direction {
     Before,
 }
 
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct TimeOfDayForm {
     pub full_hour: u32,
     pub is_12_clock: bool,
 }
 
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct DurationValue {
-    pub period: Period, 
+    pub period: Period,
     pub precision: Precision
 }
 
@@ -417,9 +417,9 @@ impl DurationValue {
     }
 
     pub fn precision(self, precision: Precision) -> DurationValue {
-        DurationValue { precision: precision, .. self }
+        DurationValue { precision: precision, ..self }
     }
 }
 
-#[derive(Debug,PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct RelativeMinuteValue(pub i32);

@@ -63,3 +63,7 @@ macro_rules! relative_minute_check {
 macro_rules! form {
     ($form:pat) => (|time: &TimeValue| if let $form = time.form { true } else { false })
 }
+
+macro_rules! excluding_form {
+    ($form:pat) => (|time: &TimeValue| if let $form = time.form { false } else { true })
+}

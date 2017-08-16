@@ -881,7 +881,7 @@ impl<T: TimeZone+'static> Span<T>  where <T as TimeZone>::Offset: Copy {
 
 impl<T: TimeZone+'static> IntervalConstraint<T> for Span<T>  where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
-        self.from.grain()
+        ::std::cmp::max(self.from.grain(), self.to.grain())
     }
 
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {

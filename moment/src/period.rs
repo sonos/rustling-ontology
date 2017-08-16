@@ -30,9 +30,38 @@ impl Grain {
     }
 }
 
+impl Grain {
+    pub fn all() -> Vec<Grain> {
+        vec![
+            Grain::Year,
+            Grain::Quarter,
+            Grain::Month,
+            Grain::Week,
+            Grain::Day,
+            Grain::Hour,
+            Grain::Minute,
+            Grain::Second,
+        ]
+    }
+}
 
-#[derive(Debug,PartialEq,Clone,Eq,Default)]
+
+#[derive(Debug, Clone, Eq, Default)]
 pub struct Period(pub VecMap<i64>);
+
+impl PartialEq for Period {
+    fn eq(&self, other: &Period) -> bool {
+        for grain in Grain::all() {
+            let zero = 0;
+            let lhs_comp = self.0.get(grain as usize).unwrap_or(&zero);
+            let rhs_comp = other.0.get(grain as usize).unwrap_or(&zero);
+            if lhs_comp != rhs_comp {
+                return false
+            }
+        }
+        return true
+    }
+}
 
 impl Period {
     pub fn finer_grain(&self) -> Option<Grain> {
@@ -46,7 +75,7 @@ impl Period {
     pub fn comps(&self) -> Vec<PeriodComp> {
         use enum_primitive::FromPrimitive;
         self.0.iter()
-            .filter_map(|(g, q)|  {
+            .filter_map(|(g, q)| {
                 if let Some(grain) = Grain::from_usize(g) {
                     Some(PeriodComp::new(grain, *q))
                 } else {
@@ -157,7 +186,7 @@ impl<'a> ops::Neg for &'a Period {
 }
 
 
-#[derive(Debug,PartialEq,Copy,Clone,Eq)]
+#[derive(Debug, PartialEq, Copy, Clone, Eq)]
 pub struct PeriodComp {
     pub grain: Grain,
     pub quantity: i64,
