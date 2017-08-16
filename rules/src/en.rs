@@ -2,7 +2,7 @@ use rustling::*;
 use values::dimension::*;
 use values::dimension::Precision::*;
 use values::helpers;
-use moment::{Weekday, Grain, PeriodComp};
+use moment::{Weekday, Grain, PeriodComp, Period};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("second (unit-of-duration)",
@@ -34,7 +34,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
     b.rule_1_terminal("quarter of an hour",
-        b.reg(r#"(?:1/4\s?h(?:our)?|(?:a\s)?quarter of an hour)"#)?,
+        b.reg(r#"(?:1/4\s?h(?:our)?|(?:a\s)?quarter(?: of an |-)hour)"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
     );
     b.rule_1_terminal("half an hour",
@@ -72,10 +72,25 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             )
         }
     );
-    b.rule_2("<integer> and an half hours",
+    b.rule_2("<integer> and a half hours",
         integer_check!(0),
         b.reg(r#"and (?:an? )?half hours?"#)?,
         |integer, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
+    );
+    b.rule_2("<integer> hours and a half",
+             integer_check!(0),
+             b.reg(r#"hours? and (?:an? )?half"#)?,
+             |integer, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
+    );
+    b.rule_3("<number> h <number>",
+             integer_check!(0),
+             b.reg(r#"h(?:ours?)?"#)?,
+             integer_check!(0,59),
+             |hour, _, minute| {
+                 let hour_period = Period::from(PeriodComp::new(Grain::Hour, hour.value().clone().value));
+                 let minute_period = Period::from(PeriodComp::new(Grain::Minute, minute.value().clone().value));
+                 Ok(DurationValue::new(hour_period + minute_period))
+             }
     );
     b.rule_2("a <unit-of-duration>",
         b.reg(r#"an?"#)?,
@@ -87,16 +102,15 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         duration_check!(),
         |_, duration| duration.value().in_present()
     );
-
-    b.rule_2("about <duration>",
-        b.reg(r#"about"#)?,
-        duration_check!(),
-        |_, duration| duration.value().in_present()
-    );
     b.rule_2("for <duration>",
         b.reg(r#"for"#)?,
         duration_check!(),
-        |_, duration| duration.value().in_present()
+        |_, duration| Ok(duration.value().clone())
+    );
+    b.rule_2("during <duration>",
+        b.reg(r#"during"#)?,
+        duration_check!(),
+        |_, duration| Ok(duration.value().clone())
     );
     b.rule_2("after <duration>",
         b.reg(r#"after"#)?,
@@ -152,13 +166,13 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("about <duration>",
-        b.reg(r#"(?:about|around|approximately)"#)?,
+        b.reg(r#"(?:about|around|approximately|roughly)"#)?,
         duration_check!(),
         |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
     );
 
     b.rule_2("exactly <duration>",
-        b.reg(r#"exactly"#)?,
+        b.reg(r#"exactly|precisely"#)?,
         duration_check!(),
         |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
     );

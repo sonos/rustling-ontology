@@ -179,6 +179,23 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2017, 05, 10]), "wednesday the 10th of may");
 }
 
+pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_duration!([0, 0, 0, 0, 2]), "during two hours", "for 2 hours");
+    example!(v, check_duration!([0, 0, 0, 1], Precision::Approximate), "about one day", "approximately 1 day");
+    example!(v, check_duration!([0, 2, 0]), "during two months", "for 2 months");
+    example!(v, check_duration!([1]), "during a year");
+    example!(v, check_duration!([0, 0, 0, 0, 0, 1, 3]), "during one minute and three seconds", "for 1 minute and 3 seconds", "for 1min3sec");
+    example!(v, check_duration!([0, 0, 0, 0, 0, 210], Precision::Approximate), "about three and a half hours", "around 3 hours and a half");
+    example!(v, check_duration!([0, 0, 0, 0, 0, 90], Precision::Approximate), "about one hour and a half");
+    example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "about 1h30", "for around one hour and thirty minutes");
+    example!(v, check_duration!([0, 0, 0, 0, 0, 15], Precision::Approximate), "during about a quarter of an hour", "for approximately 1/4hour", "around a quarter-hour");
+    example!(v, check_duration!([0, 0, 0, 0, 0, 45]), "for three-quarters of an hour", "for 3/4h", "for 3/4 h", "for 3/4 hour");
+    example!(v, check_duration!([0, 0, 0, 0, 1]), "during one hour", "for 1h");
+    example!(v, check_duration!([0, 0, 2]), "for 2 weeks");
+    example!(v, check_duration!([0, 0, 0, 2], Precision::Approximate), "around two days");
+
+}
+
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "naught", "nought", "zero", "nil");
     example!(v, check_integer(1), "1", "one", "single");

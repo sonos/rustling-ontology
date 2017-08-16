@@ -61,16 +61,14 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("<duration> et <duration>",
              duration_check!(),
-             b.reg(r#"(?:et)?"#)?,
+             b.reg(r#"et"#)?,
              duration_check!(),
-             |d1, _, d2| {
-                 let precision = if d1.value().precision == Precision::Approximate || d2.value().precision == Precision::Approximate {
-                     Precision::Approximate
-                 } else {
-                     Precision::Exact
-                 };
-                 Ok(DurationValue::new(d1.value().clone().period + d2.value().clone().period).precision(precision))
-             }
+             |a, _, b| Ok(a.value() + b.value())
+    );
+    b.rule_2("<duration> <duration>",
+             duration_check!(),
+             duration_check!(),
+             |a, b| Ok(a.value() + b.value())
     );
     b.rule_2("une <unit-of-duration>",
              b.reg(r#"une?|la|le?"#)?,
@@ -1139,7 +1137,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  start.span_to(&end, false)
              }
     );
-    b.rule_2("a <time-of-day>",
+    b.rule_2("avant <time-of-day>",
              b.reg(r#"(?:n[ ']importe quand )?(?:avant|jusqu'(?:a|à))"#)?,
              time_check!(),
              |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))

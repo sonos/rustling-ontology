@@ -32,16 +32,8 @@ impl Grain {
 
 impl Grain {
     pub fn all() -> Vec<Grain> {
-        vec![
-            Grain::Year,
-            Grain::Quarter,
-            Grain::Month,
-            Grain::Week,
-            Grain::Day,
-            Grain::Hour,
-            Grain::Minute,
-            Grain::Second,
-        ]
+        use enum_primitive::FromPrimitive;
+        (0..8).filter_map(|primitive| Grain::from_usize(primitive)).collect::<Vec<Grain>>()
     }
 }
 
