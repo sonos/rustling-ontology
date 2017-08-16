@@ -197,7 +197,6 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 5, 0, 0]), "dans une demi heure", "dans 1/2h", "dans 1/2 h", "dans 1/2 heure");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 15, 0]), "dans trois quarts d'heure", "dans 3/4h", "dans 3/4 h", "dans 3/4 heure");
     example!(v, check_moment!(c, [2016, 12, 15]), "15.12.2016", "15.12.16");
-
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
