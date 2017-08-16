@@ -87,9 +87,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 4, 31, 0]), "in a minute", "in one minute");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 32, 0]), "in 2 minutes", "in 2 more minutes", "2 minutes from now");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 30, 0]), "in 60 minutes");
-    example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "about a quarter of an hour", "about 1/4h", "about 1/4 h", "about 1/4 hour");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 0, 0]), "in half an hour", "in 1/2h", "in 1/2 h", "in 1/2 hour");
-    example!(v, check_moment!(c, [2013, 2, 12, 5, 15, 0]), "for three-quarters of an hour", "for 3/4h", "for 3/4 h", "for 3/4 hour");
     example!(v, check_moment!(c, [2013, 2, 12, 7, 0, 0]), "in 2.5 hours", "in 2 and an half hours");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "in one hour", "in 1h");
     example!(v, check_moment!(c, [2013, 2, 12, 6, 30]), "in a couple hours", "in a couple of hours");
@@ -148,10 +146,10 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2014], [2017]), "next 3 years", "next three years");
     example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "July 13-15", "July 13 to 15", "July 13 thru 15", "July 13 through 15", "July 13 - July 15");
     example!(v, check_moment_span!(c, [2013, 8, 8], [2013, 8, 13]), "Aug 8 - Aug 12");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 1]), "9:30 - 11:00");
-    example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11, 1]), "from 9:30 - 11:00 on Thursday", "between 9:30 and 11:00 on thursday", "9:30 - 11:00 on Thursday", "later than 9:30 but before 11:00 on Thursday", "Thursday from 9:30 to 11:00","from 9:30 untill 11:00 on thursday", "Thursday from 9:30 untill 11:00", "9:30 till 11:00 on Thursday");
-    example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 12]), "Thursday from 9a to 11a");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 31]), "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 0]), "9:30 - 11:00");
+    example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11, 0]), "from 9:30 - 11:00 on Thursday", "between 9:30 and 11:00 on thursday", "9:30 - 11:00 on Thursday", "later than 9:30 but before 11:00 on Thursday", "Thursday from 9:30 to 11:00","from 9:30 untill 11:00 on thursday", "Thursday from 9:30 untill 11:00", "9:30 till 11:00 on Thursday");
+    example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "Thursday from 9a to 11a");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 30]), "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30", "11:30-1:30");
     example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "1:30 PM on Sat, Sep 21");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "within 2 weeks");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14, 0], Direction::Before), "until 2:00pm", "through 2:00pm");
@@ -165,6 +163,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14], Direction::After), "after 2 pm");
     example!(v, check_moment_with_direction!(c, [2013, 2, 17, 4], Direction::After), "after 5 days");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 11], Direction::Before), "before 11 am");
+    example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 13, 11]), "tomorrow before 11 am", "13th feb. 2013 until 11am");
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "in the afternoon");
     example!(v, check_moment!(c, [2013, 2, 12, 13, 30]), "at 1:30pm", "1:30pm");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "in 15 minutes");

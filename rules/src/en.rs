@@ -1089,44 +1089,50 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_3("<datetime> - <datetime> (interval)",
-        time_check!(|time: &TimeValue| !time.latent),
+        time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
         b.reg(r#"\-|to|th?ru|through|(?:un)?til(?:l)?"#)?,
-        time_check!(|time: &TimeValue| !time.latent),
+        time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
         |a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_4("from <datetime> - <datetime> (interval)",
         b.reg(r#"from"#)?,
-        time_check!(),
+        time_check!(excluding_form!(Form::TimeOfDay(_))),
         b.reg(r#"\-|to|th?ru|through|(?:un)?til(?:l)?"#)?,
-        time_check!(),
+        time_check!(excluding_form!(Form::TimeOfDay(_))),
         |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_4("between <datetime> and <datetime> (interval)",
         b.reg(r#"between"#)?,
-        time_check!(),
+        time_check!(excluding_form!(Form::TimeOfDay(_))),
         b.reg(r#"and"#)?,
-        time_check!(),
+        time_check!(excluding_form!(Form::TimeOfDay(_))),
         |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
-        time_check!(|time: &TimeValue| if let Form::TimeOfDay(_) = time.form { !time.latent } else { false }),
+        time_check!(|time: &TimeValue|  !time.latent && form!(Form::TimeOfDay(_))(time)),
         b.reg(r#"\-|:|to|th?ru|through|(?:un)?til(?:l)?"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
-        |a, _, b| a.value().span_to(b.value(), true)
+        |a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("from <time-of-day> - <time-of-day> (interval)",
         b.reg(r#"(?:later than|from)"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         b.reg(r#"(?:(?:but )?before)|\-|to|th?ru|through|(?:un)?til(?:l)?"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
-        |_, a, _, b| a.value().span_to(b.value(), true)
+        |_, a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("between <time-of-day> and <time-of-day> (interval)",
         b.reg(r#"between"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         b.reg(r#"and"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
-        |_, a, _, b| a.value().span_to(b.value(), true)
+        |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    b.rule_3("<datetime> before <time-of-day> (interval)",
+        time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
+        b.reg(r#"until|before|not after"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_2("within <duration>",
         b.reg(r#"within"#)?,
