@@ -192,7 +192,6 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_duration!([0, 0, 0, 0, 1]), "during one hour", "for 1h");
     example!(v, check_duration!([0, 0, 2]), "for 2 weeks");
     example!(v, check_duration!([0, 0, 0, 2], Precision::Approximate), "around two days");
-
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {

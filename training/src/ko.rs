@@ -81,7 +81,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2014, 10, 6], Grain::Week), "2014년 10월 첫번째주");
     example!(v, check_moment!(c, [2015, 10, 31]), "2015년 10월 마지막날");
     example!(v, check_moment!(c, [2014, 9, 22], Grain::Week), "2014년 9월 마지막주");
-    
+
     // nth of
     example!(v, check_moment!(c, [2013, 10, 1]), "10월 첫째화요일");
     example!(v, check_moment!(c, [2013, 2, 13, 3]), "아침 3시", "오전 세시", "새벽 3시");
