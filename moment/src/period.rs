@@ -30,9 +30,38 @@ impl Grain {
     }
 }
 
+impl Grain {
+    pub fn all() -> Vec<Grain> {
+        vec![
+            Grain::Year,
+            Grain::Quarter,
+            Grain::Month,
+            Grain::Week,
+            Grain::Day,
+            Grain::Hour,
+            Grain::Minute,
+            Grain::Second,
+        ]
+    }
+}
 
-#[derive(Debug,PartialEq,Clone,Eq,Default)]
+
+#[derive(Debug, Clone, Eq, Default)]
 pub struct Period(pub VecMap<i64>);
+
+impl PartialEq for Period {
+    fn eq(&self, other: &Period) -> bool {
+        for grain in Grain::all() {
+            let zero = 0;
+            let lhs_comp = self.0.get(grain as usize).unwrap_or(&zero);
+            let rhs_comp = other.0.get(grain as usize).unwrap_or(&zero);
+            if lhs_comp != rhs_comp {
+                return false
+            }
+        }
+        return true
+    }
+}
 
 impl Period {
     pub fn finer_grain(&self) -> Option<Grain> {

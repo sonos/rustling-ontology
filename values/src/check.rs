@@ -1,5 +1,5 @@
 use rustling::{AttemptFrom, Check, ParsedNode};
-use moment::{Grain, Interval, Moment, Local};
+use moment::{Grain, Interval, Moment, Local, Period};
 use dimension::*;
 use output::*;
 use context::{ParsingContext, ResolverContext};
@@ -54,6 +54,25 @@ impl Check<Dimension> for CheckFloat {
 pub fn check_float(v: f32) -> CheckFloat {
     CheckFloat { value: v }
 }
+
+#[derive(Debug)]
+pub struct CheckDuration {
+    pub period: Period,
+    pub precision: Precision
+}
+
+impl Check<Dimension> for CheckDuration {
+    fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
+        DurationValue::attempt_from(pn.value.clone())
+            .map(|v| v.precision == self.precision && v.period == self.period)
+            .unwrap_or(false)
+    }
+}
+
+pub fn check_duration(period: Period, precision: Precision) -> CheckDuration {
+    CheckDuration { period, precision }
+}
+
 
 #[derive(Debug)]
 pub struct CheckMoment {
