@@ -20,6 +20,8 @@ pub mod es;
 pub mod fr;
 pub mod ko;
 pub mod de;
+pub mod zh;
+
 
 macro_rules! lang {
     ($lang:ident, $lang_test:ident, $lang_config:ident, [$($example:ident),*]) => {
@@ -57,3 +59,4 @@ lang!(en, en_test, en_config, [examples_numbers, examples_time, examples_duratio
 lang!(fr, fr_test, fr_config, [examples_numbers, examples_time, examples_durations]);
 lang!(es, es_test, es_config, [examples_numbers, examples_time]);
 lang!(ko, ko_test, ko_config, [examples_numbers, examples_time, examples_temperature, examples_finance]);
+lang!(zh, zh_test, zh_config, [examples_numbers]);

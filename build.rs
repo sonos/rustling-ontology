@@ -34,6 +34,7 @@ lang!(en, en_config);
 lang!(es, es_config);
 lang!(fr, fr_config);
 lang!(ko, ko_config);
+lang!(zh, zh_config);
 
 fn main() {
     de::train();
@@ -41,4 +42,5 @@ fn main() {
     es::train();
     fr::train();
     ko::train();
+    zh::train();
 }

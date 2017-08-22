@@ -14,6 +14,7 @@ pub mod en;
 pub mod es;
 pub mod fr;
 pub mod ko;
+pub mod zh;
 
 macro_rules! lang_enum {
     ([$($lang:ident),*]) => {
@@ -33,7 +34,7 @@ macro_rules! lang_enum {
     }
 }
 
-lang_enum!([DE, EN, ES, FR, KO]);
+lang_enum!([DE, EN, ES, FR, KO, ZH]);
 
 impl std::str::FromStr for Lang {
     type Err = String;
@@ -44,6 +45,7 @@ impl std::str::FromStr for Lang {
             "es" => Ok(Lang::ES),
             "ko" => Ok(Lang::KO),
             "de" => Ok(Lang::DE),
+            "zh" => Ok(Lang::ZH),
             _ => Err(format!("Unknown language {}", it)),
         }
     }
@@ -57,6 +59,7 @@ impl ::std::string::ToString for Lang {
             &Lang::ES => "es".to_string(),
             &Lang::KO => "ko".to_string(),
             &Lang::DE => "de".to_string(),
+            &Lang::ZH => "zh".to_string()
         }
     }
 }
@@ -91,6 +94,7 @@ pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<value
         Lang::ES => es_config::rule_set(),
         Lang::FR => fr_config::rule_set(),
         Lang::KO => ko_config::rule_set(),
+        Lang::ZH => zh_config::rule_set()
     }
 }
 
@@ -102,6 +106,7 @@ pub fn dims(lang: Lang) -> Vec<values::DimensionKind> {
         Lang::ES => es_config::dims(),
         Lang::FR => fr_config::dims(),
         Lang::KO => ko_config::dims(),
+        Lang::ZH => zh_config::dims()
     }
 }
 
@@ -115,4 +120,5 @@ lang!(fr, fr_config, detailed, separated_alphanumeric_word, [rules_numbers, rule
           [Number, Ordinal, Time, Duration, Temperature]);
 lang!(ko, ko_config, detailed, separated_alphanumeric_word, [rules_numbers, rule_time, rule_temperature, rules_finance, rules_cycle, rules_duration], 
           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
+lang!(zh, zh_config, ComposedWordOrDetailed, [rules_numbers], [Number]);
 
