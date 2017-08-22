@@ -3,6 +3,85 @@ use values::dimension::*;
 use values::dimension::Precision::*;
 use values::helpers;
 
+pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_1("number as temp",
+             number_check!(),
+             |a| {
+                 Ok(TemperatureValue {
+                     value: a.value().value(),
+                     unit: None,
+                     latent: true,
+                 })
+             });
+
+
+    b.rule_2("<latent temp> degrees",
+             temperature_check!(),
+             b.reg(r#"度|°"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                     value: a.value().value,
+                     unit: Some("degree"),
+                     latent: false,
+                 })
+             });
+
+
+    b.rule_2("<temp> Celcius",
+             temperature_check!(),
+             b.reg(r#"(摄|攝)氏(°|度)|(°)C"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                     value: a.value().value,
+                     unit: Some("celsius"),
+                     latent: false,
+                 })
+             });
+
+
+    b.rule_3("Celcius <temp>",
+             b.reg(r#"(摄|攝)氏"#)?,
+             temperature_check!(),
+             b.reg(r#"度|°"#)?,
+             |_, b, _| {
+                 Ok(TemperatureValue {
+                     value: b.value().value,
+                     unit: Some("celsius"),
+                     latent: false,
+                 })
+             }
+    );
+
+
+    b.rule_2("<temp> Fahrenheit",
+             temperature_check!(),
+             b.reg(r#"(华|華)氏(°|度)|(°)F"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                     value: a.value().value,
+                     unit: Some("fahrenheit"),
+                     latent: false,
+                 })
+             });
+
+
+    b.rule_3("Fahrenheit <temp>",
+             b.reg(r#"(华|華)氏"#)?,
+             temperature_check!(),
+             b.reg(r#"度|°"#)?,
+             |_, b, _| {
+                 Ok(TemperatureValue {
+                     value: b.value().value,
+                     unit: Some("fahrenheit"),
+                     latent: false,
+                 })
+             }
+    );
+
+
+    Ok(())
+}
+
 
 pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("integer (0..10)",

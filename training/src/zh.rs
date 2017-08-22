@@ -1,6 +1,39 @@
 use super::*;
 use rustling_ontology_values::check::*;
 
+pub fn examples_temperatures(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v,
+             check_temperature(45.0, Some("degree")),
+             "45",
+             "四十五",
+             "45°",
+             "45度",
+             "四十五°",
+             "四十五度");
+    example!(v,
+             check_temperature(70.0, Some("fahrenheit")),
+             "70°F",
+             "华氏70°",
+             "華氏70°",
+             "华氏70度",
+             "華氏70度",
+             "70华氏°",
+             "70華氏°",
+             "70华氏度",
+             "70華氏度");
+    example!(v,
+             check_temperature(37.0, Some("celsius")),
+             "37°C",
+             "摄氏37°",
+             "攝氏37°",
+             "摄氏37度",
+             "攝氏37度",
+             "37摄氏°",
+             "37攝氏°",
+             "37摄氏度",
+             "37攝氏度");
+}
+
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "〇", "零", "零个", "0个");
