@@ -72,4 +72,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
              "-1.2M",
              "-1200K",
              "-.0012G");
+    example!(v, check_ordinal(7), "第七");
+    example!(v, check_ordinal(11), "第十一");
+    example!(v, check_ordinal(91), "第九十一");
 }

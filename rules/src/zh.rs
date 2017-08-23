@@ -3,6 +3,7 @@ use values::dimension::*;
 use values::dimension::Precision::*;
 use values::helpers;
 
+
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("number as temp",
              number_check!(),
@@ -242,6 +243,18 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..IntegerValue::default()
                  })
              });
+
+
+    b.rule_2("ordinal (digits)",
+             b.reg(r#"第"#)?,
+             integer_check!(),
+             |_, b| {
+                 Ok(OrdinalValue {
+                     value: b.value().value,
+                     prefixed: true
+                 })
+             }
+    );
 
 
     Ok(())
