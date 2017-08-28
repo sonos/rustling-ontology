@@ -120,5 +120,5 @@ lang!(fr, fr_config, detailed, separated_alphanumeric_word, [rules_numbers, rule
           [Number, Ordinal, Time, Duration, Temperature]);
 lang!(ko, ko_config, detailed, separated_alphanumeric_word, [rules_numbers, rule_time, rule_temperature, rules_finance, rules_cycle, rules_duration], 
           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
-lang!(zh, zh_config, ComposedWordOrDetailed, [rules_numbers], [Number]);
+lang!(zh, zh_config, ComposedWordOrDetailed, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration], [Number, Ordinal, Time, Duration, Temperature]);
 
