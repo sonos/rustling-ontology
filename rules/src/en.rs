@@ -1359,26 +1359,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"a pair(?: of)?"#)?,
                       |_| IntegerValue::new_with_grain(2, 1)
     );
-    b.rule_1_terminal("dozen",
-                      b.reg(r#"dozen"#)?,
-                      |_| Ok(IntegerValue {
-                          value: 12,
-                          grain: Some(1),
-                          group: true,
-                          ..IntegerValue::default()
-                      }));
-    b.rule_1_terminal("hundred",
-                      b.reg(r#"hundreds?"#)?,
-                      |_| IntegerValue::new_with_grain(100, 2)
-    );
-    b.rule_1_terminal("thousand",
-                      b.reg(r#"thousands?"#)?,
-                      |_| IntegerValue::new_with_grain(1000, 3)
-    );
-    b.rule_1_terminal("million",
-                      b.reg(r#"millions?"#)?,
-                      |_| IntegerValue::new_with_grain(1000000, 6)
-    );
     b.rule_1_terminal("couple",
                       b.reg(r#"(?:a )?couple(?: of)?"#)?,
                       |_| IntegerValue::new_with_grain(2, 1)
@@ -1434,46 +1414,80 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  let value = a.value().value * 100 + b.value().value;
                  IntegerValue::new_with_grain(value, 1)
              });
+    b.rule_1_terminal("dozen",
+             b.reg(r#"dozen"#)?,
+             |_| Ok(IntegerValue {
+                        value: 12,
+                        grain: Some(1),
+                        group: true,
+                        ..IntegerValue::default()
+                }));
+    b.rule_1_terminal("hundred",
+        b.reg(r#"hundreds?"#)?,
+        |_| IntegerValue::new_with_grain(100, 2)
+    );
+    b.rule_1_terminal("thousand",
+        b.reg(r#"thousands?"#)?,
+        |_| IntegerValue::new_with_grain(1000, 3)
+    );
+    b.rule_1_terminal("million",
+        b.reg(r#"millions?"#)?,
+        |_| IntegerValue::new_with_grain(1000000, 6)
+    );
+    b.rule_1_terminal("billion",
+        b.reg(r#"billions?"#)?,
+        |_| IntegerValue::new_with_grain(1000000000, 9)
+    );
     b.rule_2("number dozen",
-             integer_check!(1, 99),
-             integer_filter!(|integer: &IntegerValue| integer.group),
-             |a, b| {
+            integer_check!(1, 99),
+            integer_filter!(|integer: &IntegerValue| integer.group),
+            |a, b| {
                  Ok(IntegerValue {
                      value: a.value().value * b.value().value,
                      grain: b.value().grain,
                      group: true,
                      ..IntegerValue::default()
                  })
-             });
+    });
     b.rule_2("number hundreds",
              integer_check!(1, 99),
-             integer_check!(100, 100),
-             |a, b| {
+             b.reg(r#"hundreds?"#)?,
+             |a, _| {
                  Ok(IntegerValue {
-                     value: a.value().value * b.value().value,
-                     grain: b.value().grain,
-                     ..IntegerValue::default()
-                 })
+                        value: a.value().value * 100,
+                        grain: Some(2),
+                        ..IntegerValue::default()
+                    })
              });
     b.rule_2("number thousands",
              integer_check!(1, 999),
-             integer_check!(1000, 1000),
-             |a, b| {
+             b.reg(r#"thousands?"#)?,
+             |a, _| {
                  Ok(IntegerValue {
-                     value: a.value().value * b.value().value,
-                     grain: b.value().grain,
-                     ..IntegerValue::default()
-                 })
+                        value: a.value().value * 1000,
+                        grain: Some(3),
+                        ..IntegerValue::default()
+                    })
              });
     b.rule_2("number millions",
-             integer_check!(1, 99),
-             integer_check!(1000000, 1000000),
-             |a, b| {
+             integer_check!(1, 999),
+             b.reg(r#"millions?"#)?,
+             |a, _| {
                  Ok(IntegerValue {
-                     value: a.value().value * b.value().value,
-                     grain: b.value().grain,
-                     ..IntegerValue::default()
-                 })
+                        value: a.value().value * 1000000,
+                        grain: Some(6),
+                        ..IntegerValue::default()
+                    })
+             });
+    b.rule_2("number billions",
+             integer_check!(1, 99),
+             b.reg(r#"billions?"#)?,
+             |a, _| {
+                 Ok(IntegerValue {
+                        value: a.value().value * 1000000000,
+                        grain: Some(9),
+                        ..IntegerValue::default()
+                    })
              });
     b.rule_1("decimal number", b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
         let value: f32 = text_match.group(0).parse()?;
