@@ -27,7 +27,7 @@ pub fn extract_node_features(node: &rustling::Node<Payload>) -> rustling::Input<
     let rules_feat = node.children.iter().map({ |child| child.rule_sym }).collect::<Vec<_>>();
     
     let mut features = vec![Feat::Rules(rules_feat)];
-    if grains_feat.is_empty() { features.push(Feat::Grains(grains_feat)); }
+    if !grains_feat.is_empty() { features.push(Feat::Grains(grains_feat)); }
 
     let children_features = node.children
         .iter()
