@@ -688,7 +688,6 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  })
              });
 
-
     b.rule_2("<latent temp> degrees",
              temperature_check!(),
              b.reg(r#"度|°"#)?,
@@ -700,7 +699,6 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  })
              });
 
-
     b.rule_2("<temp> Celcius",
              temperature_check!(),
              b.reg(r#"(?:摄|攝)氏(?:°|度)|°c"#)?,
@@ -711,7 +709,6 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
-
 
     b.rule_3("Celcius <temp>",
              b.reg(r#"(?:摄|攝)氏"#)?,
@@ -726,7 +723,6 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
              }
     );
 
-
     b.rule_2("<temp> Fahrenheit",
              temperature_check!(),
              b.reg(r#"(?:华|華)氏(?:°|度)|°f"#)?,
@@ -737,7 +733,6 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
-
 
     b.rule_3("Fahrenheit <temp>",
              b.reg(r#"(?:华|華)氏"#)?,
@@ -751,7 +746,6 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  })
              }
     );
-
 
     Ok(())
 }
@@ -781,12 +775,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           IntegerValue::new_with_grain(value, 1)
                       });
 
-
     b.rule_1_terminal(
         "integer (numeric)",
         b.reg(r#"(\d{1,18})"#)?,
         |text_match| IntegerValue::new(text_match.group(0).parse()?));
-
 
     b.rule_1("decimal number", b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
         let value: f32 = text_match.group(0).parse()?;
@@ -795,7 +787,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             ..FloatValue::default()
         })
     });
-
 
     b.rule_2("numbers prefix with -, negative or minus",
              b.reg(r#"-|负\s?|負\s?"#)?,
@@ -822,7 +813,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
 
-
     b.rule_1_terminal("decimal with thousands separator",
                       b.reg(r#"(\d+(,\d\d\d)+\.\d+)"#)?,
                       |text_match| {
@@ -834,12 +824,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           })
                       });
 
-
     b.rule_2("<number>个",
              number_check!(),
              b.reg(r#"个"#)?,
              |number, _| Ok(number.value().clone()));
-
 
     b.rule_2("integer (20..90)",
              integer_check!(2, 9),
@@ -850,7 +838,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..a.value().clone()
                  })
              });
-
 
     b.rule_2("numbers suffixes (K, M, G)",
              number_check!(|number: &NumberValue| !number.suffixed()),
@@ -893,18 +880,15 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
 
-
     b.rule_2("integer 21..99",
              integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
              integer_check!(1, 9),
              |a, b| IntegerValue::new(a.value().value + b.value().value));
 
-
     b.rule_2("integer (11..19)",
              b.reg(r#"十"#)?,
              integer_check!(1, 9),
              |_, b| IntegerValue::new(10 + b.value().value));
-
 
     b.rule_1("integer with thousands separator, ",
              b.reg(r#"(\d{1,3}(,\d\d\d){1,5})"#)?,
@@ -917,7 +901,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
 
-
     b.rule_2("ordinal (digits)",
              b.reg(r#"第"#)?,
              integer_check!(),
@@ -928,7 +911,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              }
     );
-
 
     Ok(())
 }
