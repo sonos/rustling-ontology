@@ -1435,12 +1435,13 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  IntegerValue::new_with_grain(value, 1)
              });
     b.rule_2("number dozen",
-             integer_check!(1, 10),
-             integer_filter!(|integer: &IntegerValue| !integer.group),
+             integer_check!(1, 99),
+             integer_filter!(|integer: &IntegerValue| integer.group),
              |a, b| {
                  Ok(IntegerValue {
                      value: a.value().value * b.value().value,
                      grain: b.value().grain,
+                     group: true,
                      ..IntegerValue::default()
                  })
              });
