@@ -29,7 +29,7 @@ extern crate rustling_ontology_rules;
 extern crate rustling_ontology_values;
 extern crate rustling_ontology_training as training;
 
-pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, Sym};
+pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, Sym, ParsingAnalysis};
 pub use rustling::errors::*;
 pub use rustling_ontology_rules::{Lang, dims};
 pub use rustling_ontology_values::dimension;
@@ -87,6 +87,23 @@ impl Parser {
                  -> RustlingResult<Vec<ParserMatch<Output>>> {
         let all_output = OutputKind::all();
         self.parse_with_kind_order(input, context, &all_output)
+    }
+
+    pub fn analyse_with_kind_order(&self, 
+                                    examples: Vec<&str>, 
+                                    context: &ResolverContext, 
+                                    order:  &[DimensionKind]) -> RustlingResult<ParsingAnalysis> {
+        let tagger = CandidateTagger {
+            order: order,
+            context: context,
+            resolve_all_candidates: false,
+        };
+        self.0.analyse(examples, &tagger) 
+    }
+
+    pub fn analyse(&self, examples: Vec<&str>, context: &ResolverContext) -> RustlingResult<ParsingAnalysis> {
+        let all_dimension = DimensionKind::all();
+        self.analyse_with_kind_order(examples, &context, &all_dimension)
     }
 }
 
