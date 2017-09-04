@@ -101,13 +101,18 @@ fn parse_big_numbers(bench: &mut Bencher) {
 fn parse_intent_sentences(bench: &mut Bencher) {
     let input = parse_bench_input();
     let parser = build_parser(input.rustling_lang()).unwrap();
-    let sentence = input.book_restaurant;
+    let sentences = input.intent_sentences;
     let context = ResolverContext::default();
     let dims = DimensionKind::all();
-    bench.iter(|| parser.parse(&sentence, &context));
+    bench.iter(|| {
+        for i in sentences.iter() {
+            let _ = parser.parse(&*i, &context);
+        }
+    });
 }
 
 fn parse_complex_time_sentence(bench: &mut Bencher) {
+    let input = parse_bench_input();
     let parser = build_parser(input.rustling_lang()).unwrap();
     let context = ResolverContext::default();
     let dims = DimensionKind::all();
