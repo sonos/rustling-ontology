@@ -30,7 +30,7 @@ fn main() {
                   .values_of("kinds")
                   .map(|values| {
                            values
-                               .map(|s| DimensionKind::from_str(s).unwrap())
+                               .map(|s| OutputKind::from_str(s).unwrap())
                                .collect::<Vec<_>>()
                   });
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
@@ -65,10 +65,10 @@ fn main() {
                 .values_of("kinds")
                 .map(|values| {
                          values
-                             .map(|s| DimensionKind::from_str(s).unwrap())
+                             .map(|s| OutputKind::from_str(s).unwrap())
                              .collect()
                      })
-                .unwrap_or(DimensionKind::all());
+                .unwrap_or(OutputKind::all());
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_raw_parser(lang).unwrap();
             

@@ -57,7 +57,7 @@ impl Parser {
                                  order: &[OutputKind])
                                  -> RustlingResult<Vec<ParserMatch<Output>>> {
         let tagger = CandidateTagger {
-            order: &order.into_iter().map(|k| k.to_dim()).collect::<Vec<_>>(),
+            order: order,
             context: context,
             resolve_all_candidates: false,
         };

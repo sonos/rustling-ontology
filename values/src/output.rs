@@ -28,14 +28,16 @@ impl Output {
     }
 }
 
-pub enum OutputKind {
-    Number,
-    Ordinal,
-    Time,
-    AmountOfMoney,
-    Temperature,
-    Duration,
-}
+enum_kind!(OutputKind,
+    [
+        Number,
+        Ordinal,
+        Time,
+        AmountOfMoney,
+        Temperature,
+        Duration
+    ]
+);
 
 impl OutputKind {
     pub fn to_dim(&self) -> DimensionKind {
@@ -47,17 +49,6 @@ impl OutputKind {
             &OutputKind::Temperature => DimensionKind::Temperature,
             &OutputKind::Duration => DimensionKind::Duration,
         }
-    }
-
-    pub fn all() -> Vec<OutputKind> {
-        vec![
-            OutputKind::Number,
-            OutputKind::Ordinal,
-            OutputKind::Time,
-            OutputKind::AmountOfMoney,
-            OutputKind::Temperature,
-            OutputKind::Duration,
-        ]    
     }
 }
 

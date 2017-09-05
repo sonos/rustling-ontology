@@ -104,3 +104,43 @@ macro_rules! grain {
     ($y:expr, $m:expr, $d:expr, $h:expr, $min:expr) => (Grain::Minute);
     ($y:expr, $m:expr, $d:expr, $h:expr, $min:expr, $sec:expr) => (Grain::Second);
 }
+
+#[macro_export]
+macro_rules! enum_kind {
+    ($kindname:ident, [$($varname:ident),*]) => {
+        #[derive(Debug,Copy,Clone,PartialEq, Hash, Eq)]
+        pub enum $kindname {
+            $( $varname ),*
+        }
+
+        impl $kindname {
+            pub fn all() -> Vec<$kindname> {
+                vec![
+                    $( $kindname::$varname ),*
+                ]
+            }
+        }
+
+        impl ::std::str::FromStr for $kindname {
+            type Err=String;
+            fn from_str(s: &str) -> ::std::result::Result<$kindname, Self::Err> {
+                match s {
+                    $(
+                        stringify!($varname) => Ok($kindname::$varname),
+                    )*
+                    _ => Err(format!("{} is not a known {}", s, stringify!($kindname)))
+                }
+            }
+        }
+
+        impl ::std::string::ToString for $kindname {
+            fn to_string(&self) -> String {
+                match self {
+                    $(
+                        &$kindname::$varname => stringify!($varname).to_string(),
+                    )*
+                }
+            }
+        }
+    }
+}
