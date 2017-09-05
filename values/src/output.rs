@@ -13,6 +13,54 @@ pub enum Output {
     Duration(DurationOutput),
 }
 
+impl Output {
+    pub fn kind(&self) -> OutputKind {
+        match self {
+            &Output::Integer(_) => OutputKind::Number,
+            &Output::Float(_) => OutputKind::Number,
+            &Output::Ordinal(_) => OutputKind::Ordinal,
+            &Output::Time(_) => OutputKind::Time,
+            &Output::TimeInterval(_) => OutputKind::Time,
+            &Output::AmountOfMoney(_) => OutputKind::AmountOfMoney,
+            &Output::Temperature(_) => OutputKind::Temperature,
+            &Output::Duration(_) => OutputKind::Duration,
+        }
+    }
+}
+
+pub enum OutputKind {
+    Number,
+    Ordinal,
+    Time,
+    AmountOfMoney,
+    Temperature,
+    Duration,
+}
+
+impl OutputKind {
+    pub fn to_dim(&self) -> DimensionKind {
+        match self {
+            &OutputKind::Number => DimensionKind::Number,
+            &OutputKind::Ordinal => DimensionKind::Ordinal,
+            &OutputKind::Time => DimensionKind::Time,
+            &OutputKind::AmountOfMoney => DimensionKind::AmountOfMoney,
+            &OutputKind::Temperature => DimensionKind::Temperature,
+            &OutputKind::Duration => DimensionKind::Duration,
+        }
+    }
+
+    pub fn all() -> Vec<OutputKind> {
+        vec![
+            OutputKind::Number,
+            OutputKind::Ordinal,
+            OutputKind::Time,
+            OutputKind::AmountOfMoney,
+            OutputKind::Temperature,
+            OutputKind::Duration,
+        ]    
+    }
+}
+
 #[derive(Clone,Copy,PartialEq,Debug)]
 pub struct IntegerOutput(pub i64);
 
