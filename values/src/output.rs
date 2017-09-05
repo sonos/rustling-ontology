@@ -27,13 +27,14 @@ pub struct TimeOutput {
     pub moment: Moment<Local>, 
     pub grain: Grain, 
     pub precision: Precision,
+    pub latent: bool,
 }
 
 #[derive(Clone,Copy,PartialEq,Debug)]
 pub enum TimeIntervalOutput {
     After(TimeOutput),
     Before(TimeOutput),
-    Between(Moment<Local>, Moment<Local>, Precision)
+    Between { start: Moment<Local>, end: Moment<Local>, precision: Precision, latent: bool }
 }
 
 #[derive(Clone,Copy,PartialEq,Debug)]
@@ -47,6 +48,7 @@ pub struct AmountOfMoneyOutput {
 pub struct TemperatureOutput {
     pub value: f32, 
     pub unit: Option<&'static str>,
+    pub latent: bool,
 }
 
 #[derive(Clone,PartialEq,Debug)]
