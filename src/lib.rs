@@ -105,6 +105,14 @@ impl Parser {
         let all_dimension = DimensionKind::all();
         self.analyse_with_kind_order(examples, &context, &all_dimension)
     }
+
+    pub fn num_rules(&self) -> usize {
+        self.0.num_rules()
+    }
+
+    pub fn num_text_patterns(&self) -> usize {
+        self.0.num_text_patterns()
+    }
 }
 
 /// Obtain a parser for a given language.
