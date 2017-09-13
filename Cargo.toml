@@ -12,7 +12,7 @@ bincode = "0.8"
 rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
-rustling = { git="http://github.com/snipsco/rustling", tag="0.7.0" }
+rustling = { git="http://github.com/snipsco/rustling", tag="0.8.0" }
 rustling-ontology-moment = { path="moment"}
 rustling-ontology-values = { path="values"}
 rustling-ontology-rules = { path="rules"}
@@ -27,7 +27,7 @@ bincode = "0.8"
 rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
-rustling = { git="http://github.com/snipsco/rustling", tag="0.7.0" }
+rustling = { git="http://github.com/snipsco/rustling", tag="0.8.0" }
 rustling-ontology-values = { path="values"}
 rustling-ontology-moment = { path="moment"}
 rustling-ontology-rules = { path="rules"}
