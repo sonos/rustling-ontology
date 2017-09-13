@@ -1,21 +1,25 @@
 use std::cmp::{PartialOrd, Ordering};
 use rustling::{ParserMatch, ParsedNode, Candidate, MaxElementTagger, Value, Range};
 use rustling_ontology_values::ParsingContext;
-use rustling_ontology_values::dimension::{DimensionKind, Dimension};
+use rustling_ontology_values::dimension::{Dimension};
+use rustling_ontology_values::output::OutputKind;
 
 pub struct CandidateTagger<'a, C: ParsingContext<Dimension> + 'a> {
-    pub order: &'a [DimensionKind],
+    pub order: &'a [OutputKind],
     pub context: &'a C,
     pub resolve_all_candidates: bool,
 }
+
 
 impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for CandidateTagger<'a, C> {
     type O = Option<C::O>;
     fn tag(&self, 
             candidates: Vec<(ParsedNode<Dimension>, ParserMatch<Dimension>)>) -> Vec<Candidate<Dimension, Option<C::O>>> {
+        let order = self.order.iter().map(|o| o.to_dim()).collect::<Vec<_>>();
+
         let mut candidates = candidates.into_iter()
             .filter_map(|(pn, pm)| {
-                self.order
+                order
                     .iter()
                     .rev()
                     .position(|k| *k == pn.value.kind())

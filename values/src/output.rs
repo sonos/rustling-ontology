@@ -13,6 +13,45 @@ pub enum Output {
     Duration(DurationOutput),
 }
 
+impl Output {
+    pub fn kind(&self) -> OutputKind {
+        match self {
+            &Output::Integer(_) => OutputKind::Number,
+            &Output::Float(_) => OutputKind::Number,
+            &Output::Ordinal(_) => OutputKind::Ordinal,
+            &Output::Time(_) => OutputKind::Time,
+            &Output::TimeInterval(_) => OutputKind::Time,
+            &Output::AmountOfMoney(_) => OutputKind::AmountOfMoney,
+            &Output::Temperature(_) => OutputKind::Temperature,
+            &Output::Duration(_) => OutputKind::Duration,
+        }
+    }
+}
+
+enum_kind!(OutputKind,
+    [
+        Number,
+        Ordinal,
+        Time,
+        AmountOfMoney,
+        Temperature,
+        Duration
+    ]
+);
+
+impl OutputKind {
+    pub fn to_dim(&self) -> DimensionKind {
+        match self {
+            &OutputKind::Number => DimensionKind::Number,
+            &OutputKind::Ordinal => DimensionKind::Ordinal,
+            &OutputKind::Time => DimensionKind::Time,
+            &OutputKind::AmountOfMoney => DimensionKind::AmountOfMoney,
+            &OutputKind::Temperature => DimensionKind::Temperature,
+            &OutputKind::Duration => DimensionKind::Duration,
+        }
+    }
+}
+
 #[derive(Clone,Copy,PartialEq,Debug)]
 pub struct IntegerOutput(pub i64);
 
@@ -27,13 +66,14 @@ pub struct TimeOutput {
     pub moment: Moment<Local>, 
     pub grain: Grain, 
     pub precision: Precision,
+    pub latent: bool,
 }
 
 #[derive(Clone,Copy,PartialEq,Debug)]
 pub enum TimeIntervalOutput {
     After(TimeOutput),
     Before(TimeOutput),
-    Between(Moment<Local>, Moment<Local>, Precision)
+    Between { start: Moment<Local>, end: Moment<Local>, precision: Precision, latent: bool }
 }
 
 #[derive(Clone,Copy,PartialEq,Debug)]
@@ -47,6 +87,7 @@ pub struct AmountOfMoneyOutput {
 pub struct TemperatureOutput {
     pub value: f32, 
     pub unit: Option<&'static str>,
+    pub latent: bool,
 }
 
 #[derive(Clone,PartialEq,Debug)]

@@ -149,8 +149,8 @@ impl Check<Dimension> for CheckMomentSpan {
         self.context.resolve(&pn.value)
             .and_then(|v| TimeIntervalOutput::attempt_from(v))
             .map(|v| {
-                if let TimeIntervalOutput::Between(s, e, precision) = v {
-                    s == self.interval.start && Some(e) == self.interval.end && precision == self.precision
+                if let TimeIntervalOutput::Between { start, end, precision, .. } = v {
+                    start == self.interval.start && Some(end) == self.interval.end && precision == self.precision
                 } else {
                     false
                 }

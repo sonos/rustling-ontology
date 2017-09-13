@@ -33,9 +33,8 @@ pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, Sym};
 pub use rustling::errors::*;
 pub use rustling_ontology_rules::{Lang, dims};
 pub use rustling_ontology_values::dimension;
-pub use rustling_ontology_values::dimension::{Dimension, DimensionKind, NumberValue};
 pub use rustling_ontology_values::output;
-pub use rustling_ontology_values::output::Output;
+pub use rustling_ontology_values::output::{Output, OutputKind};
 pub use rustling_ontology_values::{ResolverContext, IdentityContext, ParsingContext};
 pub use rustling_ontology_moment::Interval;
 pub use rustling_ontology_moment::Grain;
@@ -55,7 +54,7 @@ impl Parser {
     pub fn parse_with_kind_order(&self,
                                  input: &str,
                                  context: &ResolverContext,
-                                 order: &[DimensionKind])
+                                 order: &[OutputKind])
                                  -> RustlingResult<Vec<ParserMatch<Output>>> {
         let tagger = CandidateTagger {
             order: order,
@@ -86,8 +85,8 @@ impl Parser {
                  input: &str,
                  context: &ResolverContext)
                  -> RustlingResult<Vec<ParserMatch<Output>>> {
-        let all_dimension = DimensionKind::all();
-        self.parse_with_kind_order(input, context, &all_dimension)
+        let all_output = OutputKind::all();
+        self.parse_with_kind_order(input, context, &all_output)
     }
 }
 

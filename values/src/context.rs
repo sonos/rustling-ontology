@@ -59,12 +59,20 @@ impl ParsingContext<Dimension> for ResolverContext {
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
                         if let Some(end) = interval.end {
-                            Output::TimeInterval(TimeIntervalOutput::Between(interval.start, end, tv.precision))
+                            Output::TimeInterval(
+                                TimeIntervalOutput::Between {
+                                    start: interval.start, 
+                                    end: end, 
+                                    precision: tv.precision,
+                                    latent: tv.latent,
+                                }
+                            )
                         } else {
                             let output = TimeOutput {
                                     moment: interval.start,
                                     grain: interval.grain,
                                     precision: tv.precision,
+                                    latent: tv.latent,
                                 } ;
                             if let Some(Direction::After) = tv.direction {
                                 Output::TimeInterval(TimeIntervalOutput::After(output))
@@ -91,6 +99,7 @@ impl ParsingContext<Dimension> for ResolverContext {
             &Dimension::Temperature(ref temp) if !temp.latent => Some(Output::Temperature(TemperatureOutput {
                 value: temp.value,
                 unit: temp.unit,
+                latent: temp.latent,
             })),
             &Dimension::Duration(ref duration) => Some(Output::Duration(DurationOutput {
                 period: duration.period.clone(),
