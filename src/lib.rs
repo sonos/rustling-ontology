@@ -92,7 +92,7 @@ impl Parser {
     pub fn analyse_with_kind_order(&self, 
                                     examples: Vec<&str>, 
                                     context: &ResolverContext, 
-                                    order:  &[DimensionKind]) -> RustlingResult<ParsingAnalysis> {
+                                    order:  &[OutputKind]) -> RustlingResult<ParsingAnalysis> {
         let tagger = CandidateTagger {
             order: order,
             context: context,
@@ -102,8 +102,8 @@ impl Parser {
     }
 
     pub fn analyse(&self, examples: Vec<&str>, context: &ResolverContext) -> RustlingResult<ParsingAnalysis> {
-        let all_dimension = DimensionKind::all();
-        self.analyse_with_kind_order(examples, &context, &all_dimension)
+        let all_kind = OutputKind::all();
+        self.analyse_with_kind_order(examples, &context, &all_kind)
     }
 
     pub fn num_rules(&self) -> usize {
@@ -188,7 +188,7 @@ mod tests {
         let ctx = ResolverContext::default();
         let parser = build_parser(Lang::EN).unwrap();
         let number = "one million five hundred twenty-one thousand eighty-two";
-        let result = parser.parse_with_kind_order(number, &ctx,  &[DimensionKind::Number]).unwrap();
+        let result = parser.parse_with_kind_order(number, &ctx,  &[OutputKind::Number]).unwrap();
         let int: output::IntegerOutput = result[0].value.clone().attempt_into().unwrap();
         assert_eq!(1521082, int.0);
     }
@@ -200,7 +200,7 @@ mod tests {
         //        let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm";
         let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
         let tagger = CandidateTagger {
-            order: &DimensionKind::all(),
+            order: &OutputKind::all(),
             context: &ResolverContext::default(),
             resolve_all_candidates: false,
         };
