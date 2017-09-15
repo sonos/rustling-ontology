@@ -1453,14 +1453,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("end of year",
-             b.reg(r#"(?:(?:das|de[ms] ))?ende(?: de[sr])?"#)?,
-             time_check!(|time: &TimeValue| {
-            match time.form {
-                Form::Year(_) | Form::Cycle(Grain::Year) => true,
-                _ => false
-            }
-        }),
-             |_, year| {
+            b.reg(r#"(?:(?:das|de[ms] ))?ende(?: de[sr])?"#)?,
+            time_check!(|time: &TimeValue| {
+                match time.form {
+                    Form::Year(_) | Form::Cycle(Grain::Year) => true,
+                    _ => false
+                }
+            }),
+            |_, year| {
                  let start = year.value().intersect(&helpers::month(10)?)?;
                  let end = year.value().intersect(&helpers::month(12)?)?;
                  start.span_to(&end, true)
@@ -1764,33 +1764,33 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("number hundreds",
-             integer_check!(1, 99),
-             integer_check!(100, 100),
-             |a, b| Ok(IntegerValue {
-                 value: a.value().value * b.value().value,
-                 grain: b.value().grain,
-                 ..IntegerValue::default()
-             })
+        integer_check!(1, 99),
+        b.reg(r#"hunderte?"#)?,
+        |a, _| Ok(IntegerValue {
+            value: a.value().value * 100,
+            grain: Some(2),
+            ..IntegerValue::default()
+        })
     );
 
     b.rule_2("number thousands",
-             integer_check!(1, 999),
-             integer_check!(1000, 1000),
-             |a, b| Ok(IntegerValue {
-                 value: a.value().value * b.value().value,
-                 grain: b.value().grain,
-                 ..IntegerValue::default()
-             })
+        integer_check!(1, 999),
+        b.reg(r#"tausende?"#)?,
+        |a, _| Ok(IntegerValue {
+            value: a.value().value * 1000,
+            grain: Some(3),
+            ..IntegerValue::default()
+        })
     );
 
     b.rule_2("number millions",
-             integer_check!(1, 99),
-             integer_check!(1000000, 1000000),
-             |a, b| Ok(IntegerValue {
-                 value: a.value().value * b.value().value,
-                 grain: b.value().grain,
-                 ..IntegerValue::default()
-             })
+        integer_check!(1, 999),
+         b.reg(r#"million(?:en)?"#)?,
+        |a, _| Ok(IntegerValue {
+            value: a.value().value * 1000000,
+            grain: Some(6),
+            ..IntegerValue::default()
+        })
     );
     b.rule_1_terminal("decimal number",
                       b.reg(r#"(\d*,\d+)"#)?,

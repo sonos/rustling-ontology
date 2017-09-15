@@ -225,6 +225,19 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(90), "quatre vingt dix");
     example!(v, check_integer(91), "quatre vingt onze");
     example!(v, check_integer(99), "quatre vingt dix neuf");
+    example!(v, check_integer(5000), "5 milles", "cinq milles");
+    example!(v, check_integer(200000), "deux cents milles");
+    example!(v, check_integer(21011), "vingt-et-un mille onze");
+    example!(v,
+             check_integer(721012),
+             "sept cents vingt et un milles douze",
+             "sept cents vingt-et-un milles douze");
+    example!(v,
+             check_integer(31256721),
+             "trente et un millions deux cents cinquante six milles sept cents vingt et un"
+             );
+    
+
     example!(v,
              check_integer(33),
              "33",
