@@ -1,4 +1,5 @@
 # rustling-ontology
+[![Build Status](https://travis-ci.org/snipsco/rustling-ontology.svg?branch=develop)](https://travis-ci.org/snipsco/rustling-ontology)
 Ontology for rustling
 
 
