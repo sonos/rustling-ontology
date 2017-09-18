@@ -41,6 +41,7 @@ pub use rustling_ontology_moment::Grain;
 
 mod parser;
 mod tagger;
+
 pub use tagger::CandidateTagger;
 
 // Rustling raw parser. Don't use directly
@@ -66,12 +67,12 @@ impl Parser {
             .filter_map(|m| {
                 if let Some(v) = m.value {
                     Some(ParserMatch {
-                        byte_range: m.byte_range, 
+                        byte_range: m.byte_range,
                         char_range: m.char_range,
                         parsing_tree_height: m.parsing_tree_height,
                         parsing_tree_num_nodes: m.parsing_tree_num_nodes,
-                        value: v, 
-                        probalog: m.probalog, 
+                        value: v,
+                        probalog: m.probalog,
                         latent: m.latent,
                     })
                 } else {
@@ -89,16 +90,16 @@ impl Parser {
         self.parse_with_kind_order(input, context, &all_output)
     }
 
-    pub fn analyse_with_kind_order(&self, 
-                                    examples: Vec<&str>, 
-                                    context: &ResolverContext, 
+    pub fn analyse_with_kind_order(&self,
+                                    examples: Vec<&str>,
+                                    context: &ResolverContext,
                                     order:  &[OutputKind]) -> RustlingResult<ParsingAnalysis> {
         let tagger = CandidateTagger {
             order: order,
             context: context,
             resolve_all_candidates: false,
         };
-        self.0.analyse(examples, &tagger) 
+        self.0.analyse(examples, &tagger)
     }
 
     pub fn analyse(&self, examples: Vec<&str>, context: &ResolverContext) -> RustlingResult<ParsingAnalysis> {
@@ -123,6 +124,7 @@ pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
         Lang::FR => fr::build_parser(),
         Lang::ES => es::build_parser(),
         Lang::KO => ko::build_parser(),
+        Lang::ZH => zh::build_parser(),
     }
 }
 
@@ -134,6 +136,7 @@ pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
         Lang::FR => fr::build_raw_parser(),
         Lang::ES => es::build_raw_parser(),
         Lang::KO => ko::build_raw_parser(),
+        Lang::ZH => zh::build_raw_parser(),
     }
 }
 
@@ -144,6 +147,7 @@ pub fn train_parser(lang: Lang) -> RustlingResult<Parser> {
         Lang::FR => fr::train_parser(),
         Lang::ES => es::train_parser(),
         Lang::KO => ko::train_parser(),
+        Lang::ZH => zh::train_parser(),
     }
 }
 
@@ -178,6 +182,7 @@ lang!(en, en_config);
 lang!(es, es_config);
 lang!(fr, fr_config);
 lang!(ko, ko_config);
+lang!(zh, zh_config);
 
 #[cfg(test)]
 mod tests {
