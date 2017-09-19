@@ -19,7 +19,7 @@ pub mod zh;
 macro_rules! lang_enum {
     ([$($lang:ident),*]) => {
         /// Enumerates all language supported for the general purpose ontology.
-        #[derive(Copy,Clone,Debug)]
+        #[derive(Copy,Clone,Debug,PartialEq, Eq)]
         pub enum Lang {
             $( $lang, )*
         }
@@ -31,38 +31,30 @@ macro_rules! lang_enum {
                 ]
             }
         }
+
+        impl std::str::FromStr for Lang {
+            type Err = String;
+            fn from_str(it: &str) -> result::Result<Lang, Self::Err> {
+                match &*it.to_uppercase() {
+                    $( stringify!($lang) => Ok(Lang::$lang),  )*
+                    _ => Err(format!("Unknown language {}", it)),
+                }
+            }
+        }
+
+        impl ::std::string::ToString for Lang {
+            fn to_string(&self) -> String {
+                match self {
+                    $( &Lang::$lang => stringify!($lang).to_string(),)*
+                }
+            }
+        }
+
     }
 }
 
 lang_enum!([DE, EN, ES, FR, KO, ZH]);
 
-impl std::str::FromStr for Lang {
-    type Err = String;
-    fn from_str(it: &str) -> result::Result<Lang, Self::Err> {
-        match &*it.to_lowercase() {
-            "en" => Ok(Lang::EN),
-            "fr" => Ok(Lang::FR),
-            "es" => Ok(Lang::ES),
-            "ko" => Ok(Lang::KO),
-            "de" => Ok(Lang::DE),
-            "zh" => Ok(Lang::ZH),
-            _ => Err(format!("Unknown language {}", it)),
-        }
-    }
-}
-
-impl ::std::string::ToString for Lang {
-    fn to_string(&self) -> String {
-        match self {
-            &Lang::EN => "en".to_string(),
-            &Lang::FR => "fr".to_string(),
-            &Lang::ES => "es".to_string(),
-            &Lang::KO => "ko".to_string(),
-            &Lang::DE => "de".to_string(),
-            &Lang::ZH => "zh".to_string()
-        }
-    }
-}
 
 macro_rules! lang {
     ($lang:ident, $config:ident, $word_boundaries:ident, $match_boundaries:ident, [$($rule:ident),*], [$($dim:ident),*]) => {
@@ -109,6 +101,7 @@ pub fn dims(lang: Lang) -> Vec<values::DimensionKind> {
         Lang::ZH => zh_config::dims()
     }
 }
+
 
 lang!(de, de_config, composed_word_or_detailed, separated_alphanumeric_word, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
