@@ -20,3 +20,9 @@ fn ex_100k() {
     assert!(!run(&en, "toto100k").into_iter().any(|it| check_integer(100000).check(&it)));
 }
 
+#[test]
+fn test_lang() {
+    use std::str::FromStr;
+    assert_eq!(rules::Lang::EN.to_string(), "EN");
+    assert_eq!(rules::Lang::from_str("en").unwrap(), rules::Lang::EN);
+}
