@@ -12,6 +12,7 @@ use std::path;
 use std::str::FromStr;
 
 use rustling_ontology::*;
+use rustling_ontology::dimension::Dimension;
 use bencher::Bencher;
 
 #[derive(Debug, Deserialize)]
@@ -51,7 +52,7 @@ fn file_path(file_name: &str) -> path::PathBuf {
     }
 }
 
-fn parsing_tagger<'a>(kinds: &'a [DimensionKind], context: &'a IdentityContext<Dimension>) -> CandidateTagger<'a, IdentityContext<Dimension>> {
+fn parsing_tagger<'a>(kinds: &'a [OutputKind], context: &'a IdentityContext<Dimension>) -> CandidateTagger<'a, IdentityContext<Dimension>> {
     CandidateTagger {
         order: kinds,
         context: context,
@@ -76,7 +77,6 @@ fn parse_small_numbers(bench: &mut Bencher) {
 
     let parser = build_parser(input.rustling_lang()).unwrap();
     let context = ResolverContext::default();
-    let dims = DimensionKind::all();
     let sentences = input.small_numbers.unwrap_or(vec![]);
     bench.iter(|| {
         for i in sentences.iter() {
@@ -89,7 +89,6 @@ fn parse_big_numbers(bench: &mut Bencher) {
     let input = parse_bench_input();
     let parser = build_parser(input.rustling_lang()).unwrap();
     let context = ResolverContext::default();
-    let dims = DimensionKind::all();
     let sentences = input.big_numbers.unwrap_or(vec![]);
     bench.iter(|| {
         for i in sentences.iter() {
@@ -103,7 +102,6 @@ fn parse_intent_sentences(bench: &mut Bencher) {
     let parser = build_parser(input.rustling_lang()).unwrap();
     let sentences = input.intent_sentences;
     let context = ResolverContext::default();
-    let dims = DimensionKind::all();
     bench.iter(|| {
         for i in sentences.iter() {
             let _ = parser.parse(&*i, &context);
@@ -115,7 +113,6 @@ fn parse_complex_time_sentence(bench: &mut Bencher) {
     let input = parse_bench_input();
     let parser = build_parser(input.rustling_lang()).unwrap();
     let context = ResolverContext::default();
-    let dims = DimensionKind::all();
     let sentence = input.complex_sentence;
     bench.iter(|| parser.parse(&sentence, &context));
 }
