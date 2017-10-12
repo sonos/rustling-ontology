@@ -1,7 +1,107 @@
 use rustling::*;
 use values::dimension::*;
+use values::dimension::Precision::*;
 use values::helpers;
 use moment::{Weekday, Grain, PeriodComp, Period};
+
+pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect (X cents)",
+             amount_of_money_check!(),
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
+             |a, b| helpers::compose_money(a.value(), b.value()));
+    b.rule_3("intersect (and X cents)",
+             amount_of_money_check!(),
+             b.reg(r#"et"#)?,
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
+             |a, _, b| helpers::compose_money(&a.value(), &b.value()));
+    b.rule_2("intersect",
+             amount_of_money_check!(),
+             number_check!(),
+             |a, b| helpers::compose_money_number(&a.value(), &b.value()));
+    b.rule_1_terminal("$",
+        b.reg(r#"\$|dollars?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("$") })
+    );
+    b.rule_1_terminal("€",
+        b.reg(r#"€|(?:[e€]uro?s?)"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("€") })
+    );
+    b.rule_1_terminal("£",
+        b.reg(r#"£|livres?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("£") })
+    );
+    b.rule_1_terminal("USD",
+        b.reg(r#"us[d\$]|dollars? am[eé]ricains?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("USD") })
+    );
+    b.rule_1_terminal("CHF",
+        b.reg(r#"chf|francs? suisses?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CHF") })
+    );
+    b.rule_1_terminal("JPY",
+        b.reg(r#"jpy|yens?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("JPY") })
+    );
+    b.rule_1_terminal("RMB|CNH|CNY",
+        b.reg(r#"cny|cnh|rmb|yuans?|renmimbis?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("¥") })
+    );
+    b.rule_1_terminal("Bitcoin",
+        b.reg(r#"bitcoins?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("฿") })
+    );
+    b.rule_1_terminal("GBP",
+        b.reg(r#"gbp|livres? sterling"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("GBP") })
+    );
+    b.rule_1_terminal("cent",
+                      b.reg(r#"centimes?|cents?|penn(?:y|ies)|fens?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("cent") })
+    );
+    b.rule_1_terminal("unnamed currency",
+                      b.reg(r#"(?:balle)s?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: None })
+    );
+    b.rule_2("<amount> <unit>",
+             number_check!(),
+             money_unit!(),
+             |a, b| {
+                 Ok(AmountOfMoneyValue {
+                     value: a.value().value(),
+                     unit: b.value().unit,
+                     ..AmountOfMoneyValue::default()
+                 })
+             });
+    b.rule_2("about <amount-of-money>",
+             b.reg(r#"(?:autour|pas loin|pr[eè]s|aux alentours) d[e']|environ|(?:approximative|quasi)ment"#)?,
+             amount_of_money_check!(),
+             |_, a| {
+                 Ok(AmountOfMoneyValue {
+                     precision: Approximate,
+                     ..a.value().clone()
+                 })
+             });
+    b.rule_2("exactly <amount-of-money>",
+             b.reg(r#"(?:tr[eè]s )?exactement|pr[eé]cis[eé]ment|pile(?: poil)?"#)?,
+             amount_of_money_check!(),
+             |_, a| {
+                 Ok(AmountOfMoneyValue {
+                     precision: Exact,
+                     ..a.value().clone()
+                 })
+             });
+    b.rule_2("exactly <amount-of-money>",
+        amount_of_money_check!(),
+        b.reg(r#"pile(?: poil)?|tout rond"#)?,
+        |a, _| {
+            Ok(AmountOfMoneyValue {
+                     precision: Exact,
+                     ..a.value().clone()
+            })
+        }
+    );
+    Ok(())
+}
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("seconde (unit-of-duration)",
