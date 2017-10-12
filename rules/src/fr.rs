@@ -161,6 +161,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              unit_of_duration_check!(),
              |integer, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, integer.value().value).into()))
     );
+    b.rule_3("<integer> de <unit-of-duration>",
+        integer_filter!(|integer: &IntegerValue| integer.value >= 0 && integer.group),
+        b.reg(r#"d[e']"#)?,
+        unit_of_duration_check!(),
+        |integer, _, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, integer.value().value).into()))
+    );
     b.rule_3("<number> h <number>",
              integer_check!(0),
              b.reg(r#"h(?:eures?)?"#)?,
