@@ -851,7 +851,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("après-midi",
-        b.reg(r#"apr[eéè]s?[ \-]?midi"#)?,
+        b.reg(r#"apr[eéè]s?[ \-]?midi|aprem"#)?,
         |_| {
             Ok(helpers::hour(12, false)?
                     .span_to(&helpers::hour(19, false)?, false)?
@@ -860,7 +860,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("début d'après-midi",
-        b.reg(r#"d[ée]but d'apr[eéè]s?[ \-]?midi"#)?,
+        b.reg(r#"d[ée]but d'(?:apr[eéè]s?[ \-]?midi|aprem)"#)?,
         |_| {
             Ok(helpers::hour(12, false)?
                     .span_to(&helpers::hour(14, false)?, false)?
@@ -869,7 +869,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("milieu d'après-midi",
-        b.reg(r#"milieu d'apr[eéè]s?[ \-]?midi"#)?,
+        b.reg(r#"milieu d'(?:apr[eéè]s?[ \-]?midi|aprem)"#)?,
         |_| {
             Ok(helpers::hour(15, false)?
                     .span_to(&helpers::hour(17, false)?, false)?
@@ -878,7 +878,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("fin d'après-midi",
-        b.reg(r#"fin d'apr[eéè]s?[ \-]?midi"#)?,
+        b.reg(r#"fin d'(?:apr[eéè]s?[ \-]?midi|aprem)"#)?,
         |_| {
             Ok(helpers::hour(17, false)?
                     .span_to(&helpers::hour(19, false)?, false)?
