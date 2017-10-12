@@ -376,6 +376,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"(?:(?:la |la journée de la |jour de la )?toussaint|jour des morts)"#)?,
         |_| helpers::month_day(11, 1)
     );
+    b.rule_1_terminal("Saint Etienne (Alsace)",
+        b.reg(r#"(?:(?:le jour|la f[eê]te) de )?la (?:saint|st) [eé]tienne"#)?,
+        |_| helpers::month_day(12, 26)
+    );
     b.rule_1_terminal("1er mai",
         b.reg(r#"f(e|ê)te du travail"#)?,
         |_| helpers::month_day(5, 1)
