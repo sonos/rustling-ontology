@@ -829,8 +829,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .form(Form::PartOfDay))
         }
     );
+    b.rule_1_terminal("nuit", 
+        b.reg(r#"nuit"#)?,
+        |_| {
+            Ok(helpers::hour(22, false)?
+                    .span_to(&helpers::hour(6, false)?, false)?
+                    .latent()
+                    .form(Form::PartOfDay))
+        }
+    );
     b.rule_2("du|dans le <part-of-day>",
-             b.reg(r#"du|dans l[ae']? ?|au|en|l[ae' ]|d[èe]s l?[ae']? ?"#)?,
+             b.reg(r#"pendant|durant|du|dans l[ae']? ?|au|en|l[ae' ]|d[èe]s l?[ae']? ?"#)?,
              time_check!(form!(Form::PartOfDay)),
              |_, a| Ok(a.value().clone().not_latent())
     );
@@ -1014,6 +1023,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  let end = month.value().intersect(&helpers::day_of_month(text_match.group(1).parse()?)?)?;
                  start.span_to(&end, true)
              }
+    );
+    b.rule_4("la nuit <day-of-week> <day-of-week>",
+        b.reg(r#"(dans|pendant|durant) la nuit (?:du|de)"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        b.reg(r#"\-|au|jusqu'au"#)?,
+        time_check!(form!(Form::DayOfWeek{..})),
+        |_, start, _, end| {
+            let start = start.value().intersect(&helpers::hour(22, false)?)?;
+            let end = end.value().intersect(&helpers::hour(6, false)?)?;
+            start.span_to(&end, false)
+        }
     );
     b.rule_5("entre dd et dd <month>(interval)",
              b.reg(r#"entre(?: le)?"#)?,
