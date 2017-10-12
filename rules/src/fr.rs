@@ -1495,6 +1495,41 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
            })
     });
+    b.rule_1_terminal("(douzaine ... soixantaine)",
+        b.reg(r#"(demi[ -]douz|diz|douz|quinz|vingt|trent|quarant|cinquant|soixant|cent)aines?"#)?,
+        |text_match| {
+            let value = match text_match.group(1).as_ref() {
+                "demi douz" => 6,
+                "demi-douz" => 6,
+                "diz" => 10,
+                "douz" => 12,
+                "quinz" => 15,
+                "vingt" => 20,
+                "trent" => 30,
+                "quarant" => 40,
+                "cinquant" => 50,
+                "soixant" => 60,
+                "cent" => 100,
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            Ok(IntegerValue {
+                value,
+                group: true,
+                .. IntegerValue::default()
+            })
+        }
+    );
+    b.rule_2("number dozen",
+            integer_check!(1, 9),
+            integer_filter!(|integer: &IntegerValue| integer.group),
+            |a, b| {
+                 Ok(IntegerValue {
+                     value: a.value().value * b.value().value,
+                     grain: b.value().grain,
+                     group: true,
+                     ..IntegerValue::default()
+                 })
+    });
     b.rule_1_terminal(
             "ordinals (premier..seizieme)",
             b.reg(r#"(premi(?:ere?|ère)|(?:deux|trois|quatr|cinqu|six|sept|huit|neuv|dix|onz|douz|treiz|quatorz|quinz|seiz)i[eè]me)"#)?,
@@ -1543,7 +1578,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |integer, _| {
             FloatValue::new(integer.value().value as f32 + 0.5)
         }
-
     );
     b.rule_1_terminal("70, 80, 90 (Belgium and Switzerland)",
         b.reg(r#"(sept|huit|non)ante( et un)"#)?,
