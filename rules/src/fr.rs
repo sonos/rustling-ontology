@@ -1526,6 +1526,43 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  };
                  Ok(OrdinalValue::new(value))
             });
+    b.rule_1_terminal("70, 80, 90 (Belgium and Switzerland)",
+        b.reg(r#"(sept|huit|non)ante( et un)"#)?,
+        |text_match| {
+            let value = match text_match.group(1).as_ref() {
+                "sept" => 70,
+                "huit" => 80,
+                "non" => 90,
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            IntegerValue::new(value)
+        }
+    );
+    b.rule_1_terminal("71, 81, 91 (Belgium and Switzerland)",
+        b.reg(r#"(sept|huit|non)ante et un"#)?,
+        |text_match| {
+            let value = match text_match.group(1).as_ref() {
+                "sept" => 71,
+                "huit" => 81,
+                "non" => 91,
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            IntegerValue::new(value)
+        }
+    );
+    b.rule_2("72..79, 82..89, 92..99, (Belgium and Switzerland)",
+        b.reg(r#"(sept|huit|non)ante"#)?,
+        integer_check!(2, 9),
+        |text_match, integer| {
+            let value = match text_match.group(1).as_ref() {
+                "sept" => 70,
+                "huit" => 80,
+                "non" => 90,
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            IntegerValue::new(value + integer.value().value)
+        }
+    );
     b.rule_1_terminal("ordinal (digits)",
              b.reg(r#"0*(\d+) ?(ere?|ère|ème|eme|ieme|ième)"#)?,
              |text_match| {
