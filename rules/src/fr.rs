@@ -95,6 +95,13 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| duration.value().ago()
     );
+    b.rule_2("depuis <duration>",
+        b.reg(r#"depuis|[cç]a fait"#)?,
+        duration_check!(),
+        |_, duration| {
+            duration.value().ago()?
+                .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
+    });
     b.rule_3("<duration> apres <time>",
              duration_check!(),
              b.reg(r#"apr[eè]s"#)?,
