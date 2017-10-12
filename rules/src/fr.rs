@@ -625,7 +625,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
     );
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
-             time_check!(form!(Form::TimeOfDay(Some(_)))),
+             time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(Some(_)))(time)),
              relative_minute_check!(),
              |time, minutes| helpers::hour_relative_minute(
                  time.value().form_time_of_day()?.full_hour,
@@ -1141,9 +1141,9 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
-             time_check!(form!(Form::TimeOfDay(_))),
+             time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
+             time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(_))(time)),
              |a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("de <time-of-day> - <time-of-day> (interval)",
