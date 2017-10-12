@@ -9,12 +9,12 @@ use std::result;
 #[macro_use]
 mod macros;
 
-pub mod de;
-pub mod en;
-pub mod es;
+// pub mod de;
+// pub mod en;
+// pub mod es;
 pub mod fr;
-pub mod ko;
-pub mod zh;
+// pub mod ko;
+// pub mod zh;
 
 macro_rules! lang_enum {
     ([$($lang:ident),*]) => {
@@ -53,7 +53,8 @@ macro_rules! lang_enum {
     }
 }
 
-lang_enum!([DE, EN, ES, FR, KO, ZH]);
+// lang_enum!([DE, EN, ES, FR, KO, ZH]);
+lang_enum!([FR]);
 
 
 macro_rules! lang {
@@ -81,37 +82,37 @@ macro_rules! lang {
 /// Obtain rules for a given language.
 pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<values::Dimension>> {
     match lang {
-        Lang::DE => de_config::rule_set(),
-        Lang::EN => en_config::rule_set(),
-        Lang::ES => es_config::rule_set(),
+        // Lang::DE => de_config::rule_set(),
+        // Lang::EN => en_config::rule_set(),
+        // Lang::ES => es_config::rule_set(),
         Lang::FR => fr_config::rule_set(),
-        Lang::KO => ko_config::rule_set(),
-        Lang::ZH => zh_config::rule_set()
+        // Lang::KO => ko_config::rule_set(),
+        // Lang::ZH => zh_config::rule_set()
     }
 }
 
 /// Obtain dimensions for a given language.
 pub fn dims(lang: Lang) -> Vec<values::DimensionKind> {
     match lang {
-        Lang::DE => de_config::dims(),
-        Lang::EN => en_config::dims(),
-        Lang::ES => es_config::dims(),
+        // Lang::DE => de_config::dims(),
+        // Lang::EN => en_config::dims(),
+        // Lang::ES => es_config::dims(),
         Lang::FR => fr_config::dims(),
-        Lang::KO => ko_config::dims(),
-        Lang::ZH => zh_config::dims()
+        // Lang::KO => ko_config::dims(),
+        // Lang::ZH => zh_config::dims()
     }
 }
 
 
-lang!(de, de_config, composed_word_or_detailed, separated_alphanumeric_word, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
-          [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
-lang!(en, en_config, detailed, separated_alphanumeric_word, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
-          [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
-lang!(es, es_config, detailed, separated_alphanumeric_word, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
-          [Number, Ordinal, Time, Duration, Temperature]);
+// lang!(de, de_config, composed_word_or_detailed, separated_alphanumeric_word, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
+//           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
+// lang!(en, en_config, detailed, separated_alphanumeric_word, [rules_numbers, rules_time, rules_cycle, rules_duration, rules_temperature, rules_finance], 
+//           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
+// lang!(es, es_config, detailed, separated_alphanumeric_word, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
+//           [Number, Ordinal, Time, Duration, Temperature]);
 lang!(fr, fr_config, detailed, separated_alphanumeric_word, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
           [Number, Ordinal, Time, Duration, Temperature]);
-lang!(ko, ko_config, detailed, separated_alphanumeric_word, [rules_numbers, rule_time, rule_temperature, rules_finance, rules_cycle, rules_duration], 
-          [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
-lang!(zh, zh_config, no_check, no_check, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration], [Number, Ordinal, Time, Duration, Temperature]);
+// lang!(ko, ko_config, detailed, separated_alphanumeric_word, [rules_numbers, rule_time, rule_temperature, rules_finance, rules_cycle, rules_duration], 
+//           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
+// lang!(zh, zh_config, no_check, no_check, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration], [Number, Ordinal, Time, Duration, Temperature]);
 

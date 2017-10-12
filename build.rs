@@ -29,18 +29,18 @@ macro_rules! lang {
     }
 }
 
-lang!(de, de_config);
-lang!(en, en_config);
-lang!(es, es_config);
+// lang!(de, de_config);
+// lang!(en, en_config);
+// lang!(es, es_config);
 lang!(fr, fr_config);
-lang!(ko, ko_config);
-lang!(zh, zh_config);
+// lang!(ko, ko_config);
+// lang!(zh, zh_config);
 
 fn main() {
-    de::train();
-    en::train();
-    es::train();
+    // de::train();
+    // en::train();
+    // es::train();
     fr::train();
-    ko::train();
-    zh::train();
+    // ko::train();
+    // zh::train();
 }
