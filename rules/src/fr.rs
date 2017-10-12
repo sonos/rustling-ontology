@@ -823,11 +823,23 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .latent()
                 .form(Form::PartOfDay))
     );
+    b.rule_1_terminal("petit dejeuner",
+        b.reg(r#"(?:[àa] l'?heure du |pendant(?: le)? |au )?petit d[ée]jeuner"#)?,
+        |_| Ok(helpers::hour(5, false)?
+                .span_to(&helpers::hour(10, false)?, false)?
+                .form(Form::PartOfDay))
+    );
     b.rule_1_terminal("milieu de matinée",
         b.reg(r#"milieu de matin[ée]e"#)?,
         |_| Ok(helpers::hour(9, false)?
                 .span_to(&helpers::hour(11, false)?, false)?
                 .latent()
+                .form(Form::PartOfDay))
+    );
+    b.rule_1_terminal("brunch",
+        b.reg(r#"(?:(?:[àa] )?l'?heure du |au |pendant le |pour le )?brunch"#)?,
+        |_| Ok(helpers::hour(10, false)?
+                .span_to(&helpers::hour(15, false)?, false)?
                 .form(Form::PartOfDay))
     );
     b.rule_1_terminal("fin de matinée",
@@ -838,7 +850,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay))
     );
     b.rule_1_terminal("au déjeuner",
-        b.reg(r#"(?:[àa] l(?:')?heure du|pendant(?: le)?|au)? d[eéè]jeuner"#)?,
+        b.reg(r#"(?:[àa] l(?:')?heure du |pendant(?: le)? |au |pour le)?d[eéè]jeuner"#)?,
         |_| Ok(helpers::hour(12, false)?
                 .span_to(&helpers::hour(14, false)?, false)?
                 .latent()
@@ -881,7 +893,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"d[ée]but d'(?:apr[eéè]s?[ \-]?midi|aprem)"#)?,
         |_| {
             Ok(helpers::hour(12, false)?
-                    .span_to(&helpers::hour(14, false)?, false)?
+                    .span_to(&helpers::hour(15, false)?, false)?
                     .latent()
                     .form(Form::PartOfDay))
         }
@@ -894,6 +906,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .latent()
                     .form(Form::PartOfDay))
         }
+    );
+    b.rule_1_terminal("gouter",
+        b.reg(r#"(?:(?:[àa] )?l'?heure du |au |pendant le |pour le )?go[uû]ter"#)?,
+        |_| Ok(helpers::hour(16, false)?
+                .span_to(&helpers::hour(18, false)?, false)?
+                .form(Form::PartOfDay))
     );
     b.rule_1_terminal("fin d'après-midi",
         b.reg(r#"fin d'(?:apr[eéè]s?[ \-]?midi|aprem)"#)?,
@@ -957,6 +975,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .latent()
                     .form(Form::PartOfDay))
         }
+    );
+    b.rule_1_terminal("diner",
+        b.reg(r#"(?:(?:[àa] )?l'?heure du|au |pendant le |pour le )?d[iî]ner"#)?,
+        |_| Ok(helpers::hour(18, false)?
+                .span_to(&helpers::hour(23, false)?, false)?
+                .form(Form::PartOfDay))
     );
     b.rule_1_terminal("nuit", 
         b.reg(r#"nuit"#)?,

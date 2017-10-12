@@ -122,8 +122,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "pendant le déjeuner", "à l'heure du déjeuner");
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "après le travail");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 12]), "dès le matin", "dès la matinée");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "en début d'après-midi");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "en fin d'après-midi");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 15]), "en début d'après-midi", "en début d'aprem");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "en fin d'après-midi", "en fin d'aprem");
     example!(v, check_moment_span!(c, [2013, 2, 12, 6], [2013, 2, 12, 10]), "en début de journée");
     example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "milieu de journée");
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "en fin de journée");
