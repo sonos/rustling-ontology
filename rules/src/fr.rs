@@ -604,7 +604,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             )?.latent())
     );
     b.rule_1_terminal("quart (relative minutes)",
-        b.reg(r#"quart"#)?,
+        b.reg(r#"(?:un )?quart"#)?,
         |_| Ok(RelativeMinuteValue(15))
     );
     b.rule_1_terminal("demi (relative minutes)",
@@ -634,7 +634,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              )
     );
     b.rule_3("<hour-of-day> moins <integer> (as relative minutes)",
-             time_check!(form!(Form::TimeOfDay(Some(_)))),
+             time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(Some(_)))(time)),
              b.reg(r#"moins(?: le)?"#)?,
              relative_minute_check!(),
              |time, _, minutes| helpers::hour_relative_minute(
@@ -644,7 +644,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              )
     );
     b.rule_3("<hour-of-day> et|passé de <relative minutes>",
-             time_check!(form!(Form::TimeOfDay(Some(_)))),
+             time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(Some(_)))(time)),
              b.reg(r#"et|(?:pass[ée]e? de)"#)?,
              relative_minute_check!(),
              |time, _, minutes| helpers::hour_relative_minute(
@@ -1537,6 +1537,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  };
                  Ok(OrdinalValue::new(value))
             });
+    b.rule_2("<number> et demi",
+        integer_check!(0, 99),
+        b.reg(r#"et demie?"#)?,
+        |integer, _| {
+            FloatValue::new(integer.value().value as f32 + 0.5)
+        }
+
+    );
     b.rule_1_terminal("70, 80, 90 (Belgium and Switzerland)",
         b.reg(r#"(sept|huit|non)ante( et un)"#)?,
         |text_match| {
