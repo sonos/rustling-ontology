@@ -72,6 +72,17 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..AmountOfMoneyValue::default()
                  })
              });
+    b.rule_3("<amount> de <unit>",
+        integer_filter!(|integer: &IntegerValue| integer.group),
+        b.reg(r#"d[e']"#)?,
+        money_unit!(),
+        |a, _, b| {
+            Ok(AmountOfMoneyValue {
+                value: a.value().value as f32,
+                unit: b.value().unit,
+                ..AmountOfMoneyValue::default()
+            })
+    });
     b.rule_2("about <amount-of-money>",
              b.reg(r#"(?:autour|pas loin|pr[eè]s|aux alentours) d[e']|environ|(?:approximative|quasi)ment"#)?,
              amount_of_money_check!(),
