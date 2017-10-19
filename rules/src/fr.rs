@@ -505,6 +505,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"(?:(?:le jour|la f[eê]te) de )?la (?:saint|st) [eé]tienne"#)?,
         |_| helpers::month_day(12, 26)
     );
+    b.rule_1_terminal("Pâques",
+        b.reg(r#"la f[eê]te de p[âa]ques"#)?,
+        |_| helpers::easter()
+    );
     b.rule_1_terminal("1er mai",
         b.reg(r#"f(e|ê)te du travail"#)?,
         |_| helpers::month_day(5, 1)
@@ -630,6 +634,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |integer| {
                  Ok(helpers::year(integer.value().value as i32)?.latent())
              }
+    );
+    b.rule_2("en <year>",
+        b.reg(r#"(?:en(?: l'an)?|de l'ann[eé])"#)?,
+        time_check!(|time: &TimeValue| !time.latent && form!(Form::Year(_))(time)),
+        |_, year| Ok(year.value().clone())
     );
     b.rule_1("year (latent)",
              integer_check!(2101, 3000),
