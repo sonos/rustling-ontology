@@ -294,6 +294,40 @@ pub fn ymd(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
      Ok(TimeValue::constraint(YearMonthDay::new(y, m, d)))
 }
 
+pub fn easter() -> RuleResult<TimeValue> {
+    fn offset(i: &Interval<Local>, _: &Context<Local>) -> Option<Interval<Local>> {
+        let (year, month, day) = computer_easter(i.start.year());
+        Some(Interval::ymd(year, month, day))
+    }
+    Ok(TimeValue::constraint(Month::new(3).translate_with(offset)))
+}
+
+pub fn computer_easter(year: i32) -> (i32, u32, u32) {
+    let a = year / 100;
+    let b = year % 100;
+    let c = (3 * (a + 25)) / 4;
+    let d = (3 * (a + 25)) % 4;
+    let e = (8 * (a + 11)) / 25;
+    let f = (5 * a + b) % 19;
+    let g = (19 * f + c - e) % 30;
+    let h = (f + 11 * g) / 319;
+    let j = (60 * (5 - d) + b) / 4;
+    let k = (60 * (5 - d) + b) % 4;
+    let m = (2 * j - k - g + h) % 7;
+    let n = (g - h + m + 114) / 31;
+    let p = (g - h + m + 114) % 31;
+    let day = (p + 1) as u32;
+    let month = n as u32;
+    (year, month, day)
+}
+
+/*
+        fn offset(i: &Interval<Paris>, _: &Context<Paris>) -> Option<Interval<Paris>> {
+            Some(*i + PeriodComp::days(32))
+        }
+        let walker = DayOfMonth::new(12).translate_with(offset)
+*/
+
 impl CycleValue {
     pub fn last_of(&self, base: &TimeValue) -> RuleResult<TimeValue> {
         cycle(self.grain)?.last_of(base)
@@ -357,5 +391,12 @@ mod tests {
     fn test_decimal_hour() {
         assert_eq!(90, decimal_hour_in_minute("1", "5").unwrap());
         assert_eq!(93, decimal_hour_in_minute("1", "55").unwrap());
+    }
+
+    #[test]
+    fn test_computer_easter() {
+        assert_eq!((2017, 4, 16), computer_easter(2017));
+        assert_eq!((2018, 4, 1), computer_easter(2018));
+        assert_eq!((2019, 4, 21), computer_easter(2019));
     }
 }
