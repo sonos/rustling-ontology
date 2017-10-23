@@ -1,6 +1,19 @@
 use super::*;
 use rustling_ontology_values::check::*;
 
+pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_finance(500.0, Some("KRW"), Precision::Exact), "500원");
+    example!(v, check_finance(200.0, Some("$"), Precision::Exact), "200달러");
+    example!(v, check_finance(31.0, Some("EUR"), Precision::Exact), "31유로");
+    example!(v, check_finance(10.0, Some("£"), Precision::Exact), "10영국파운드");
+    example!(v, check_finance(2.0, Some("AUD"), Precision::Exact), "2호주달러");
+    example!(v, check_finance(10.0, Some("INR"), Precision::Exact), "10루피");
+    example!(v, check_finance(200.25, Some("$"), Precision::Exact), "200달러 25센트");
+    example!(v, check_finance(10.0, Some("INR"), Precision::Approximate), "약 10루피");
+    example!(v, check_finance(2000.0, Some("$"), Precision::Approximate), "2천 달러쯤");
+    example!(v, check_finance(10.0, Some("£"), Precision::Exact), "딱 10파운드");
+}
+
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "maintenant", "tout de suite");
