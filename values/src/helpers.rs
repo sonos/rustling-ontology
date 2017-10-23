@@ -321,13 +321,6 @@ pub fn computer_easter(year: i32) -> (i32, u32, u32) {
     (year, month, day)
 }
 
-/*
-        fn offset(i: &Interval<Paris>, _: &Context<Paris>) -> Option<Interval<Paris>> {
-            Some(*i + PeriodComp::days(32))
-        }
-        let walker = DayOfMonth::new(12).translate_with(offset)
-*/
-
 impl CycleValue {
     pub fn last_of(&self, base: &TimeValue) -> RuleResult<TimeValue> {
         cycle(self.grain)?.last_of(base)

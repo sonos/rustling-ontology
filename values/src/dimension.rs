@@ -373,7 +373,10 @@ pub enum Form {
     TimeOfDay(Option<TimeOfDayForm>),
     DayOfWeek { not_immediate: bool },
     PartOfDay,
+    PartOfMonth,
     PartOfYear,
+    Meal,
+    Celebration,
     Empty,
 }
 
@@ -386,7 +389,10 @@ impl Form {
             &Form::TimeOfDay(_) => None,
             &Form::DayOfWeek { not_immediate } => Some(not_immediate),
             &Form::Empty => None,
-            &Form::PartOfDay => None,
+            &Form::PartOfDay { .. } => None,
+            &Form::Meal => None,
+            &Form::Celebration => None,
+            &Form::PartOfMonth => None,
             &Form::PartOfYear => None,
             &Form::DayOfMonth => None,
         }
