@@ -79,6 +79,22 @@ impl Moment<Local> {
     pub fn now() -> Moment<Local> {
         Moment(Local::now())
     }
+
+    pub fn year(&self) -> i32 {
+        self.0.year()
+    }
+
+    pub fn month(&self) -> u32 {
+        self.0.month()
+    }
+
+    pub fn day(&self) -> u32 {
+        self.0.day()
+    }
+
+    pub fn ymd(y: i32, m: u32, d: u32) -> Moment<Local> {
+        Moment(Local.ymd(y, m, d).and_hms(0, 0, 0))
+    }
 }
 
 impl<T: TimeZone> Moment<T> where <T as TimeZone>::Offset: Copy {
@@ -196,6 +212,12 @@ pub struct Interval<T: TimeZone> {
 impl<T: TimeZone> Interval<T> {
     fn timezone(&self) -> T {
         self.start.0.timezone()
+    }
+}
+
+impl Interval<Local> {
+    pub fn ymd(y: i32, m: u32, d: u32) -> Interval<Local> {
+        Interval::starting_at(Moment(Local.ymd(y, m, d).and_hms(0, 0, 0)), Grain::Day)
     }
 }
 

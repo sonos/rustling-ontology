@@ -109,8 +109,8 @@ lang!(en, en_config, detailed, separated_alphanumeric_word, [rules_numbers, rule
           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
 lang!(es, es_config, detailed, separated_alphanumeric_word, [rules_numbers, rules_temperature, rules_cycle, rules_duration, rules_time],
           [Number, Ordinal, Time, Duration, Temperature]);
-lang!(fr, fr_config, detailed, separated_alphanumeric_word, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration],
-          [Number, Ordinal, Time, Duration, Temperature]);
+lang!(fr, fr_config, detailed, separated_alphanumeric_word, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration, rules_finance],
+          [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
 lang!(ko, ko_config, detailed, separated_alphanumeric_word, [rules_numbers, rule_time, rule_temperature, rules_finance, rules_cycle, rules_duration], 
           [Number, Ordinal, Time, Duration, Temperature, AmountOfMoney]);
 lang!(zh, zh_config, no_check, no_check, [rules_numbers, rules_time, rules_temperature, rules_cycle, rules_duration], [Number, Ordinal, Time, Duration, Temperature]);

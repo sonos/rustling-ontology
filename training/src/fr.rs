@@ -1,6 +1,19 @@
 use super::*;
 use rustling_ontology_values::check::*;
 
+pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_finance(500.0, Some("KRW"), Precision::Exact), "500원");
+    example!(v, check_finance(200.0, Some("$"), Precision::Exact), "200달러");
+    example!(v, check_finance(31.0, Some("EUR"), Precision::Exact), "31유로");
+    example!(v, check_finance(10.0, Some("£"), Precision::Exact), "10영국파운드");
+    example!(v, check_finance(2.0, Some("AUD"), Precision::Exact), "2호주달러");
+    example!(v, check_finance(10.0, Some("INR"), Precision::Exact), "10루피");
+    example!(v, check_finance(200.25, Some("$"), Precision::Exact), "200달러 25센트");
+    example!(v, check_finance(10.0, Some("INR"), Precision::Approximate), "약 10루피");
+    example!(v, check_finance(2000.0, Some("$"), Precision::Approximate), "2천 달러쯤");
+    example!(v, check_finance(10.0, Some("£"), Precision::Exact), "딱 10파운드");
+}
+
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "maintenant", "tout de suite");
@@ -122,8 +135,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "pendant le déjeuner", "à l'heure du déjeuner");
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "après le travail");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 12]), "dès le matin", "dès la matinée");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "en début d'après-midi");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "en fin d'après-midi");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 15]), "en début d'après-midi", "en début d'aprem");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "en fin d'après-midi", "en fin d'aprem");
     example!(v, check_moment_span!(c, [2013, 2, 12, 6], [2013, 2, 12, 10]), "en début de journée");
     example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "milieu de journée");
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "en fin de journée");
