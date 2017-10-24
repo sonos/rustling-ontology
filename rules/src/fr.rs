@@ -1106,8 +1106,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("a l'heure <meal>",
-        b.reg(r#"(?:[àa] )?l[' ]heure du|au|au moment du|pendant l[ea']|au|pour l[ea']|l[ea']"#)?,
-         time_check!(|time: &TimeValue| !time.latent && form!(Form::Meal)(time)),
+        b.reg(r#"(?:[àa] )?l[' ]heure du|au moment du|pendant l[ea']|au|pour l[ea']|l[ea']"#)?,
+         time_check!(|time: &TimeValue| time.latent && form!(Form::Meal)(time)),
         |_, a| Ok(a.value().clone().not_latent())
     );
     b.rule_2("<dim time> <meal>",
@@ -1116,7 +1116,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| a.value().intersect(b.value())
     );
     b.rule_2("du|dans le <part-of-day>",
-             b.reg(r#"pendant|durant|du|(?:[aà]|dans) l[ae']?|au|en|l[ae']|d[èe]s(?: l[ae']?)?"#)?,
+             b.reg(r#"pendant(?: l[ae']?)?|durant(?: l[ae']?)?|du|(?:[aà]|dans) l[ae']?|au|en|l[ae']|d[èe]s(?: l[ae']?)?"#)?,
              time_check!(form!(Form::PartOfDay)),
              |_, a| Ok(a.value().clone().not_latent())
     );
