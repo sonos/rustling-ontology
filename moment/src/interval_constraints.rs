@@ -52,6 +52,7 @@ pub type IntervalWalker<T> = BidirectionalWalker<Interval<T>>;
 
 pub trait IntervalConstraint<T: TimeZone> where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain;
+    fn coarse_grain_step(&self) -> Grain;
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T>;
 }
 
@@ -132,6 +133,10 @@ impl<T: TimeZone> IntervalConstraint<T> for Year where <T as TimeZone>::Offset: 
         Grain::Year
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Year
+    }
+
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let normalized_year = if self.0 <= 99 {
             (self.0 + 50) % 100 + 2000 - 50
@@ -169,6 +174,10 @@ impl<T: TimeZone> IntervalConstraint<T> for YearMonthDay where <T as TimeZone>::
         Grain::Day
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Year
+    }
+
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let normalized_year = if self.year < 99 {
             (self.year + 50) % 100 + 2000 - 50
@@ -202,6 +211,10 @@ impl MonthDay {
 impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         Grain::Day
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Year
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
@@ -252,6 +265,10 @@ impl<T: TimeZone> IntervalConstraint<T> for Month where <T as TimeZone>::Offset:
         Grain::Month
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Year
+    }
+
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
@@ -280,6 +297,10 @@ impl DayOfMonth {
 impl<T: TimeZone + 'static> IntervalConstraint<T> for DayOfMonth where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         Grain::Day
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Month
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
@@ -323,6 +344,10 @@ impl DayOfWeek {
 impl<T: TimeZone> IntervalConstraint<T> for DayOfWeek where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         Grain::Day
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Week
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
@@ -370,6 +395,10 @@ impl<T: TimeZone> IntervalConstraint<T> for HourMinute where <T as TimeZone>::Of
         Grain::Minute
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Day
+    }
+
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let clock_step = if self.hour <= 12 && self.is_12_clock {
             12
@@ -415,6 +444,10 @@ impl<T: TimeZone> IntervalConstraint<T> for Hour where <T as TimeZone>::Offset: 
         Grain::Hour
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Day
+    }
+
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let clock_step = if self.quantity <= 12 && self.is_12_clock {
             12
@@ -445,6 +478,11 @@ impl<T: TimeZone> IntervalConstraint<T> for Minute where <T as TimeZone>::Offset
     fn grain(&self) -> Grain {
         Grain::Minute
     }
+
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Hour
+    }
+
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let offset = (self.0 as i64 - origin.start.minute() as i64) % 60;
         let anchor = origin.round_to(Grain::Minute) + PeriodComp::minutes(offset);
@@ -468,6 +506,10 @@ impl Second {
 impl<T: TimeZone> IntervalConstraint<T> for Second where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         Grain::Second
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        Grain::Minute
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
@@ -509,6 +551,10 @@ impl<T: TimeZone> IntervalConstraint<T> for Cycle where <T as TimeZone>::Offset:
         self.0
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        self.0
+    }
+
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let anchor = origin.round_to(self.0);
         let grain = self.0;
@@ -540,6 +586,10 @@ impl<T: TimeZone + 'static> TakeTheNth<T> where <T as TimeZone>::Offset: Copy {
 impl<T: TimeZone+'static> IntervalConstraint<T> for TakeTheNth<T> where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         self.inner.grain()
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        self.inner.coarse_grain_step()
     }
 
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
@@ -599,6 +649,10 @@ impl<T: TimeZone + 'static> TakeN<T> where <T as TimeZone>::Offset: Copy {
 impl<T: TimeZone + 'static> IntervalConstraint<T> for TakeN<T> where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         self.inner.grain()
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        self.inner.coarse_grain_step()
     }
 
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
@@ -670,6 +724,10 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for TakeTheNthAfter<T>  where 
         self.after.grain()
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        self.after.coarse_grain_step()
+    }
+
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
         let cycle = self.cycle.clone();
         let n = self.n;
@@ -715,6 +773,10 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for TakeLastOf<T>  where <T as T
         self.base.grain()
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        self.base.coarse_grain_step()
+    }
+
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
         let cycle = self.cycle.clone();
         let translate = Translate {
@@ -746,6 +808,10 @@ impl<T: TimeZone+'static> Intersection<T>  where <T as TimeZone>::Offset: Copy {
 impl<T: TimeZone+'static> IntervalConstraint<T> for Intersection<T>  where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         ::std::cmp::max(self.lhs.grain(), self.rhs.grain())
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        ::std::cmp::min(self.lhs.grain(), self.rhs.grain())
     }
 
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
@@ -788,7 +854,7 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for Intersection<T>  where <T as
             IntervalWalker::new().forward(fore).backward(back)
         }
 
-        if self.lhs.grain() <= self.rhs.grain() {
+        if self.lhs.coarse_grain_step() <= self.rhs.coarse_grain_step() {
             combine(origin, *context, self.rhs.clone(), self.lhs.clone())
         } else {
             combine(origin, *context, self.lhs.clone(), self.rhs.clone())
@@ -818,6 +884,10 @@ impl<T: TimeZone+'static> Translate<T>  where <T as TimeZone>::Offset: Copy {
 impl<T: TimeZone+'static> IntervalConstraint<T> for Translate<T>  where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         self.generator.grain()
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        self.generator.coarse_grain_step()
     }
 
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
@@ -884,6 +954,10 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for Span<T>  where <T as TimeZon
         ::std::cmp::max(self.from.grain(), self.to.grain())
     }
 
+    fn coarse_grain_step(&self) -> Grain {
+        self.from.coarse_grain_step()
+    }
+
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
         let inclusive = self.inclusive;
         let to = self.to.clone();
@@ -919,6 +993,10 @@ impl<T: TimeZone+'static> ShiftBy<T>  where <T as TimeZone>::Offset: Copy {
 impl<T: TimeZone+'static> IntervalConstraint<T> for ShiftBy<T>  where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         self.base.grain()
+    }
+
+    fn coarse_grain_step(&self) -> Grain {
+        self.base.coarse_grain_step()
     }
 
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
@@ -1583,6 +1661,29 @@ mod tests {
                                               Grain::Day)),
                    walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2016, 03, 12).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().skip(1).next());
+    }
+
+    #[test]
+    fn test_intersect_dow_dom_month() {
+        let context = build_context(Moment(Paris.ymd(2013, 02, 12).and_hms(4, 30, 0)));
+
+        let weekday = rc!(DayOfWeek(Weekday::Mon));
+        let month_day = DayOfMonth::new(1).intersect(&rc!(Month(11)));
+        let inter = weekday.intersect(&month_day);
+        let walker = inter.to_walker(&context.reference, &context);
+
+        assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2021, 11, 1).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2027, 11, 1).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.forward.clone().skip(1).next());
+        assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2010, 11, 1).and_hms(0, 0, 0)),
+                                              Grain::Day)),
+                   walker.backward.clone().next());
+        assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2004, 11, 1).and_hms(0, 0, 0)),
                                               Grain::Day)),
                    walker.backward.clone().skip(1).next());
     }
