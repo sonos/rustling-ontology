@@ -199,7 +199,7 @@ pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
 }
 
 pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(MonthDay::new(m, d)))
+    Ok(TimeValue::constraint(MonthDay::new(m, d)).form(Form::MonthDay(Some(MonthDayForm { month: m, day_of_month: d }))))
 }
 
 pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
