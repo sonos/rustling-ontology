@@ -34,15 +34,15 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
     b.rule_1_terminal("quarter of an hour",
-                      b.reg(r#"(?:1/4\s?h(?:our)?|(?:a\s)?quarter(?: of an |-)hour)"#)?,
+                      b.reg(r#"1/4\s?h(?:our)?|(?:a\s)?quarter(?: of an |-)hour"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
     );
     b.rule_1_terminal("half an hour",
-                      b.reg(r#"(?:1/2\s?h(?:our)?|half an? hour)"#)?,
+                      b.reg(r#"1/2\s?h(?:our)?|half an? hour|an? half hour"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(30).into()))
     );
     b.rule_1_terminal("three-quarters of an hour",
-                      b.reg(r#"(?:3/4\s?h(?:our)?|three(?:\s|-)quarters of an hour)"#)?,
+                      b.reg(r#"3/4\s?h(?:our)?|three(?:\s|-)quarters of an hour"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
     );
     b.rule_1_terminal("fortnight",
