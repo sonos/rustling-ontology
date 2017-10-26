@@ -28,6 +28,19 @@ impl Grain {
             &Grain::Second => Grain::Second,
         }
     }
+
+    pub fn half_period(&self) -> Option<PeriodComp> {
+        match self {
+            &Grain::Year => Some(PeriodComp::months(6)),
+            &Grain::Quarter => Some(PeriodComp::days(45)),
+            &Grain::Month => Some(PeriodComp::days(15)),
+            &Grain::Week => Some(PeriodComp::days(4)),
+            &Grain::Day => Some(PeriodComp::hours(12)),
+            &Grain::Hour => Some(PeriodComp::minutes(30)),
+            &Grain::Minute => Some(PeriodComp::seconds(30)),
+            &Grain::Second => None,
+        }
+    }
 }
 
 impl Grain {

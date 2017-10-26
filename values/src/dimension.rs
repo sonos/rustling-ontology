@@ -370,6 +370,7 @@ pub enum Form {
     Year(i32),
     Month(u32),
     DayOfMonth,
+    MonthDay(Option<MonthDayForm>),
     TimeOfDay(Option<TimeOfDayForm>),
     DayOfWeek { not_immediate: bool },
     PartOfDay,
@@ -386,6 +387,7 @@ impl Form {
             &Form::Cycle(_) => None,
             &Form::Year(_) => None,
             &Form::Month(_) => None,
+            &Form::MonthDay(_) => None,
             &Form::TimeOfDay(_) => None,
             &Form::DayOfWeek { not_immediate } => Some(not_immediate),
             &Form::Empty => None,
@@ -409,6 +411,13 @@ pub enum Direction {
 pub struct TimeOfDayForm {
     pub full_hour: u32,
     pub is_12_clock: bool,
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MonthDayForm {
+    pub month: u32,
+    pub day_of_month: u32,
 }
 
 #[derive(Debug, PartialEq, Clone)]
