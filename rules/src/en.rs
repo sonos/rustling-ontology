@@ -1331,7 +1331,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("by <time>",
              b.reg(r#"by"#)?,
-             time_check!(),
+             time_check!(|time: &TimeValue|  !time.latent),
              |_, a| helpers::cycle_nth(Grain::Second, 0)?.span_to(a.value(), false)
     );
     b.rule_2("by the end of <time>",
