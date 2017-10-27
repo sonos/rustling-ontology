@@ -384,7 +384,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("for <date>",
              b.reg(r#"for"#)?,
-             time_check!(),
+             time_check!(|time: &TimeValue| !time.latent),
+             |_, a| Ok(a.value().clone().not_latent())
+    );
+    b.rule_2("for <date>",
+             b.reg(r#"for"#)?,
+             time_check!(form!(Form::Meal)),
              |_, a| Ok(a.value().clone().not_latent())
     );
     b.rule_2("on a <named-day>",
@@ -759,7 +764,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("year short",
              integer_check!(01, 99),
              |integer| {
-                 helpers::year(integer.value().value as i32)
+                 Ok(helpers::year(integer.value().value as i32)?.latent())
              }
     );
     b.rule_2("year composed",
@@ -767,7 +772,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check!(10, 99),
              |a, b| {
                  let y = a.value().value * 100 + b.value().value;
-                 helpers::year(y as i32)
+                 Ok(helpers::year(y as i32)?.latent())
              }
     );
     b.rule_1("year (latent)",
