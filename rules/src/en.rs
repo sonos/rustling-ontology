@@ -614,6 +614,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::day_of_week(Weekday::Thu)
                     ?.span_to(&helpers::day_of_week(Weekday::Sun)?, false)
     );
+    b.rule_1_terminal("by the end of week",
+        b.reg(r#"by (?:the )?end of (?:the )?week"#)?,
+        |_| helpers::cycle_nth(Grain::Second, 0)?
+                    .span_to(&helpers::day_of_week(Weekday::Sun)?, true)
+    );
     b.rule_1_terminal("EOM|End of month",
         b.reg(r#"(?:the )?(?:eom|end of (?:the )?month)"#)?,
         |_| {
@@ -624,15 +629,28 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfMonth))
         } 
     );
+    b.rule_1_terminal("by the end of month",
+        b.reg(r#"by (?:the )?(?:eom|end of (?:the )?month)"#)?,
+        |_| helpers::cycle_nth(Grain::Second, 0)?
+                    .span_to(&helpers::cycle_nth(Grain::Month, 0)?, true)
+    );
     b.rule_1_terminal("EOY|End of year",
         b.reg(r#"(?:the )?(?:eoy|end of (?:the )?year)"#)?,
         |_| {
-            let month = helpers::cycle_nth(Grain::Month, 1)?;
-            Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
-                .span_to(&month, false)?
-                .latent()
-                .form(Form::PartOfMonth))
+            let current_year = helpers::cycle_nth(Grain::Year, 0)?;
+            let start = current_year.intersect(&helpers::month(10)?)?;
+            let end = current_year.intersect(&helpers::month(12)?)?;
+            start.span_to(&end, true)
         } 
+    );
+    b.rule_1_terminal("by the end of week",
+        b.reg(r#"by (?:the )?(?:eoy|end of (?:the )?year)"#)?,
+        |_| {
+          let current_year = helpers::cycle_nth(Grain::Year, 0)?;
+          let end = current_year.intersect(&helpers::month(12)?)?;
+          helpers::cycle_nth(Grain::Second, 0)?
+                    .span_to(&end, true)
+        }
     );
     b.rule_2("this|next <day-of-week>",
              b.reg(r#"this|next"#)?,
@@ -1309,7 +1327,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("by <time>",
              b.reg(r#"by"#)?,
              time_check!(),
-             |_, a| helpers::cycle_nth(Grain::Second, 0)?.span_to(a.value(), true)
+             |_, a| helpers::cycle_nth(Grain::Second, 0)?.span_to(a.value(), false)
     );
     b.rule_2("by the end of <time>",
              b.reg(r#"by (?:the )?end of"#)?,
