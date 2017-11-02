@@ -2,6 +2,7 @@ use rustling::*;
 use values::dimension::*;
 use values::dimension::Precision::*;
 use values::helpers;
+use std::f32;
 use moment::{Weekday, Grain, PeriodComp, Period};
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
@@ -1698,6 +1699,18 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..FloatValue::default()
                  })
              });
+    b.rule_4("number dot number",
+         number_check!(|number: &NumberValue| !number.prefixed()),
+         b.reg(r#"dot|point"#)?,
+         b.reg(r#"(?:(?:oh |zero )*(?:oh|zero))"#)?,
+         number_check!(|number: &NumberValue| !number.suffixed()),
+         |a, _, zeros, b| {
+             let coeff = 10.0_f32.powf(-1.0 * (zeros.group(0).split_whitespace().count() + 1) as f32);
+             Ok(FloatValue {
+                 value: b.value().value() * coeff + a.value().value(),
+                 ..FloatValue::default()
+             })
+    });
     b.rule_1_terminal("decimal with thousands separator",
                       b.reg(r#"(\d+(,\d\d\d)+\.\d+)"#)?,
                       |text_match| {
