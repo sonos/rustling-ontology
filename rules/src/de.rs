@@ -155,7 +155,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, duration| duration.value().in_present()
     );
     b.rule_2("<integer> <unit-of-duration>",
-             integer_check!(0),
+             integer_check_by_range!(0),
              unit_of_duration_check!(),
              |integer, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
     );
@@ -199,7 +199,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, _| Ok(DurationValue::new(PeriodComp::minutes(90).into()))
     );
     b.rule_3("<integer> and an half hours",
-             integer_check!(0),
+             integer_check_by_range!(0),
              b.reg(r#"ein ?halb"#)?,
              unit_of_duration_check!(|uod: &UnitOfDurationValue| uod.grain == Grain::Hour),
              |integer, _, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
@@ -352,13 +352,13 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("last n <cycle>",
              b.reg(r#"letzten?|vergangenen?"#)?,
-             integer_check!(1, 9999),
+             integer_check_by_range!(1, 9999),
              cycle_check!(),
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
     b.rule_3("next n <cycle>",
              b.reg(r#"n[äa]chsten?|kommenden?"#)?,
-             integer_check!(1, 9999),
+             integer_check_by_range!(1, 9999),
              cycle_check!(),
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
@@ -776,19 +776,19 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, year| Ok(year.value().clone())
     );
     b.rule_1("year",
-             integer_check!(1900, 2100),
+             integer_check_by_range!(1900, 2100),
              |integer| {
                  helpers::year(integer.value().value as i32)
              }
     );
     b.rule_1("year (latent)",
-             integer_check!(-1000, 1899),
+             integer_check_by_range!(-1000, 1899),
              |integer| {
                  Ok(helpers::year(integer.value().value as i32)?.latent())
              }
     );
     b.rule_1("year (latent)",
-             integer_check!(2101, 2200),
+             integer_check_by_range!(2101, 2200),
              |integer| {
                  Ok(helpers::year(integer.value().value as i32)?.latent())
              }
@@ -806,7 +806,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // TODO This rule seems to never happen (should be with an ordinal token)
     b.rule_2("the <day-of-month> (non ordinal)",
              b.reg(r#"de(?:r|n|m|s)"#)?,
-             integer_check!(1, 31),
+             integer_check_by_range!(1, 31),
              |_, integer| Ok(helpers::day_of_month(integer.value().value as u32)?.latent())
     );
     b.rule_2("<named-month> <day-of-month> (ordinal)",
@@ -816,31 +816,31 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<named-month> <day-of-month> (non ordinal)",
              time_check!(form!(Form::Month(_))),
-             integer_check!(1, 31),
+             integer_check_by_range!(1, 31),
              |time, integer| time.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
     b.rule_3("<day-of-month> (non ordinal) of <named-month>",
-             integer_check!(1, 31),
+             integer_check_by_range!(1, 31),
              b.reg(r#"vom|von|im"#)?,
              time_check!(form!(Form::Month(_))),
              |integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
     b.rule_2("<day-of-month> (non ordinal) <named-month>",
-             integer_check!(1, 31),
+             integer_check_by_range!(1, 31),
              time_check!(form!(Form::Month(_))),
              |integer, month| month.value()
                  .intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
     b.rule_4("the <day-of-month> (non ordinal) of <named-month>",
              b.reg(r#"de[rnms]"#)?,
-             integer_check!(1, 31),
+             integer_check_by_range!(1, 31),
              b.reg(r#"vom|von|im"#)?,
              time_check!(form!(Form::Month(_))),
              |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
     b.rule_3("the <day-of-month> (non ordinal) <named-month>",
              b.reg(r#"de[rnms]"#)?,
-             integer_check!(1, 31),
+             integer_check_by_range!(1, 31),
              time_check!(form!(Form::Month(_))),
              |_, integer, month| month.value()
                  .intersect(&helpers::day_of_month(integer.value().value as u32)?)
@@ -872,7 +872,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_1("time-of-day (latent)",
-             integer_check!(0, 23),
+             integer_check_by_range!(0, 23),
              |integer| Ok(helpers::hour(integer.value().value as u32, integer.value().value < 12)?.latent())
     );
     b.rule_2("<time-of-day> o'clock",
@@ -917,7 +917,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(RelativeMinuteValue(30))
     );
     b.rule_1("number (as relative minutes)",
-             integer_check!(1, 59),
+             integer_check_by_range!(1, 59),
              |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
     );
     b.rule_3("<hour-of-day> <integer> (as relative minutes)",
@@ -1650,9 +1650,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value()));
     b.rule_3("numbers und",
-             integer_check!(1, 9),
+             integer_check_by_range!(1, 9),
              b.reg(r#"und"#)?,
-             integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+             integer_check_by_range!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
              |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
     b.rule_1_terminal("null",
@@ -1749,9 +1749,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_3("integer ([2-9][1-9])",
-             integer_check!(1, 9),
+             integer_check_by_range!(1, 9),
              b.reg(r#"und"#)?,
-             integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+             integer_check_by_range!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
              |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
     b.rule_1_terminal("integer (numeric)",
@@ -1764,7 +1764,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("number hundreds",
-        integer_check!(1, 99),
+        integer_check_by_range!(1, 99),
         b.reg(r#"hunderte?"#)?,
         |a, _| Ok(IntegerValue {
             value: a.value().value * 100,
@@ -1774,7 +1774,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("number thousands",
-        integer_check!(1, 999),
+        integer_check_by_range!(1, 999),
         b.reg(r#"tausende?"#)?,
         |a, _| Ok(IntegerValue {
             value: a.value().value * 1000,
@@ -1784,7 +1784,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("number millions",
-        integer_check!(1, 999),
+        integer_check_by_range!(1, 999),
          b.reg(r#"million(?:en)?"#)?,
         |a, _| Ok(IntegerValue {
             value: a.value().value * 1000000,
@@ -1928,7 +1928,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_3("ordinal [2-9][1-9]",
-             integer_check!(1, 9),
+             integer_check_by_range!(1, 9),
              b.reg(r#"und"#)?,
              ordinal_check!(|ordinal: &OrdinalValue| ordinal.value % 10 == 0),
              |integer, _, ordinal| Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))

@@ -5,6 +5,7 @@ use dimension::*;
 pub enum Output {
     Integer(IntegerOutput),
     Float(FloatOutput),
+    Percentage(PercentageOutput),
     Ordinal(OrdinalOutput),
     Time(TimeOutput),
     TimeInterval(TimeIntervalOutput),
@@ -24,6 +25,7 @@ impl Output {
             &Output::AmountOfMoney(_) => OutputKind::AmountOfMoney,
             &Output::Temperature(_) => OutputKind::Temperature,
             &Output::Duration(_) => OutputKind::Duration,
+            &Output::Percentage(_) => OutputKind::Percentage,
         }
     }
 }
@@ -35,7 +37,8 @@ enum_kind!(OutputKind,
         Time,
         AmountOfMoney,
         Temperature,
-        Duration
+        Duration,
+        Percentage
     ]
 );
 
@@ -48,6 +51,7 @@ impl OutputKind {
             &OutputKind::AmountOfMoney => DimensionKind::AmountOfMoney,
             &OutputKind::Temperature => DimensionKind::Temperature,
             &OutputKind::Duration => DimensionKind::Duration,
+            &OutputKind::Percentage => DimensionKind::Percentage,
         }
     }
 }
@@ -57,6 +61,9 @@ pub struct IntegerOutput(pub i64);
 
 #[derive(Clone,Copy,PartialEq,Debug)]
 pub struct FloatOutput(pub f32);
+
+#[derive(Clone,Copy,PartialEq,Debug)]
+pub struct PercentageOutput(pub f32);
 
 #[derive(Clone,Copy,PartialEq,Debug)]
 pub struct OrdinalOutput(pub i64);
@@ -98,6 +105,7 @@ pub struct DurationOutput {
 
 variant_converters!(Output, Integer, IntegerOutput);
 variant_converters!(Output, Float, FloatOutput);
+variant_converters!(Output, Percentage, PercentageOutput);
 variant_converters!(Output, Ordinal, OrdinalOutput);
 variant_converters!(Output, Time, TimeOutput);
 variant_converters!(Output, TimeInterval, TimeIntervalOutput);
