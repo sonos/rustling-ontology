@@ -412,7 +412,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("pour <time>",
         b.reg(r#"pour"#)?,
-        time_check!(),
+        time_check!(|time: &TimeValue| !time.latent),
         |_, a| Ok(a.value().clone())
     );
     b.rule_1_terminal("named-day",
