@@ -51,7 +51,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("GBP",
-        b.reg(r#"gbp|livres? sterling"#)?,
+        b.reg(r#"gbp|livres? sterlings"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("cent",
