@@ -15,7 +15,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
              |a, _, b| helpers::compose_money(&a.value(), &b.value()));
     b.rule_2("intersect",
-             amount_of_money_check!(),
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
              number_check!(),
              |a, b| helpers::compose_money_number(&a.value(), &b.value()));
     b.rule_1_terminal("$",
@@ -1182,7 +1182,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     ?.span_to(&helpers::day_of_week(Weekday::Sun)?, false)
     );
     b.rule_1_terminal("en semaine",
-        b.reg(r#"(?:pendant la |en )?semaine"#)?,
+        b.reg(r#"(?:pendant la |en )semaine"#)?,
         |_| helpers::day_of_week(Weekday::Mon)
                     ?.span_to(&helpers::day_of_week(Weekday::Fri)?, false)
     );
@@ -1775,48 +1775,113 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..IntegerValue::default()
                  })
     });
+    b.rule_1_terminal("ordinal 0",
+        b.reg(r#"z[eé]roi[eè]me"#)?,
+        |_| {
+            Ok(OrdinalValue::new(0))
+        }
+    );
+    b.rule_1_terminal("ordinal 1",
+        b.reg(r#"premi[eè]re?"#)?,
+        |_| {
+            Ok(OrdinalValue::new(1))
+        }
+    );
     b.rule_1_terminal(
             "ordinals (premier..seizieme)",
-            b.reg(r#"(premi(?:ere?|ère)|(?:deux|trois|quatr|cinqu|six|sept|huit|neuv|dix|onz|douz|treiz|quatorz|quinz|seiz)i[eè]me)"#)?,
+            b.reg(r#"(deux|trois|quatr|cinqu|six|sept|huit|neuv|dix|onz|douz|treiz|quatorz|quinz|seiz)i[eè]me"#)?,
             |text_match| {
                 let value = match text_match.group(1).as_ref() {
-                    "premier" => 1,
-                    "premiere" => 1,
-                    "première" => 1, 
-                    "deuxieme" => 2,
-                    "troisieme" => 3,
-                    "quatrieme" => 4, 
-                    "cinquieme" => 5, 
-                    "sixieme" => 6,
-                    "septieme" => 7, 
-                    "huitieme" => 8, 
-                    "neuvieme" => 9,
-                    "dixieme" => 10,
-                    "onzieme" => 11,
-                    "douzieme" => 12,
-                    "treizieme" => 13,
-                    "quatorzieme" => 14,
-                    "quinzieme" => 15,
-                    "seizieme" => 16,
-                    "deuxième" => 2,
-                    "troisième" => 3,
-                    "quatrième" => 4, 
-                    "cinquième" => 5, 
-                    "sixième" => 6, 
-                    "septième" => 7,
-                    "huitième" => 8, 
-                    "neuvième" => 9, 
-                    "dixième" => 10, 
-                    "onzième" => 11, 
-                    "douzième" => 12, 
-                    "treizième" => 13,
-                    "quatorzième" => 14,
-                    "quinzième" => 15,
-                    "seizième" => 16,
+                    "deux" => 2,
+                    "trois" => 3,
+                    "quatr" => 4, 
+                    "cinqu" => 5, 
+                    "six" => 6,
+                    "sept" => 7, 
+                    "huit" => 8, 
+                    "neuv" => 9,
+                    "dix" => 10,
+                    "onz" => 11,
+                    "douz" => 12,
+                    "treiz" => 13,
+                    "quatorz" => 14,
+                    "quinz" => 15,
+                    "seiz" => 16,
                      _ => return Err(RuleErrorKind::Invalid.into()),
                  };
                  Ok(OrdinalValue::new(value))
             });
+    b.rule_2("17ieme, 18ieme, 19ieme",
+        b.reg(r#"dix-?"#)?,
+        ordinal_check_by_range!(7, 9),
+        |_, ordinal| {
+            Ok(OrdinalValue::new(10 + ordinal.value().value))
+        }
+    );
+    b.rule_1_terminal("20ieme, 30ieme, 40ieme, 50ieme, 60ieme",
+        b.reg(r#"(vingt|trent|quarant|cinquant|soixant)i[èe]me"#)?,
+        |text_match| {
+            let value = match text_match.group(1).as_ref() {
+                "vingt" => 20,
+                "trent" => 30,
+                "quarant" => 40,
+                "cinquant" => 50,
+                "soixant" => 60,
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            Ok(OrdinalValue::new(value))
+        }
+    );
+    b.rule_1_terminal("80ieme",
+        b.reg(r#"quatre[- ]vingts?i[èe]me"#)?,
+        |_| {
+            Ok(OrdinalValue::new(80))
+        }
+    );
+    b.rule_2("22ieme...29ieme, 32ieme...39ieme, 42ieme...49ieme, 52ieme...59ieme",
+        integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
+        ordinal_check_by_range!(2, 9),
+        |integer, ordinal| {
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+    b.rule_3("22ieme...29ieme, 32ieme...39ieme, 42ieme...49ieme, 52ieme...59ieme",
+        integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
+        b.reg(r"-")?,
+        ordinal_check_by_range!(2, 9),
+        |integer, _, ordinal| {
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+    b.rule_2("62ieme...70ieme, 72ieme...79ieme, 90ieme, 92ieme...99ieme",
+        integer_check!(60, 80, |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
+        ordinal_check_by_range!(2, 19),
+        |integer, ordinal| {
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+    b.rule_3("62ieme...70ieme, 72ieme...79ieme, 90ieme, 92ieme...99ieme",
+        integer_check!(60, 80, |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
+        b.reg(r"-")?,
+        ordinal_check_by_range!(2, 19),
+        |integer, _, ordinal| {
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+    b.rule_2("21, 31, 41, 51, 61, 81",
+        integer_check!(20, 80, |integer: &IntegerValue| integer.value % 10 == 0 && integer.value != 70),
+        b.reg(r#"(?:et |-)uni[èe]me"#)?,
+        |integer, _| {
+            Ok(OrdinalValue::new(integer.value().value + 1))
+        }
+    );
+    b.rule_2("71, 91",
+        integer_check!(60, 60),
+        b.reg(r#"et onzi[eè]me"#)?,
+        |integer, _| {
+            Ok(OrdinalValue::new(integer.value().value + 11))
+        }
+    );
     b.rule_2("<number> et demi",
         integer_check!(0, 99),
         b.reg(r#"et demie?"#)?,
@@ -1848,6 +1913,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             IntegerValue::new(value)
         }
     );
+
     b.rule_2("72..79, 82..89, 92..99, (Belgium and Switzerland)",
         b.reg(r#"(sept|huit|non)ante"#)?,
         integer_check!(2, 9),
