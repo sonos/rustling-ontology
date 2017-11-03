@@ -1,6 +1,8 @@
 # rustling-ontology
 [![Build Status](https://travis-ci.org/snipsco/rustling-ontology.svg?branch=develop)](https://travis-ci.org/snipsco/rustling-ontology)
-Probabilistic parser for entity detection based on rustling (https://github.com/snipsco/rustling).
+
+Probabilistic parser for entity detection based on Rustling (https://github.com/snipsco/rustling)
+
 Rutling is a rust port of https://github.com/facebookincubator/duckling
 
 
