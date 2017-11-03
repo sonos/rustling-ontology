@@ -12,6 +12,15 @@ fn german_article_before_cycle() -> &'static str {
     r#"(?:i[nm]s?|a[nm]) (?:de(?:r|m|s|n)|die|das)|(?:i[nm]s?|a[nm])|(?:de(?:r|m|s|n)|die|das)"#
 }
 
+pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("<number> per cent",
+        number_check!(),
+        b.reg(r"(?:%|prozent)")?,
+        |number, _| Ok(PercentageValue(number.value().value()))
+    );
+    Ok(())
+}
+
 pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect (X cents)",
              amount_of_money_check!(),
