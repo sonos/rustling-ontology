@@ -15,7 +15,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
              |a, _, b| helpers::compose_money(&a.value(), &b.value()));
     b.rule_2("intersect",
-             amount_of_money_check!(),
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
              number_check!(),
              |a, b| helpers::compose_money_number(&a.value(), &b.value()));
     b.rule_1_terminal("$",
@@ -1182,7 +1182,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     ?.span_to(&helpers::day_of_week(Weekday::Sun)?, false)
     );
     b.rule_1_terminal("en semaine",
-        b.reg(r#"(?:pendant la |en )?semaine"#)?,
+        b.reg(r#"(?:pendant la |en )semaine"#)?,
         |_| helpers::day_of_week(Weekday::Mon)
                     ?.span_to(&helpers::day_of_week(Weekday::Fri)?, false)
     );
