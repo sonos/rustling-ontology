@@ -3,6 +3,15 @@ use values::dimension::*;
 use values::helpers;
 use moment::{Weekday, Grain, PeriodComp};
 
+pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("<number> per cent",
+        number_check!(),
+        b.reg(r"(?:%|p\.c\.|por ?cientos?)")?,
+        |number, _| Ok(PercentageValue(number.value().value()))
+    );
+    Ok(())
+}
+
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("seconde (unit-of-duration)",
                       b.reg(r#"seg(?:undo)?s?"#)?,

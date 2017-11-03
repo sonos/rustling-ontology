@@ -6,8 +6,8 @@ use moment::{Weekday, Grain, PeriodComp, Period};
 
 pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<number> per cent",
-        number_check_by_range!(0.0),
-        b.reg(r"(?:%|p\.c\.|pour cent)")?,
+        number_check!(),
+        b.reg(r"(?:%|p\.c\.|p. cents?|pour[ -]?cents?)")?,
         |number, _| Ok(PercentageValue(number.value().value()))
     );
     Ok(())
@@ -1870,14 +1870,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("22ieme...29ieme, 32ieme...39ieme, 42ieme...49ieme, 52ieme...59ieme",
-        integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
+        integer_check_by_range!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
         ordinal_check_by_range!(2, 9),
         |integer, ordinal| {
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
     );
     b.rule_3("22ieme...29ieme, 32ieme...39ieme, 42ieme...49ieme, 52ieme...59ieme",
-        integer_check!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
+        integer_check_by_range!(20, 50, |integer: &IntegerValue| integer.value % 10 == 0),
         b.reg(r"-")?,
         ordinal_check_by_range!(2, 9),
         |integer, _, ordinal| {
@@ -1885,14 +1885,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("62ieme...70ieme, 72ieme...79ieme, 90ieme, 92ieme...99ieme",
-        integer_check!(60, 80, |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
+        integer_check_by_range!(60, 80, |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
         ordinal_check_by_range!(2, 19),
         |integer, ordinal| {
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
     );
     b.rule_3("62ieme...70ieme, 72ieme...79ieme, 90ieme, 92ieme...99ieme",
-        integer_check!(60, 80, |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
+        integer_check_by_range!(60, 80, |integer: &IntegerValue| integer.value == 60 || integer.value == 80),
         b.reg(r"-")?,
         ordinal_check_by_range!(2, 19),
         |integer, _, ordinal| {
@@ -1900,14 +1900,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("21, 31, 41, 51, 61, 81",
-        integer_check!(20, 80, |integer: &IntegerValue| integer.value % 10 == 0 && integer.value != 70),
+        integer_check_by_range!(20, 80, |integer: &IntegerValue| integer.value % 10 == 0 && integer.value != 70),
         b.reg(r#"(?:et |-)uni[èe]me"#)?,
         |integer, _| {
             Ok(OrdinalValue::new(integer.value().value + 1))
         }
     );
     b.rule_2("71, 91",
-        integer_check!(60, 60),
+        integer_check_by_range!(60, 60),
         b.reg(r#"et onzi[eè]me"#)?,
         |integer, _| {
             Ok(OrdinalValue::new(integer.value().value + 11))
