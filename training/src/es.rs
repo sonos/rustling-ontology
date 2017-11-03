@@ -1,6 +1,14 @@
 use super::*;
 use rustling_ontology_values::check::*;
 
+pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_finance(10.0, Some("$"), Precision::Exact), "$10", "10$", "diez dollars", "diez dólares");
+    example!(v, check_finance(10000.0, Some("GBP"), Precision::Exact), "$10.000", "10K$", "$10k");
+    example!(v, check_finance(20.0, Some("€"), Precision::Exact), "20€", "20 euros", "20 Euro", "20 Euros", "EUR 20");
+    example!(v, check_finance(9.0, Some("£"), Precision::Exact),  "£9", "nueve pounds", "9 libras");
+    example!(v, check_finance(3.01, Some("GBP"), Precision::Exact), "GBP3,01", "GBP 3,01", "3 gbp 1 centavo", "3 gbp y 1 centavo");
+}
+
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "ahora", "ya", "ahorita", "cuanto antes");
