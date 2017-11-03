@@ -1,11 +1,13 @@
 # rustling-ontology
 [![Build Status](https://travis-ci.org/snipsco/rustling-ontology.svg?branch=develop)](https://travis-ci.org/snipsco/rustling-ontology)
-Ontology for rustling
+Probabilistic parser for entity detection based on rustling (https://github.com/snipsco/rustling).
+Rutling is a rust port of https://github.com/facebookincubator/duckling
+
 
 
 ## Supported Output
 
-|   Output  | DimensionKind |
+|   Output  | OutputKind |
 | --------- | ------------- |
 |  Integer |  Number |
 | Float | Number |
