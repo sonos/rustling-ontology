@@ -15,6 +15,7 @@ rustling_value! {
         MoneyUnit(MoneyUnitValue),
         Time(TimeValue),
         Duration(DurationValue),
+        Percentage(PercentageValue),
         Cycle(CycleValue),
         UnitOfDuration(UnitOfDurationValue),
         RelativeMinute(RelativeMinuteValue),
@@ -23,6 +24,7 @@ rustling_value! {
     fn latent(v: &Dimension) -> bool {
         match v {
             &Dimension::Number(_) => false,
+            &Dimension::Percentage(_) => false,
             &Dimension::AmountOfMoney(_) => false,
             &Dimension::Ordinal(_) => false,
             &Dimension::Temperature(ref temp) => temp.latent,
@@ -38,6 +40,7 @@ rustling_value! {
     fn extract_payload(v: &Dimension) -> Option<Payload> {
         match v {
             &Dimension::Number(_) => None,
+            &Dimension::Percentage(_) => None,
             &Dimension::AmountOfMoney(_) => None,
             &Dimension::Ordinal(_) => None,
             &Dimension::Temperature(_) => None,
@@ -63,6 +66,7 @@ impl fmt::Display for Dimension {
                     &NumberValue::Float(ref v) => write!(fmt, "Number: {}", v.value),
                 }
             }
+            &Dimension::Percentage(ref v) => write!(fmt, "Percentage: {}", v.0),
             &Dimension::Ordinal(_) => write!(fmt, "Ordinal"),
             &Dimension::Temperature(_) => write!(fmt, "Temperature"),
             &Dimension::AmountOfMoney(_) => write!(fmt, "AmountOfMoney"),
@@ -419,6 +423,9 @@ pub struct MonthDayForm {
     pub month: u32,
     pub day_of_month: u32,
 }
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct PercentageValue(pub f32);
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct DurationValue {
