@@ -3,6 +3,61 @@ use values::dimension::*;
 use values::helpers;
 use moment::{Weekday, Grain, PeriodComp};
 
+pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect (X cents)",
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
+             |a, b| helpers::compose_money(a.value(), b.value()));
+    b.rule_3("intersect (and X cents)",
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
+             b.reg(r#"y"#)?,
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
+             |a, _, b| helpers::compose_money(&a.value(), &b.value()));
+    b.rule_2("intersect",
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
+             number_check!(),
+             |a, b| helpers::compose_money_number(&a.value(), &b.value()));
+    b.rule_1_terminal("$",
+        b.reg(r#"\$|d(ó|o)lar(es)?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("$") })
+    );
+    b.rule_1_terminal("€",
+        b.reg(r#"€|(?:[e€]uro?s?)"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("€") })
+    );
+    b.rule_1_terminal("£",
+        b.reg(r#"(?:pound|libra)s?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("£") })
+    );
+    b.rule_1_terminal("USD",
+        b.reg(r#"us[d\$]|d[óo]lar(?:es)? (?:estadounidense|americano)"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("USD") })
+    );
+    b.rule_1_terminal("Bitcoin",
+        b.reg(r#"bitcóin(?:es)?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("฿") })
+    );
+    b.rule_1_terminal("GBP",
+        b.reg(r#"gbp|libras? esterlina"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("GBP") })
+    );
+    b.rule_1_terminal("cent",
+                      b.reg(r#"centavos?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("cent") })
+    );
+    b.rule_2("<amount> <unit>",
+             number_check!(),
+             money_unit!(),
+             |a, b| {
+                 Ok(AmountOfMoneyValue {
+                     value: a.value().value(),
+                     unit: b.value().unit,
+                     ..AmountOfMoneyValue::default()
+                 })
+             });
+    Ok(())
+}
+
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("seconde (unit-of-duration)",
                       b.reg(r#"seg(?:undo)?s?"#)?,
