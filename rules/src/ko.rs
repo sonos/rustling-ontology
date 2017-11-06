@@ -247,12 +247,12 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("month",
-             integer_check!(1, 12),
+             integer_check_by_range!(1, 12),
              b.reg(r#"월"#)?,
              |integer, _| helpers::month(integer.value().value as u32)
     );
     b.rule_2("day",
-             integer_check!(1, 31),
+             integer_check_by_range!(1, 31),
              b.reg(r#"일"#)?,
              |integer, _| helpers::day_of_month(integer.value().value as u32)
     );
@@ -632,16 +632,16 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  time.value())
     );
     b.rule_2("year",
-             integer_check!(1),
+             integer_check_by_range!(1),
              b.reg(r#"년"#)?,
              |integer, _| helpers::year(integer.value().value as i32)
     );
     b.rule_1("time-of-day (latent)",
-             integer_check!(0, 23),
+             integer_check_by_range!(0, 23),
              |integer| Ok(helpers::hour(integer.value().value as u32, true)?.latent())
     );
     b.rule_2("time-of-day",
-             integer_check!(0, 24),
+             integer_check_by_range!(0, 24),
              b.reg(r#"시"#)?,
              |integer, _| helpers::hour(integer.value().value as u32, true)
     );
@@ -702,7 +702,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(RelativeMinuteValue(30))
     );
     b.rule_2("number (as relative minutes)",
-             integer_check!(1, 59),
+             integer_check_by_range!(1, 59),
              b.reg(r#"분"#)?,
              |integer, _| Ok(RelativeMinuteValue(integer.value().value as i32))
     );
@@ -717,7 +717,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<hour-of-day> <integer>",
              time_check!(form!(Form::TimeOfDay(Some(_)))),
-             integer_check!(0, 59),
+             integer_check_by_range!(0, 59),
              |tod, integer| helpers::hour_minute(
                  tod.value().form_time_of_day()?.full_hour,
                  integer.value().value as u32,
@@ -735,7 +735,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              )
     );
     b.rule_2("seconds",
-             integer_check!(1, 59),
+             integer_check_by_range!(1, 59),
              b.reg(r#"초"#)?,
              |integer, _| helpers::second(integer.value().value as u32)
     );
@@ -988,7 +988,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("during the last n cycle",
              b.reg(r#"과거"#)?,
-             integer_check!(0),
+             integer_check_by_range!(0),
              cycle_check!(),
              |_, integer, cycle| {
                  let end = helpers::cycle_nth(cycle.value().grain, 0)?;
@@ -998,7 +998,7 @@ pub fn rule_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("during the next n cycle",
              b.reg(r#"앞으로"#)?,
-             integer_check!(1),
+             integer_check_by_range!(1),
              cycle_check!(),
              |_, integer, cycle| {
                  let start = helpers::cycle_nth(cycle.value().grain, 1)?;
@@ -1064,7 +1064,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(DurationValue::new(PeriodComp::days(1).into()))
     );
     b.rule_2("<integer> <unit-of-duration>",
-             integer_check!(0),
+             integer_check_by_range!(0),
              unit_of_duration_check!(),
              |integer, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
     );
@@ -1077,7 +1077,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("<integer> and an half hours",
-             integer_check!(0),
+             integer_check_by_range!(0),
              b.reg(r#"시간반"#)?,
              |integer, _| Ok(DurationValue::new(PeriodComp::new(Grain::Minute, integer.value().value * 60 + 30).into()))
     );
@@ -1208,24 +1208,24 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("last n <cycle>",
              b.reg(r#"지난"#)?,
-             integer_check!(1, 9999),
+             integer_check_by_range!(1, 9999),
              cycle_check!(),
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
     b.rule_3("next n <cycle>",
              b.reg(r#"다음"#)?,
-             integer_check!(1, 9999),
+             integer_check_by_range!(1, 9999),
              cycle_check!(),
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     b.rule_2("<1..4> quarter",
-             integer_check!(1, 4),
+             integer_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |integer, _| helpers::cycle_nth_after(Grain::Quarter, integer.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
     );
     b.rule_3("<year> <1..4>quarter",
              time_check!(),
-             integer_check!(1, 4),
+             integer_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |time, integer, _| helpers::cycle_nth_after(Grain::Quarter, integer.value().value - 1, time.value())
     );
@@ -1383,8 +1383,8 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("number hundreds",
-             integer_check!(1, 99),
-             integer_check!(100, 100),
+             integer_check_by_range!(1, 99),
+             integer_check_by_range!(100, 100),
              |a, b| {
                  Ok(IntegerValue {
                      value: a.value().value * b.value().value,
@@ -1393,8 +1393,8 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
     b.rule_2("number thousands",
-             integer_check!(1, 999),
-             integer_check!(1000, 1000),
+             integer_check_by_range!(1, 999),
+             integer_check_by_range!(1000, 1000),
              |a, b| {
                  Ok(IntegerValue {
                      value: a.value().value * b.value().value,
@@ -1403,8 +1403,8 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
     b.rule_2("number millions",
-             integer_check!(1, 99),
-             integer_check!(1000000, 1000000),
+             integer_check_by_range!(1, 99),
+             integer_check_by_range!(1000000, 1000000),
              |a, b| {
                  Ok(IntegerValue {
                      value: a.value().value * b.value().value,
@@ -1449,8 +1449,8 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // previous name "integer (21..99) - TYPE 2"
     b.rule_2("integer (11..99) - TYPE 2",
-             integer_check!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
-             integer_check!(1, 9),
+             integer_check_by_range!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+             integer_check_by_range!(1, 9),
              |a, b| IntegerValue::new(a.value().value + b.value().value)
     );
 

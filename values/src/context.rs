@@ -105,6 +105,7 @@ impl ParsingContext<Dimension> for ResolverContext {
                 period: duration.period.clone(),
                 precision: duration.precision,
             })),
+            &Dimension::Percentage(ref percentage) => Some(Output::Percentage(PercentageOutput(percentage.0))),
             _ => None,
         }
     }
