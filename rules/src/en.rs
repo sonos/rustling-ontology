@@ -8,7 +8,7 @@ use moment::{Weekday, Grain, PeriodComp, Period};
 pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<number> per cent",
         number_check!(),
-        b.reg(r"(?:%|p\.c\.|per cent)")?,
+        b.reg(r"(?:%|p\.c\.|per ?cents?)")?,
         |number, _| Ok(PercentageValue(number.value().value()))
     );
     Ok(())
