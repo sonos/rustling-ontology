@@ -96,7 +96,7 @@ impl ParsingContext<Dimension> for ResolverContext {
                 precision: aom.precision,
                 unit: aom.unit,
             })),
-            &Dimension::Temperature(ref temp) if !temp.latent => Some(Output::Temperature(TemperatureOutput {
+            &Dimension::Temperature(ref temp) => Some(Output::Temperature(TemperatureOutput {
                 value: temp.value,
                 unit: temp.unit,
                 latent: temp.latent,
