@@ -23,6 +23,12 @@ macro_rules! ordinal_check {
     ($predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<OrdinalValue>::filter(vec![b!($predicate)]) );
 }
 
+macro_rules! ordinal_check_by_range {
+    ($min:expr) => ( $crate::rustling::core::FilterNodePattern::<OrdinalValue>::filter(vec![b!(|ordinal: &OrdinalValue| ordinal.value >= $min)]) );
+    ($min:expr, $max:expr) => ( $crate::rustling::core::FilterNodePattern::<OrdinalValue>::filter(vec![b!(|ordinal: &OrdinalValue| ordinal.value >= $min && ordinal.value <= $max)]) );
+    ($min:expr, $max:expr, $predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<OrdinalValue>::filter(vec![b!(|ordinal: &OrdinalValue| ordinal.value >= $min && integer.value <= $max), b!($predicate)]) );
+}
+
 macro_rules! amount_of_money_check {
     () => ( $crate::rustling::core::AnyNodePattern::<AmountOfMoneyValue>::new() );
     ($predicate:expr) => ( $crate::rustling::core::FilterNodePattern::<AmountOfMoneyValue>::filter(vec![b!($predicate)]) );
