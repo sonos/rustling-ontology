@@ -1382,16 +1382,16 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_4("de <datetime> - <datetime> (interval)",
              b.reg(r#"de|depuis|du"#)?,
-             time_check!(excluding_form!(Form::TimeOfDay(_))),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"\-|au|[aà]|jusqu'(?:au|[aà])"#)?,
-             time_check!(excluding_form!(Form::TimeOfDay(_))),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_4("entre <datetime> et <datetime> (interval)",
              b.reg(r#"entre"#)?,
-             time_check!(excluding_form!(Form::TimeOfDay(_))),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"et"#)?,
-             time_check!(excluding_form!(Form::TimeOfDay(_))),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
