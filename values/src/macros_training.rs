@@ -1,4 +1,11 @@
 #[macro_export]
+macro_rules! example {
+    ($v:expr, $check:expr, $($ex:expr),*) => {
+        $( $v.push(::rustling::Example::new($ex, Box::new($check))); )*
+    };
+}
+
+#[macro_export]
 macro_rules! check_finance {
     ($value:expr) => (check_finance($value, None, Precision::Exact));
     ($value:expr, $unit:expr) => (check_finance($value, $unit, Precision::Exact));

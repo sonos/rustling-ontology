@@ -1,0 +1,14 @@
+[package]
+name = "rustling-ontology-grammar"
+version = "0.1.0"
+authors = ["hdlj <hubert.delajonquiere@snips.net>"]
+
+[dependencies]
+rustling = { git="http://github.com/snipsco/rustling", tag="0.8.1" }
+rustling-ontology-de = { path="de"}
+rustling-ontology-en = { path="en"}
+rustling-ontology-es = { path="es"}
+rustling-ontology-fr = { path="fr"}
+rustling-ontology-ko = { path="ko"}
+rustling-ontology-zh = { path="zh"}
+rustling-ontology-values = { path="../values"}

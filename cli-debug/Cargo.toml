@@ -6,7 +6,7 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>", "Mathieu Poumeyrol <kali@zoy
 [dependencies]
 rustling = { git="http://github.com/snipsco/rustling", tag="0.8.1" }
 rustling-ontology-values = { path = "../values"}
-rustling-ontology-rules = { path = "../rules"}
+rustling-ontology-grammar = { path = "../grammar"}
 rustling-ontology-moment = { path = "../moment"}
 prettytable-rs = "0.6"
 clap = "2"
