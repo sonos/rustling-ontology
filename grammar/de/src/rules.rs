@@ -213,11 +213,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              unit_of_duration_check!(|uod: &UnitOfDurationValue| uod.grain == Grain::Hour),
              |integer, _, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
     );
-    b.rule_2("a <unit-of-duration>",
-             b.reg(r#"eine?(?:r|n)?"#)?,
-             unit_of_duration_check!(),
-             |_, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, 1).into()))
-    );
     b.rule_2("in next <unit-of-duration>",
              b.reg(r#"in de(?:n|r|m) (?:n[äa]chste(?:n|r|m)|kommende(?:r|n|m))"#)?,
              unit_of_duration_check!(),
@@ -238,6 +233,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              b.reg(r#"ab (?:heute|jetzt|sofort)"#)?,
              |duration, _| duration.value().in_present()
+    );
+    b.rule_2("<duration> from now",
+             b.reg(r#"von (?:heute|jetzt|sofort) an"#)?,
+             duration_check!(),
+             |_, duration| duration.value().in_present()
     );
     b.rule_3("in <duration> from now",
              b.reg(r#"in"#)?,
@@ -631,6 +631,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("Saint Leopold",
                       b.reg(r#"sankt leopold"#)?,
                       |_| Ok(helpers::month_day(11, 15)?.form(Form::Celebration))
+    );
+    b.rule_1_terminal("Switzerland national celebration",
+                      b.reg(r#"an der bundesfeier"#)?,
+                      |_| Ok(helpers::month_day(8, 1)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Immaculate conception",
                       b.reg(r#"mari[äa] empf[äa]ngnis"#)?,
@@ -1091,7 +1095,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::Meal))
     );
     b.rule_1_terminal("dinner",
-                      b.reg(r#"dinner|souper|abendessen"#)?,
+                      b.reg(r#"dinner|souper|abendessen|abendbrot"#)?,
                       |_| Ok(helpers::hour_minute(17, 30, false)?
                           .span_to(&helpers::hour(21, false)?, false)?
                           .latent()
@@ -1325,6 +1329,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .span_to(&helpers::month_day(9, 23)?, false)?
                           .form(Form::PartOfYear))
     );
+    b.rule_1_terminal("Summer solstice",
+        b.reg(r#"an der sonnenwende"#)?,
+        |_| Ok(helpers::month_day(6, 21)?.form(Form::Celebration))
+    );
     b.rule_1_terminal("season",
                       b.reg(r#"herbst(?:zeit|s|es)?|sp[äa]tjahr(?:es)?"#)?,
                       |_| Ok(helpers::month_day(9, 23)?
@@ -1336,6 +1344,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(helpers::month_day(12, 21)?
                           .span_to(&helpers::month_day(3, 20)?, false)?
                           .form(Form::PartOfYear))
+    );
+    b.rule_1_terminal("Winter solstice",
+        b.reg(r#"an der wintersonnwende"#)?,
+        |_| Ok(helpers::month_day(12, 21)?.form(Form::Celebration))
     );
     b.rule_1_terminal("season",
                       b.reg(r#"(?:fr[üu]hlings?|fr[üu]hjahr(?:es)?)(?:zeit)?"#)?,
