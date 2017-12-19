@@ -66,11 +66,52 @@ pub fn compose_money_number(a: &AmountOfMoneyValue,
 }
 
 impl Form {
-    fn time_of_day(full_hour: u32, is_12_clock: bool) -> Form {
-        Form::TimeOfDay(Some(TimeOfDayForm {
-                                 full_hour: full_hour,
-                                 is_12_clock: is_12_clock,
-                             }))
+    fn time_of_day_hour(full_hour: u32, is_12_clock: bool) -> Form {
+        Form::TimeOfDay(TimeOfDayForm::hour(full_hour, is_12_clock))
+    }
+
+    fn time_of_day_hour_minute(full_hour: u32, minute: u32, is_12_clock: bool) -> Form {
+        Form::TimeOfDay(TimeOfDayForm::hour_minute(full_hour, minute, is_12_clock))
+    }
+
+    fn time_of_day_hour_minute_second(full_hour: u32, minute: u32, second: u32, is_12_clock: bool) -> Form {
+        Form::TimeOfDay(TimeOfDayForm::hour_minute_second(full_hour, minute, second, is_12_clock))
+    }
+    
+
+    fn is_time_of_day(&self) -> bool {
+         if let &Form::TimeOfDay(_) = self {
+            true
+         } else {
+            false
+         }
+    }   
+}
+
+impl TimeOfDayForm {
+
+    fn build_time_value(&self, is_12_clock: bool) -> RuleResult<TimeValue> {
+        match self {
+            &TimeOfDayForm::Hour { full_hour, .. } => hour(full_hour, is_12_clock),
+            &TimeOfDayForm::HourMinute { full_hour, minute, .. } => hour_minute(full_hour, minute, is_12_clock),
+            &TimeOfDayForm::HourMinuteSecond { full_hour, minute, second, .. } => hour_minute_second(full_hour, minute, second, is_12_clock),
+        }
+    }
+
+    pub fn is_12_clock(&self) -> bool {
+         match self {
+            &TimeOfDayForm::Hour { is_12_clock, .. } => is_12_clock,
+            &TimeOfDayForm::HourMinute { is_12_clock, .. } => is_12_clock,
+            &TimeOfDayForm::HourMinuteSecond { is_12_clock, .. } => is_12_clock,
+        }
+    }
+
+    pub fn full_hour(&self) -> u32 {
+        match self {
+            &TimeOfDayForm::Hour { full_hour, .. } => full_hour,
+            &TimeOfDayForm::HourMinute { full_hour, .. } => full_hour,
+            &TimeOfDayForm::HourMinuteSecond { full_hour, .. } => full_hour,
+        }
     }
 }
 
@@ -92,6 +133,10 @@ impl TimeValue {
             precision: Precision::Exact,
             latent: false,
         }
+    }
+
+    pub fn with_latent(self, latent: bool) -> TimeValue {
+        TimeValue { latent, ..self }
     }
 
     pub fn latent(self) -> TimeValue {
@@ -148,6 +193,22 @@ impl TimeValue {
                                      .precision(precision_resolution(self.precision, after_value.precision)))
     }
 
+    pub fn smart_span_to(&self, to: &TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
+        if self.form.is_time_of_day() && to.form.is_time_of_day() {
+            let start_clock = self.form_time_of_day()?;
+            let end_clock = to.form_time_of_day()?;
+            if start_clock.is_12_clock() != end_clock.is_12_clock() {
+                let is_12_clock = start_clock.is_12_clock()  && end_clock.is_12_clock();
+                start_clock.build_time_value(is_12_clock)?
+                    .span_to(&end_clock.build_time_value(is_12_clock)?, is_inclusive)
+            } else {
+                self.span_to(to, is_inclusive)
+            }
+        } else {
+            self.span_to(to, is_inclusive)
+        }
+    }
+
     pub fn span_to(&self, to: &TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
         if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
            is_inclusive {
@@ -167,8 +228,16 @@ impl TimeValue {
         }
     }
 
+    pub fn form_year(&self) -> RuleResult<i32> {
+        if let Form::Year(m) = self.form {
+            Ok(m)
+        } else {
+            Err(format!("Form {:?} is not a year form", self.form))?
+        }
+    }
+
     pub fn form_time_of_day(&self) -> RuleResult<TimeOfDayForm> {
-        if let Form::TimeOfDay(Some(v)) = self.form.clone() {
+        if let Form::TimeOfDay(v) = self.form.clone() {
             Ok(v)
         } else {
             Err(format!("Form {:?} is not a time of day form", self.form))?
@@ -204,9 +273,9 @@ pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
 
 pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if is_12_clock {
-        Ok(TimeValue::constraint(Hour::clock_12(h)).form(Form::time_of_day(h, is_12_clock)))
+        Ok(TimeValue::constraint(Hour::clock_12(h)).form(Form::time_of_day_hour(h, is_12_clock)))
     } else {
-        Ok(TimeValue::constraint(Hour::clock_24(h)).form(Form::time_of_day(h, is_12_clock)))
+        Ok(TimeValue::constraint(Hour::clock_24(h)).form(Form::time_of_day_hour(h, is_12_clock)))
     }
 }
 
@@ -221,10 +290,10 @@ pub fn second(s: u32) -> RuleResult<TimeValue> {
 pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if is_12_clock {
         Ok(TimeValue::constraint(HourMinute::clock_12(h, m))
-           .form(Form::TimeOfDay(None)))
+            .form(Form::time_of_day_hour_minute(h, m, is_12_clock)))
     } else {
         Ok(TimeValue::constraint(HourMinute::clock_24(h, m))
-           .form(Form::TimeOfDay(None)))
+           .form(Form::time_of_day_hour_minute(h, m, is_12_clock)))
     }
 }
 
@@ -235,7 +304,7 @@ pub fn hour_minute_second(h: u32,
                                    -> RuleResult<TimeValue> {
     Ok(hour_minute(h, m, is_12_clock)?
            .intersect(&second(s)?)?
-           .form(Form::TimeOfDay(None)))
+           .form(Form::time_of_day_hour_minute_second(h, m, s, is_12_clock)))
 }
 
 pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<TimeValue> {
