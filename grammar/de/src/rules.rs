@@ -2,7 +2,7 @@ use rustling::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::dimension::Precision::*;
 use rustling_ontology_values::helpers;
-use rustling_ontology_moment::{Grain, PeriodComp, Weekday};
+use rustling_ontology_moment::{Grain, PeriodComp, Weekday, Period};
 
 fn german_article_regex() -> &'static str {
     r#"(?:i[nm]s?|zu[rm]?|beim?|um|w[äa]h?rend|f[uü]r) ?(?:de(?:r|m|s|n)|die|das)?"#
@@ -152,6 +152,15 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("3/4 hour",
                       b.reg(r#"(?:3/4\s?|(?:eine?r? )dreiviertel)stunde"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
+    );
+    b.rule_3("<integer> and a half <unit-of-duration>",
+             integer_check_by_range!(0),
+             b.reg(r#"einhalb"#)?,
+             unit_of_duration_check!(),
+             |integer, _, uod| {
+                let half_period: Period = uod.value().grain.half_period().map(|a| a.into()).unwrap_or_else(|| Period::default());
+                Ok(DurationValue::new(half_period + PeriodComp::new(uod.value().grain, integer.value().value)))
+            }
     );
     b.rule_2("while <duration>",
              duration_check!(),
@@ -566,6 +575,20 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("palmsonntag (Palm Sunday)",
         b.reg(r#"palmsonntag"#)?,
         |_| Ok(helpers::cycle_nth_after(Grain::Day, -7, &helpers::easter()?)?.form(Form::Celebration)),
+    );
+
+    b.rule_1_terminal("Lent",
+        b.reg(r#"(?:in|w[aä]hrend) der fastenzeit"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, -47, &helpers::easter()?)?
+                          .span_to(&helpers::easter()?, false)?
+                          .form(Form::Celebration))
+    );
+
+    b.rule_1_terminal("fasnet",
+        b.reg(r#"(?:in|w[aä]hrend) der fasnet"#)?,
+        |_| Ok(helpers::month_day(11, 11)?
+                          .span_to(&helpers::cycle_nth_after(Grain::Day, -47, &helpers::easter()?)?, false)?
+                          .form(Form::Celebration))
     );
 
     b.rule_1_terminal("valentine's day",
@@ -1082,7 +1105,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::Meal))
     );
     b.rule_1("lunch (latent)",
-             b.reg(r#"mittag(?:szeit|pause|essen)"#)?,
+             b.reg(r#"mittag(?:szeit|pause|essen(?:szeit))"#)?,
              |_| Ok(helpers::hour(12, false)?
                  .span_to(&helpers::hour(14, false)?, false)?
                  .latent()
@@ -1095,18 +1118,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::Meal))
     );
     b.rule_1_terminal("dinner",
-                      b.reg(r#"dinner|souper|abendessen|abendbrot"#)?,
+                      b.reg(r#"dinner|souper|abendessen(?:szeit)|abendbrot(?:zeit)|vesper(?:zeit)"#)?,
                       |_| Ok(helpers::hour_minute(17, 30, false)?
                           .span_to(&helpers::hour(21, false)?, false)?
                           .latent()
                           .form(Form::Meal))
-    );
-
-    b.rule_1_terminal("vesper",
-        b.reg(r#"vesper"#)?,
-        |_| Ok(helpers::hour(18, false)?
-                .span_to(&helpers::hour(20, false)?, false)?
-                .form(Form::Meal))
     );
     b.rule_1_terminal("early morning",
                       b.reg(r#"fr[üu]hen vormittag|tagesanbruch|morgen(?:grauen|fr[üu]he)|fr[üu]h(?:en )?morgens?|am morgen fruh"#)?,
@@ -1476,12 +1492,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
     );
-    b.rule_2("until <time>",
+    b.rule_2("until <time-of-day>",
              b.reg(r#"vor |bis(?:(?: zu[rm]?) |in d(?:en|ie|as))?"#)?,
              time_check!(),
              |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
     );
-    b.rule_2("until <time-of-day>",
+    b.rule_2("until <time>",
+        b.reg(r#"sp[äa]testens"#)?,
+        time_check!(),
+        |_, tod| Ok(tod.value().clone().direction(Some(Direction::Before)).not_latent())
+    );
+    b.rule_2("until <time>",
         b.reg(r#"kurz vor"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         |_, tod| Ok(tod.value().clone().direction(Some(Direction::Before)).not_latent())
