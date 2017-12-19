@@ -89,6 +89,17 @@ macro_rules! time_check {
     ($($predicate:expr),*) => ( ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![ $( b!($predicate) ),*]) );
 }
 
+#[macro_export]
+macro_rules! time_of_day_check_hour {
+    ($min:expr, $max:expr) => ( ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| {
+        if let ::rustling_ontology_values::dimension::Form::TimeOfDay(ref tod) = time.form {
+            $min <= tod.full_hour() &&  tod.full_hour() <= $max
+        } else {
+            false
+        }
+    })]));
+}
+
 
 #[macro_export]
 macro_rules! duration_check {
