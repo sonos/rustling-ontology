@@ -38,9 +38,6 @@ pub use rustling_ontology_values::{ResolverContext, IdentityContext, ParsingCont
 pub use rustling_ontology_moment::Interval;
 pub use rustling_ontology_moment::Grain;
 
-
-use grammar::{rules, examples};
-
 mod parser;
 mod tagger;
 
