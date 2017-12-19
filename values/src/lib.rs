@@ -8,7 +8,9 @@ pub mod check;
 pub mod dimension;
 pub mod helpers;
 #[macro_use]
-pub mod macros;
+pub mod macros_training;
+#[macro_use]
+pub mod macros_rules;
 pub mod output;
 pub mod context;
 

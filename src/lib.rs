@@ -23,15 +23,14 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-extern crate rustling_ontology_moment;
 extern crate rustling;
-extern crate rustling_ontology_rules;
+extern crate rustling_ontology_moment;
+extern crate rustling_ontology_grammar as grammar;
 extern crate rustling_ontology_values;
-extern crate rustling_ontology_training as training;
 
 pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, Sym, ParsingAnalysis};
 pub use rustling::errors::*;
-pub use rustling_ontology_rules::{Lang, dims};
+pub use grammar::{Lang, dims};
 pub use rustling_ontology_values::dimension;
 pub use rustling_ontology_values::output;
 pub use rustling_ontology_values::output::{Output, OutputKind};
@@ -118,71 +117,32 @@ impl Parser {
 
 /// Obtain a parser for a given language.
 pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
-    match lang {
-        Lang::DE => de::build_parser(),
-        Lang::EN => en::build_parser(),
-        Lang::FR => fr::build_parser(),
-        Lang::ES => es::build_parser(),
-        Lang::KO => ko::build_parser(),
-        Lang::ZH => zh::build_parser(),
-    }
+    build_raw_parser(lang).map(::Parser)
 }
+
+
 
 /// Obtain a parser for a given language.
 pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
-    match lang {
-        Lang::DE => de::build_raw_parser(),
-        Lang::EN => en::build_raw_parser(),
-        Lang::FR => fr::build_raw_parser(),
-        Lang::ES => es::build_raw_parser(),
-        Lang::KO => ko::build_raw_parser(),
-        Lang::ZH => zh::build_raw_parser(),
-    }
+    let rules = grammar::rules(lang)?;
+    let model = match lang {
+        Lang::DE => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/de.rmp"))[..]) },
+        Lang::EN => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/en.rmp"))[..]) },
+        Lang::ES => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/es.rmp"))[..]) },
+        Lang::FR => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/fr.rmp"))[..]) },
+        Lang::KO => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ko.rmp"))[..]) },
+        Lang::ZH => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/zh.rmp"))[..]) },
+    }.map_err(|e| format!("{:?}", e))?;
+    Ok(::RawParser::new(rules, model, ::parser::FeatureExtractor()))
 }
+
 
 pub fn train_parser(lang: Lang) -> RustlingResult<Parser> {
-    match lang {
-        Lang::DE => de::train_parser(),
-        Lang::EN => en::train_parser(),
-        Lang::FR => fr::train_parser(),
-        Lang::ES => es::train_parser(),
-        Lang::KO => ko::train_parser(),
-        Lang::ZH => zh::train_parser(),
-    }
+    let rules = grammar::rules(lang)?;
+    let examples = grammar::examples(lang);
+    let model = ::rustling::train::train(&rules, examples, ::parser::FeatureExtractor())?;
+    Ok(Parser(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor())))
 }
-
-macro_rules! lang {
-    ($lang:ident, $config:ident) => {
-        mod $lang {
-            use rustling_ontology_rules as rules;
-            use super::*;
-
-            pub fn train_parser() -> RustlingResult<Parser> {
-                let rules = rules::$config::rule_set()?;
-                let exs = ::training::$lang();
-                let model = ::rustling::train::train(&rules, exs, ::parser::FeatureExtractor())?;
-                Ok(Parser(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor())))
-            }
-
-            pub fn build_raw_parser() -> RustlingResult<::RawParser> {
-                let rules = rules::$config::rule_set()?;
-                let model = ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/", stringify!($lang), ".rmp"))[..]).map_err(|e| format!("{:?}", e))?;
-                Ok(::RawParser::new(rules, model, ::parser::FeatureExtractor()))
-            }
-
-            pub fn build_parser() -> RustlingResult<::Parser> {
-                build_raw_parser().map(::Parser)
-            }
-        }
-    }
-}
-
-lang!(de, de_config);
-lang!(en, en_config);
-lang!(es, es_config);
-lang!(fr, fr_config);
-lang!(ko, ko_config);
-lang!(zh, zh_config);
 
 #[cfg(test)]
 mod tests {

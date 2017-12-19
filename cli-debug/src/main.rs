@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate clap;
 extern crate rustling;
-extern crate rustling_ontology_rules as rules;
+extern crate rustling_ontology_grammar as grammar;
 extern crate rustling_ontology_values as values;
 extern crate rustling_ontology_moment;
 #[macro_use]
@@ -19,12 +19,12 @@ fn main() {
              (@arg sentence: +required "Sentence to test")
         )
     ).get_matches();
-    let lang = value_t!(matches.value_of("lang"), rules::Lang).unwrap_or_else(|e| e.exit());
+    let lang = value_t!(matches.value_of("lang"), grammar::Lang).unwrap_or_else(|e| e.exit());
     match matches.subcommand() {
         ("parse", Some(matches)) => {
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let decoder = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
-            let rules = rules::rules(lang).unwrap();
+            let rules = grammar::rules(lang).unwrap();
             let matches = rules.apply_all(&*sentence).unwrap();
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);

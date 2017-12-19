@@ -72,7 +72,7 @@ fn main() {
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_raw_parser(lang).unwrap();
             
-            let context = IdentityContext::new();
+            let context = ResolverContext::default();
             let tagger = CandidateTagger {
                 order: &kinds,
                 context: &context,
