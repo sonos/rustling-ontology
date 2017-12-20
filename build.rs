@@ -25,19 +25,17 @@ pub fn train_async(lang: Lang) -> JoinHandle<()> {
     })
 }
 
-pub fn train_sync(lang: Lang) -> JoinHandle<()> {
+pub fn train_sync(lang: Lang) {
     println!("cargo:rerun-if-changed=grammar/{}/src/rules.rs", lang.to_string().to_lowercase());
-    thread::spawn(move || {
-        let out_dir = path::PathBuf::from(env::var("OUT_DIR").unwrap());
-        let mut file = fs::File::create(out_dir.join(format!("{}{}", lang.to_string().to_lowercase(), ".rmp"))).unwrap(); 
-        let rules = grammar::rules(lang).unwrap();
-        let examples =  grammar::examples(lang);
-        let model = ::rustling::train::train(&rules, examples, ::parser::FeatureExtractor()).unwrap();
-        ::rmp_serde::encode::write(&mut file, &model).unwrap();
-    })
+    let out_dir = path::PathBuf::from(env::var("OUT_DIR").unwrap());
+    let mut file = fs::File::create(out_dir.join(format!("{}{}", lang.to_string().to_lowercase(), ".rmp"))).unwrap(); 
+    let rules = grammar::rules(lang).unwrap();
+    let examples =  grammar::examples(lang);
+    let model = ::rustling::train::train(&rules, examples, ::parser::FeatureExtractor()).unwrap();
+    ::rmp_serde::encode::write(&mut file, &model).unwrap();
 }
 
-pub fn train_all_async(lang: Lang) {
+pub fn train_all_async() {
     let join_handlers: Vec<_> = Lang::all().into_iter().map(|lang| {
         train_async(lang)
     }).collect();
@@ -47,7 +45,7 @@ pub fn train_all_async(lang: Lang) {
     }
 }
 
-pub fn train_all_sync(lang: Lang) {
+pub fn train_all_sync() {
     for lang in Lang::all() {
         train_sync(lang);
     }
