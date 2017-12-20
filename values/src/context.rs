@@ -58,29 +58,40 @@ impl ParsingContext<Dimension> for ResolverContext {
                     })
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
-                        if let Some(end) = interval.end {
+                        if let Some(bounded_direction) = tv.direction {
+                            let anchor = match bounded_direction.bound {
+                                Bound::Start => interval.start,
+                                Bound::End => interval.end.unwrap_or(interval.start),
+                            };
+                            
+                            let output = TimeOutput {
+                                moment: anchor,
+                                grain: interval.grain,
+                                precision: tv.precision,
+                                latent: tv.latent,
+                            };
+                            
+                            match bounded_direction.direction {
+                                Direction::After => Output::TimeInterval(TimeIntervalOutput::After(output)),
+                                Direction::Before => Output::TimeInterval(TimeIntervalOutput::Before(output)),
+                            }
+                        } else if let Some(end) = interval.end {
                             Output::TimeInterval(
-                                TimeIntervalOutput::Between {
-                                    start: interval.start, 
-                                    end: end, 
-                                    precision: tv.precision,
-                                    latent: tv.latent,
-                                }
-                            )
+                                    TimeIntervalOutput::Between {
+                                        start: interval.start, 
+                                        end: end, 
+                                        precision: tv.precision,
+                                        latent: tv.latent,
+                                    }
+                                )
                         } else {
                             let output = TimeOutput {
                                     moment: interval.start,
                                     grain: interval.grain,
                                     precision: tv.precision,
                                     latent: tv.latent,
-                                } ;
-                            if let Some(Direction::After) = tv.direction {
-                                Output::TimeInterval(TimeIntervalOutput::After(output))
-                            } else if let Some(Direction::Before) = tv.direction {
-                                Output::TimeInterval(TimeIntervalOutput::Before(output))
-                            } else {
-                                Output::Time(output)
-                            }
+                            };
+                            Output::Time(output)
                         }
                     })
             }

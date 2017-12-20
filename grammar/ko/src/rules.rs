@@ -677,7 +677,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::TimeOfDay(_))),
              |_, tod| {
                  let day_period = helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?;
-                 Ok(tod.value().intersect(&day_period)?.form(Form::TimeOfDay(None)))
+                 Ok(tod.value().intersect(&day_period)?.form(tod.value().form.clone()))
              }
     );
     // From "am|pm <time-of-day>" rules in the original grammar version
@@ -686,7 +686,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::TimeOfDay(_))),
              |_, tod| {
                  let day_period = helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?;
-                 Ok(tod.value().intersect(&day_period)?.form(Form::TimeOfDay(None)))
+                 Ok(tod.value().intersect(&day_period)?.form(tod.value().form.clone()))
              }
     );
     b.rule_1_terminal("noon",
@@ -707,29 +707,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |integer, _| Ok(RelativeMinuteValue(integer.value().value as i32))
     );
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
-             time_check!(form!(Form::TimeOfDay(Some(_)))),
+             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              relative_minute_check!(),
              |tod, relative_minutes| helpers::hour_relative_minute(
-                 tod.value().form_time_of_day()?.full_hour,
+                 tod.value().form_time_of_day()?.full_hour(),
                  relative_minutes.value().0,
                  true
              )
     );
     b.rule_2("<hour-of-day> <integer>",
-             time_check!(form!(Form::TimeOfDay(Some(_)))),
+             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              integer_check_by_range!(0, 59),
              |tod, integer| helpers::hour_minute(
-                 tod.value().form_time_of_day()?.full_hour,
+                 tod.value().form_time_of_day()?.full_hour(),
                  integer.value().value as u32,
                  true
              )
     );
     b.rule_3("<integer> (hour-of-day) relative minutes 전",
-             time_check!(form!(Form::TimeOfDay(Some(_)))),
+             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              relative_minute_check!(),
              b.reg(r#"전"#)?,
              |tod, relative_minutes, _| helpers::hour_relative_minute(
-                 tod.value().form_time_of_day()?.full_hour,
+                 tod.value().form_time_of_day()?.full_hour(),
                  -1 * relative_minutes.value().0,
                  true
              )
@@ -765,125 +765,125 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("morning",
                       b.reg(r#"아침"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("morning (latent)",
                       b.reg(r#"오전"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("late morning (latent)",
                       b.reg(r#"늦은 아침|오전 늦게|아침 늦게|아침 느지막이"#)?,
                       |_| Ok(helpers::hour(11, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("early afternoon (latent)",
                       b.reg(r#"이른 오후|낮곁|오후 들어|오후 일찍"#)?,
                       |_| Ok(helpers::hour(12, false)?
                           .span_to(&helpers::hour(16, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
     );
     b.rule_1_terminal("afternoon",
                       b.reg(r#"오후"#)?,
                       |_| Ok(helpers::hour(12, false)?
                           .span_to(&helpers::hour(19, false)?, false)?
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
     );
     b.rule_1_terminal("late afternoon (latent)",
                       b.reg(r#"늦은 오후|오후 늦게"#)?,
                       |_| Ok(helpers::hour(17, false)?
                           .span_to(&helpers::hour(19, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
     );
     b.rule_1_terminal("early evening (latent)",
                       b.reg(r#"이른 저녁|초저녁|저녁 일찍"#)?,
                       |_| Ok(helpers::hour(18, false)?
                           .span_to(&helpers::hour(21, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
     b.rule_1_terminal("evening",
                       b.reg(r#"저녁"#)?,
                       |_| Ok(helpers::hour(18, false)?
                           .span_to(&helpers::hour(0, false)?, false)?
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
     b.rule_1_terminal("late evening (latent)",
                       b.reg(r#"늦은 저녁|저녁 늦게"#)?,
                       |_| Ok(helpers::hour(21, false)?
                           .span_to(&helpers::hour(0, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
     b.rule_1_terminal("early night (latent)",
                       b.reg(r#"이른 밤|밤에 일찍"#)?,
                       |_| Ok(helpers::hour(21, false)?
                           .span_to(&helpers::hour(0, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Night)))
     );
     b.rule_1_terminal("night",
                       b.reg(r#"밤"#)?,
                       |_| Ok(helpers::hour(19, false)?
                           .span_to(&helpers::hour(0, false)?, false)?
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Night)))
     );
     b.rule_1_terminal("late night (latent)",
                       b.reg(r#"늦은 밤|밤 늦게|깊은 밤"#)?,
                       |_| Ok(helpers::hour(1, false)?
                           .span_to(&helpers::hour(4, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::PartOfDay(PartOfDayForm::Night)))
     );
     b.rule_1_terminal("breakfast (latent)",
                       b.reg(r#"아침(?: ?(?:식사|밥))?|조반"#)?,
                       |_| Ok(helpers::hour(6, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::Meal))
     );
     b.rule_1_terminal("brunch (latent)",
                       b.reg(r#"브런취|브런치|아침 겸 점심|늦은 아침|아점"#)?,
                       |_| Ok(helpers::hour(11, false)?
                           .span_to(&helpers::hour(14, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::Meal))
     );
     b.rule_1_terminal("lunch (latent)",
                       b.reg(r#"점심(?: ?(?:식사|밥))?"#)?,
                       |_| Ok(helpers::hour(12, false)?
                           .span_to(&helpers::hour(14, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::Meal))
     );
     b.rule_1_terminal("dinner (latent)",
                       b.reg(r#"저녁(?: ?(?:식사|밥))?"#)?,
                       |_| Ok(helpers::hour_minute(17, 30, false)?
                           .span_to(&helpers::hour(21, false)?, false)?
                           .latent()
-                          .form(Form::PartOfDay))
+                          .form(Form::Meal))
     );
     b.rule_2("in|during the <part-of-day>",
-             time_check!(form!(Form::PartOfDay)),
+             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              b.reg(r#"에|동안|때"#)?,
              |time, _| Ok(time.value().clone().not_latent())
     );
 
     b.rule_2("<time> <part-of-day>",
              time_check!(),
-             time_check!(form!(Form::PartOfDay)),
+             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |time, pod| pod.value().intersect(time.value())
     );
 
@@ -967,17 +967,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<time-of-day>이전",
              time_check!(),
              b.reg(r#"이?전"#)?,
-             |time, _| Ok(time.value().clone().direction(Some(Direction::Before)))
+             |time, _| Ok(time.value().clone().mark_before_start())
     );
     b.rule_2("after <time-of-day>",
              time_check!(),
              b.reg(r#"지나(?:서|고)|되면|이?후에?|뒤에?"#)?,
-             |time, _| Ok(time.value().clone().direction(Some(Direction::After)))
+             |time, _| Ok(time.value().clone().mark_after_end())
     );
     b.rule_2("since <time-of-day>",
              time_check!(),
              b.reg(r#"(이래|이후)로?"#)?,
-             |time, _| Ok(time.value().the_nth(-1)?.direction(Some(Direction::After)))
+             |time, _| Ok(time.value().clone().mark_after_start())
     );
     b.rule_4("from <time> to <time>",
              time_check!(),
@@ -1092,7 +1092,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |duration, _| Ok(duration
                  .value()
                  .in_present()?
-                 .direction(Some(Direction::After)))
+                 .mark_after_start())
     );
     b.rule_3("<duration> from now",
              b.reg(r#"지금부터|현시간부터"#)?,

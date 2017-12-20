@@ -104,7 +104,7 @@ impl Check<Dimension> for CheckMoment {
                             let check_precision = m.precision == self.precision;
                             check_value && check_precision
                         } else {
-                            true
+                            false
                         }
                     })
                     .unwrap_or(false)
@@ -118,7 +118,7 @@ impl Check<Dimension> for CheckMoment {
                             let check_precision = m.precision == self.precision;
                             check_value && check_precision
                         } else {
-                            true
+                            false
                         }
                     })
                     .unwrap_or(false)
