@@ -976,7 +976,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("since <time-of-day>",
              time_check!(),
-             b.reg(r#"(이래|이후)로?"#)?,
+             b.reg(r#"이래로?"#)?,
              |time, _| Ok(time.value().clone().mark_after_start())
     );
     b.rule_4("from <time> to <time>",
