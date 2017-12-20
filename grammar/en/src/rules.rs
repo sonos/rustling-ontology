@@ -142,7 +142,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, duration| Ok(duration
                  .value()
                  .in_present()?
-                 .direction(Some(Direction::After)))
+                 .mark_after_start())
     );
     b.rule_3("<duration> and <duration>",
              duration_check!(),
@@ -1362,20 +1362,25 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, a| helpers::cycle_nth(Grain::Second, 0)?.span_to(a.value(), true)
     );
-    b.rule_2("until <time-of-day>",
-             b.reg(r#"(?:anytime |sometimes? )?(?:before|(?:un)?til(?:l)?|through|up to)"#)?,
+    b.rule_2("until <time>",
+             b.reg(r#"(?:anytime |sometimes? )?(?:(?:un)?til(?:l)?|through|up to)"#)?,
              time_check!(),
-             |_, a| Ok(a.value().clone().direction(Some(Direction::Before)))
+             |_, a| Ok(a.value().clone().mark_before_end())
+    );
+    b.rule_2("before <time>",
+             b.reg(r#"(?:anytime |sometimes? )?before"#)?,
+             time_check!(),
+             |_, a| Ok(a.value().clone().mark_before_start())
     );
     b.rule_2("after <time-of-day>",
              b.reg(r#"(?:anytime |sometimes? )?after"#)?,
              time_check!(),
-             |_, a| Ok(a.value().clone().direction(Some(Direction::After)))
+             |_, a| Ok(a.value().clone().mark_after_end())
     );
     b.rule_2("since <time-of-day>",
              b.reg(r#"since"#)?,
              time_check!(),
-             |_, a| Ok(a.value().the_nth(-1)?.direction(Some(Direction::After)))
+             |_, a| Ok(a.value().the_nth(-1)?.mark_after_start())
     );
     Ok(())
 }

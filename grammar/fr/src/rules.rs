@@ -1422,19 +1422,34 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("avant <time-of-day>",
-             b.reg(r#"(?:n[ ']importe quand )?(?:avant|jusqu'(?:a|à))"#)?,
+             b.reg(r#"(?:n[ ']importe quand )?jusqu'(?:a|à)"#)?,
              time_check!(),
-             |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
+             |_, time| Ok(time.value().clone().mark_before_end())
+    );
+    b.rule_2("avant <time-of-day>",
+             b.reg(r#"(?:n[ ']importe quand )?avant"#)?,
+             time_check!(),
+             |_, time| Ok(time.value().clone().mark_before_start())
     );
     b.rule_2("après <time-of-day>",
-             b.reg(r#"(?:apr(?:e|è)s|(?:a|à) partir de)"#)?,
+             b.reg(r#"apr(?:e|è)s"#)?,
              time_check!(),
-             |_, time| Ok(time.value().clone().direction(Some(Direction::After)))
+             |_, time| Ok(time.value().clone().mark_after_end())
+    );
+    b.rule_2("après <time-of-day>",
+             b.reg(r#"(?:a|à) partir de"#)?,
+             time_check!(),
+             |_, time| Ok(time.value().clone().mark_after_start())
     );
     b.rule_2("après le <day-of-month>",
-             b.reg(r#"(?:apr(?:e|è)s le|(?:a|à) partir du)"#)?,
+             b.reg(r#"apr(?:e|è)s le"#)?,
              integer_check_by_range!(1, 31),
-             |_, integer| Ok(helpers::day_of_month(integer.value().value as u32)?.direction(Some(Direction::After)))
+             |_, integer| Ok(helpers::day_of_month(integer.value().value as u32)?.mark_after_end())
+    );
+    b.rule_2("après le <day-of-month>",
+             b.reg(r#"(?:a|à) partir du"#)?,
+             integer_check_by_range!(1, 31),
+             |_, integer| Ok(helpers::day_of_month(integer.value().value as u32)?.mark_after_start())
     );
     Ok(())
 }

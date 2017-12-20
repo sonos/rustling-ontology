@@ -1492,30 +1492,30 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
     );
-    b.rule_2("until <time-of-day>",
+    b.rule_2("before <time>",
              b.reg(r#"vor |bis(?:(?: zu[rm]?) |in d(?:en|ie|as))?"#)?,
              time_check!(),
-             |_, time| Ok(time.value().clone().direction(Some(Direction::Before)))
+             |_, time| Ok(time.value().clone().mark_before_start())
     );
     b.rule_2("until <time>",
         b.reg(r#"sp[äa]testens"#)?,
         time_check!(),
-        |_, tod| Ok(tod.value().clone().direction(Some(Direction::Before)).not_latent())
+        |_, tod| Ok(tod.value().clone().mark_before_end().not_latent())
     );
     b.rule_2("until <time>",
         b.reg(r#"kurz vor"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
-        |_, tod| Ok(tod.value().clone().direction(Some(Direction::Before)).not_latent())
+        |_, tod| Ok(tod.value().clone().mark_before_start().not_latent())
     );
     b.rule_2("after <time>",
              b.reg(r#"nach"#)?,
              time_check!(),
-             |_, time| Ok(time.value().clone().direction(Some(Direction::After)))
+             |_, time| Ok(time.value().clone().mark_after_end())
     );
     b.rule_2("after <time-of-day>",
         b.reg(r#"kurz nach"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
-        |_, tod| Ok(tod.value().clone().direction(Some(Direction::After)).not_latent())
+        |_, tod| Ok(tod.value().clone().mark_after_end().not_latent())
     );
     b.rule_1_terminal("start of week",
                       b.reg(r#"(?:de[rnms]|zu )?(anfang|beginn) der woche"#)?,
@@ -1656,18 +1656,18 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("since <time> (past)",
              b.reg(r#"seit(?: de[rm])?"#)?,
              time_check!(),
-             |_, a| Ok(a.value().the_nth(-1)?.direction(Some(Direction::After)).not_latent())
+             |_, a| Ok(a.value().the_nth(-1)?.mark_after_start().not_latent())
     );
     b.rule_2("since <time> (futur)",
              b.reg(r#"ab(?: de[rm])?"#)?,
              time_check!(),
-             |_, a| Ok(a.value().clone().direction(Some(Direction::After)).not_latent())
+             |_, a| Ok(a.value().clone().mark_after_start().not_latent())
     );
     b.rule_3("since <time>",
              b.reg(r#"vo[nm](?: de[rm])?"#)?,
              time_check!(),
              b.reg(r#"an"#)?,
-             |_, time, _| Ok(time.value().clone().direction(Some(Direction::After)).not_latent())
+             |_, time, _| Ok(time.value().clone().mark_after_start().not_latent())
     );
     Ok(())
 }

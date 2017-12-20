@@ -151,10 +151,38 @@ impl TimeValue {
         TimeValue { form: form, ..self }
     }
 
-    pub fn direction(self, direction: Option<Direction>) -> TimeValue {
+    pub fn direction(self, direction: Option<BoundedDirection>) -> TimeValue {
         TimeValue {
             direction: direction,
             ..self
+        }
+    }
+
+    pub fn mark_after_start(self) -> TimeValue {
+        TimeValue {
+            direction: Some(BoundedDirection::after_start()),
+            .. self
+        }
+    }
+
+    pub fn mark_after_end(self) -> TimeValue {
+        TimeValue {
+            direction: Some(BoundedDirection::after_end()),
+            .. self
+        }
+    }
+
+    pub fn mark_before_start(self) -> TimeValue {
+        TimeValue {
+            direction: Some(BoundedDirection::before_start()),
+            .. self
+        }
+    }
+
+    pub fn mark_before_end(self) -> TimeValue {
+        TimeValue {
+            direction: Some(BoundedDirection::before_end()),
+            .. self
         }
     }
 
