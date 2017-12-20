@@ -50,7 +50,7 @@ fn bench_year_month_day_with_intersection(bench: &mut Bencher) {
 
 fn bench_weekday_month_day_with_intersection(bench: &mut Bencher) {
     let context = build_context(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-    let constraint = DayOfWeek::new(Weekday::Mon).intersect(&Month::new(3)).intersect(&DayOfMonth::new(5));
+    let constraint = DayOfWeek::new(Weekday::Mon).intersect(&DayOfMonth::new(5)).intersect(&Month::new(10));
     let walker = constraint.to_walker(&context.reference, &context);
     bench.iter(|| walker.forward.clone().into_iter().take(5).collect::<Vec<_>>());
 }
