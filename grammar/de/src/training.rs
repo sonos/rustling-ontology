@@ -204,7 +204,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "binnen 2 wochen", "innerhalb von 2 wochen");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14], Direction::Before), "bis 2 Uhr nachmittag");
     example!(v, check_moment_with_direction!(c, [2013, 2, 13, 0], Direction::Before), "bis zum ende des tages");
-    example!(v, check_moment_with_direction!(c, [2013, 3], Direction::Before), "bis zum ende des monats");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 25], Direction::Before), "bis zum ende des monats");
     example!(v, check_moment!(c, [2013, 2, 12, 14]), "heute um 14 Uhr", "um 2");
     example!(v, check_moment!(c, [2013, 2, 13, 15]), "morgen um 15 Uhr");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14], Direction::After), "nach 14 Uhr", "nach 14h", "nach 2");
