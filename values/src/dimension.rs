@@ -349,7 +349,7 @@ impl UnitOfDurationValue {
 pub struct TimeValue {
     pub constraint: RcConstraint<Local>,
     pub form: Form,
-    pub direction: Option<Direction>,
+    pub direction: Option<BoundedDirection>,
     pub precision: Precision,
     pub latent: bool,
 }
@@ -409,6 +409,48 @@ impl Form {
 pub enum Direction {
     After,
     Before,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Bound {
+    Start,
+    End,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BoundedDirection {
+    pub bound: Bound,
+    pub direction: Direction, 
+}
+
+impl BoundedDirection {
+    pub fn after_start() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::Start,
+            direction: Direction::After,
+        }
+    }
+
+    pub fn after_end() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::End,
+            direction: Direction::After,
+        }
+    }
+
+    pub fn before_end() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::End,
+            direction: Direction::Before,
+        }
+    }
+
+    pub fn before_start() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::Start,
+            direction: Direction::Before,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
