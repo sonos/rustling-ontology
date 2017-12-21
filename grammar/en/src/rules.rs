@@ -129,12 +129,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("for <duration>",
              b.reg(r#"for"#)?,
              duration_check!(),
-             |_, duration| Ok(duration.value().clone())
+             |_, duration| Ok(duration.value().clone().prefixed())
     );
     b.rule_2("during <duration>",
              b.reg(r#"during"#)?,
              duration_check!(),
-             |_, duration| Ok(duration.value().clone())
+             |_, duration| Ok(duration.value().clone().prefixed())
     );
     b.rule_2("after <duration>",
              b.reg(r#"after"#)?,
@@ -145,15 +145,15 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  .mark_after_start())
     );
     b.rule_3("<duration> and <duration>",
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.suffixed),
              b.reg(r#"and"#)?,
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, _, b| Ok(a.value() + b.value())
     );
 
     b.rule_2("<duration> <duration>",
-             duration_check!(),
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.suffixed),
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, b| Ok(a.value() + b.value())
     );
 

@@ -508,16 +508,26 @@ pub struct PercentageValue(pub f32);
 #[derive(Debug, PartialEq, Clone)]
 pub struct DurationValue {
     pub period: Period,
-    pub precision: Precision
+    pub precision: Precision,
+    pub suffixed: bool,
+    pub prefixed: bool,
 }
 
 impl DurationValue {
     pub fn new(period: Period) -> DurationValue {
-        DurationValue { period: period, precision: Precision::Exact }
+        DurationValue { period: period, precision: Precision::Exact, suffixed: false, prefixed: false }
     }
 
     pub fn precision(self, precision: Precision) -> DurationValue {
         DurationValue { precision: precision, ..self }
+    }
+
+    pub fn suffixed(self) -> DurationValue {
+        DurationValue { suffixed: true, .. self}
+    }
+
+    pub fn prefixed(self) -> DurationValue {
+        DurationValue { prefixed: true, .. self }
     }
 }
 

@@ -283,14 +283,14 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, duration| Ok(duration.value().clone().precision(Exact))
     );
     b.rule_3("<duration> and <duration>",
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.suffixed),
              b.reg(r#"und"#)?,
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, _, b| Ok(a.value() + b.value())
     );
     b.rule_2("<duration> <duration>",
-             duration_check!(),
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.suffixed),
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, b| Ok(a.value() + b.value())
     );
     Ok(())
