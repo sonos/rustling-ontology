@@ -349,7 +349,7 @@ impl UnitOfDurationValue {
 pub struct TimeValue {
     pub constraint: RcConstraint<Local>,
     pub form: Form,
-    pub direction: Option<Direction>,
+    pub direction: Option<BoundedDirection>,
     pub precision: Precision,
     pub latent: bool,
 }
@@ -375,9 +375,9 @@ pub enum Form {
     Month(u32),
     DayOfMonth,
     MonthDay(Option<MonthDayForm>),
-    TimeOfDay(Option<TimeOfDayForm>),
+    TimeOfDay(TimeOfDayForm),
     DayOfWeek { not_immediate: bool },
-    PartOfDay,
+    PartOfDay(PartOfDayForm),
     PartOfMonth,
     PartOfYear,
     Meal,
@@ -411,10 +411,88 @@ pub enum Direction {
     Before,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Bound {
+    Start,
+    End,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BoundedDirection {
+    pub bound: Bound,
+    pub direction: Direction, 
+}
+
+impl BoundedDirection {
+    pub fn after_start() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::Start,
+            direction: Direction::After,
+        }
+    }
+
+    pub fn after_end() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::End,
+            direction: Direction::After,
+        }
+    }
+
+    pub fn before_end() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::End,
+            direction: Direction::Before,
+        }
+    }
+
+    pub fn before_start() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::Start,
+            direction: Direction::Before,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum PartOfDayForm {
+    Morning,
+    Afternoon,
+    Evening,
+    Night,
+    None,
+}
+
 #[derive(Debug, PartialEq, Clone)]
-pub struct TimeOfDayForm {
-    pub full_hour: u32,
-    pub is_12_clock: bool,
+pub enum TimeOfDayForm {
+    Hour { full_hour: u32, is_12_clock: bool },
+    HourMinute {  full_hour: u32, minute: u32, is_12_clock: bool },
+    HourMinuteSecond { full_hour: u32, minute: u32, second: u32, is_12_clock: bool },
+}
+
+impl TimeOfDayForm {
+    pub fn hour(full_hour: u32, is_12_clock: bool) -> TimeOfDayForm {
+        TimeOfDayForm::Hour {
+            full_hour,
+            is_12_clock,
+        }
+    }
+
+    pub fn hour_minute(full_hour: u32, minute: u32, is_12_clock: bool) -> TimeOfDayForm {
+        TimeOfDayForm::HourMinute {
+            full_hour,
+            is_12_clock,
+            minute,
+        }
+    }
+
+    pub fn hour_minute_second(full_hour: u32, minute: u32, second: u32, is_12_clock: bool) -> TimeOfDayForm {
+        TimeOfDayForm::HourMinuteSecond {
+            full_hour,
+            is_12_clock,
+            minute,
+            second,
+        }
+    }
 }
 
 

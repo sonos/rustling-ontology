@@ -197,7 +197,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 11], Direction::Before), "오전11시 전", "오전11시 이전");
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "오후에");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 4, 45, 0]), "15분안");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "점심이후");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14], Direction::After), "점심이후");
     example!(v, check_moment!(c, [2013, 2, 12, 10, 30]), "10:30");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 12]), "아침");
     example!(v, check_moment!(c, [2013, 2, 12, 12]), "오후12시", "정오", "오정", "한낮");
