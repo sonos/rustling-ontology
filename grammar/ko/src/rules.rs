@@ -969,14 +969,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"이?전"#)?,
              |time, _| Ok(time.value().clone().mark_before_start())
     );
-    b.rule_2("after <time-of-day>",
+    b.rule_2("after <time>",
              time_check!(),
              b.reg(r#"지나(?:서|고)|되면|이?후에?|뒤에?"#)?,
              |time, _| Ok(time.value().clone().mark_after_end())
     );
-    b.rule_2("since <time-of-day>",
+    b.rule_2("since <time>",
              time_check!(),
-             b.reg(r#"이래로?"#)?,
+             b.reg(r#"이래로?|이후로"#)?,
              |time, _| Ok(time.value().clone().mark_after_start())
     );
     b.rule_4("from <time> to <time>",
