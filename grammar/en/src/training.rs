@@ -71,7 +71,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2014, 10, 8]), "second wednesday of october 2014");
     example!(v, check_moment!(c, [2015, 1, 13]), "third tuesday after christmas 2014");
     example!(v, check_moment!(c, [2013, 2, 13, 3]), "at 3am", "3 in the AM", "at 3 AM", "3 oclock am", "at three am");
-    example!(v, check_moment!(c, [2013, 2, 12, 3, 18]), "3:18am", "3:18a");
+    example!(v, check_moment!(c, [2013, 2, 13, 3, 18]), "3:18am", "3:18a");
     example!(v, check_moment!(c, [2013, 2, 12, 15]), "at 3pm", "@ 3pm", "3PM", "3pm", "3 oclock pm", "3 o'clock in the afternoon");
     example!(v, check_moment_with_precision!(c, [2013, 2, 12, 15], Precision::Approximate), "3ish pm", "3pm approximately", "at about 3pm");
     example!(v, check_moment!(c, [2013, 2, 12, 15, 15]), "at 15 past 3pm", "a quarter past 3pm", "3:15 in the afternon", "15:15", "3:15pm", "3:15PM", "3:15p");
@@ -178,6 +178,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 3]), "March", "in March");
     example!(v, check_moment!(c, [2016, 12, 15]), "12.15.2016", "12.15.16");
     example!(v, check_moment!(c, [2017, 05, 10]), "wednesday the 10th of may");
+    example!(v, check_moment_span!(c, [2017, 05, 12, 10, 32], [2017, 06, 7, 18, 23]), "friday the 12th of may, 10:32 am to wednesday the 7th of june, 6:22 pm");
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
