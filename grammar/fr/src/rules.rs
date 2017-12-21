@@ -187,14 +187,14 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_3("<duration> et <duration>",
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.suffixed),
              b.reg(r#"et"#)?,
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, _, b| Ok(a.value() + b.value())
     );
     b.rule_2("<duration> <duration>",
-             duration_check!(),
-             duration_check!(),
+             duration_check!(|duration: &DurationValue| !duration.suffixed),
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, b| Ok(a.value() + b.value())
     );
     b.rule_2("une <unit-of-duration>",
@@ -220,7 +220,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("pendant <duration>",
              b.reg(r#"pendant|durant"#)?,
              duration_check!(),
-             |_, duration| Ok(duration.value().clone())
+             |_, duration| Ok(duration.value().clone().prefixed())
     );
     b.rule_2("il y a <duration>",
              b.reg(r#"il y a"#)?,
@@ -1135,7 +1135,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a| Ok(helpers::cycle_nth(Grain::Day, 0)?.intersect(a.value())?.form(a.value().form.clone()))
     );
     b.rule_2("<dim time> <part-of-day>",
-             time_check!(),
+             time_check!(excluding_form!(Form::TimeOfDay(_))),
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |a, b| a.value().intersect(b.value())
     );

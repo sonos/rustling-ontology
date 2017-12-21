@@ -104,6 +104,7 @@ macro_rules! time_of_day_check_hour {
 #[macro_export]
 macro_rules! duration_check {
     () => ( ::rustling::core::AnyNodePattern::<DurationValue>::new() );
+    ($predicate:expr) => ( ::rustling::core::FilterNodePattern::<DurationValue>::filter(vec![b!($predicate)]) );
 }
 
 

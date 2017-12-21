@@ -448,28 +448,48 @@ impl DurationValue {
 impl ops::Add<DurationValue> for DurationValue {
     type Output = DurationValue;
     fn add(self, duration: DurationValue) -> DurationValue {
-        DurationValue::new(self.period + duration.period)
+        DurationValue { 
+            period: self.period + duration.period,
+            precision: precision_resolution(self.precision, duration.precision),
+            suffixed: self.suffixed || duration.suffixed,
+            prefixed: self.prefixed || duration.prefixed,
+        }
     }
 }
 
 impl<'a> ops::Add<&'a DurationValue> for DurationValue {
     type Output = DurationValue;
     fn add(self, duration: &'a DurationValue) -> DurationValue {
-        DurationValue::new(self.period + &duration.period)
+        DurationValue { 
+            period: self.period + &duration.period,
+            precision: precision_resolution(self.precision, duration.precision),
+            suffixed: self.suffixed || duration.suffixed,
+            prefixed: self.prefixed || duration.prefixed,
+        }
     }
 }
 
 impl<'a, 'b> ops::Add<&'a DurationValue> for &'b DurationValue {
     type Output = DurationValue;
     fn add(self, duration: &'a DurationValue) -> DurationValue {
-        DurationValue::new(&self.period + &duration.period)
+        DurationValue { 
+            period: &self.period + &duration.period,
+            precision: precision_resolution(self.precision, duration.precision),
+            suffixed: self.suffixed || duration.suffixed,
+            prefixed: self.prefixed || duration.prefixed,
+        }
     }
 }
 
 impl<'a> ops::Add<DurationValue> for &'a DurationValue {
     type Output = DurationValue;
     fn add(self, duration: DurationValue) -> DurationValue {
-        DurationValue::new(&self.period + duration.period)
+        DurationValue { 
+            period: &self.period + duration.period,
+            precision: precision_resolution(self.precision, duration.precision),
+            suffixed: self.suffixed || duration.suffixed,
+            prefixed: self.prefixed || duration.prefixed,
+        }
     }
 }
 
