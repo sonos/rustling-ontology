@@ -6,6 +6,8 @@ extern crate rustling_ontology_es as es;
 extern crate rustling_ontology_fr as fr;
 extern crate rustling_ontology_ko as ko;
 extern crate rustling_ontology_zh as zh;
+extern crate rustling_ontology_ja as ja;
+
 
 use std::result;
 
@@ -46,7 +48,7 @@ macro_rules! lang_enum {
     }
 }
 
-lang_enum!([DE, EN, ES, FR, KO, ZH]);
+lang_enum!([DE, EN, ES, FR, KO, ZH, JA]);
 
 
 /// Obtain rules for a given language.
@@ -57,7 +59,8 @@ pub fn rules(lang: Lang) -> ::rustling::RustlingResult<::rustling::RuleSet<rustl
         Lang::ES => es::rule_set(),
         Lang::FR => fr::rule_set(),
         Lang::KO => ko::rule_set(),
-        Lang::ZH => zh::rule_set()
+        Lang::ZH => zh::rule_set(),
+        Lang::JA => ja::rule_set()
     }
 }
 
@@ -69,7 +72,8 @@ pub fn dims(lang: Lang) -> Vec<rustling_ontology_values::DimensionKind> {
         Lang::ES => es::dims(),
         Lang::FR => fr::dims(),
         Lang::KO => ko::dims(),
-        Lang::ZH => zh::dims()
+        Lang::ZH => zh::dims(),
+        Lang::JA => ja::dims()
     }
 }
 
@@ -81,6 +85,7 @@ pub fn examples(lang: Lang) -> Vec<::rustling::train::Example<rustling_ontology_
         Lang::ES => es::examples(),
         Lang::FR => fr::examples(),
         Lang::KO => ko::examples(),
-        Lang::ZH => zh::examples()
+        Lang::ZH => zh::examples(),
+        Lang::JA => ja::examples()
     }
 }
