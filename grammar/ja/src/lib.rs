@@ -13,9 +13,9 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
                     ::rustling::BoundariesChecker::detailed(),
                     ::rustling::BoundariesChecker::separated_alphanumeric_word());
     rules::rules_numbers(&mut b)?;
-    //rules::rules_time(&mut b)?;
-    //rules::rules_cycle(&mut b)?;
-    //rules::rules_duration(&mut b)?;
+    rules::rules_time(&mut b)?;
+    rules::rules_cycle(&mut b)?;
+    rules::rules_duration(&mut b)?;
     rules::rules_temperature(&mut b)?;
     rules::rules_finance(&mut b)?;
     rules::rules_percentage(&mut b)?;
