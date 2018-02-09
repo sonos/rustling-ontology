@@ -1006,7 +1006,7 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for ShiftBy<T>  where <T as Time
             let translate = Translate {
                 generator: self.base.clone(),
                 offset: Rc::new(move |i: &Interval<T>, _: &Context<T>| -> Option<Interval<T>> {
-                    Some((*i).round_to(next_grain) + &period)
+                    Some(i.round_to(next_grain) + &period)
                 }),
             };
             translate.to_walker(origin, context)

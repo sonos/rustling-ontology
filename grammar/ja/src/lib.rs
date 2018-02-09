@@ -10,8 +10,8 @@ use rustling_ontology_values::DimensionKind::*;
 
 pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ontology_values::Dimension>> {
     let mut b = ::rustling::RuleSetBuilder::new(
-                    ::rustling::BoundariesChecker::detailed(),
-                    ::rustling::BoundariesChecker::separated_alphanumeric_word());
+                    ::rustling::BoundariesChecker::no_check(),
+                    ::rustling::BoundariesChecker::no_check());
     rules::rules_numbers(&mut b)?;
     rules::rules_time(&mut b)?;
     rules::rules_cycle(&mut b)?;

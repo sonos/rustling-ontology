@@ -240,7 +240,7 @@ impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
         Interval {
             start: self.start.round_to(g),
             grain: g,
-            end: None,
+            end: self.end.map(|it| it.round_to(g)),
         }
     }
 
