@@ -9,6 +9,7 @@ rustling-ontology-de = { path="de"}
 rustling-ontology-en = { path="en"}
 rustling-ontology-es = { path="es"}
 rustling-ontology-fr = { path="fr"}
+rustling-ontology-ja = { path="ja"}
 rustling-ontology-ko = { path="ko"}
 rustling-ontology-zh = { path="zh"}
 rustling-ontology-values = { path="../values"}
