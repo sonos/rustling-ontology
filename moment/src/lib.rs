@@ -236,7 +236,15 @@ impl<T: TimeZone> PartialEq for Interval<T> {
 }
 
 impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
-    fn round_to(self, g: Grain) -> Interval<T> {
+    fn start_round_to(self, g: Grain) -> Interval<T> {
+        Interval {
+            start: self.start.round_to(g),
+            grain: g,
+            end: None,
+        }
+    }
+
+    fn interval_round_to(self, g: Grain) -> Interval<T> {
         Interval {
             start: self.start.round_to(g),
             grain: g,

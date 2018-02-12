@@ -371,7 +371,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
 
 pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("intersect",
+    b.rule_2("intersect <time>",
              time_check!(|time: &TimeValue| !time.latent),
              time_check!(|time: &TimeValue| !time.latent),
              |a, b| a.value().intersect(b.value())
@@ -1212,15 +1212,20 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("<time> <part-of-day>",
-             time_check!(),
-             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
-             |time, part_of_day| part_of_day.value().intersect(time.value())
+            time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+            time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+            |time, part_of_day| time.value().intersect(part_of_day.value())
+    );
+    b.rule_2("<part-of-day> <time>",
+            time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+            time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+            |part_of_day, time| time.value().intersect(part_of_day.value())
     );
     b.rule_3("<part-of-day> of <time>",
-             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
-             b.reg(r#"of"#)?,
-             time_check!(),
-             |part_of_day, _, time| part_of_day.value().intersect(time.value())
+            time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+            b.reg(r#"of"#)?,
+            time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+            |part_of_day, _, time| time.value().intersect(part_of_day.value())
     );
     b.rule_1_terminal("week-end",
                       b.reg(r#"(?:week(?:\s|-)?end|wkend)"#)?,
