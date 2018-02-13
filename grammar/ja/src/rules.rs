@@ -1559,7 +1559,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(UnitOfDurationValue::new(Grain::Week))
     );
     b.rule_1_terminal("month (unit-of-duration)",
-                      b.reg(r#"(?:カ|ヶ)月間?"#)?,
+                      b.reg(r#"(?:カ|ヶ|か)月間?"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Month))
     );
     b.rule_1_terminal("year (unit-of-duration)",
@@ -1774,7 +1774,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| CycleValue::new(Grain::Week)
     );
     b.rule_1_terminal("month (cycle)",
-                      b.reg(r#"カ?月"#)?,
+                      b.reg(r#"(?:カ|か|ヶ)?月"#)?,
                       |_| CycleValue::new(Grain::Month)
     );
     b.rule_1_terminal("quarter (cycle)",
@@ -1810,17 +1810,24 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a| helpers::cycle_nth(a.value().grain, 2)
     );
     b.rule_4("last n <cycle>",
-             b.reg(r#"過去|ここ"#)?,
+             b.reg(r#"過去"#)?,
              integer_check!(),
              cycle_check!(),
-             b.reg(r#"間"#)?,
+             b.reg(r#"間で?"#)?,
              |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
     b.rule_4("last n <cycle>",
-             b.reg(r#"過去|ここ"#)?,
+             b.reg(r#"過去"#)?,
              integer_check!(),
              cycle_check!(),
-             b.reg(r#"間"#)?,
+             b.reg(r#"間で?"#)?,
+             |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    b.rule_4("last n <cycle>",
+             b.reg(r#"ここ"#)?,
+             integer_check!(),
+             cycle_check!(),
+             b.reg(r#"間?で"#)?,
              |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
     b.rule_4("next n <cycle>",
