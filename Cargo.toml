@@ -6,7 +6,7 @@ build = "build.rs"
 
 [workspace]
 members=["values", "cli", "cli-debug", "moment", 
-        "grammar", "grammar/de", "grammar/en", "grammar/es", "grammar/fr", "grammar/ko", "grammar/zh"]
+        "grammar", "grammar/de", "grammar/en", "grammar/es", "grammar/fr", "grammar/ko", "grammar/zh", "grammar/ja"]
 
 [dependencies]
 bincode = "0.8"

@@ -305,7 +305,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for DayOfMonth where <T as Tim
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let offset_month = (origin.start.0.day() > self.0) as i64;
-        let anchor = origin.round_to(Grain::Month) + PeriodComp::months(offset_month);
+        let anchor = origin.start_round_to(Grain::Month) + PeriodComp::months(offset_month);
         let origin_copied = origin.clone();
         let day_of_month = self.0;
         let forward_walker =
@@ -354,7 +354,7 @@ impl<T: TimeZone> IntervalConstraint<T> for DayOfWeek where <T as TimeZone>::Off
         // number_from_monday is u32 -> use i64
         let offset = (self.0.number_from_monday() as i64 -
                       origin.start.weekday().number_from_monday() as i64 + 7) % 7;
-        let anchor = origin.round_to(Grain::Day) + PeriodComp::days(offset);
+        let anchor = origin.start_round_to(Grain::Day) + PeriodComp::days(offset);
 
         BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::weeks(1))
@@ -407,8 +407,7 @@ impl<T: TimeZone> IntervalConstraint<T> for HourMinute where <T as TimeZone>::Of
         };
         let offset_hour = (self.hour as i64 - origin.start.hour() as i64 + clock_step) % clock_step;
         let offset_minute = self.minute as i64 % 60;
-        let anchor = origin.round_to(Grain::Hour) + PeriodComp::hours(offset_hour)+ PeriodComp::minutes(offset_minute);
-
+        let anchor = origin.start_round_to(Grain::Hour) + PeriodComp::hours(offset_hour)+ PeriodComp::minutes(offset_minute);
         BidirectionalWalker::new()
             .forward_with(anchor, move |prev| prev + PeriodComp::hours(clock_step))
             .backward_with(anchor - PeriodComp::hours(clock_step),
@@ -455,7 +454,7 @@ impl<T: TimeZone> IntervalConstraint<T> for Hour where <T as TimeZone>::Offset: 
             24
         };
         let offset = (self.quantity as i64 - origin.start.hour() as i64 + clock_step) % clock_step;
-        let anchor = origin.round_to(Grain::Hour) + PeriodComp::hours(offset);
+        let anchor = origin.start_round_to(Grain::Hour) + PeriodComp::hours(offset);
 
         BidirectionalWalker::new()
             .forward_with(anchor, move |prev| prev + PeriodComp::hours(clock_step))
@@ -485,7 +484,7 @@ impl<T: TimeZone> IntervalConstraint<T> for Minute where <T as TimeZone>::Offset
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let offset = (self.0 as i64 - origin.start.minute() as i64) % 60;
-        let anchor = origin.round_to(Grain::Minute) + PeriodComp::minutes(offset);
+        let anchor = origin.start_round_to(Grain::Minute) + PeriodComp::minutes(offset);
 
         BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::hours(1))
@@ -514,7 +513,7 @@ impl<T: TimeZone> IntervalConstraint<T> for Second where <T as TimeZone>::Offset
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         let offset = (self.0 as i64 - origin.start.second() as i64 + 60) % 60;
-        let anchor = origin.round_to(Grain::Second) + PeriodComp::seconds(offset);
+        let anchor = origin.start_round_to(Grain::Second) + PeriodComp::seconds(offset);
 
         BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::minutes(1))
@@ -556,7 +555,7 @@ impl<T: TimeZone> IntervalConstraint<T> for Cycle where <T as TimeZone>::Offset:
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
-        let anchor = origin.round_to(self.0);
+        let anchor = origin.start_round_to(self.0);
         let grain = self.0;
         BidirectionalWalker::new()
             .forward_with(anchor, move |prev| prev + PeriodComp::new(grain, 1))
@@ -967,11 +966,13 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for Span<T>  where <T as TimeZon
                 to.to_walker(start, c)
                     .forward
                     .next()
-                    .map(|end| if inclusive {
+                    .map(|end| {
+                        if inclusive {
                              start.union(end)
                          } else {
                              start.interval_to(end)
-                         })
+                         }
+                     })
             }),
         };
         translate.to_walker(origin, context)
@@ -1006,7 +1007,7 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for ShiftBy<T>  where <T as Time
             let translate = Translate {
                 generator: self.base.clone(),
                 offset: Rc::new(move |i: &Interval<T>, _: &Context<T>| -> Option<Interval<T>> {
-                    Some((*i).round_to(next_grain) + &period)
+                    Some(i.interval_round_to(next_grain) + &period)
                 }),
             };
             translate.to_walker(origin, context)

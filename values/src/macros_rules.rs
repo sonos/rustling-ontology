@@ -98,6 +98,13 @@ macro_rules! time_of_day_check_hour {
             false
         }
     })]));
+    ($min_1:expr, $max_1:expr, $min_2:expr, $max_2:expr) => ( ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| {
+        if let ::rustling_ontology_values::dimension::Form::TimeOfDay(ref tod) = time.form {
+            ($min_1 <= tod.full_hour() &&  tod.full_hour() <= $max_1) || ($min_2 <= tod.full_hour() &&  tod.full_hour() <= $max_2)
+        } else {
+            false
+        }
+    })]));
 }
 
 

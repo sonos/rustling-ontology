@@ -123,7 +123,14 @@ fn precision_resolution(lhs: Precision, rhs: Precision) -> Precision {
         Precision::Exact
     }
 }
-
+fn from_addition_resolution(lhs: Option<FromAddition>, rhs: Option<FromAddition>) -> FromAddition {
+    match (lhs, rhs) {
+        (Some(lhs), None) => lhs,
+        (None, Some(rhs)) => rhs,
+        (None, None) => FromAddition::Left,
+        (Some(_), Some(_)) => FromAddition::Left, 
+    }
+}
 impl TimeValue {
     pub fn constraint(constraint: RcConstraint<Local>) -> TimeValue {
         TimeValue {
@@ -156,6 +163,10 @@ impl TimeValue {
             direction: direction,
             ..self
         }
+    }
+
+    pub fn has_direction(&self) -> bool {
+        self.direction.is_some()
     }
 
     pub fn mark_after_start(self) -> TimeValue {
@@ -297,6 +308,10 @@ pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
 
 pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
     Ok(TimeValue::constraint(MonthDay::new(m, d)).form(Form::MonthDay(Some(MonthDayForm { month: m, day_of_month: d }))))
+}
+
+pub fn year_month_day(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
+    Ok(TimeValue::constraint(YearMonthDay::new(y, m, d)).form(Form::YearMonthDay(Some(YearMonthDayForm { year: y, month: m, day_of_month: d }))))
 }
 
 pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
@@ -444,7 +459,6 @@ impl DurationValue {
         Ok(TimeValue::constraint(time.constraint.shift_by(-self.period.clone())).precision(self.precision))
     }
 }
-
 impl ops::Add<DurationValue> for DurationValue {
     type Output = DurationValue;
     fn add(self, duration: DurationValue) -> DurationValue {
@@ -453,6 +467,7 @@ impl ops::Add<DurationValue> for DurationValue {
             precision: precision_resolution(self.precision, duration.precision),
             suffixed: self.suffixed || duration.suffixed,
             prefixed: self.prefixed || duration.prefixed,
+            from_addition: Some(from_addition_resolution(self.from_addition, duration.from_addition))
         }
     }
 }
@@ -465,6 +480,7 @@ impl<'a> ops::Add<&'a DurationValue> for DurationValue {
             precision: precision_resolution(self.precision, duration.precision),
             suffixed: self.suffixed || duration.suffixed,
             prefixed: self.prefixed || duration.prefixed,
+            from_addition: Some(from_addition_resolution(self.from_addition, duration.from_addition))
         }
     }
 }
@@ -477,6 +493,7 @@ impl<'a, 'b> ops::Add<&'a DurationValue> for &'b DurationValue {
             precision: precision_resolution(self.precision, duration.precision),
             suffixed: self.suffixed || duration.suffixed,
             prefixed: self.prefixed || duration.prefixed,
+            from_addition: Some(from_addition_resolution(self.from_addition, duration.from_addition))
         }
     }
 }
@@ -489,6 +506,7 @@ impl<'a> ops::Add<DurationValue> for &'a DurationValue {
             precision: precision_resolution(self.precision, duration.precision),
             suffixed: self.suffixed || duration.suffixed,
             prefixed: self.prefixed || duration.prefixed,
+            from_addition: Some(from_addition_resolution(self.from_addition, duration.from_addition))
         }
     }
 }

@@ -11,4 +11,5 @@ rustling-ontology-es = { path="es"}
 rustling-ontology-fr = { path="fr"}
 rustling-ontology-ko = { path="ko"}
 rustling-ontology-zh = { path="zh"}
+rustling-ontology-ja = { path="ja"}
 rustling-ontology-values = { path="../values"}

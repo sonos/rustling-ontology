@@ -375,6 +375,7 @@ pub enum Form {
     Month(u32),
     DayOfMonth,
     MonthDay(Option<MonthDayForm>),
+    YearMonthDay(Option<YearMonthDayForm>),
     TimeOfDay(TimeOfDayForm),
     DayOfWeek { not_immediate: bool },
     PartOfDay(PartOfDayForm),
@@ -392,6 +393,7 @@ impl Form {
             &Form::Year(_) => None,
             &Form::Month(_) => None,
             &Form::MonthDay(_) => None,
+            &Form::YearMonthDay(_) => None,
             &Form::TimeOfDay(_) => None,
             &Form::DayOfWeek { not_immediate } => Some(not_immediate),
             &Form::Empty => None,
@@ -502,8 +504,21 @@ pub struct MonthDayForm {
     pub day_of_month: u32,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct YearMonthDayForm {
+    pub year: i32,
+    pub month: u32,
+    pub day_of_month: u32,
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct PercentageValue(pub f32);
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum FromAddition {
+    Left,
+    Right,
+}
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct DurationValue {
@@ -511,15 +526,40 @@ pub struct DurationValue {
     pub precision: Precision,
     pub suffixed: bool,
     pub prefixed: bool,
+    pub from_addition: Option<FromAddition>,
 }
 
 impl DurationValue {
     pub fn new(period: Period) -> DurationValue {
-        DurationValue { period: period, precision: Precision::Exact, suffixed: false, prefixed: false }
+        DurationValue { period: period, precision: Precision::Exact, suffixed: false, prefixed: false, from_addition: None }
     }
 
     pub fn precision(self, precision: Precision) -> DurationValue {
         DurationValue { precision: precision, ..self }
+    }
+
+    pub fn from_addition(self, from_addition: FromAddition) -> DurationValue {
+        DurationValue { from_addition: Some(from_addition), .. self}
+    }
+
+    pub fn is_added_by_left(&self) -> bool {
+        if let Some(FromAddition::Left) = self.from_addition {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_added_by_right(&self) -> bool {
+        if let Some(FromAddition::Right) = self.from_addition {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_from_addition(&self) -> bool {
+        self.from_addition.is_some()
     }
 
     pub fn suffixed(self) -> DurationValue {

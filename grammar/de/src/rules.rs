@@ -424,9 +424,9 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("intersect",
-             time_check!(|time: &TimeValue| !time.latent),
-             time_check!(|time: &TimeValue| !time.latent),
+    b.rule_2("intersect <time>",
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::PartOfDay(_))(time)),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::PartOfDay(_))(time)),
              |a, b| a.value().intersect(b.value())
     );
     b.rule_3("intersect by 'of', 'from', 's",
@@ -703,11 +703,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"nikolaus(?: ?tag|abend)?|nikolo"#)?,
                       |_| Ok(helpers::month_day(12, 6)?.form(Form::Celebration))
     );
-    // b.rule_2("absorption of , after named day",
-    //     time_check!(form!(Form::DayOfWeek{..})),
-    //     b.reg(r#","#)?,
-    //     |time, _| Ok(time.value().clone())
-    // );
 
     b.rule_2("<ordinal> advent sunday",
         ordinal_check_by_range!(1, 4),
@@ -1247,29 +1242,62 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |tod, _| {
             let period = helpers::hour(1, false)?
                      .span_to(&helpers::hour(12, false)?, true)?;
-            Ok(period.intersect(tod.value())?
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_2("morning <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Morning))),
+        time_of_day_check_hour!(1, 12),
+        |_, tod| {
+            let period = helpers::hour(1, false)?
+                     .span_to(&helpers::hour(12, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
     );
 
     b.rule_2("<time-of-day> afternoon",
-        time_of_day_check_hour!(1, 7),
+        time_of_day_check_hour!(1, 7, 13, 19),
         time_check!(form!(Form::PartOfDay(PartOfDayForm::Afternoon))),
         |tod, _| {
             let period = helpers::hour(13, false)?
                      .span_to(&helpers::hour(19, false)?, true)?;
-            Ok(period.intersect(tod.value())?
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_2("afternoon <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Afternoon))),
+        time_of_day_check_hour!(1, 7, 13, 19),
+        |_, tod| {
+            let period = helpers::hour(1, false)?
+                     .span_to(&helpers::hour(12, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
     );
 
     b.rule_2("<time-of-day> evening",
         time_of_day_check_hour!(7, 11),
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Afternoon))),
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Evening))),
         |tod, _| {
             let period = helpers::hour(19, false)?
                      .span_to(&helpers::hour(24, false)?, true)?;
-            Ok(period.intersect(tod.value())?
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_2("evening <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Evening))),
+        time_of_day_check_hour!(7, 11, 19, 23),
+        |_, tod| {
+            let period = helpers::hour(19, false)?
+                     .span_to(&helpers::hour(24, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
     );
@@ -1280,7 +1308,18 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |tod, _| {
             let period = helpers::hour(1, false)?
                      .span_to(&helpers::hour(4, false)?, true)?;
-            Ok(period.intersect(tod.value())?
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_2("night <time-of-day>",
+        time_of_day_check_hour!(1, 4),
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Night))),
+        |tod, _| {
+            let period = helpers::hour(1, false)?
+                     .span_to(&helpers::hour(4, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
     );
@@ -1318,16 +1357,28 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .span_to(&helpers::hour(21, false)?, false)?)?
             .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
-    b.rule_2("<time> <part-of-day/meal>",
-        time_check!(),
+    b.rule_2("<time> <part-of-day/meal>", // There are rules for <time-of-day> and <part-of-day>
+        time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::TimeOfDay(_))(time) && excluding_form!(Form::Month(_))(time)),
         time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
-        |a, b| b.value().intersect(a.value())
+        |time, pod| time.value().intersect(pod.value())
     );
-    b.rule_3("<part-of-day/meal> of <time>",
+
+    b.rule_3("<time> <part-of-day/meal> <time>", // There are rules for <time-of-day> and <part-of-day>
+        time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+        time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+        time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+        |a, pod, b| a.value().intersect(b.value())?.intersect(pod.value())
+    );
+    // b.rule_2("<part-of-day/meal> <time>", // There are rules for <time-of-day> and <part-of-day>
+    //     time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::TimeOfDay(_))(time) && excluding_form!(Form::Month(_))(time)),
+    //     time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+    //     |pod, time| time.value().intersect(pod.value())
+    // );
+    b.rule_3("<part-of-day/meal> of <time>", // There are rules for <time-of-day> and <part-of-day>
         time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
         b.reg(r#"de[sr]|vo[nm]|am"#)?,
-        time_check!(),
-        |a, _, b| a.value().intersect(b.value())
+        time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) &&  excluding_form!(Form::TimeOfDay(_))(time) && excluding_form!(Form::Month(_))(time)),
+        |pod, _, time| time.value().intersect(pod.value())
     );
     b.rule_1_terminal("week-end",
         b.reg(r#"wochen ?enden?"#)?,
@@ -1442,7 +1493,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"\-|bis"#)?,
              time_check!(|time: &TimeValue| !time.latent),
              |start, _, end| {
-                 start.value().smart_span_to(end.value(), true)
+                 start.value().span_to(end.value(), true)
              }
     );
     b.rule_4("between <datetime> and <datetime> (interval)",
