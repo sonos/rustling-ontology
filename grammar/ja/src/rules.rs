@@ -716,7 +716,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"次の"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
              |_, a| {
-                 a.value().the_nth(0)
+                 a.value().the_nth(1)
              }
     );
     b.rule_2("<day-of-week> of next week",

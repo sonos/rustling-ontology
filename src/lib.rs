@@ -130,9 +130,9 @@ pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
         Lang::EN => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/en.rmp"))[..]) },
         Lang::ES => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/es.rmp"))[..]) },
         Lang::FR => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/fr.rmp"))[..]) },
+        Lang::JA => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ja.rmp"))[..]) },
         Lang::KO => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ko.rmp"))[..]) },
         Lang::ZH => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/zh.rmp"))[..]) },
-        Lang::JA => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ja.rmp"))[..]) },
     }.map_err(|e| format!("{:?}", e))?;
     Ok(::RawParser::new(rules, model, ::parser::FeatureExtractor()))
 }
