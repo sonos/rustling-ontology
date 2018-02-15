@@ -11,6 +11,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value()));
 
+    // TODO: This rule leads to crashes because of japanese digit number
     // b.rule_1_terminal("number as digits",
     //     b.reg(r#"(\d+)"#)?,
     //     |digit| { 
@@ -56,13 +57,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _| IntegerValue::new(a.value().value * 10)
     );
 
-    // b.rule_2("21..99",
+
+    // b.rule_2("21..99 for digits",
     //     integer_check_by_range!(2, 9),
     //     integer_check_by_range!(1, 9),
     //     |a, b| IntegerValue::new(a.value().value * 10 + b.value().value)
     // );
 
-    b.rule_3("21..99",
+    b.rule_3("21..99 for kanji",
         integer_check_by_range!(2, 9),
         b.reg(r#"十"#)?,
         integer_check_by_range!(1, 9),
