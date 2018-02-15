@@ -88,9 +88,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
 
-    b.rule_1_terminal("1000",
+    b.rule_1_terminal("1_000",
         b.reg(r#"千"#)?,
-        |_| IntegerValue::new_with_grain(1000, 3)
+        |_| IntegerValue::new_with_grain(1_000, 3)
     );
 
     b.rule_2("2000..9000",
@@ -98,52 +98,51 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"千"#)?,
         |a, _| {
             Ok(IntegerValue {
-                value: a.value().value * 1000,
+                value: a.value().value * 1_000,
                 grain: Some(3),
                 ..IntegerValue::default()
             })
         }
     );
 
-    b.rule_1_terminal("10000",
+    b.rule_1_terminal("10_000",
         b.reg(r#"万"#)?,
-        |_| IntegerValue::new_with_grain(10000, 4)
+        |_| IntegerValue::new_with_grain(10_000, 4)
     );
 
-    b.rule_2("10000..99990000",
+    b.rule_2("1_0000..99990000",
         integer_check_by_range!(1, 9999),
         b.reg(r#"万"#)?,
         |a, _| {
             Ok(IntegerValue {
-                value: a.value().value * 10000,
+                value: a.value().value * 10_000,
                 grain: Some(4),
                 ..IntegerValue::default()
             })
         }
     );
 
-    b.rule_1_terminal("100000000",
+    b.rule_1_terminal("1_00_000_000",
         b.reg(r#"億"#)?,
-        |_| IntegerValue::new_with_grain(100000000, 8)
+        |_| IntegerValue::new_with_grain(100_000_000, 8)
     );
 
-    b.rule_2("100000000..999900000000",
+    b.rule_2("1_00000000..999900000000",
         integer_check_by_range!(1, 9999),
         b.reg(r#"億"#)?,
         |a, _| {
-            Ok(IntegerValue {
-                value: a.value().value * 100000000,
-                grain: Some(8),
-                ..IntegerValue::default()
-            })
+          IntegerValue::new_with_grain(a.value().value * 100_000_000, 8)
         }
     );
     b.rule_2("ordinal number",
-            integer_check!(|integer: &IntegerValue| integer.value >= 0),
+            integer_check_by_range!(0),
             b.reg(r#"番目"#)?,
             |integer, _| Ok(OrdinalValue::new(integer.value().value))
     );
-    // b.rule_1("float number", b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
+
+    // TODO: This rule leads to crashes because of japanese digit number
+    // b.rule_1("float number", 
+        // b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
         // let value: f32 = text_match.group(1).parse()?;
         // Ok(FloatValue {
             // value: value,
