@@ -39,7 +39,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"\$|dollar"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("$") })
     );
-    b.rule_1_terminal("€",
+    b.rule_1_terminal("EUR",
                       b.reg(r#"€|euro?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("EUR") })
     );
