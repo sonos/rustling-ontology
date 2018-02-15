@@ -1281,7 +1281,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("<time-of-day> evening",
-        time_of_day_check_hour!(7, 11),
+        time_of_day_check_hour!(7, 11, 19, 23),
         time_check!(form!(Form::PartOfDay(PartOfDayForm::Evening))),
         |tod, _| {
             let period = helpers::hour(19, false)?
