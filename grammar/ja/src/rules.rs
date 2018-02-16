@@ -989,7 +989,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("hour",
-        integer_check_by_range!(0, 23),
+        integer_check_by_range!(0, 24),
         b.reg(r#"時"#)?,
         |a, _| helpers::hour(a.value().value as u32, true)
     );
@@ -1354,7 +1354,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_of_day_check_hour!(7, 11, 19, 23),
         |_, _, tod| {
             let period = helpers::hour(19, false)?
-                     .span_to(&helpers::hour(24, false)?, true)?;
+                     .span_to(&helpers::hour(23, false)?, true)?;
             Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
