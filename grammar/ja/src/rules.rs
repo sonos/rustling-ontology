@@ -1191,7 +1191,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1_terminal("dinner",
-        b.reg(r#"夕食|夕ご飯|夕ごはん"#)?,
+        b.reg(r#"夕(?:食|ご飯|ごはん)|晩(?:御飯|ご(?:飯|はん))"#)?,
         |_| Ok(helpers::hour(18, false)?
                 .span_to(&helpers::hour(23, false)?, false)?
                 .latent()
