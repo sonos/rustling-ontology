@@ -203,15 +203,19 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("JPY",
-        b.reg(r#"円|¥"#)?,
+        b.reg(r#"円"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("JPY") })
     );
     b.rule_1_terminal("CNY",
         b.reg(r#"(?:人民)?元|¥"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("CNY") })
     );
+    b.rule_1_terminal("¥",
+        b.reg(r#"¥"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("¥") })
+    );
     b.rule_1_terminal("KRW",
-        b.reg(r#"ウォン"#)?,
+        b.reg(r#"ウォン|₩"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
     b.rule_1_terminal("INR",
@@ -948,7 +952,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("the first day of month",
              b.reg(r#"初日"#)?,
              |_| {
-                 Ok(helpers::day_of_month(1 as u32)?.latent())
+                 Ok(helpers::day_of_month(1 as u32)?)
              }
     );
     b.rule_2("the <day-of-month>",
@@ -985,12 +989,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("hour",
-        integer_check_by_range!(0, 24),
+        integer_check_by_range!(0, 23),
         b.reg(r#"時"#)?,
         |a, _| helpers::hour(a.value().value as u32, true)
     );
     b.rule_4("hour and minutes",
-        integer_check_by_range!(0, 24),
+        integer_check_by_range!(0, 23),
         b.reg(r#"時"#)?,
         integer_check_by_range!(0, 59),
         b.reg(r#"分"#)?,
@@ -1008,7 +1012,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           // true)
     // );
     b.rule_6("hour and minutes and seconds",
-        integer_check_by_range!(0, 24),
+        integer_check_by_range!(0, 23),
         b.reg(r#"時"#)?,
         integer_check_by_range!(0, 59),
         b.reg(r#"分"#)?,
@@ -1054,7 +1058,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::hour(0, false)
     );
     b.rule_2("<hour> and a half",
-          integer_check_by_range!(0, 24),
+          integer_check_by_range!(0, 23),
           b.reg(r#"時半"#)?,
           |a, _| helpers::hour_minute(a.value().value as u32, 30, true)
     );
@@ -1338,7 +1342,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_of_day_check_hour!(7, 11, 19, 23),
         |_, tod| {
             let period = helpers::hour(19, false)?
-                     .span_to(&helpers::hour(24, false)?, true)?;
+                     .span_to(&helpers::hour(23, false)?, true)?;
             Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
@@ -1384,7 +1388,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_of_day_check_hour!(7, 11, 19, 23),
         |_, tod| {
             let period = helpers::hour(19, false)?
-                     .span_to(&helpers::hour(0, false)?, true)?;
+                     .span_to(&helpers::hour(23, false)?, true)?;
             Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
@@ -1396,7 +1400,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_of_day_check_hour!(7, 11, 19, 23),
         |_, _, tod| {
             let period = helpers::hour(19, false)?
-                     .span_to(&helpers::hour(0, false)?, true)?;
+                     .span_to(&helpers::hour(23, false)?, true)?;
             Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
