@@ -11,6 +11,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value()));
 
+    // TODO: This rule leads to crashes because of japanese digit number
     // b.rule_1_terminal("number as digits",
     //     b.reg(r#"(\d+)"#)?,
     //     |digit| { 
@@ -56,13 +57,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _| IntegerValue::new(a.value().value * 10)
     );
 
-    // b.rule_2("21..99",
+
+    // b.rule_2("21..99 for digits",
     //     integer_check_by_range!(2, 9),
     //     integer_check_by_range!(1, 9),
     //     |a, b| IntegerValue::new(a.value().value * 10 + b.value().value)
     // );
 
-    b.rule_3("21..99",
+    b.rule_3("21..99 for kanji",
         integer_check_by_range!(2, 9),
         b.reg(r#"十"#)?,
         integer_check_by_range!(1, 9),
@@ -86,9 +88,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
 
-    b.rule_1_terminal("1000",
+    b.rule_1_terminal("1_000",
         b.reg(r#"千"#)?,
-        |_| IntegerValue::new_with_grain(1000, 3)
+        |_| IntegerValue::new_with_grain(1_000, 3)
     );
 
     b.rule_2("2000..9000",
@@ -96,52 +98,51 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"千"#)?,
         |a, _| {
             Ok(IntegerValue {
-                value: a.value().value * 1000,
+                value: a.value().value * 1_000,
                 grain: Some(3),
                 ..IntegerValue::default()
             })
         }
     );
 
-    b.rule_1_terminal("10000",
+    b.rule_1_terminal("10_000",
         b.reg(r#"万"#)?,
-        |_| IntegerValue::new_with_grain(10000, 4)
+        |_| IntegerValue::new_with_grain(10_000, 4)
     );
 
-    b.rule_2("10000..99990000",
+    b.rule_2("1_0000..99990000",
         integer_check_by_range!(1, 9999),
         b.reg(r#"万"#)?,
         |a, _| {
             Ok(IntegerValue {
-                value: a.value().value * 10000,
+                value: a.value().value * 10_000,
                 grain: Some(4),
                 ..IntegerValue::default()
             })
         }
     );
 
-    b.rule_1_terminal("100000000",
+    b.rule_1_terminal("1_00_000_000",
         b.reg(r#"億"#)?,
-        |_| IntegerValue::new_with_grain(100000000, 8)
+        |_| IntegerValue::new_with_grain(100_000_000, 8)
     );
 
-    b.rule_2("100000000..999900000000",
+    b.rule_2("1_00000000..999900000000",
         integer_check_by_range!(1, 9999),
         b.reg(r#"億"#)?,
         |a, _| {
-            Ok(IntegerValue {
-                value: a.value().value * 100000000,
-                grain: Some(8),
-                ..IntegerValue::default()
-            })
+          IntegerValue::new_with_grain(a.value().value * 100_000_000, 8)
         }
     );
     b.rule_2("ordinal number",
-            integer_check!(|integer: &IntegerValue| integer.value >= 0),
+            integer_check_by_range!(0),
             b.reg(r#"番目"#)?,
             |integer, _| Ok(OrdinalValue::new(integer.value().value))
     );
-    // b.rule_1("float number", b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
+
+    // TODO: This rule leads to crashes because of japanese digit number
+    // b.rule_1("float number", 
+        // b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
         // let value: f32 = text_match.group(1).parse()?;
         // Ok(FloatValue {
             // value: value,
@@ -173,15 +174,19 @@ pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()>
 }
 
 pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("intersect (X cents)",
+    b.rule_2("intersect <money> (X cents)",
              amount_of_money_check!(),
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
              |a, b| helpers::compose_money(a.value(), b.value()));
-    b.rule_2("intersect",
+    b.rule_2("intersect <money>",
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
              number_check!(),
              |a, b| helpers::compose_money_number(&a.value(), &b.value()));
     b.rule_1_terminal("USD",
+        b.reg(r#"アメリカドル"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("USD") })
+    );
+    b.rule_1_terminal("$",
         b.reg(r#"ドル|\$|＄"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("$") })
     );
@@ -189,21 +194,29 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"ユーロ|€"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("€") })
     );
-    b.rule_1_terminal("GBP",
-        b.reg(r#"ポンド|£"#)?,
+    b.rule_1_terminal("£",
+        b.reg(r#"£"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("£") })
     );
+    b.rule_1_terminal("GBP",
+        b.reg(r#"ポンド"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("GBP") })
+    );
     b.rule_1_terminal("JPY",
-        b.reg(r#"円|¥"#)?,
+        b.reg(r#"円"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("JPY") })
     );
     b.rule_1_terminal("CNY",
         b.reg(r#"(?:人民)?元|¥"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CNY") })
+    );
+    b.rule_1_terminal("¥",
+        b.reg(r#"¥"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("¥") })
     );
     b.rule_1_terminal("KRW",
-        b.reg(r#"ウォン"#)?,
-        |_| Ok(MoneyUnitValue { unit: Some("₩") })
+        b.reg(r#"ウォン|₩"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
     b.rule_1_terminal("INR",
         b.reg(r#"ルピー"#)?,
@@ -212,6 +225,22 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("RUB",
         b.reg(r#"ルーブル"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("RUB") })
+    );
+    b.rule_1_terminal("AUD",
+        b.reg(r#"オーストラリアドル"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("AUD") })
+    );
+    b.rule_1_terminal("HKD",
+        b.reg(r#"香港ドル"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("HKD") })
+    );
+    b.rule_1_terminal("CAD",
+        b.reg(r#"カナダドル"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CAD") })
+    );
+    b.rule_1_terminal("Bitcoin",
+        b.reg(r#"ビットコイン|฿"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("cent",
                       b.reg(r#"銭"#)?,
@@ -236,15 +265,15 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..a.value().clone()
                  })
              });
-        b.rule_2("about <amount-of-money>",
-             amount_of_money_check!(),
-             b.reg(r#"ほど|くらい|程|位"#)?,
-             |a, _| {
-                 Ok(AmountOfMoneyValue {
-                     precision: Approximate,
-                     ..a.value().clone()
-                 })
-             });
+    b.rule_2("about <amount-of-money>",
+         amount_of_money_check!(),
+         b.reg(r#"ほど|くらい|程|位"#)?,
+         |a, _| {
+             Ok(AmountOfMoneyValue {
+                 precision: Approximate,
+                 ..a.value().clone()
+             })
+         });
 
     b.rule_2("exactly <amount-of-money>",
              b.reg(r#"ちょうど|まさに"#)?,
@@ -278,7 +307,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
-    b.rule_2("<latent temp> en dessous de zero",
+    b.rule_2("<latent temp> below zero",
              b.reg(r#"マイナス|零下"#)?,
              temperature_check!(),
              |_, a| {
@@ -292,15 +321,15 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
 }
 
 pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("intersect",
-             time_check!(|time: &TimeValue| !time.latent),
-             time_check!(|time: &TimeValue| !time.latent),
+    b.rule_2("intersect <time>",
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::PartOfDay(_))(time)),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::PartOfDay(_))(time)),
              |a, b| a.value().intersect(b.value())
     );
-    b.rule_3("intersect",
-             time_check!(|time: &TimeValue| !time.latent),
+    b.rule_3("intersect <time>",
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::PartOfDay(_))(time)),
              b.reg(r#"の|と"#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::PartOfDay(_))(time)),
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_2("on <date>",
@@ -357,19 +386,19 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("new year's day",
                       b.reg(r#"元(?:日|旦)"#)?,
-                      |_| helpers::month_day(1, 1)
+                      |_| Ok(helpers::month_day(1, 1)?.form(Form::Celebration))
     );
     b.rule_1_terminal("coming of age day",
                       b.reg(r#"成人(?:式|の(?:日の)?)"#)?,
                       |_| {
                             let monday_january = helpers::month(1)?.intersect(&helpers::day_of_week(Weekday::Mon)?)?;
                             let second_week_of_january = helpers::cycle_nth_after(Grain::Week, 2, &helpers::month_day(1, 1)?)?;
-                            monday_january.intersect(&second_week_of_january) // second monday of january
+                            Ok(monday_january.intersect(&second_week_of_january)?.form(Form::Celebration)) // second monday of january
                       }
     );
     b.rule_1_terminal("setsubun",
                       b.reg(r#"節分の日"#)?,
-                      |_| helpers::month_day(2, 3)
+                      |_| Ok(helpers::month_day(2, 3)?.form(Form::Celebration))
     );
     //b.rule_1_terminal("vernal equinox day",
                       //b.reg(r#"春分の日"#)?,
@@ -377,58 +406,58 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //);
     b.rule_1_terminal("national foundation day",
                       b.reg(r#"建国記念日"#)?,
-                      |_| helpers::month_day(2, 11)
+                      |_| Ok(helpers::month_day(2, 11)?.form(Form::Celebration))
     );
     b.rule_1_terminal("the emperor's birthday",
                       b.reg(r#"天皇誕生日"#)?,
-                      |_| helpers::month_day(12, 23) // To be deleted for 2019 as there will be no emperor's birthday in 2019 and a new date for 2020 as there will be a new emperor
+                      |_| Ok(helpers::month_day(12, 23)?.form(Form::Celebration)) // To be deleted for 2019 as there will be no emperor's birthday in 2019 and a new date for 2020 as there will be a new emperor
     );
     b.rule_1_terminal("the emperor's birthday",
                       b.reg(r#"天皇誕生日"#)?,
-                      |_| helpers::month_day(2, 23) // New date from 2020 to be uncomment for 2020
+                      |_| Ok(helpers::month_day(2, 23)?.form(Form::Celebration)) // New date from 2020 to be uncomment for 2020
     );
     b.rule_1_terminal("girls day",
                       b.reg(r#"ひな(?:まつり|祭り)(?:の日)?"#)?,
-                      |_| helpers::month_day(3, 3)
+                      |_| Ok(helpers::month_day(3, 3)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("womens day",
                       b.reg(r#"女性(?:の日)?"#)?,
-                      |_| helpers::month_day(3, 8)
+                      |_| Ok(helpers::month_day(3, 8)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("showa day",
                       b.reg(r#"昭和の日"#)?,
-                      |_| helpers::month_day(4, 29)
+                      |_| Ok(helpers::month_day(4, 29)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("constitution memorial day",
                       b.reg(r#"憲法記念日"#)?,
-                      |_| helpers::month_day(5, 3)
+                      |_| Ok(helpers::month_day(5, 3)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("greenery day",
                       b.reg(r#"みどりの日"#)?,
-                      |_| helpers::month_day(5, 4)
+                      |_| Ok(helpers::month_day(5, 4)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("children's day",
                       b.reg(r#"こどもの日"#)?,
-                      |_| helpers::month_day(5, 5)
+                      |_| Ok(helpers::month_day(5, 5)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("marine day",
                       b.reg(r#"海の日"#)?,
                       |_| {
                             let monday_july = helpers::month(7)?.intersect(&helpers::day_of_week(Weekday::Mon)?)?;
                             let third_week_of_july = helpers::cycle_nth_after(Grain::Week, 3, &helpers::month_day(7, 1)?)?;
-                            monday_july.intersect(&third_week_of_july) // third monday of july
+                            Ok(monday_july.intersect(&third_week_of_july)?.form(Form::Celebration))  // third monday of july
                       }
     );
     b.rule_1_terminal("mountain day",
                       b.reg(r#"山の日"#)?,
-                      |_| helpers::month_day(8, 11)
+                      |_| Ok(helpers::month_day(8, 11)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("respect for the aged day",
                       b.reg(r#"敬老の日"#)?,
                       |_| {
                             let monday_september = helpers::month(9)?.intersect(&helpers::day_of_week(Weekday::Mon)?)?;
                             let third_week_of_september = helpers::cycle_nth_after(Grain::Week, 3, &helpers::month_day(9, 1)?)?;
-                            monday_september.intersect(&third_week_of_september) // third monday of september
+                            Ok(monday_september.intersect(&third_week_of_september)?.form(Form::Celebration))  // third monday of september
                       }
     );
     //b.rule_1_terminal("autumnal equinox day",
@@ -437,35 +466,35 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //);
     b.rule_1_terminal("culture day",
                       b.reg(r#"文化の日"#)?,
-                      |_| helpers::month_day(11, 3)
+                      |_| Ok(helpers::month_day(11, 3)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("health and sports day",
                       b.reg(r#"体育の日"#)?,
                       |_| {
                             let monday_october = helpers::month(10)?.intersect(&helpers::day_of_week(Weekday::Mon)?)?;
                             let second_week_of_october = helpers::cycle_nth_after(Grain::Week, 2, &helpers::month_day(10, 1)?)?;
-                            monday_october.intersect(&second_week_of_october) // second monday of october
+                            Ok(monday_october.intersect(&second_week_of_october)?.form(Form::Celebration))  // second monday of october
                       }
     );
     b.rule_1_terminal("labor thanksgiving day",
                       b.reg(r#"勤労感謝の日"#)?,
-                      |_| helpers::month_day(11, 23)
+                      |_| Ok(helpers::month_day(11, 23)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("christmas eve",
                       b.reg(r#"クリスマスイブ(?:の?日に?)?"#)?,
-                      |_| helpers::month_day(12, 24)
+                      |_| Ok(helpers::month_day(12, 24)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("christmas",
                       b.reg(r#"クリスマス(?:の?日に?)?"#)?,
-                      |_| helpers::month_day(12, 25)
+                      |_| Ok(helpers::month_day(12, 25)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("halloween",
                       b.reg(r#"ハロウィン(?:の?日に?)?"#)?,
-                      |_| helpers::month_day(10, 31)
+                      |_| Ok(helpers::month_day(10, 31)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("valentines's day",
                       b.reg(r#"バレンタインデー(?:の?日に?)?"#)?,
-                      |_| helpers::month_day(2, 14)
+                      |_| Ok(helpers::month_day(2, 14)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("now",
                       b.reg(r#"今(?:すぐに?)?|現在|只今|ただいま"#)?,
@@ -521,27 +550,22 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |month, _| {
             Ok(helpers::month_day(month.value().form_month()?, 1)?
                 .span_to(&helpers::month_day(month.value().form_month()?,10)?, false)?
-                .latent()
                 .form(Form::PartOfMonth))
         } 
     );
     b.rule_1_terminal("first ten days of last month",
         b.reg(r#"先月の?上旬"#)?,
         |_| {
-            let month = helpers::cycle_nth(Grain::Month, 0)?;
-            Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
-                .span_to(&month, false)?
-                .latent()
+            let month = helpers::cycle_nth(Grain::Month, -1)?;
+            Ok(month.span_to(&helpers::cycle_nth_after(Grain::Day, 10, &month)?, false)?
                 .form(Form::PartOfMonth))
         } 
     );
     b.rule_1_terminal("first ten days of next month",
         b.reg(r#"来月の?上旬"#)?,
         |_| {
-            let month = helpers::cycle_nth(Grain::Month, 2)?;
-            Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
-                .span_to(&month, false)?
-                .latent()
+            let month = helpers::cycle_nth(Grain::Month, 1)?;
+            Ok(month.span_to(&helpers::cycle_nth_after(Grain::Day, 10, &month)?, false)?
                 .form(Form::PartOfMonth))
         } 
     );
@@ -550,8 +574,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"の?(?:頭|初め|始め)"#)?,
         |month, _| {
             Ok(helpers::month_day(month.value().form_month()?,0)?
-                .span_to(&helpers::month_day(month.value().form_month()?,3)?, true)?
-                .latent()
+                .span_to(&helpers::month_day(month.value().form_month()?, 3)?, false)?
                 .form(Form::PartOfMonth))
         } 
     );
@@ -559,9 +582,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"来月の?(?:頭|初め|始め)"#)?,
         |_| {
            let month = helpers::cycle_nth(Grain::Month, 1)?;
-            Ok(helpers::cycle_nth_after(Grain::Day, 0, &month)?
-                .span_to(&helpers::cycle_nth_after(Grain::Day, 3, &month)?, true)?
-                .latent()
+            Ok(month
+                .span_to(&helpers::cycle_nth_after(Grain::Day, 3, &month)?, false)?
                 .form(Form::PartOfMonth))
         } 
     );
@@ -569,9 +591,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"先月の?(?:頭|初め|始め)"#)?,
         |_| {
             let month = helpers::cycle_nth(Grain::Month, -1)?;
-            Ok(helpers::cycle_nth_after(Grain::Day, 0, &month)?
-                .span_to(&helpers::cycle_nth_after(Grain::Day, 3, &month)?, true)?
-                .latent()
+            Ok(month
+                .span_to(&helpers::cycle_nth_after(Grain::Day, 3, &month)?, false)?
                 .form(Form::PartOfMonth))
         } 
     );
@@ -580,8 +601,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"中旬|の?半ば"#)?,
         |month, _| {
             Ok(helpers::month_day(month.value().form_month()?, 10)?
-                .span_to(&helpers::month_day(month.value().form_month()?,20)?, false)?
-                .latent()
+                .span_to(&helpers::month_day(month.value().form_month()?, 20)?, false)?
                 .form(Form::PartOfMonth))
         }
     );
@@ -589,9 +609,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"先月(?:中旬|の?半ば)"#)?,
         |_| {
             let month = helpers::cycle_nth(Grain::Month, -1)?;
-            Ok(helpers::cycle_nth_after(Grain::Day, 10, &month)?
-                .span_to(&helpers::cycle_nth_after(Grain::Day, 20, &month)?, false)?
-                .latent()
+            Ok(helpers::cycle_nth_after(Grain::Day, 10 - 1, &month)?
+                .span_to(&helpers::cycle_nth_after(Grain::Day, 20 - 1, &month)?, true)?
                 .form(Form::PartOfMonth))
         } 
     );
@@ -599,9 +618,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"来月(?:中旬|の?半ば)"#)?,
         |_| {
             let month = helpers::cycle_nth(Grain::Month, 1)?;
-            Ok(helpers::cycle_nth_after(Grain::Day, 10, &month)?
-                .span_to(&helpers::cycle_nth_after(Grain::Day, 20, &month)?, false)?
-                .latent()
+            Ok(helpers::cycle_nth_after(Grain::Day, 10 - 1, &month)?
+                .span_to(&helpers::cycle_nth_after(Grain::Day, 20 - 1, &month)?, true)?
                 .form(Form::PartOfMonth))
         } 
     );
@@ -614,10 +632,9 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(form!(Form::Month{..})),
         b.reg(r#"下旬|の終わりに"#)?,
         |month, _| {
-            let next_month = helpers::month(month.value().form_month()? + 1)?;
+            let next_month = helpers::cycle_nth_after(Grain::Month, 1, month.value())?;
             Ok(helpers::cycle_nth_after(Grain::Day, -10, &next_month)?
                 .span_to(&next_month, false)?
-                .latent()
                 .form(Form::PartOfMonth))
         }
     );
@@ -625,10 +642,9 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(form!(Form::Month{..})),
         b.reg(r#"末"#)?,
         |month, _| {
-            let next_month = helpers::month(month.value().form_month()? + 1)?;
+            let next_month = helpers::cycle_nth_after(Grain::Month, 1, month.value())?;
             Ok(helpers::cycle_nth_after(Grain::Day, -3, &next_month)?
                 .span_to(&next_month, false)?
-                .latent()
                 .form(Form::PartOfMonth))
         }
     );
@@ -638,7 +654,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             let month = helpers::cycle_nth(Grain::Month, 0)?;
             Ok(helpers::cycle_nth_after(Grain::Day, -3, &month)?
                 .span_to(&month, false)?
-                .latent()
                 .form(Form::PartOfMonth))
         } 
     );
@@ -648,7 +663,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             let month = helpers::cycle_nth(Grain::Month, 2)?;
             Ok(helpers::cycle_nth_after(Grain::Day, -3, &month)?
                 .span_to(&month, false)?
-                .latent()
                 .form(Form::PartOfMonth))
         } 
     );
@@ -685,7 +699,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             start.span_to(&end, true)
         } 
     );
-    b.rule_1_terminal("end of year",
+    b.rule_1_terminal("last month of year",
         b.reg(r#"年?末|年?の暮れ?"#)?,
         |_| {
             let current_year = helpers::cycle_nth(Grain::Year, 0)?;
@@ -712,36 +726,16 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .span_to(&end, true)
         }
     );
-    b.rule_2("next <day-of-week>",
-             b.reg(r#"次の"#)?,
-             time_check!(form!(Form::DayOfWeek{..})),
-             |_, a| {
-                 a.value().the_nth(1)
-             }
-    );
-    b.rule_2("<day-of-week> of next week",
-             b.reg(r#"来週の"#)?,
-             time_check!(form!(Form::DayOfWeek{..})),
-             |_, a| a.value().intersect(&helpers::cycle_nth(Grain::Week, 1)?)
-    );
-    
     b.rule_2("<day-of-week> of this week",
              b.reg(r#"今週の"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
-             |_, a| a.value().intersect(&helpers::cycle_nth(Grain::Week, 0)?)
+             |_, a| a.value().the_nth(0)
     );
     b.rule_2("last <time>",
              b.reg(r#"(?:先|前)の?"#)?,
-             time_check!(),
+             time_check!(excluding_form!(Form::DayOfWeek{..})),
              |_, a| {
                  a.value().the_nth(-1)
-             }
-    );
-    b.rule_2("next <time>",
-             b.reg(r#"次の?|翌"#)?,
-             time_check!(),
-             |_, a| {
-                 a.value().the_nth(0)
              }
     );
     b.rule_2("last <day-of-week>",
@@ -772,7 +766,51 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  cycle.value().last_of(time.value())
              }
     );
-    b.rule_4("nth <day-of-week> of <time>",
+    b.rule_2("next <time>",
+             b.reg(r#"次の?|翌"#)?,
+             time_check!(|time: &TimeValue| 
+                excluding_form!(Form::Celebration)(time) &&  
+                excluding_form!(Form::Month(_))(time) && 
+                excluding_form!(Form::Year(_))(time) &&  
+                excluding_form!(Form::DayOfWeek{..})(time)),
+             |_, a| {
+                 a.value().the_nth(0)
+             }
+    );
+    b.rule_2("next <celebration>",
+             b.reg(r#"次の?|翌"#)?,
+             time_check!(form!(Form::Celebration)),
+             |_, a| {
+                 a.value().the_nth(0)
+             }
+    );
+    b.rule_2("next <month>",
+             b.reg(r#"次の?|翌"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, a| {
+                 a.value().the_nth(1)
+             }
+    );
+    b.rule_2("next <year>",
+             b.reg(r#"次の?|翌"#)?,
+             time_check!(form!(Form::Year(_))),
+             |_, a| {
+                 a.value().the_nth(1)
+             }
+    );
+    b.rule_2("next <day-of-week>",
+             b.reg(r#"次の"#)?,
+             time_check!(form!(Form::DayOfWeek{..})),
+             |_, a| {
+                 a.value().the_nth(1)
+             }
+    );
+    b.rule_2("<day-of-week> of next week",
+             b.reg(r#"来週の"#)?,
+             time_check!(form!(Form::DayOfWeek{..})),
+             |_, a| a.value().the_nth(1)
+    );
+    b.rule_4("nth <day-of-week> of <month|year>",
              time_check!(|time: &TimeValue| form!(Form::Month(_))(time) ||  form!(Form::Year(_))(time)),
              b.reg(r#"の?第"#)?,
              integer_check!(),
@@ -881,77 +919,40 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("first half of the week (monday/tuesday)",
              b.reg(r#"先週の前半|今週の頭"#)?,
-             |_| helpers::cycle_nth(Grain::Week, 0)?.intersect(&helpers::day_of_week(Weekday::Mon)?.span_to(&helpers::day_of_week(Weekday::Tue)?, true)?)
+             |_| helpers::cycle_nth(Grain::Week, 1)?
+                      .intersect(&helpers::day_of_week(Weekday::Mon)?
+                      .span_to(&helpers::day_of_week(Weekday::Tue)?, true)?)
     );
     b.rule_1_terminal("second half of the week (thursday/friday)",
              b.reg(r#"来週の後半"#)?,
-             |_| helpers::cycle_nth(Grain::Week, 0)?.intersect(&helpers::day_of_week(Weekday::Thu)?.span_to(&helpers::day_of_week(Weekday::Fri)?, true)?)
-    );
-
-    b.rule_1("current second",
-             b.reg(r#"秒"#)?,
-             |_| helpers::cycle_nth(Grain::Second, 0)
-    );
-    b.rule_1("current minute",
-             b.reg(r#"分"#)?,
-             |_| helpers::cycle_nth(Grain::Minute, 0)
-    );
-    b.rule_1("current hour",
-             b.reg(r#"時間?"#)?,
-             |_| helpers::cycle_nth(Grain::Hour, 0)
-    );
-    b.rule_1("current day",
-             b.reg(r#"日"#)?,
-             |_| helpers::cycle_nth(Grain::Day, 0)
-    );
-    b.rule_1("current week",
-             b.reg(r#"週間?"#)?,
-             |_| helpers::cycle_nth(Grain::Week, 0)
-    );
-    b.rule_1("current month",
-             b.reg(r#"月"#)?,
-             |_| helpers::cycle_nth(Grain::Month, 0)
-    );
-    b.rule_1("current year",
-             b.reg(r#"年"#)?,
-             |_| helpers::cycle_nth(Grain::Year, 0)
-    );
-    b.rule_1_terminal("half a year",
-        b.reg(r#"半年"#)?,
-        |_| helpers::cycle_nth(Grain::Month, 6)
-    );
-    b.rule_1_terminal("half a month",
-        b.reg(r#"半月"#)?,
-        |_| helpers::cycle_nth(Grain::Day, 15)
-    );
-    b.rule_1_terminal("half a day",
-        b.reg(r#"半日"#)?,
-        |_| helpers::cycle_nth(Grain::Hour, 12)
+             |_| helpers::cycle_nth(Grain::Week, 0)?
+                    .intersect(&helpers::day_of_week(Weekday::Thu)?
+                    .span_to(&helpers::day_of_week(Weekday::Fri)?, true)?)
     );
     b.rule_2("year",
-             integer_check_by_range!(1000, 2100),
+             integer_check_by_range!(1_900, 2_100),
              b.reg(r#"年"#)?,
              |integer, _| {
                  helpers::year(integer.value().value as i32)
              }
     );
     b.rule_1("year (latent)",
-             integer_check_by_range!(-1000, 999),
+             integer_check_by_range!(-1_000, 1899),
              |integer| {
                  Ok(helpers::year(integer.value().value as i32)?.latent())
              }
     );
     b.rule_1("year (latent)",
-             integer_check_by_range!(2101, 2200),
+             integer_check_by_range!(2_101, 2_200),
              |integer| {
                  Ok(helpers::year(integer.value().value as i32)?.latent())
              }
     );
 
-    b.rule_1("the <day-of-month> (non ordinal)",
+    b.rule_1("the first day of month",
              b.reg(r#"初日"#)?,
              |_| {
-                 Ok(helpers::day_of_month(1 as u32)?.latent())
+                 Ok(helpers::day_of_month(1 as u32)?)
              }
     );
     b.rule_2("the <day-of-month>",
@@ -965,8 +966,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 31),
              b.reg(r#"日の?"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
-             |integer, _, a| {
-                 a.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+             |integer, _, dow| {
+                 dow.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
              }
     );
     b.rule_3("<named-month> <day-of-month>",
@@ -983,20 +984,25 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(form!(Form::Year(_))),
         time_check!(form!(Form::MonthDay(_))),
         |year, month_day| {
-            year.value().intersect(&month_day.value())
+            Ok(year.value().intersect(&month_day.value())?
+              .form(Form::YearMonthDay(None)))
         }
     );
     b.rule_2("hour",
-                      integer_check_by_range!(0, 24),
-                      b.reg(r#"時"#)?,
-                      |a, _| helpers::hour(a.value().value as u32, true)
+        integer_check_by_range!(0, 24),
+        b.reg(r#"時"#)?,
+        |a, _| helpers::hour(a.value().value as u32, true)
     );
-    b.rule_4("<hour and minutes",
-                      integer_check_by_range!(0, 24),
-                      b.reg(r#"時"#)?,
-                      integer_check_by_range!(0, 59),
-                      b.reg(r#"分"#)?,
-                      |a, _, b, _| helpers::hour_minute(a.value().value as u32, b.value().value as u32, true)
+    b.rule_4("hour and minutes",
+        integer_check_by_range!(0, 23),
+        b.reg(r#"時"#)?,
+        integer_check_by_range!(0, 59),
+        b.reg(r#"分"#)?,
+        |h, _, m, _| helpers::hour_minute(
+                h.value().value as u32, 
+                m.value().value as u32, 
+                true
+        )
     );
     // b.rule_1_terminal("hh:mm",
                       // b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)"#)?,
@@ -1006,13 +1012,18 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           // true)
     // );
     b.rule_6("hour and minutes and seconds",
-                      integer_check_by_range!(0, 24),
-                      b.reg(r#"時"#)?,
-                      integer_check_by_range!(0, 59),
-                      b.reg(r#"分"#)?,
-                      integer_check_by_range!(0, 59),
-                      b.reg(r#"秒"#)?,
-                      |a, _, b, _, c, _| helpers::hour_minute_second(a.value().value as u32, b.value().value as u32, c.value().value as u32, true)
+        integer_check_by_range!(0, 23),
+        b.reg(r#"時"#)?,
+        integer_check_by_range!(0, 59),
+        b.reg(r#"分"#)?,
+        integer_check_by_range!(0, 59),
+        b.reg(r#"秒"#)?,
+        |h, _, m, _, s, _| helpers::hour_minute_second(
+                h.value().value as u32, 
+                m.value().value as u32, 
+                s.value().value as u32, 
+                true
+        )
     );
     // b.rule_1_terminal("hh:mm:ss",
                       // b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)[:.]([0-5]\d)"#)?,
@@ -1022,38 +1033,34 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           // text_match.group(3).parse()?,
                           // true)
     // );
-    b.rule_2("<time-of-day> am|pm",
-             b.reg(r#"午(前|後)"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
-             |text_match, a| {
-                 let day_period = if text_match.group(1) == "前" {
-                     helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?
-                 } else {
-                     helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
-                 };
-                 Ok(a.value().intersect(&day_period)?.form(a.value().form.clone()))
-             }
+    b.rule_2("specific pm <time-of-day>",
+        b.reg(r#"午後"#)?,
+        time_of_day_check_hour!(8, 12),
+        |_, tod| {
+            let day_period = helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?;
+            Ok(tod.value().intersect(&day_period)?.form(tod.value().form.clone()))
+        }
     );
     b.rule_2("<time-of-day> am",
-             b.reg(r#"夜中の?"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
-             |_, a| {
-                 let day_period = helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?;
-                 Ok(a.value().intersect(&day_period)?.form(a.value().form.clone()))
-             }
+        b.reg(r#"夜中の?"#)?,
+        time_check!(form!(Form::TimeOfDay(_))),
+        |_, tod| {
+            let day_period = helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?;
+            Ok(tod.value().intersect(&day_period)?.form(tod.value().form.clone()))
+        }
     );
     b.rule_1_terminal("noon",
-                      b.reg(r#"昼|正午"#)?,
-                      |_| helpers::hour(12, false)
+        b.reg(r#"昼|正午"#)?,
+        |_| helpers::hour(12, false)
     );
     b.rule_1_terminal("midnight",
-                      b.reg(r#"真?夜中"#)?,
-                      |_| helpers::hour(0, false)
+        b.reg(r#"真?夜中"#)?,
+        |_| helpers::hour(0, false)
     );
     b.rule_2("<hour> and a half",
-                      integer_check_by_range!(0, 24),
-                      b.reg(r#"時半"#)?,
-                      |a, _| helpers::hour_minute(a.value().value as u32, 30, true)
+          integer_check_by_range!(0, 23),
+          b.reg(r#"時半"#)?,
+          |a, _| helpers::hour_minute(a.value().value as u32, 30, true)
     );
     b.rule_1("number (as relative minutes)",
              integer_check_by_range!(1, 59),
@@ -1069,8 +1076,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
              relative_minute_check!(),
              b.reg(r#"前"#)?,
-             |time, relative_minute, _| helpers::hour_relative_minute(
-                 time.value().form_time_of_day()?.full_hour(),
+             |tod, relative_minute, _| helpers::hour_relative_minute(
+                 tod.value().form_time_of_day()?.full_hour(),
                  -1 * relative_minute.value().0,
                  true)
     );
@@ -1078,8 +1085,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("relative minutes after|past <integer> (hour-of-day)",
              time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
              relative_minute_check!(),
-             |time, relative_minute| helpers::hour_relative_minute(
-                 time.value().form_time_of_day()?.full_hour(),
+             |tod, relative_minute| helpers::hour_relative_minute(
+                 tod.value().form_time_of_day()?.full_hour(),
                  relative_minute.value().0,
                  true)
     );
@@ -1098,13 +1105,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //                       text_match.group(2).parse()?)
     // );
     b.rule_1_terminal("morning",
-                      b.reg(r#"朝の?|午前中?|今朝"#)?,
-                      |_| {
-                          Ok(helpers::hour(4, false)?
-                              .span_to(&helpers::hour(12, false)?, false)?
-                              .latent()
-                              .form(Form::PartOfDay(PartOfDayForm::Morning)))
-                      }
+        b.reg(r#"朝の?|午前中?|今朝"#)?,
+        |_| {
+            Ok(helpers::hour(4, false)?
+                .span_to(&helpers::hour(12, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay(PartOfDayForm::Morning)))
+        }
     );
     b.rule_1_terminal("breakfast",
         b.reg(r#"朝(?:食|ごはん|ご飯)"#)?,
@@ -1114,20 +1121,20 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::Meal))
     );
     b.rule_1_terminal("early morning",
-                      b.reg(r#"明け方|早朝|朝早く"#)?,
-                      |_| {
-                          Ok(helpers::hour(4, false)?
-                              .span_to(&helpers::hour(8, false)?, false)?
-                              .latent()
-                              .form(Form::PartOfDay(PartOfDayForm::Morning)))
-                      }
+        b.reg(r#"明け方|早朝|朝早く"#)?,
+        |_| {
+            Ok(helpers::hour(4, false)?
+                .span_to(&helpers::hour(8, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay(PartOfDayForm::Morning)))
+        }
     );
     b.rule_1_terminal("before work",
         b.reg(r#"仕事の?前"#)?,
         |_| {
             let period = helpers::hour(7, false)?
                     .span_to(&helpers::hour(10, false)?, false)?;
-            Ok(helpers::cycle_nth(Grain::Day, 0)?.intersect(&period)?.form(Form::PartOfDay(PartOfDayForm::Morning)))
+            Ok(period.form(Form::PartOfDay(PartOfDayForm::Morning)))
         }
     );
     b.rule_1_terminal("work",
@@ -1135,36 +1142,36 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| {
             let period = helpers::hour(9, false)?
                     .span_to(&helpers::hour(19, false)?, false)?;
-            Ok(helpers::cycle_nth(Grain::Day, 0)?.intersect(&period)?.form(Form::PartOfDay(PartOfDayForm::None)))
+            Ok(period.form(Form::PartOfDay(PartOfDayForm::None)))
         }
     );
     b.rule_1_terminal("afternoon",
-                      b.reg(r#"午後"#)?,
-                      |_| {
-                          Ok(helpers::hour(12, false)?
-                              .span_to(&helpers::hour(17, false)?, false)?
-                              .latent()
-                              .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
-                      }
+        b.reg(r#"午後"#)?,
+        |_| {
+            Ok(helpers::hour(12, false)?
+                .span_to(&helpers::hour(17, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
+        }
     );
     b.rule_1_terminal("evening",
-                      b.reg(r#"夕方"#)?,
-                      |_| {
-                          Ok(helpers::hour(16, false)?
-                              .span_to(&helpers::hour(19, false)?, false)?
-                              .latent()
-                              .form(Form::PartOfDay(PartOfDayForm::Evening)))
-                      }
+        b.reg(r#"夕方"#)?,
+        |_| {
+            Ok(helpers::hour(16, false)?
+                .span_to(&helpers::hour(19, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay(PartOfDayForm::Evening)))
+        }
     );
 
     b.rule_1_terminal("night",
-                      b.reg(r#"夜|晩|晚"#)?,
-                      |_| {
-                          Ok(helpers::hour(18, false)?
-                              .span_to(&helpers::hour(0, false)?, false)?
-                              .latent()
-                              .form(Form::PartOfDay(PartOfDayForm::Night)))
-                      }
+        b.reg(r#"夜|晩|晚"#)?,
+        |_| {
+            Ok(helpers::hour(18, false)?
+                .span_to(&helpers::hour(0, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay(PartOfDayForm::Night)))
+        }
     );
     b.rule_1_terminal("brunch",
         b.reg(r#"ブランチ"#)?,
@@ -1174,17 +1181,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::Meal))
     );
     b.rule_1_terminal("lunch",
-                      b.reg(r#"昼食|お昼ご飯|昼ごはん"#)?,
-                      |_| {
-                          Ok(helpers::hour(12, false)?
-                              .span_to(&helpers::hour(14, false)?, false)?
-                              .latent()
-                              .form(Form::Meal))
-                      }
+        b.reg(r#"昼食|お昼ご飯|昼ごはん"#)?,
+        |_| {
+            Ok(helpers::hour(12, false)?
+                .span_to(&helpers::hour(14, false)?, false)?
+                .latent()
+                .form(Form::Meal))
+        }
     );
 
     b.rule_1_terminal("dinner",
-        b.reg(r#"夕食|夕ご飯|夕ごはん"#)?,
+        b.reg(r#"夕(?:食|ご飯|ごはん)|晩(?:御飯|ご(?:飯|はん))"#)?,
         |_| Ok(helpers::hour(18, false)?
                 .span_to(&helpers::hour(23, false)?, false)?
                 .latent()
@@ -1194,12 +1201,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("second dinner",
         b.reg(r#"夜食"#)?,
         |_| Ok(helpers::hour(22, false)?
-                .span_to(&helpers::hour(0, false)?, false)? //should be until 2am the next day
+                .span_to(&helpers::hour(2, false)?, false)?
                 .latent()
                 .form(Form::Meal))
     );
 
-    b.rule_1_terminal("goûter :)",
+    b.rule_1_terminal("gouter",
         b.reg(r#"おやつ"#)?,
         |_| Ok(helpers::hour(15, false)?
                 .span_to(&helpers::hour(17, false)?, false)?
@@ -1227,31 +1234,31 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_, a, _| Ok(a.value().clone().not_latent().precision(Approximate))
     );
     b.rule_1_terminal("tonight",
-                      b.reg(r#"今夜"#)?,
-                      |_| {
-                          let period = helpers::hour(18, false)?.span_to(&helpers::hour(0, false)?, false)?;
-                          Ok(helpers::cycle_nth(Grain::Day, 0)?
-                              .intersect(&period)?
-                              .form(Form::PartOfDay(PartOfDayForm::Night)))
-                      }
+        b.reg(r#"今夜"#)?,
+        |_| {
+            let period = helpers::hour(18, false)?.span_to(&helpers::hour(0, false)?, false)?;
+            Ok(helpers::cycle_nth(Grain::Day, 0)?
+                .intersect(&period)?
+                .form(Form::PartOfDay(PartOfDayForm::Night)))
+        }
     );
     b.rule_1_terminal("after lunch",
-                      b.reg(r#"(?:昼食後|ランチタイム後)に?"#)?,
-                      |_| {
-                          let period = helpers::hour(13, false)?.span_to(&helpers::hour(17, false)?, false)?;
-                          Ok(helpers::cycle_nth(Grain::Day, 0)?
-                              .intersect(&period)?
-                              .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
-                      }
+        b.reg(r#"(?:昼食後|ランチタイム後)に?"#)?,
+        |_| {
+            let period = helpers::hour(13, false)?.span_to(&helpers::hour(17, false)?, false)?;
+            Ok(helpers::cycle_nth(Grain::Day, 0)?
+                .intersect(&period)?
+                .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
+        }
     );
     b.rule_1_terminal("after work",
-                      b.reg(r#"仕事の?後に?"#)?,
-                      |_| {
-                          let period = helpers::hour(17, false)?.span_to(&helpers::hour(0, false)?, false)?;
-                          Ok(helpers::cycle_nth(Grain::Day, 0)?
-                              .intersect(&period)?
-                              .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
-                      }
+        b.reg(r#"仕事の?後に?"#)?,
+        |_| {
+            let period = helpers::hour(17, false)?.span_to(&helpers::hour(0, false)?, false)?;
+            Ok(helpers::cycle_nth(Grain::Day, 0)?
+                .intersect(&period)?
+                .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
+        }
     );
     b.rule_2("last <part-of-day>",
         b.reg(r#"昨"#)?,
@@ -1274,6 +1281,131 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |time, part_of_day| part_of_day.value().intersect(time.value())
     );
+
+    b.rule_3("morning <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Morning))),
+        b.reg(r#"の"#)?,
+        time_of_day_check_hour!(1, 12),
+        |_, _, tod| {
+            let period = helpers::hour(1, false)?
+                     .span_to(&helpers::hour(12, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+    b.rule_2("morning <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Morning))),
+        time_of_day_check_hour!(1, 12),
+        |_, tod| {
+            let period = helpers::hour(1, false)?
+                     .span_to(&helpers::hour(12, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_2("afternoon <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Afternoon))),
+        time_of_day_check_hour!(1, 7, 13, 19),
+        |_, tod| {
+            let period = helpers::hour(13, false)?
+                     .span_to(&helpers::hour(19, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_3("afternoon <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Afternoon))),
+        b.reg(r#"の"#)?,
+        time_of_day_check_hour!(1, 7, 13, 19),
+        |_, _, tod| {
+            let period = helpers::hour(13, false)?
+                     .span_to(&helpers::hour(19, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+    b.rule_2("afternoon <time-of-day>",
+        b.reg(r#"昼の?"#)?,
+        time_of_day_check_hour!(1, 7, 13, 19),
+        |_, tod| {
+            let period = helpers::hour(13, false)?
+                     .span_to(&helpers::hour(19, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_2("evening <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Evening))),
+        time_of_day_check_hour!(7, 11, 19, 23),
+        |_, tod| {
+            let period = helpers::hour(19, false)?
+                     .span_to(&helpers::hour(23, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_3("evening <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Evening))),
+        b.reg(r#"の"#)?,
+        time_of_day_check_hour!(7, 11, 19, 23),
+        |_, _, tod| {
+            let period = helpers::hour(19, false)?
+                     .span_to(&helpers::hour(23, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_2("night <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Night))),
+        time_of_day_check_hour!(0, 4),
+        |_, tod| {
+            let period = helpers::hour(0, false)?
+                     .span_to(&helpers::hour(4, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_3("night <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Night))),
+        b.reg(r#"の"#)?,
+        time_of_day_check_hour!(0, 4),
+        |_, _, tod| {
+            let period = helpers::hour(0, false)?
+                     .span_to(&helpers::hour(4, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_2("night <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Night))),
+        time_of_day_check_hour!(7, 11, 19, 23),
+        |_, tod| {
+            let period = helpers::hour(19, false)?
+                     .span_to(&helpers::hour(23, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
+    b.rule_3("night <time-of-day>",
+        time_check!(form!(Form::PartOfDay(PartOfDayForm::Night))),
+        b.reg(r#"の"#)?,
+        time_of_day_check_hour!(7, 11, 19, 23),
+        |_, _, tod| {
+            let period = helpers::hour(19, false)?
+                     .span_to(&helpers::hour(23, false)?, true)?;
+            Ok(tod.value().intersect(&period)?
+                .form(tod.value().form.clone()))
+        }
+    );
+
     b.rule_1_terminal("week-end",
                       b.reg(r#"週末"#)?,
                       |_| {
@@ -1335,11 +1467,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 31),
              b.reg(r#"日から"#)?,
              integer_check_by_range!(1, 31),
-             b.reg(r#"日まで"#)?,
-             |time, a, _, b, _| {
-                 let start = time.value()
+             b.reg(r#"日(?:まで)?"#)?,
+             |month, a, _, b, _| {
+                 let start = month.value()
                      .intersect(&helpers::day_of_month(a.value().value as u32)?)?;
-                 let end = time.value()
+                 let end = month.value()
                      .intersect(&helpers::day_of_month(b.value().value as u32)?)?;
                  start.span_to(&end, true)
              }
@@ -1350,10 +1482,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 31),
              b.reg(r#"日"#)?,
              |a, _, b, _| {
-                 let start = &helpers::cycle_nth(Grain::Month, 0)?
-                     .intersect(&helpers::day_of_month(a.value().value as u32)?)?;
-                 let end = &helpers::cycle_nth(Grain::Month, 0)?
-                     .intersect(&helpers::day_of_month(b.value().value as u32)?)?;
+                 let start = helpers::day_of_month(a.value().value as u32)?;
+                 let end = helpers::day_of_month(b.value().value as u32)?;
                  start.span_to(&end, true)
              }
     );
@@ -1361,12 +1491,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 31),
              b.reg(r#"日から"#)?,
              integer_check_by_range!(1, 31),
-             b.reg(r#"日まで"#)?,
+             b.reg(r#"日(?:まで)?"#)?,
              |a, _, b, _| {
-                 let start = &helpers::cycle_nth(Grain::Month, 0)?
-                     .intersect(&helpers::day_of_month(a.value().value as u32)?)?;
-                 let end = &helpers::cycle_nth(Grain::Month, 0)?
-                     .intersect(&helpers::day_of_month(b.value().value as u32)?)?;
+                 let start = helpers::day_of_month(a.value().value as u32)?;
+                 let end = helpers::day_of_month(b.value().value as u32)?;
                  start.span_to(&end, true)
              }
     );
@@ -1376,25 +1504,25 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"日?ー"#)?,
              integer_check_by_range!(1, 31),
              b.reg(r#"日"#)?,
-             |time, a, _, b, _| {
-                 let start = time.value()
+             |month, a, _, b, _| {
+                 let start = month.value()
                      .intersect(&helpers::day_of_month(a.value().value as u32)?)?;
-                 let end = time.value()
+                 let end = month.value()
                      .intersect(&helpers::day_of_month(b.value().value as u32)?)?;
                  start.span_to(&end, true)
              }
     );
     b.rule_4("<datetime> - <datetime> (interval)",
-             time_check!(),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"から"#)?,
-             time_check!(),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"まで"#)?,
              |a, _, b, _| a.value().span_to(b.value(), true)
     );
     b.rule_4("between <datetime> and <datetime> (interval)",
-             time_check!(),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"と|から"#)?,
-             time_check!(),
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"の間に?"#)?,
              |a, _, b, _| a.value().span_to(b.value(), false)
     );
@@ -1410,7 +1538,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"から"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"まで"#)?,
-             |a, _, b, _| a.value().span_to(b.value(), false)
+             |a, _, b, _| a.value().smart_span_to(b.value(), false)
     );
     b.rule_5("between <time-of-day> am and <time-of-day> pm (interval)",
              b.reg(r#"(朝|夜)の"#)?,
@@ -1504,7 +1632,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"から|以来"#)?,
              |a, _| Ok(a.value().the_nth(-1)?.mark_after_start())
     );
-    b.rule_5("since <time> and during <time>",
+    b.rule_5("since <time> and during <integer> <cycle>",
              time_check!(),
              b.reg(r#"から|以来"#)?,
              integer_check!(),
@@ -1512,10 +1640,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"間"#)?,
              |a, _, b, c, _| a.value().the_nth(0)?.mark_after_start().span_to(&helpers::cycle_nth(c.value().grain, b.value().value)?, true)
     );
-    b.rule_2("around <time-of-day>",
+    b.rule_2("around <time>",
         time_check!(),
         b.reg(r#"くらいに"#)?,
-        |a, _| Ok(a.value().clone().not_latent().precision(Approximate))
+        |a, _| Ok(a.value().clone().precision(Approximate))
     );
 
     b.rule_4("date using emperor years",
@@ -1595,18 +1723,18 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"短く"#)?,
              |integer, uod, _| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
     );
-    b.rule_2_terminal("number.number hours",
-                      b.reg(r#"(\d+)\.(\d+)"#)?,
-                      b.reg(r#"時間"#)?,
-                      |text_match, _| {
-                          Ok(DurationValue::new(
-                              PeriodComp::minutes(
-                                  helpers::decimal_hour_in_minute(text_match.group(1), text_match.group(2))?
-                              ).into()
-                          )
-                          )
-                      }
-    );
+    // b.rule_2_terminal("number.number hours",
+    //                   b.reg(r#"(\d+)\.(\d+)"#)?,
+    //                   b.reg(r#"時間"#)?,
+    //                   |text_match, _| {
+    //                       Ok(DurationValue::new(
+    //                           PeriodComp::minutes(
+    //                               helpers::decimal_hour_in_minute(text_match.group(1), text_match.group(2))?
+    //                           ).into()
+    //                       )
+    //                       )
+    //                   }
+    // );
     b.rule_3("<integer> <unit-of-duration> and a half",
              integer_check_by_range!(0),
              unit_of_duration_check!(),

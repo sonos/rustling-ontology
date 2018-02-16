@@ -39,7 +39,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"\$|dollar"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("$") })
     );
-    b.rule_1_terminal("€",
+    b.rule_1_terminal("EUR",
                       b.reg(r#"€|euro?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("EUR") })
     );
@@ -1273,15 +1273,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         time_check!(form!(Form::PartOfDay(PartOfDayForm::Afternoon))),
         time_of_day_check_hour!(1, 7, 13, 19),
         |_, tod| {
-            let period = helpers::hour(1, false)?
-                     .span_to(&helpers::hour(12, false)?, true)?;
+            let period = helpers::hour(13, false)?
+                     .span_to(&helpers::hour(19, false)?, true)?;
             Ok(tod.value().intersect(&period)?
                 .form(tod.value().form.clone()))
         }
     );
 
     b.rule_2("<time-of-day> evening",
-        time_of_day_check_hour!(7, 11),
+        time_of_day_check_hour!(7, 11, 19, 23),
         time_check!(form!(Form::PartOfDay(PartOfDayForm::Evening))),
         |tod, _| {
             let period = helpers::hour(19, false)?
@@ -1314,9 +1314,9 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("night <time-of-day>",
-        time_of_day_check_hour!(1, 4),
         time_check!(form!(Form::PartOfDay(PartOfDayForm::Night))),
-        |tod, _| {
+        time_of_day_check_hour!(1, 4),
+        |_, tod| {
             let period = helpers::hour(1, false)?
                      .span_to(&helpers::hour(4, false)?, true)?;
             Ok(tod.value().intersect(&period)?

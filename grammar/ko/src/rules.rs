@@ -11,7 +11,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
              |a, b| helpers::compose_money(a.value(), b.value())
     );
-    b.rule_1_terminal("₩",
+    b.rule_1_terminal("KRW",
                       b.reg(r#"₩|원|krw"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
@@ -23,7 +23,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"cents?|센[트|츠]|c|¢"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("cent") })
     );
-    b.rule_1_terminal("€",
+    b.rule_1_terminal("EUR",
                       b.reg(r#"€|유로|euro?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("EUR") })
     );

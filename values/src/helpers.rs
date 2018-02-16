@@ -267,6 +267,22 @@ impl TimeValue {
         }
     }
 
+    pub fn form_year_month_day(&self) -> RuleResult<Option<YearMonthDayForm>> {
+        if let Form::YearMonthDay(v) = self.form {
+            Ok(v)
+        } else {
+            Err(format!("Form {:?} is not a month form", self.form))?
+        }
+    }
+
+    pub fn form_month_day(&self) -> RuleResult<Option<MonthDayForm>> {
+        if let Form::MonthDay(v) = self.form {
+            Ok(v)
+        } else {
+            Err(format!("Form {:?} is not a month form", self.form))?
+        }
+    }
+
     pub fn form_year(&self) -> RuleResult<i32> {
         if let Form::Year(m) = self.form {
             Ok(m)

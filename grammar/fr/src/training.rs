@@ -6,7 +6,7 @@ use rustling_ontology_values::ResolverContext;
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(2000.0, Some("$"), Precision::Exact), "deux milles dollars");
     example!(v, check_finance(10.0, Some("GBP"), Precision::Exact), "dix livres sterlings");
-    example!(v, check_finance(2.05, Some("€"), Precision::Exact), "deux euros et cinq centimes");
+    example!(v, check_finance(2.05, Some("EUR"), Precision::Exact), "deux euros et cinq centimes");
     example!(v, check_finance(2.0, Some("CHF"), Precision::Exact), "deux francs suisse");
 }
 
