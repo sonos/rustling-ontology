@@ -437,7 +437,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(helpers::month_day(5, 4)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("children's day",
-                      b.reg(r#"こどもの日"#)?,
+                      b.reg(r#"(?:こども|子供)の日"#)?,
                       |_| Ok(helpers::month_day(5, 5)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("marine day",
