@@ -200,7 +200,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("une <unit-of-duration>",
              b.reg(r#"une?|la|le?"#)?,
              unit_of_duration_check!(),
-             |_, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, 0).into()))
+             |_, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, 1).into()))
     );
     b.rule_2("dans <duration>",
              b.reg(r#"dans"#)?,
