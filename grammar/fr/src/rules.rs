@@ -197,11 +197,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, b| Ok(a.value() + b.value())
     );
-    b.rule_2("une <unit-of-duration>",
-             b.reg(r#"une?|la|le?"#)?,
-             unit_of_duration_check!(),
-             |_, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, 1).into()))
-    );
     b.rule_2("dans <duration>",
              b.reg(r#"dans"#)?,
              duration_check!(),
@@ -218,7 +213,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
     );
     b.rule_2("pendant <duration>",
-             b.reg(r#"pendant|durant"#)?,
+             b.reg(r#"pendant|durant|pour(?: une dur[eé]e? d['e])?"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
