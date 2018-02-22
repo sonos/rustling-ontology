@@ -221,7 +221,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
                                         .and_hms(0, 0, 0));
-        let rounded_interval = Interval::starting_at(rounded_moment, Grain::Day); // TODO: Weird why it is not Grain::Day ?
+        let rounded_interval = Interval::starting_at(rounded_moment, Grain::Day);
         let offset_year = !(origin.start <= rounded_interval.end_moment()) as i64;
         let anchor = rounded_interval + PeriodComp::years(offset_year);
         let origin_copied = origin.clone();
