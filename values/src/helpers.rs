@@ -239,6 +239,9 @@ impl TimeValue {
             if !start_clock.is_12_clock() && start_clock.get_hour() > 12 && end_clock.is_12_clock() {
                 start_clock.build_time_value(false)?
                     .span_to(&end_clock.build_time_value(false)?, is_inclusive)
+            } else if start_clock.is_12_clock() && !end_clock.is_12_clock() && end_clock.get_hour() >= 12 {
+                start_clock.build_time_value(false)?
+                    .span_to(&end_clock.build_time_value(false)?, is_inclusive)
             } else {
                 self.span_to(to, is_inclusive)
             }
