@@ -495,6 +495,14 @@ impl TimeOfDayForm {
             second,
         }
     }
+
+    pub fn get_hour(&self) -> u32 {
+        match self {
+            &TimeOfDayForm::Hour { full_hour, ..} => full_hour,
+            &TimeOfDayForm::HourMinute {  full_hour, .. } => full_hour,
+            &TimeOfDayForm::HourMinuteSecond { full_hour, .. } => full_hour,
+        }
+    }
 }
 
 

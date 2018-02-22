@@ -236,10 +236,9 @@ impl TimeValue {
         if self.form.is_time_of_day() && to.form.is_time_of_day() {
             let start_clock = self.form_time_of_day()?;
             let end_clock = to.form_time_of_day()?;
-            if start_clock.is_12_clock() != end_clock.is_12_clock() {
-                let is_12_clock = start_clock.is_12_clock()  && end_clock.is_12_clock();
-                start_clock.build_time_value(is_12_clock)?
-                    .span_to(&end_clock.build_time_value(is_12_clock)?, is_inclusive)
+            if !start_clock.is_12_clock() && start_clock.get_hour() > 12 && end_clock.is_12_clock() {
+                start_clock.build_time_value(false)?
+                    .span_to(&end_clock.build_time_value(false)?, is_inclusive)
             } else {
                 self.span_to(to, is_inclusive)
             }
