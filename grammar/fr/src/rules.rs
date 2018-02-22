@@ -1391,21 +1391,21 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
              time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(_))(time)),
-             |a, _, b| a.value().span_to(b.value(), false)
+             |a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_4("de <time-of-day> - <time-of-day> (interval)",
              b.reg(r#"(?:midi )?de"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
-             |_, a, _, b| a.value().span_to(b.value(), false)
+             |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_4("entre <time-of-day> et <time-of-day> (interval)",
              b.reg(r#"entre"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"et"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
-             |_, a, _, b| a.value().span_to(b.value(), false)
+             |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_2("d'ici <duration>",
              b.reg(r#"d'ici|dans l(?:'|es?)"#)?,
