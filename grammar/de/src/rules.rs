@@ -1941,11 +1941,12 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       })
     );
     b.rule_1_terminal("integer (20..90)",
-                      b.reg(r#"(zwanzig|drei(?:ss|β)ig|vierzig|f[üu]nfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
+                      b.reg(r#"(zwanzig|drei(?:ss|β|ß)ig|vierzig|f[üu]nfzig|sechzig|siebzig|achtzig|neunzig)"#)?,
                       |text_match| {
                         let value = match text_match.group(1).as_ref() {
                             "zwanzig" => 20,
                             "dreissig" => 30,
+                            "dreißig" =>  30,
                             "dreiβig" =>  30,
                             "vierzig" => 40,
                             "funfzig" => 50,
@@ -2122,12 +2123,13 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, ordinal| Ok(ordinal.value().clone().prefixed())
     );
     b.rule_1_terminal("ordinal (20..90)",
-                      b.reg(r#"(zwanzigste|drei(?:ss|β)igste|vierzigste|f[üu]nfzigste|sechzigste|siebzigste|achtzigste|neunzigste)(?:r|n|m|s)?"#)?,
+                      b.reg(r#"(zwanzigste|drei(?:ss|β|ß)igste|vierzigste|f[üu]nfzigste|sechzigste|siebzigste|achtzigste|neunzigste)(?:r|n|m|s)?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "zwanzigste" => 20,
                               "dreissigste" => 30,
                               "dreiβigste" => 30,
+                              "dreißigste" => 30,
                               "vierzigste" => 40,
                               "funfzigste" => 50,
                               "fünfzigste" => 50,
