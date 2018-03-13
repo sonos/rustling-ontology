@@ -3,7 +3,7 @@
 
 Probabilistic parser for entity detection based on Rustling (https://github.com/snipsco/rustling)
 
-Rutling is a rust port of https://github.com/facebookincubator/duckling
+Rustling is a rust port of https://github.com/facebookincubator/duckling
 
 
 
