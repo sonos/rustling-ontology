@@ -9,7 +9,6 @@ members=["values", "cli", "cli-debug", "moment",
         "grammar", "grammar/de", "grammar/en", "grammar/es", "grammar/fr", "grammar/ko", "grammar/zh", "grammar/ja"]
 
 [dependencies]
-bincode = "0.8"
 rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
@@ -23,7 +22,6 @@ bencher = { git="https://github.com/snipsco/bencher", rev="63910ace" }
 serde_json = "1.0"
 
 [build-dependencies]
-bincode = "0.8"
 rmp-serde = "0.13"
 serde = "1.0"
 serde_derive = "1.0"
