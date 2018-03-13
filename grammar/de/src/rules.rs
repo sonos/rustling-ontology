@@ -1735,7 +1735,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
     // );
 
     b.rule_2("<article> temp",
-             b.reg(r#"bei"#)?,
+             b.reg(r#"bei|auf"#)?,
              temperature_check!(),
              |_, temp| Ok(TemperatureValue {
                  value: temp.value().value,
@@ -1864,6 +1864,12 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value()));
+
+    b.rule_3("intersect",
+            number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
+            b.reg(r#"und"#)?,
+            number_check!(),
+            |a, _, b| helpers::compose_numbers(&a.value(), &b.value()));
 
     b.rule_1_terminal("null",
                       b.reg(r#"kein(?:er|en|e?s?)|null|nichts"#)?,
