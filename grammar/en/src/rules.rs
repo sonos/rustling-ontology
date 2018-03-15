@@ -1273,7 +1273,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                   "nine" => 9,
                   "ten" => 10,
                   "eleven" => 11,
-                  "tweve" => 12,
+                  "twelve" => 12,
                    _ => return Err(RuleErrorKind::Invalid.into()),
                 };
                 Ok(helpers::hour(hour, true)?.precision(Approximate))
