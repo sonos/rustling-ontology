@@ -909,11 +909,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
              |time, ordinal| time.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
     );
-    b.rule_2("<named-month> <day-of-month> (non ordinal)",
-             time_check!(form!(Form::Month(_))),
-             integer_check_by_range!(1, 31),
-             |time, integer| time.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
-    );
+    // b.rule_2("<named-month> <day-of-month> (non ordinal)",
+    //          time_check!(form!(Form::Month(_))),
+    //          integer_check_by_range!(1, 31),
+    //          |time, integer| time.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    // );
     b.rule_3("<day-of-month> (non ordinal) of <named-month>",
              integer_check_by_range!(1, 31),
              b.reg(r#"vom|von|im"#)?,
@@ -1140,6 +1140,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(helpers::hour(3, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
+    );
+
+    b.rule_1_terminal("morning (latent)",
+        b.reg(r#"fr[üu]h"#)?,
+        |_| Ok(helpers::hour(3, false)?
+                .span_to(&helpers::hour(12, false)?, false)?
+                .latent()
+                .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("late morning",
                       b.reg(r#"(?:kurz|am sp[äa]ten) vor ?mittag"#)?,
