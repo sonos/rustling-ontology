@@ -186,6 +186,15 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  Ok(DurationValue::new(hour_period + minute_period))
              }
     );
+    b.rule_3("<integer> <unit-of-duration> et demi",
+        integer_check_by_range!(0),
+        unit_of_duration_check!(),
+        b.reg(r#"et demie?"#)?,
+        |integer, uod, _| {
+           let half_period: Period = uod.value().grain.half_period().map(|a| a.into()).unwrap_or_else(|| Period::default());
+           Ok(DurationValue::new(half_period + PeriodComp::new(uod.value().grain, integer.value().value)))
+        }
+    );
     b.rule_3("<duration> et <duration>",
              duration_check!(|duration: &DurationValue| !duration.suffixed),
              b.reg(r#"et"#)?,
@@ -416,7 +425,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("pour <time>",
         b.reg(r#"pour"#)?,
-        time_check!(|time: &TimeValue| !time.latent),
+        time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
         |_, a| Ok(a.value().clone())
     );
     b.rule_1_terminal("named-day",

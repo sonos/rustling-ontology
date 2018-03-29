@@ -34,10 +34,10 @@ enum_kind!(OutputKind,
     [
         Number,
         Ordinal,
+        Duration,
         Time,
         AmountOfMoney,
         Temperature,
-        Duration,
         Percentage
     ]
 );

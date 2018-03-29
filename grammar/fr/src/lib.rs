@@ -23,7 +23,7 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
 }
 
 pub fn dims() -> Vec<rustling_ontology_values::DimensionKind> {
-    return vec![Number, Ordinal, Time, Duration, Temperature, AmountOfMoney, Percentage];
+    return vec![Number, Ordinal, Duration, Time, Temperature, AmountOfMoney, Percentage];
 }
 
 pub fn examples() -> Vec<::rustling::train::Example<rustling_ontology_values::Dimension>> {
