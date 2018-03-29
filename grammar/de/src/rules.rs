@@ -671,6 +671,16 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"(?:internationale[rnm] )?frauentag"#)?,
                       |_| Ok(helpers::month_day(3, 8)?.form(Form::Celebration))
     );
+    b.rule_1_terminal("Pentecost",
+        b.reg(r#"an ostern"#)?,
+        |_| Ok(helpers::easter()?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Easter",
+        b.reg(r#"an pfingsten"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 49, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
     // TODO needs the lunar calendar feature
     // b.rule_1("Ascension celebration",
     //     b.reg(r#"himmelfahrt"#)?,
@@ -717,7 +727,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1_terminal("now",
-                      b.reg(r#"(?:genau ?)?jetzt|(?:diesen|im|in diesem) (?:moment|augenblick)|nun|sofort|gerade (?:eben|jetzt)"#)?,
+                      b.reg(r#"(?:genau ?)?jetzt|aktuelle(?:r|n|s|m)?|gegenw[äa]rtige(?:r|n|s|m)?|(?:diesen|im|in diesem) (?:moment|augenblick)|nun|sofort|gerade (?:eben|jetzt)"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("today",
@@ -1736,11 +1746,11 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
 
     b.rule_2("<article> temp",
              b.reg(r#"bei|auf"#)?,
-             temperature_check!(),
+             temperature_check!(|temp: &TemperatureValue| !temp.latent),
              |_, temp| Ok(TemperatureValue {
                  value: temp.value().value,
                  unit: temp.value().unit,
-                 latent: false,
+                 latent: temp.value().latent,
              })
     );
     b.rule_1("number as temp",
