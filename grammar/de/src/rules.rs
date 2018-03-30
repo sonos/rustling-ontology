@@ -533,11 +533,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month(12)
     );
     b.rule_1_terminal("christmas",
-                      b.reg(r#"weih?nacht(?:en|s(?:feier)?tag)?"#)?,
+                      b.reg(r#"christtag|weih?nacht(?:en|s(?:feier)?tag)?"#)?,
                       |_| helpers::month_day(12, 25)
     );
     b.rule_1_terminal("christmas eve",
-                      b.reg(r#"heilig(er)? abend"#)?,
+                      b.reg(r#"christnacht|(?:heilig(?:e[r|n])?|weihnachts) ?abend"#)?,
                       |_| helpers::month_day(12, 24)
     );
     b.rule_1_terminal("three wise men",
@@ -576,7 +576,16 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"palmsonntag"#)?,
         |_| Ok(helpers::cycle_nth_after(Grain::Day, -7, &helpers::easter()?)?.form(Form::Celebration)),
     );
-
+    b.rule_1_terminal("Holy Thursday",
+        b.reg(r#"gr[üu]ndonnerstag"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, -3, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Good Friday",
+        b.reg(r#"karfreitag"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, -2, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
     b.rule_1_terminal("Lent",
         b.reg(r#"(?:in|w[aä]hrend) der fastenzeit"#)?,
         |_| Ok(helpers::cycle_nth_after(Grain::Day, -47, &helpers::easter()?)?
@@ -589,6 +598,33 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(helpers::month_day(11, 11)?
                           .span_to(&helpers::cycle_nth_after(Grain::Day, -47, &helpers::easter()?)?, false)?
                           .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Easter",
+        b.reg(r#"oster(?:n|sonntag)"#)?,
+        |_| Ok(helpers::easter()?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Easter Monday",
+        b.reg(r#"ostermontag"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 1, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("ascension",
+        b.reg(r#"himmelfahrt|auffahrt"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 39, &helpers::easter()?)?
+                .form(Form::Celebration))
+
+    );
+    b.rule_1_terminal("Pencost",
+        b.reg(r#"pfingst(?:en|sonntag)"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 49, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
+
+    b.rule_1_terminal("Pencost Monday",
+        b.reg(r#"pfingstmontag"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 50, &helpers::easter()?)?
+                .form(Form::Celebration))
     );
 
     b.rule_1_terminal("valentine's day",
@@ -632,7 +668,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(helpers::month_day(9, 24)?.form(Form::Celebration))
     );
     b.rule_1_terminal("German national celebration",
-                      b.reg(r#"tag (?:der)? deutsc?hen? einheit"#)?,
+                      b.reg(r#"tag (?:der )?deutsc?hen? einheit"#)?,
                       |_| Ok(helpers::month_day(10, 3)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Day of popular vote",
@@ -640,7 +676,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(helpers::month_day(10, 10)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Austrian national celebration",
-                      b.reg(r#"([öo]sterreichischer?)? nationalfeiertag|national feiertag"#)?,
+                      b.reg(r#"(?:[öo]sterreichischer? )?nationalfeiertag|national feiertag"#)?,
                       |_| Ok(helpers::month_day(10, 26)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Armistice Celebration",
@@ -648,7 +684,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(helpers::month_day(11, 11)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Saint Martin",
-                      b.reg(r#"sankt martin"#)?,
+                      b.reg(r#"sankt martin|martinstag"#)?,
                       |_| Ok(helpers::month_day(11, 11)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Saint Leopold",
@@ -671,29 +707,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"(?:internationale[rnm] )?frauentag"#)?,
                       |_| Ok(helpers::month_day(3, 8)?.form(Form::Celebration))
     );
-    b.rule_1_terminal("Pentecost",
-        b.reg(r#"an ostern"#)?,
-        |_| Ok(helpers::easter()?
-                .form(Form::Celebration))
-    );
-    b.rule_1_terminal("Easter",
-        b.reg(r#"an pfingsten"#)?,
-        |_| Ok(helpers::cycle_nth_after(Grain::Day, 49, &helpers::easter()?)?
-                .form(Form::Celebration))
-    );
-    // TODO needs the lunar calendar feature
-    // b.rule_1("Ascension celebration",
-    //     b.reg(r#"himmelfahrt"#)?,
-    //     |_| 
-    // );
 
-    // TODO in Germany it is the same day as the ascension celebration
-    // b.rule_1("Father's Day",  // third Sunday of June
-    //     b.reg(r#"vatt?er(?: ?tag)?|(?:herren|m[äa]nner)tag"#)?,
-    //     |_| helpers::day_of_week(Weekday::Sun)?
-    //             .intersect(&helpers::month(6)?)?
-    //             .intersect(&helpers::cycle_nth_after(Grain::Week, 2, &helpers::month_day(6, 1)?)?)
-    // );
+    b.rule_1("Father's Day",  // third Sunday of June
+        b.reg(r#"vatt?er(?: ?tag)?|(?:herren|m[äa]nner)tag"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 39, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
     b.rule_1_terminal("Mother's Day",
                       b.reg(r#"mutt?ertag|mutt?er (?:tag)?"#)?,
                       |_| Ok(helpers::day_of_week(Weekday::Sun)?
@@ -709,6 +728,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"allerheiligen?|aller heiligen?"#)?,
                       |_| Ok(helpers::month_day(11, 1)?.form(Form::Celebration))
     );
+    b.rule_1_terminal("Sunday of the dead (German protestant)",
+        b.reg(r#"totensonntag"#)?,
+        |_| Ok(helpers::day_of_week(Weekday::Sun)?
+                          .intersect(&helpers::cycle_nth_after(Grain::Week, 3, &helpers::month_day(11, 1)?)?)?
+                          .form(Form::Celebration))
+    );
+
     b.rule_1_terminal("Nikolaus",
                       b.reg(r#"nikolaus(?: ?tag|abend)?|nikolo"#)?,
                       |_| Ok(helpers::month_day(12, 6)?.form(Form::Celebration))
@@ -720,6 +746,18 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |ordinal, _| {
             let christmas = helpers::month_day(12, 25)?;
             let offset = - (4 - ordinal.value().value + 1);
+            Ok(helpers::cycle_nth_after(Grain::Week, offset, &christmas)?
+                .intersect(&helpers::day_of_week(Weekday::Sun)?)?
+                .form(Form::Celebration))
+        }    
+    );
+    //Volkstrauertag
+
+    b.rule_1_terminal("memorial day",
+        b.reg(r#"volkstrauertag"#)?,
+        |_| {
+            let christmas = helpers::month_day(12, 25)?;
+            let offset = -6;
             Ok(helpers::cycle_nth_after(Grain::Week, offset, &christmas)?
                 .intersect(&helpers::day_of_week(Weekday::Sun)?)?
                 .form(Form::Celebration))
@@ -1349,7 +1387,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("<article> <time>",
-        b.reg(r#"a[nm]"#)?,
+        b.reg(r#"a[nm](?: de[rn])?"#)?,
         time_check!(excluding_form!(Form::TimeOfDay(_))),
         |_, time| Ok(time.value().clone().not_latent())
     );
