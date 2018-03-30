@@ -541,7 +541,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month_day(12, 24)
     );
     b.rule_1_terminal("three wise men",
-        b.reg(r#"(?:den )?heiligen? drei k[öo]nigen?"#)?,
+        b.reg(r#"(?:den )heiligen? drei k[öo]nigen?"#)?,
         |_| helpers::month_day(1, 6)
     );
     b.rule_1_terminal("new year's eve",
@@ -955,11 +955,30 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
              |time, ordinal| time.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)
     );
-    // b.rule_2("<named-month> <day-of-month> (non ordinal)",
-    //          time_check!(form!(Form::Month(_))),
-    //          integer_check_by_range!(1, 31),
-    //          |time, integer| time.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
-    // );
+    b.rule_3("<named-month> <day-of-month> (non ordinal) <time>",
+             time_check!(form!(Form::Month(_))),
+             integer_check_by_range!(1, 31),
+             time_check!(),
+             |month, integer, time| month.value()
+                .intersect(&helpers::day_of_month(integer.value().value as u32)?)?
+                .intersect(time.value())
+    );
+    b.rule_3("<time> <named-month> <day-of-month> (non ordinal)",
+        time_check!(),
+        time_check!(form!(Form::Month(_))),
+        integer_check_by_range!(1, 31),
+             |time, month, integer| month.value()
+                .intersect(&helpers::day_of_month(integer.value().value as u32)?)?
+                .intersect(time.value())
+    );
+    b.rule_3("<day-of-week> <named-month> <day-of-month> (non ordinal)",
+        time_check!(form!(Form::DayOfWeek{..})),
+        time_check!(form!(Form::Month(_))),
+        integer_check_by_range!(1, 31),
+             |dow, month, integer| month.value()
+                .intersect(&helpers::day_of_month(integer.value().value as u32)?)?
+                .intersect(dow.value())
+    );
     b.rule_3("<day-of-month> (non ordinal) of <named-month>",
              integer_check_by_range!(1, 31),
              b.reg(r#"vom|von|im"#)?,
