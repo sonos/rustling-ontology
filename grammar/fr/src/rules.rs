@@ -559,7 +559,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("ascension",
         b.reg(r#"(?:la f[eê]te de l'|le jeudi de l'|l'|le jour de l')ascension"#)?,
-        |_| Ok(helpers::cycle_nth_after(Grain::Day, 40, &helpers::easter()?)?
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 39, &helpers::easter()?)?
                 .form(Form::Celebration))
 
     );
