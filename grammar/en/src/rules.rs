@@ -525,6 +525,46 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           let monday = helpers::day_of_week(Weekday::Mon)?;
                           january.intersect(&third_week_january)?.intersect(&monday)
                       });
+    b.rule_1_terminal("Palm sunday",
+        b.reg(r#"(?:palm|passion) sunday"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, -7, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Holy Thursday",
+        b.reg(r#"(?:holy|maundy) thursday"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, -3, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Holy Friday",
+        b.reg(r#"good friday"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, -2, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Holy Saturday",
+        b.reg(r#"(?:holy|black) saturday|easter vigil"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, -1, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Easter",
+        b.reg(r#"easter sunday"#)?,
+        |_| Ok(helpers::easter()?.form(Form::Celebration))
+    );
+    b.rule_1_terminal("Easter Monday",
+        b.reg(r#"easter monday"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 1, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
+    b.rule_1_terminal("Ascension",
+        b.reg(r#"(?:(?:the )?feast of (?:the )?)?ascension(?: holiday|thursday|day)?"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 39, &helpers::easter()?)?
+                .form(Form::Celebration))
+
+    );
+    b.rule_1_terminal("Pentecost",
+        b.reg(r#"(?:(?:the )?(?:feast|day) of )?pentecost"#)?,
+        |_| Ok(helpers::cycle_nth_after(Grain::Day, 49, &helpers::easter()?)?
+                .form(Form::Celebration))
+    );
     b.rule_1_terminal("memorial day",
                       b.reg(r#"memorial day"#)?,
                       |_| {
@@ -729,10 +769,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_4("nth <time> of <time>",
-             ordinal_check!(),
-             time_check!(),
-             b.reg(r#"of|in"#)?,
-             time_check!(),
+             ordinal_check!(), // the first
+             time_check!(), // Thursday
+             b.reg(r#"of|in"#)?, // of
+             time_check!(), // march
              |ordinal, a, _, b| {
                  b.value().intersect(a.value())?.the_nth(ordinal.value().value - 1)
              }
@@ -1273,7 +1313,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                   "nine" => 9,
                   "ten" => 10,
                   "eleven" => 11,
-                  "twelve" => 12,
+                  "tweve" => 12,
                    _ => return Err(RuleErrorKind::Invalid.into()),
                 };
                 Ok(helpers::hour(hour, true)?.precision(Approximate))
