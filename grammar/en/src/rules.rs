@@ -555,13 +555,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::Celebration))
     );
     b.rule_1_terminal("Ascension",
-        b.reg(r#"(?:(?:the )?feast of the )?ascension(?: holiday|thursday|day)?"#)?,
+        b.reg(r#"(?:(?:the )?feast of (?:the )?)?ascension(?: holiday|thursday|day)?"#)?,
         |_| Ok(helpers::cycle_nth_after(Grain::Day, 39, &helpers::easter()?)?
                 .form(Form::Celebration))
 
     );
     b.rule_1_terminal("Pentecost",
-        b.reg(r#"(?:the )?(?:feast|day) of )?pentecost(?:)"#)?,
+        b.reg(r#"(?:(?:the )?(?:feast|day) of )?pentecost"#)?,
         |_| Ok(helpers::cycle_nth_after(Grain::Day, 49, &helpers::easter()?)?
                 .form(Form::Celebration))
     );
