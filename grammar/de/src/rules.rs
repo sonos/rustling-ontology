@@ -541,7 +541,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month_day(12, 24)
     );
     b.rule_1_terminal("three wise men",
-        b.reg(r#"den heiligen drei k[öo]nigen"#)?,
+        b.reg(r#"(?:den )?heiligen? drei k[öo]nigen?"#)?,
         |_| helpers::month_day(1, 6)
     );
     b.rule_1_terminal("new year's eve",
