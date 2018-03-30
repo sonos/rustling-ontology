@@ -655,15 +655,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"allerheiligen(?:tag)?"#)?,
                       |_| Ok(helpers::month_day(11, 1)?.form(Form::Celebration))
     );
-    b.rule_1_terminal("Saint Joseph",
+    b.rule_1_terminal("Holy Joseph",
                       b.reg(r#"sankt josef"#)?,
                       |_| Ok(helpers::month_day(3, 19)?.form(Form::Celebration))
     );
-    b.rule_1_terminal("Saint Florian",
+    b.rule_1_terminal("Holy Florian",
                       b.reg(r#"sankt florian"#)?,
                       |_| Ok(helpers::month_day(5, 4)?.form(Form::Celebration))
     );
-    b.rule_1_terminal("Saint Rupert",
+    b.rule_1_terminal("Holy Rupert",
                       b.reg(r#"sankt rupert"#)?,
                       |_| Ok(helpers::month_day(9, 24)?.form(Form::Celebration))
     );
@@ -683,17 +683,25 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"waffenstillstandserkl[äa]rung"#)?,
                       |_| Ok(helpers::month_day(11, 11)?.form(Form::Celebration))
     );
-    b.rule_1_terminal("Saint Martin",
+    b.rule_1_terminal("Holy Martin",
                       b.reg(r#"sankt martin|martinstag"#)?,
                       |_| Ok(helpers::month_day(11, 11)?.form(Form::Celebration))
     );
-    b.rule_1_terminal("Saint Leopold",
+    b.rule_1_terminal("Holy Leopold",
                       b.reg(r#"sankt leopold"#)?,
                       |_| Ok(helpers::month_day(11, 15)?.form(Form::Celebration))
+    );
+    b.rule_1_terminal("Holy Joseph",
+                      b.reg(r#"josefstag"#)?,
+                      |_| Ok(helpers::month_day(3, 19)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Switzerland national celebration",
                       b.reg(r#"an der bundesfeier"#)?,
                       |_| Ok(helpers::month_day(8, 1)?.form(Form::Celebration))
+    );
+    b.rule_1_terminal("Berchtoldstag",
+        b.reg(r#"berchtoldstag"#)?,
+        |_| Ok(helpers::month_day(1, 2)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Immaculate conception",
                       b.reg(r#"mari[äa] empf[äa]ngnis"#)?,
