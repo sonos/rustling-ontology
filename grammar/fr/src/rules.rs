@@ -206,6 +206,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, b| Ok(a.value() + b.value())
     );
+    b.rule_2("<duration> <integer>",
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
+             integer_check_by_range!(0),
+             |duration, integer| helpers::compose_duration_with_integer(duration.value(), integer.value())
+    );
     b.rule_2("dans <duration>",
              b.reg(r#"dans"#)?,
              duration_check!(),
