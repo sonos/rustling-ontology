@@ -16,14 +16,14 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
     rules::rules_time(&mut b)?;
     rules::rules_cycle(&mut b)?;
     rules::rules_duration(&mut b)?;
-    rules::rules_temperature(&mut b)?;
+    rules::rules_temperature(&mut b)?;            
     rules::rules_finance(&mut b)?;
     rules::rules_percentage(&mut b)?;
     Ok(b.build())
 }
 
 pub fn dims() -> Vec<rustling_ontology_values::DimensionKind> {
-    return vec![Number];
+    return vec![Number, Ordinal, Duration, Time, Temperature, AmountOfMoney, Percentage];
 }
 
 pub fn examples() -> Vec<::rustling::train::Example<rustling_ontology_values::Dimension>> {
