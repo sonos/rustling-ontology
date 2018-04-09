@@ -18,6 +18,17 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
     }
 }
 
+pub fn compose_duration_with_integer(duration: &DurationValue, value: &IntegerValue) -> RuleResult<DurationValue> {
+    let grain = duration.period.finer_grain()
+        .ok_or_else(|| -> RuleError { RuleErrorKind::Invalid.into() })?;
+    let next_grain = grain.next();
+    if next_grain <= grain  {
+        return Err(RuleErrorKind::Invalid.into());
+    }
+    let period: Period = PeriodComp::new(next_grain, value.value).into();
+    Ok(duration + DurationValue::new(period))
+}
+
 #[derive(Debug, Clone)]
 pub struct RegexMatch<'a> {
     pub groups: Vec<Option<&'a str>>,
