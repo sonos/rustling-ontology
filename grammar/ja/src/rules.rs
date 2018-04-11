@@ -4,6 +4,52 @@ use rustling_ontology_values::dimension::Precision::*;
 use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Weekday, Grain, PeriodComp, Period};
 
+pub trait JapaneseDigitReplace {
+   fn replace_japanese_digit(&self) -> String;
+}
+
+impl JapaneseDigitReplace for String {
+  fn replace_japanese_digit(&self) -> String {
+    self.chars().map(|it| {
+                match it {
+                  '０' => '0',
+                  '１' => '1',
+                  '２' => '2',
+                  '３' => '3',
+                  '４' => '4',
+                  '５' => '5',
+                  '６' => '6',
+                  '７' => '7',
+                  '８' => '8',
+                  '９' => '9',
+                  _ => it,
+
+                }
+            }).collect()
+  }
+}
+
+impl<'a> JapaneseDigitReplace for &'a str {
+  fn replace_japanese_digit(&self) -> String {
+    self.chars().map(|it| {
+                match it {
+                  '０' => '0',
+                  '１' => '1',
+                  '２' => '2',
+                  '３' => '3',
+                  '４' => '4',
+                  '５' => '5',
+                  '６' => '6',
+                  '７' => '7',
+                  '８' => '8',
+                  '９' => '9',
+                  _ => it,
+
+                }
+            }).collect()
+  }
+}
+
 pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("intersect",
@@ -12,13 +58,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| helpers::compose_numbers(&a.value(), &b.value()));
 
     // TODO: This rule leads to crashes because of japanese digit number
-    // b.rule_1_terminal("number as digits",
-    //     b.reg(r#"(\d+)"#)?,
-    //     |digit| { 
-    //         let value = digit.group(1).parse()?;
-    //         IntegerValue::new(value) 
-    //     }
-    // );
+    b.rule_1_terminal("number as digits",
+        b.reg(r#"(\d+)"#)?,
+        |digit| {
+            let res = digit.group(1).replace_japanese_digit();
+            let value = res.parse()?;
+            IntegerValue::new(value)
+        }
+    );
 
     b.rule_1_terminal("0..9",
         b.reg(r#"(零|一|二|三|四|五|六|七|八|九)"#)?,
@@ -141,14 +188,15 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     // TODO: This rule leads to crashes because of japanese digit number
-    // b.rule_1("float number", 
-        // b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
-        // let value: f32 = text_match.group(1).parse()?;
-        // Ok(FloatValue {
-            // value: value,
-            // ..FloatValue::default()
-        // })
-    // });
+    b.rule_1("float number", 
+        b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
+          let res = text_match.group(1).replace_japanese_digit();
+          let value: f32 = res.parse()?;
+          Ok(FloatValue {
+              value: value,
+              ..FloatValue::default()
+          })
+    });
     Ok(())
 }
 
