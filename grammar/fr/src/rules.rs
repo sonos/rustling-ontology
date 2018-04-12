@@ -2043,7 +2043,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("ordinal (100, 1_000, 1_000_000)",
-        b.reg(r#"(cent|mill|million)i[èe]me"#)?,
+        b.reg(r#"(cent|mill|million|milliard)i[èe]me"#)?,
         |text_match| {
             let (value, grain) = match text_match.group(1).as_ref() {
                 "cent" => (100, 2),
@@ -2070,7 +2070,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             Ok(OrdinalValue::new_with_grain(integer.value().value * value, grain))
         }
     );
-
+    
     b.rule_2("ordinal (1_1_000..9_999_999_000)",
         integer_check_by_range!(1000, 99_999_999_000),
         ordinal_check!(|ordinal: &OrdinalValue| {
