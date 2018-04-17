@@ -240,27 +240,47 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("EUR",
         b.reg(r#"ユーロ|€"#)?,
-        |_| Ok(MoneyUnitValue { unit: Some("€") })
+        |_| Ok(MoneyUnitValue { unit: Some("EUR") })
     );
     b.rule_1_terminal("£",
-        b.reg(r#"£"#)?,
+        b.reg(r#"ポンド|£"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("£") })
     );
     b.rule_1_terminal("GBP",
-        b.reg(r#"ポンド"#)?,
+        b.reg(r#"GBP|イギリスポンド"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("JPY",
-        b.reg(r#"円"#)?,
+        b.reg(r#"JPY|円"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("JPY") })
     );
     b.rule_1_terminal("CNY",
-        b.reg(r#"(?:人民)?元|¥"#)?,
+        b.reg(r#"CNY|(?:人民)?元"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("CNY") })
     );
     b.rule_1_terminal("¥",
         b.reg(r#"¥"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("¥") })
+    );
+    b.rule_1_terminal("Krones (Swedish, Danish, ...)",
+        b.reg(r#"KR|クローネ"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("KR") })
+    );
+    b.rule_1_terminal("Danish Krones",
+        b.reg(r#"DKK|デンマーククローネ"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("DKK") })
+    );
+    b.rule_1_terminal("Swedish Krones",
+        b.reg(r#"SEK|スウェーデンクローナ"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("SEK") })
+    );
+    b.rule_1_terminal("Norwegian Krones",
+        b.reg(r#"NOK|ノルウェークローネ"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("NOK") })
+    );
+    b.rule_1_terminal("Swiss Francs",
+        b.reg(r#"CHF|スイスフラン"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CHF") })
     );
     b.rule_1_terminal("KRW",
         b.reg(r#"ウォン|₩"#)?,
