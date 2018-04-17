@@ -16,6 +16,7 @@ pub struct Utterance {
     pub context: Moment<Local>,
     #[serde(rename = "in_grammar")]
     pub in_grammar: bool,
+    pub translation: Option<String>,
     pub value: Option<SlotValue>,
 }
 
@@ -24,14 +25,18 @@ pub struct Utterance {
 pub struct PartialUtterance {
     pub phrase: String,
     #[serde(rename = "in_grammar")]
-    pub in_grammar: bool
+    pub in_grammar: bool,
+    pub translation: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum TestAssertion<A, B> {
-    Sucess,
-    Failed(A, B)
+    Success,
+    Failed {
+        expected: A, 
+        found: B,
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -40,6 +45,7 @@ pub struct TestOutput {
     pub phrase: String,
     #[serde(rename = "in_grammar")]
     pub in_grammar: bool,
+    pub translation: Option<String>,
     pub output: TestAssertion<Vec<SlotValue>, Vec<SlotValue>>,
 }
 
