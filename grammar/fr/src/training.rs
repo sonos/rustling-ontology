@@ -175,6 +175,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13-15 juillet", "13 au 15 juillet", "13 jusqu'au 15 juillet", "13 juillet au 15 juillet", "13 juillet - 15 juillet", "entre le 13 et le 15 juillet", "samedi 13 au dimanche 15 juillet", "du samedi 13 au dimanche 15 juillet", "du 13 au dimanche 15 juillet");
     example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 11]), "1er au 10 juillet", "lundi 1er au mercredi 10 juillet", "lundi 1 au mercredi 10 juillet", "du lundi 1er au mercredi 10 juillet", "du 1er au mercredi 10 juillet");
     example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 19]), "du 13 au 18", "entre le 13 et le 18");
+    example!(v, check_moment_span!(c, [2023, 2, 1], [2023, 4, 1]), "entre février et mars deux mille vingt-trois");
     example!(v, check_moment_span!(c, [2013, 6, 10], [2013, 7, 2]), "10 juin au 1er juillet", "entre le 10 juin et le 1er juillet", "du 10 juin au 1er juillet");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11]), "9h30 - 11h00 Jeudi", "de 9h30 jusqu'à 11h jeudi", "de 9 heures 30 à 11h jeudi", "de 9 heures 30 a 11h jeudi", "entre 9h30 et 11h jeudi", "jeudi mais entre 9h30 et 11h", "jeudi par exemple entre 9h30 et 11h");
     example!(v, check_moment_with_direction!(c, [2013, 3, 8], Direction::After), "à partir du 8", "à partir du 8 mars");

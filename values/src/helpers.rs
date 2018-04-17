@@ -6,10 +6,10 @@ use regex::Regex;
 
 pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberValue> {
     let grain = a.grain().unwrap_or(0) as u32;
-    if 10u64.pow(grain) as f32 > b.value() {
+    if 10u64.pow(grain) as f32 > b.value() && a.value() >= 0.0 && b.value() >= 0.0 {
         match (a, b) {
             (&NumberValue::Integer(ref lhs), &NumberValue::Integer(ref rhs)) => {
-                Ok(NumberValue::Integer(IntegerValue::new(lhs.value + rhs.value)?))
+                Ok(NumberValue::Integer(IntegerValue::new(lhs.value + rhs.value)?.with_grain(rhs.grain)?))
             }
             _ => Ok(NumberValue::Float(FloatValue::new(a.value() + b.value())?)),
         }
@@ -127,7 +127,7 @@ impl TimeOfDayForm {
 }
 
 
-fn precision_resolution(lhs: Precision, rhs: Precision) -> Precision {
+pub fn precision_resolution(lhs: Precision, rhs: Precision) -> Precision {
     if lhs == Precision::Approximate || rhs == Precision::Approximate {
         Precision::Approximate
     } else {
@@ -470,21 +470,33 @@ impl CycleValue {
 
 impl DurationValue {
 
+    fn check_period(&self) -> RuleResult<()> {
+        if self.period.coarse_num_secs() >= PeriodComp::years(1000).coarse_num_secs() { 
+            Err(RuleErrorKind::Invalid.into()) 
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn in_present(&self) -> RuleResult<TimeValue> {
+        self.check_period()?;
         Ok(TimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(self.period.clone())).precision(self.precision))
     }
 
     pub fn ago(&self) -> RuleResult<TimeValue> {
+        self.check_period()?;
         Ok(TimeValue::constraint(Cycle::rc(Grain::Second)
                                      .take_the_nth(0)
                                      .shift_by(-self.period.clone())).precision(self.precision))
     }
 
     pub fn after(&self, time: &TimeValue) -> RuleResult<TimeValue> {
+        self.check_period()?;
         Ok(TimeValue::constraint(time.constraint.shift_by(self.period.clone())).precision(self.precision))
     }
 
     pub fn before(&self, time: &TimeValue) -> RuleResult<TimeValue> {
+        self.check_period()?;
         Ok(TimeValue::constraint(time.constraint.shift_by(-self.period.clone())).precision(self.precision))
     }
 }

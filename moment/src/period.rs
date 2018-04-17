@@ -41,6 +41,19 @@ impl Grain {
             &Grain::Second => None,
         }
     }
+
+    pub fn coarse_num_secs(&self) -> i64 {
+        match self {
+            &Grain::Year => 12 * 30 * 24 * 3600,
+            &Grain::Quarter => 3 * 30 * 24 * 3600,
+            &Grain::Month => 30 * 24 * 3600,
+            &Grain::Week => 7 * 24 * 3600,
+            &Grain::Day => 24 * 3600,
+            &Grain::Hour =>  3600,
+            &Grain::Minute => 60,
+            &Grain::Second => 1,
+        }
+    }
 }
 
 impl Grain {
@@ -87,6 +100,10 @@ impl Period {
                     None
                 }
             }).collect()
+    }
+
+    pub fn coarse_num_secs(&self) -> i64 {
+        self.comps().iter().map(|it| it.coarse_num_secs()).sum()
     }
 }
 
@@ -203,6 +220,10 @@ impl PeriodComp {
             grain: grain,
             quantity: quantity,
         }
+    }
+
+    pub fn coarse_num_secs(&self) -> i64 {
+        self.grain.coarse_num_secs() * self.quantity
     }
 
     pub fn years(n: i64) -> PeriodComp {

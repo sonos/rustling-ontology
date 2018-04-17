@@ -85,6 +85,7 @@ impl fmt::Display for Dimension {
 pub struct OrdinalValue {
     pub value: i64,
     pub prefixed: bool,
+    pub grain: Option<u8>,
 }
 
 impl OrdinalValue {
@@ -92,6 +93,15 @@ impl OrdinalValue {
         OrdinalValue {
             value,
             prefixed: false,
+            grain: None,
+        }
+    }
+
+    pub fn new_with_grain(value: i64, grain: u8) -> OrdinalValue {
+        OrdinalValue {
+            value: value,
+            prefixed: false,
+            grain: Some(grain),
         }
     }
 
@@ -99,6 +109,7 @@ impl OrdinalValue {
         OrdinalValue {
             value: self.value,
             prefixed: true,
+            grain: None,
         }
     }
 }
@@ -158,6 +169,13 @@ impl IntegerValue {
             value: value,
             grain: Some(grain),
             ..IntegerValue::default()
+        })
+    }
+
+    pub fn with_grain(self, grain: Option<u8>) -> RuleResult<IntegerValue> {
+        Ok(IntegerValue {
+            grain,
+            ..self
         })
     }
 }
@@ -365,6 +383,16 @@ impl PartialEq for TimeValue {
 impl ::std::fmt::Debug for TimeValue {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
         write!(fmt, "<TimeValue>")
+    }
+}
+
+impl TimeValue {
+    pub fn is_coarse_grain_smaller_than(&self, grain: Grain) -> bool {
+        (self.constraint.coarse_grain_step() as usize) < (grain as usize)
+    }
+
+    pub fn is_coarse_grain_greater_than(&self, grain: Grain) -> bool {
+        (self.constraint.coarse_grain_step() as usize) > (grain as usize)
     }
 }
 

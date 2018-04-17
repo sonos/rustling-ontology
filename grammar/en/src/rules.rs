@@ -126,6 +126,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| duration.value().in_present()
     );
+    b.rule_3("in <duration>",
+             b.reg(r#"in"#)?,
+             duration_check!(),
+             b.reg(r#"(?:' )? times?"#)?,
+             |_, duration, _| duration.value().in_present()
+    );
     b.rule_2("for <duration>",
              b.reg(r#"for"#)?,
              duration_check!(),
@@ -388,8 +394,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| !time.latent),
              |a, _, b| a.value().intersect(b.value())
     );
-    b.rule_2("on <date>",
-             b.reg(r#"on"#)?,
+    b.rule_2("on|in <date>",
+             b.reg(r#"[oi]n"#)?,
              time_check!(),
              |_, a| Ok(a.value().clone().not_latent())
     );
@@ -489,7 +495,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"december|dec\.?"#)?,
                       |_| helpers::month(12)
     );
-    b.rule_2("nth <time> of ",
+    b.rule_2("nth sunday of advent",
              ordinal_check!(),
              b.reg(r#"sunday of advent"#)?,
              |ordinal, _| {
@@ -584,17 +590,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               .intersect(&helpers::hour(0, false)?)?;
                           start.span_to(&end, false)
                       });
-    b.rule_1_terminal("independence day",
-                      b.reg(r#"independence day"#)?,
-                      |_| {
-                          helpers::month_day(7, 4)
-                      }
+    b.rule_1_terminal("US independence day",
+                      b.reg(r#"(independence|national) day"#)?,
+                      |_| helpers::month_day(7, 4)
     );
     b.rule_1_terminal("labor day",
                       b.reg(r#"labor day"#)?,
                       |_| {
                           helpers::month(9)?.intersect(&helpers::day_of_week(Weekday::Mon)?)
                       }
+    );
+    b.rule_1_terminal("flag day",
+                      b.reg(r#"flag day"#)?,
+                      |_| {
+                          helpers::month_day(6, 14)
+                      }
+    );
+    b.rule_1_terminal("patriot day",
+        b.reg(r#"patriot day"#)?,
+        |_| helpers::month_day(9, 11)
+    );
+    b.rule_1_terminal("women's equality day",
+        b.reg(r#"wom[ea]n'?s equality day"#)?,
+        |_| helpers::month_day(8, 26)
     );
     b.rule_1_terminal("labor day weekend",
                       b.reg(r#"labor day week(?:\s|-)?end"#)?,
@@ -716,7 +734,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("this <time>",
-             b.reg(r#"this|current|coming"#)?,
+             b.reg(r#"the|this|current|coming"#)?,
              time_check!(),
              |_, a| {
                  a.value().the_nth(0)
@@ -960,7 +978,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("time-of-day (latent)",
              integer_check_by_range!(0, 23),
              |integer| {
-                 Ok(helpers::hour(integer.value().value as u32, true)?.latent())
+                 Ok(helpers::hour(integer.value().value as u32, integer.value().value <= 12)?.latent())
+             }
+    );
+    b.rule_1("time-of-day (latent)",
+            number_check!(|number: &NumberValue| {
+                let hour = (number.value() - 0.5) as u32;
+                hour as f32 == (number.value() - 0.5) && hour >= 1 && hour <= 23
+            }),
+             |number| {
+                let hour = number.value().value() as u32;
+                Ok(helpers::hour_minute(hour, 30, hour <= 12)?.latent())
              }
     );
     b.rule_2("at <time-of-day>",
@@ -1045,36 +1073,41 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
              time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
              relative_minute_check!(),
-             |time, relative_minute| helpers::hour_relative_minute(
+             |time, relative_minute| Ok(helpers::hour_relative_minute(
                  time.value().form_time_of_day()?.full_hour(),
                  relative_minute.value().0,
-                 true)
+                 true)?
+                .precision(time.value().precision))
     );
 
     b.rule_3("relative minutes to|till|before <integer> (hour-of-day)",
              relative_minute_check!(),
              b.reg(r#"to|till|before|of"#)?,
              time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
-             |relative_minute, _, time| helpers::hour_relative_minute(
+             |relative_minute, _, time| Ok(helpers::hour_relative_minute(
                  time.value().form_time_of_day()?.full_hour(),
                  -1 * relative_minute.value().0,
-                 true)
+                 true)?
+                .precision(time.value().precision))
     );
 
     b.rule_3("relative minutes after|past <integer> (hour-of-day)",
              relative_minute_check!(),
              b.reg(r#"after|past"#)?,
              time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
-             |relative_minute, _, time| helpers::hour_relative_minute(
+             |relative_minute, _, time| Ok(helpers::hour_relative_minute(
                  time.value().form_time_of_day()?.full_hour(),
                  relative_minute.value().0,
-                 true)
+                 true)?.precision(time.value().precision))
     );
 
     b.rule_2("half <integer> (UK style hour-of-day)",
              b.reg(r#"half"#)?,
              time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
-             |_, a| helpers::hour_relative_minute(a.value().form_time_of_day()?.full_hour(), 30, true)
+             |_, a| Ok(helpers::hour_relative_minute(
+                    a.value().form_time_of_day()?.full_hour(), 
+                    30, 
+                    true)?.precision(a.value().precision))
     );
     b.rule_1_terminal("mm/.dd/.yyyy",
                       b.reg(r#"(0?[1-9]|1[0-2])[-/.](3[01]|[12]\d|0?[1-9])[-/.](\d{2,4})"#)?,
@@ -1268,7 +1301,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             |part_of_day, _, time| time.value().intersect(part_of_day.value())
     );
     b.rule_1_terminal("week-end",
-                      b.reg(r#"(?:week(?:\s|-)?end|wkend)"#)?,
+                      b.reg(r#"(?:the )?(?:week(?:\s|-)?end|wkend)"#)?,
                       |_| {
                           let friday = helpers::day_of_week(Weekday::Fri)?
                               .intersect(&helpers::hour(18, false)?)?;
@@ -1278,19 +1311,19 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_1_terminal("season",
-                      b.reg(r#"summer"#)?,
+                      b.reg(r#"(?:the )?summer"#)?,
                       |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
     );
     b.rule_1_terminal("season",
-                      b.reg(r#"fall|autumn"#)?,
+                      b.reg(r#"(?:the )?(?:fall|autumn)"#)?,
                       |_| helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
     );
     b.rule_1_terminal("season",
-                      b.reg(r#"winter"#)?,
+                      b.reg(r#"(?:the )?winter"#)?,
                       |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     );
     b.rule_1_terminal("season",
-                      b.reg(r#"spring"#)?,
+                      b.reg(r#"(?:the )?spring"#)?,
                       |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     );
     b.rule_2("<time-of-day> approximately",
@@ -1426,6 +1459,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"since"#)?,
              time_check!(),
              |_, a| Ok(a.value().the_nth(-1)?.mark_after_start())
+    );
+    b.rule_2("about <duration>",
+             b.reg(r#"(?:about|around|approximately)"#)?,
+             time_check!(|time: &TimeValue|  !time.latent),
+             |_, time| Ok(time.value().clone().precision(Precision::Approximate))
+    );
+
+    b.rule_2("exactly <duration>",
+             b.reg(r#"exactly|precisely"#)?,
+             time_check!(|time: &TimeValue|  !time.latent),
+             |_, time| Ok(time.value().clone().precision(Precision::Exact))
     );
     Ok(())
 }
@@ -1679,29 +1723,43 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  let value = a.value().value * 100 + b.value().value;
                  IntegerValue::new_with_grain(value, 1)
              });
+    
+    b.rule_1_terminal("100, 1_000, 1_000_000, 1_000_000_000",
+        b.reg(r#"(hundred|thousand|million|billion)s?"#)?,
+        |text_match| {
+            let (value, grain) = match text_match.group(1).as_ref() {
+                "hundred" => (100, 2),
+                "thousand" => (1_000, 3),
+                "million" => (1_000_000, 6),
+                "billion" => (1_000_000_000, 9),
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            IntegerValue::new_with_grain(value, grain)
+        }
+    );
+
+    b.rule_2("200..900, 2_000..9_000, 2_000_000..9_000_000_000",
+        integer_check_by_range!(1, 999),
+        b.reg(r#"(hundred|thousand|million|billion)s?"#)?,
+        |integer, text_match| {
+            let (value, grain) = match text_match.group(1).as_ref() {
+                "hundred" => (100, 2),
+                "thousand" => (1_000, 3),
+                "million" => (1_000_000, 6),
+                "billion" => (1_000_000_000, 9),
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            IntegerValue::new_with_grain(integer.value().value * value, grain)
+        }
+    );
     b.rule_1_terminal("dozen",
-             b.reg(r#"dozen"#)?,
-             |_| Ok(IntegerValue {
-                        value: 12,
-                        grain: Some(1),
-                        group: true,
-                        ..IntegerValue::default()
-                }));
-    b.rule_1_terminal("hundred",
-        b.reg(r#"hundreds?"#)?,
-        |_| IntegerValue::new_with_grain(100, 2)
-    );
-    b.rule_1_terminal("thousand",
-        b.reg(r#"thousands?"#)?,
-        |_| IntegerValue::new_with_grain(1000, 3)
-    );
-    b.rule_1_terminal("million",
-        b.reg(r#"millions?"#)?,
-        |_| IntegerValue::new_with_grain(1000000, 6)
-    );
-    b.rule_1_terminal("billion",
-        b.reg(r#"billions?"#)?,
-        |_| IntegerValue::new_with_grain(1000000000, 9)
+        b.reg(r#"dozen"#)?,
+        |_| Ok(IntegerValue {
+                   value: 12,
+                   grain: Some(1),
+                   group: true,
+                   ..IntegerValue::default()
+               })
     );
     b.rule_2("number dozen",
             integer_check_by_range!(1, 99),
@@ -1714,53 +1772,21 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..IntegerValue::default()
                  })
     });
-    b.rule_2("number hundreds",
-             integer_check_by_range!(1, 99),
-             b.reg(r#"hundreds?"#)?,
-             |a, _| {
-                 Ok(IntegerValue {
-                        value: a.value().value * 100,
-                        grain: Some(2),
-                        ..IntegerValue::default()
-                    })
-             });
-    b.rule_2("number thousands",
-             integer_check_by_range!(1, 999),
-             b.reg(r#"thousands?"#)?,
-             |a, _| {
-                 Ok(IntegerValue {
-                        value: a.value().value * 1000,
-                        grain: Some(3),
-                        ..IntegerValue::default()
-                    })
-             });
-    b.rule_2("number millions",
-             integer_check_by_range!(1, 999),
-             b.reg(r#"millions?"#)?,
-             |a, _| {
-                 Ok(IntegerValue {
-                        value: a.value().value * 1000000,
-                        grain: Some(6),
-                        ..IntegerValue::default()
-                    })
-             });
-    b.rule_2("number billions",
-             integer_check_by_range!(1, 99),
-             b.reg(r#"billions?"#)?,
-             |a, _| {
-                 Ok(IntegerValue {
-                        value: a.value().value * 1000000000,
-                        grain: Some(9),
-                        ..IntegerValue::default()
-                    })
-             });
-    b.rule_1("decimal number", b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
-        let value: f32 = text_match.group(0).parse()?;
-        Ok(FloatValue {
-            value: value,
-            ..FloatValue::default()
-        })
+
+    b.rule_1("decimal number", 
+        b.reg(r#"(\d*\.\d+)"#)?, 
+        |text_match| {
+            let value: f32 = text_match.group(0).parse()?;
+            Ok(FloatValue {
+                value: value,
+                ..FloatValue::default()
+            })
     });
+    b.rule_2("<integer> and a half",
+        integer_check!(),
+        b.reg(r#"and a half"#)?,
+        |integer, _| FloatValue::new(integer.value().value as f32 + 0.5)
+    );
     b.rule_3("number dot number",
              number_check!(|number: &NumberValue| !number.prefixed()),
              b.reg(r#"dot|point"#)?,
@@ -1857,51 +1883,123 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
-    b.rule_1_terminal("ordinals (first..31st)",
-                      b.reg(r#"(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth|twentieth|twenty-first|twenty-second|twenty-third|twenty-fourth|twenty-fifth|twenty-sixth|twenty-seventh|twenty-eighth|twenty-ninth|thirtieth|thirty-first)"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
-                              "first" => 1,
-                              "second" => 2,
-                              "third" => 3,
-                              "fourth" => 4,
-                              "fifth" => 5,
-                              "sixth" => 6,
-                              "seventh" => 7,
-                              "eighth" => 8,
-                              "ninth" => 9,
-                              "tenth" => 10,
-                              "eleventh" => 11,
-                              "twelfth" => 12,
-                              "thirteenth" => 13,
-                              "fourteenth" => 14,
-                              "fifteenth" => 15,
-                              "sixteenth" => 16,
-                              "seventeenth" => 17,
-                              "eighteenth" => 18,
-                              "nineteenth" => 19,
-                              "twentieth" => 20,
-                              "twenty-first" => 21,
-                              "twenty-second" => 22,
-                              "twenty-third" => 23,
-                              "twenty-fourth" => 24,
-                              "twenty-fifth" => 25,
-                              "twenty-sixth" => 26,
-                              "twenty-seventh" => 27,
-                              "twenty-eighth" => 28,
-                              "twenty-ninth" => 29,
-                              "thirtieth" => 30,
-                              "thirty-first" => 31,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
-                          };
-                          Ok(OrdinalValue::new(value))
-                      });
-    b.rule_2("<number> <ordinal>",
+    b.rule_1_terminal("ordinals (first..19th)",
+        b.reg(r#"(zeroth|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth|sixteenth|seventeenth|eighteenth|nineteenth)"#)?,
+        |text_match| {
+            let value = match text_match.group(1).as_ref() {
+                "zeroth" => 0,
+                "first" => 1,
+                "second" => 2,
+                "third" => 3,
+                "fourth" => 4,
+                "fifth" => 5,
+                "sixth" => 6,
+                "seventh" => 7,
+                "eighth" => 8,
+                "ninth" => 9,
+                "tenth" => 10,
+                "eleventh" => 11,
+                "twelfth" => 12,
+                "thirteenth" => 13,
+                "fourteenth" => 14,
+                "fifteenth" => 15,
+                "sixteenth" => 16,
+                "seventeenth" => 17,
+                "eighteenth" => 18,
+                "nineteenth" => 19,
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            Ok(OrdinalValue::new(value))
+    });
+    b.rule_1_terminal("ordinals (20th...90th)",
+        b.reg(r#"(twen|thir|for|fif|six|seven|eigh|nine)tieth"#)?,
+        |text_match| {
+            let value = match text_match.group(1).as_ref() {
+                "twen" => 20,
+                "thir" => 30,
+                "for" => 40,
+                "fif" => 50,
+                "six" => 60,
+                "seven" => 70,
+                "eigh" => 80,
+                "nine" => 90,
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            Ok(OrdinalValue::new(value))
+    });
+    b.rule_2("21th..99th",
              integer_check_by_range!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
              ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 9),
              |integer, ordinal| {
                  Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
              });
+
+    b.rule_3("21th..99th",
+             integer_check_by_range!(10, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+             b.reg(r#"-"#)?,
+             ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 9),
+             |integer, _, ordinal| {
+                 Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+             });
+
+    b.rule_1_terminal("ordinal (100, 1_000, 1_000_000)",
+        b.reg(r#"(hundred|thousand|million|billion)th"#)?,
+        |text_match| {
+            let (value, grain) = match text_match.group(1).as_ref() {
+                "hundred" => (100, 2),
+                "thousand" => (1_000, 3),
+                "million" => (1_000_000, 6),
+                "billion" => (1_000_000_000, 9),
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            Ok(OrdinalValue::new_with_grain(value, grain))
+        }
+    );
+
+    b.rule_2("ordinal (200..900, 2_000..9_000, 2_000_000..9_000_000_000)",
+        integer_check_by_range!(1, 999),
+        b.reg(r#"(hundred|thousand|million|billion)th"#)?,
+        |integer, text_match| {
+            let (value, grain) = match text_match.group(1).as_ref() {
+                "hundred" => (100, 2),
+                "thousand" => (1_000, 3),
+                "million" => (1_000_000, 6),
+                "billion" => (1_000_000_000, 9),
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            Ok(OrdinalValue::new_with_grain(integer.value().value * value, grain))
+        }
+    );
+
+    b.rule_2("ordinal (1_1_000..9_999_999_000)",
+        integer_check_by_range!(1000, 99_999_999_000),
+        ordinal_check!(|ordinal: &OrdinalValue| {
+            let grain = ordinal.grain.unwrap_or(0);
+            grain == 2 || grain % 3 == 0
+        }),
+        |integer, ordinal| {
+            let grain = ordinal.value().grain.unwrap_or(0);
+            let next_grain = (grain / 3) * 3 + 3;
+            if integer.value().value % 10i64.pow(next_grain as u32) != 0 { return Err(RuleErrorKind::Invalid.into()); }
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+
+    b.rule_2("ordinal (102...9_999_999)",
+        integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
+        ordinal_check_by_range!(2, 99),
+        |integer, ordinal| {
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+    b.rule_3("ordinal (102...9_999_999)",
+        integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
+        b.reg(r#"and"#)?,
+        ordinal_check_by_range!(2, 99),
+        |integer, _, ordinal| {
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
     b.rule_1_terminal("ordinal (digits)",
                       b.reg(r#"0*(\d+) ?(st|nd|rd|th)"#)?,
                       |text_match| {
