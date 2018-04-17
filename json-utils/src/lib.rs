@@ -32,10 +32,11 @@ pub struct PartialUtterance {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum TestAssertion<A, B> {
-    Success,
+    Success(Option<SlotValue>),
     Failed {
         expected: A, 
         found: B,
+        reason: String,
     }
 }
 
@@ -45,6 +46,8 @@ pub struct TestOutput {
     pub phrase: String,
     #[serde(rename = "in_grammar")]
     pub in_grammar: bool,
+    #[serde(with = "moment_json")]
+    pub context: Moment<Local>,
     pub translation: Option<String>,
     pub output: TestAssertion<Vec<SlotValue>, Vec<SlotValue>>,
 }
@@ -65,10 +68,10 @@ pub enum SlotValue {
 impl From<Output> for SlotValue {
     fn from(o: Output) -> SlotValue {
         match o {
-            Output::Integer(int) => SlotValue::Number(NumberValue { value: int.0 as f64 }),
-            Output::Float(float) => SlotValue::Number(NumberValue { value: float.0 as f64 }),
+            Output::Integer(int) => SlotValue::Number(NumberValue { value: (int.0 as f32).into() }),
+            Output::Float(float) => SlotValue::Number(NumberValue { value: float.0.into() }),
             Output::Ordinal(ordinal) => SlotValue::Ordinal(OrdinalValue { value: ordinal.0 as i64 }),
-            Output::Percentage(percentage) => SlotValue::Percentage(PercentageValue { value: percentage.0 as f64 }),
+            Output::Percentage(percentage) => SlotValue::Percentage(PercentageValue { value: percentage.0.into() }),
             Output::Time(time) => SlotValue::InstantTime( InstantTimeValue {
                 value: time.moment,
                 grain: time.grain.into(),

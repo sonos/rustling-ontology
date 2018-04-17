@@ -178,20 +178,38 @@ fn main() {
                 .map(|utterance| {
                   if utterance.in_grammar {
                       let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
-                      let entities = parser.parse(utterance.phrase.as_str(), &context).unwrap();
+                      let entities = parser.parse(utterance.phrase.to_lowercase().as_str(), &context).unwrap();
                       let assertion = if entities.len() == 1 {
                          let entity = entities.first();
                          match (entity, utterance.value) {
-                            (Some(entity), Some(ref expected_value)) 
-                                  if entity.byte_range.len() == utterance.phrase.len() 
-                                      && SlotValue::from(entity.value.clone()) == expected_value.clone()  => TestAssertion::Success,
-                            (None, None) => TestAssertion::Success,
+                            (Some(entity), Some(ref expected_value)) => {
+                              let entity_value = SlotValue::from(entity.value.clone());
+                              if entity.byte_range.len() == utterance.phrase.len() {
+                                  if entity_value == expected_value.clone() {
+                                      TestAssertion::Success(Some(expected_value.clone()))
+                                  } else {
+                                      TestAssertion::Failed {
+                                          expected: vec![expected_value.clone()],
+                                          found: vec![entity_value],
+                                          reason: "Entities are not equal".to_string(),
+                                      }
+                                  }
+                              } else {
+                                TestAssertion::Failed {
+                                    expected: vec![expected_value.clone()],
+                                    found: vec![entity_value],
+                                    reason: "An entity was found but it doesn't match the full utterance".to_string(),
+                                }
+                              }
+                            }
+                            (None, None) => TestAssertion::Success(None),
                           (entity, utterance_value) => {
                             let entity: Vec<SlotValue> = entity.into_iter().map(|it| it.clone().value.into()).collect();
                             let value: Vec<_> = utterance_value.into_iter().collect();
                             TestAssertion::Failed {
                               expected: value, 
-                              found: entity, 
+                              found: entity,
+                              reason: "No entity or more than one entity is found".to_string(),
                             }
                           }
                         }
@@ -200,12 +218,14 @@ fn main() {
                           let value: Vec<_> = utterance.value.into_iter().collect();
                           TestAssertion::Failed {
                             expected: value,
-                            found: entities 
+                            found: entities,
+                            reason: "No entity or more than one entity is found".to_string(),
                           }
                       };
                       TestOutput {
                           phrase: utterance.phrase,
                           in_grammar: utterance.in_grammar,
+                          context: utterance.context,
                           translation: utterance.translation,
                           output: assertion,
                       }   
@@ -213,8 +233,9 @@ fn main() {
                     TestOutput {
                       phrase: utterance.phrase,
                       in_grammar: utterance.in_grammar,
+                      context: utterance.context,
                       translation: utterance.translation,
-                      output: TestAssertion::Success,
+                      output: TestAssertion::Success(None),
                     }
                   }
                 })
