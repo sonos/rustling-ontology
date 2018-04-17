@@ -187,7 +187,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             |integer, _| Ok(OrdinalValue::new(integer.value().value))
     );
 
-    // TODO: This rule leads to crashes because of japanese digit number
     b.rule_1("float number", 
         b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
           let res = text_match.group(1).replace_japanese_digit();
@@ -196,6 +195,47 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
               value: value,
               ..FloatValue::default()
           })
+    });
+    b.rule_3("number dot number",
+        number_check!(|number: &NumberValue| !number.prefixed()),
+        b.reg(r#"てん|テン|[、,\.]|点"#)?,
+        number_check!(|number: &NumberValue| !number.suffixed()),
+        |a, _, b| {
+            Ok(FloatValue {
+                value: b.value().value() * 0.1 + a.value().value(),
+                ..FloatValue::default()
+            })
+    });
+    b.rule_3("number dot number",
+         number_check!(|number: &NumberValue| !number.prefixed()),
+         b.reg(r#"てん|テン|[、,\.]|点"#)?,
+         b.reg(r#"((?:零|一|二|三|四|五|六|七|八|九|ゼロ)+)"#)?,
+         |a, _, decimals| {
+              fn number_mapping(c: char) -> Option<char> {
+                     match c {
+                        '零' => Some('0'),
+                        '一' => Some('1'),
+                        '二' => Some('2'),
+                        '三' => Some('3'),
+                        '四' => Some('4'),
+                        '五' => Some('5'),
+                        '六' => Some('6'),
+                        '七' => Some('7'),
+                        '八' => Some('8'),
+                        '九' => Some('9'),
+                         _ => None,
+                     }
+              }
+              let decimal_part_string = decimals.group(0).replace("ゼロ", "零");
+              let decimal_part_string = format!("0.{}",
+                                             decimal_part_string.chars()
+                                                 .filter_map(number_mapping)
+                                                 .collect::<String>());
+              let decimal_part: f32 = decimal_part_string.parse()?;
+              Ok(FloatValue {
+                 value: a.value().value() + decimal_part,
+                 ..FloatValue::default()
+              })
     });
     Ok(())
 }
@@ -1899,6 +1939,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"前の"#)?,
              duration_check!(),
              |time, _, _, duration| duration.value().before(time.value())
+    );
+    b.rule_2("for <duration>",
+      duration_check!(),
+      b.reg(r#"の間に?"#)?,
+      |duration, _| Ok(duration.value().clone())
     );
     b.rule_2("about <duration>",
              b.reg(r#"だいたい|約"#)?,
