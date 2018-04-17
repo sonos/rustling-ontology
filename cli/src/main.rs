@@ -8,12 +8,11 @@ extern crate serde_json;
 extern crate prettytable;
 
 use std::str::FromStr;
-use std::io::Write;
 
 use rustling_ontology::*;
 use rustling_ontology_moment::*;
 use prettytable::Table;
-use json_utils::{PartialUtterance, Utterance, TestOutput, TestAssertion};
+use json_utils::{PartialUtterance, Utterance, TestOutput, TestAssertion, SlotValue};
 
 fn main() {
     let matches = clap_app!(rustling_cli =>
@@ -29,7 +28,7 @@ fn main() {
         (@subcommand utterance =>
              (@arg path: -p --path +takes_value "Path to utterances file")
         )
-        (@subcommand utterance =>
+        (@subcommand test =>
              (@arg input: -i --input +takes_value "Path to utterances file")
              (@arg output: -o --output +takes_value "Path to test output file")
         )
@@ -129,42 +128,6 @@ fn main() {
             table.printstd();
         }
         ("utterance", Some(matches)) => {
-            let input = matches.value_of("input").unwrap();
-            let utterances: Vec<Utterance> = {
-              let file = ::std::fs::File::open(input).unwrap();
-              serde_json::from_reader(&file).unwrap()
-            };
-            let parser = build_parser(lang).unwrap();
-            let default_context = Moment(Local.ymd(2017, 6, 1).and_hms(5, 00, 0));
-            let output: Vec<TestOutput> = utterances.into_iter()
-                .map(|it| {
-                  if it.in_grammar {
-                      let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
-                      let entities = parser.parse(it.phrase.to_lowercase().as_str(), &context).unwrap();
-                      let full_match = entities
-                        .into_iter()
-                        .filter(|entity| entity.byte_range.len() == it.phrase.len())
-                        .next();
-                      Utterance {
-                          phrase: it.phrase,
-                          in_grammar: it.in_grammar,
-                          context: default_context.clone(),
-                          value: full_match.map(|it| it.value.into()),
-                      }   
-                  } else {
-                    Utterance {
-                      phrase: it.phrase,
-                      in_grammar: it.in_grammar,
-                      context: default_context.clone(),
-                      value: None,
-                    }
-                  }
-                })
-                .collect();
-            let mut file = ::std::fs::File::create(path).unwrap();
-            serde_json::to_writer_pretty(&file, &utterances).unwrap();
-        }
-        ("test", Some(matches)) => {
             let path = matches.value_of("path").unwrap();
             let partial_utterances: Vec<PartialUtterance> = {
               let file = ::std::fs::File::open(path).unwrap();
@@ -184,6 +147,7 @@ fn main() {
                       Utterance {
                           phrase: it.phrase,
                           in_grammar: it.in_grammar,
+                          translation: it.translation,
                           context: default_context.clone(),
                           value: full_match.map(|it| it.value.into()),
                       }   
@@ -191,6 +155,7 @@ fn main() {
                     Utterance {
                       phrase: it.phrase,
                       in_grammar: it.in_grammar,
+                      translation: it.translation,
                       context: default_context.clone(),
                       value: None,
                     }
@@ -199,6 +164,63 @@ fn main() {
                 .collect();
             let mut file = ::std::fs::File::create(path).unwrap();
             serde_json::to_writer_pretty(&file, &utterances).unwrap();
+        }
+        ("test", Some(matches)) => {
+            let input_path = matches.value_of("input").unwrap();
+            let output_path = matches.value_of("output").unwrap();
+            let utterances: Vec<Utterance> = {
+              let file = ::std::fs::File::open(input_path).map_err(|e| format!("Could not open input file at path: {}, with error {}", input_path, e)).unwrap();;
+              serde_json::from_reader(&file).unwrap()
+            };
+            let parser = build_parser(lang).unwrap();
+            let default_context = Moment(Local.ymd(2017, 6, 1).and_hms(5, 00, 0));
+            let output: Vec<TestOutput> = utterances.into_iter()
+                .map(|utterance| {
+                  if utterance.in_grammar {
+                      let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
+                      let entities = parser.parse(utterance.phrase.as_str(), &context).unwrap();
+                      let assertion = if entities.len() == 1 {
+                         let entity = entities.first();
+                         match (entity, utterance.value) {
+                            (Some(entity), Some(ref expected_value)) 
+                                  if entity.byte_range.len() == utterance.phrase.len() 
+                                      && SlotValue::from(entity.value.clone()) == expected_value.clone()  => TestAssertion::Success,
+                            (None, None) => TestAssertion::Success,
+                          (entity, utterance_value) => {
+                            let entity: Vec<SlotValue> = entity.into_iter().map(|it| it.clone().value.into()).collect();
+                            let value: Vec<_> = utterance_value.into_iter().collect();
+                            TestAssertion::Failed {
+                              expected: value, 
+                              found: entity, 
+                            }
+                          }
+                        }
+                      } else {
+                          let entities: Vec<SlotValue> = entities.into_iter().map(|it| it.value.into()).collect();
+                          let value: Vec<_> = utterance.value.into_iter().collect();
+                          TestAssertion::Failed {
+                            expected: value,
+                            found: entities 
+                          }
+                      };
+                      TestOutput {
+                          phrase: utterance.phrase,
+                          in_grammar: utterance.in_grammar,
+                          translation: utterance.translation,
+                          output: assertion,
+                      }   
+                  } else {
+                    TestOutput {
+                      phrase: utterance.phrase,
+                      in_grammar: utterance.in_grammar,
+                      translation: utterance.translation,
+                      output: TestAssertion::Success,
+                    }
+                  }
+                })
+                .collect();
+            let mut file = ::std::fs::File::create(output_path).map_err(|e| format!("Could not create output file at path: {} with error {}", output_path, e)).unwrap();
+            serde_json::to_writer_pretty(&file, &output).unwrap();
         }
         (cmd, _) => panic!("Unknown command {}", cmd),
     }
