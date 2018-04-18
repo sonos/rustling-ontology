@@ -174,6 +174,7 @@ fn main() {
             };
             let parser = build_parser(lang).unwrap();
             let default_context = Moment(Local.ymd(2017, 6, 1).and_hms(5, 00, 0));
+            
             let output: Vec<TestOutput> = utterances.into_iter()
                 .map(|utterance| {
                   if utterance.in_grammar {
@@ -202,7 +203,11 @@ fn main() {
                                 }
                               }
                             }
-                            (None, None) => TestAssertion::Success(None),
+                            (None, None) => TestAssertion::Failed { 
+                                expected: vec![],
+                                found: vec![], 
+                                reason: "At least one entity should be found".to_string()
+                            },
                           (entity, utterance_value) => {
                             let entity: Vec<SlotValue> = entity.into_iter().map(|it| it.clone().value.into()).collect();
                             let value: Vec<_> = utterance_value.into_iter().collect();
@@ -240,8 +245,11 @@ fn main() {
                   }
                 })
                 .collect();
+            let total_test = output.len();
+            let failed_test = output.iter().filter(|it| it.output.is_failed()).collect::<Vec<_>>().len();
             let mut file = ::std::fs::File::create(output_path).map_err(|e| format!("Could not create output file at path: {} with error {}", output_path, e)).unwrap();
             serde_json::to_writer_pretty(&file, &output).unwrap();
+            println!("Total: {:?} | {:?} tests fail", total_test, failed_test);
         }
         (cmd, _) => panic!("Unknown command {}", cmd),
     }
