@@ -140,6 +140,12 @@ pub struct MoneyUnitValue {
     pub unit: Option<&'static str>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum CombinationDirection {
+    Left,
+    Right,
+}
+
 /// Payload for the integral numbers of Dimension
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct IntegerValue {
@@ -152,6 +158,8 @@ pub struct IntegerValue {
     pub prefixed: bool,
     #[doc(hidden)]
     pub suffixed: bool,
+    #[doc(hidden)]
+    pub combine_from: Option<CombinationDirection>,
     #[doc(hidden)]
     pub precision: Precision,
 }
@@ -177,6 +185,32 @@ impl IntegerValue {
             grain,
             ..self
         })
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from(self, direction: CombinationDirection) -> RuleResult<IntegerValue> {
+        Ok(IntegerValue {
+            combine_from: Some(direction),
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<IntegerValue> {
+        Ok(IntegerValue {
+            combine_from: direction,
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_left(&self) -> bool {
+        return self.combine_from == Some(CombinationDirection::Left)
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_right(&self) -> bool {
+        return self.combine_from == Some(CombinationDirection::Right)
     }
 }
 
@@ -269,6 +303,8 @@ pub struct FloatValue {
     #[doc(hidden)]
     pub suffixed: bool,
     #[doc(hidden)]
+    pub combine_from: Option<CombinationDirection>,
+    #[doc(hidden)]
     pub precision: Precision,
 }
 
@@ -278,6 +314,32 @@ impl FloatValue {
             value: value,
             ..FloatValue::default()
         })
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from(self, direction: CombinationDirection) -> RuleResult<FloatValue> {
+        Ok(FloatValue {
+            combine_from: Some(direction),
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<FloatValue> {
+        Ok(FloatValue {
+            combine_from: direction,
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_left(&self) -> bool {
+        return self.combine_from == Some(CombinationDirection::Left)
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_right(&self) -> bool {
+        return self.combine_from == Some(CombinationDirection::Right)
     }
 }
 
@@ -308,6 +370,38 @@ impl NumberValue {
         match self {
             &NumberValue::Float(ref v) => v.suffixed,
             &NumberValue::Integer(ref v) => v.suffixed,
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from(self, direction: CombinationDirection) -> RuleResult<NumberValue> {
+        match self {
+            NumberValue::Float(v) => Ok(v.combine_from(direction)?.into()),
+            NumberValue::Integer(v) => Ok(v.combine_from(direction)?.into()),
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<NumberValue> {
+        match self {
+            NumberValue::Float(v) => Ok(v.combine_from_opt(direction)?.into()),
+            NumberValue::Integer(v) => Ok(v.combine_from_opt(direction)?.into()),
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_left(&self) -> bool {
+        match self {
+            &NumberValue::Float(ref v) => v.combined_from_left(),
+            &NumberValue::Integer(ref v) => v.combined_from_left(),
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_right(&self) -> bool {
+        match self {
+            &NumberValue::Float(ref v) => v.combined_from_right(),
+            &NumberValue::Integer(ref v) => v.combined_from_right(),
         }
     }
 

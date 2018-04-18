@@ -18,6 +18,21 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
     }
 }
 
+pub fn compose_numbers_from_left(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberValue> {
+    if b.combined_from_left() { 
+        Err(RuleErrorKind::Invalid.into())  
+    } else {
+        let res = compose_numbers(a, b)?;
+        let combination_direction = match &res {
+            &NumberValue::Integer(ref integer) if integer.grain.is_none() => {
+                None
+            }
+            _ => Some(CombinationDirection::Left)
+        };
+        res.combine_from_opt(combination_direction)
+    }
+}
+
 pub fn compose_duration_with_integer(duration: &DurationValue, value: &IntegerValue) -> RuleResult<DurationValue> {
     let grain = duration.period.finer_grain()
         .ok_or_else(|| -> RuleError { RuleErrorKind::Invalid.into() })?;
