@@ -8,43 +8,43 @@ mod utils;
 use rustling_ontology::Lang;
 
 #[test]
-// #[ignore]
+#[ignore]
 fn test_en_numbers() {
     utils::run_json_test(Lang::EN, utils::build_resources_path("en", "number.json"));
 }
 
 #[test]
-// #[ignore]
+#[ignore]
 fn test_en_ordinal() {
     utils::run_json_test(Lang::EN, utils::build_resources_path("en", "ordinal.json"));
 }
 
 #[test]
-// #[ignore]
+#[ignore]
 fn test_en_percentage() {
     utils::run_json_test(Lang::EN, utils::build_resources_path("en", "percentage.json"));
 }
 
 #[test]
-// #[ignore]
+#[ignore]
 fn test_en_duration() {
     utils::run_json_test(Lang::EN, utils::build_resources_path("en", "duration.json"));
 }
 
 #[test]
-// #[ignore]
+#[ignore]
 fn test_en_temperature() {
     utils::run_json_test(Lang::EN, utils::build_resources_path("en", "temperature.json"));
 }
 
 #[test]
-// #[ignore]
+#[ignore]
 fn test_en_amount_of_money() {
     utils::run_json_test(Lang::EN, utils::build_resources_path("en", "amount_of_money.json"));
 }
 
 #[test]
-// #[ignore]
+#[ignore]
 fn test_en_datetime() {
     utils::run_json_test(Lang::EN, utils::build_resources_path("en", "datetime.json"));
 }
