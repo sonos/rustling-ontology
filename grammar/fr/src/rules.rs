@@ -730,6 +730,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, cycle, _, time| cycle.value().last_of(time.value())
     );
+    b.rule_4("<ordinal> <time> de <time>",
+             ordinal_check!(), // the first
+             time_check!(), // Thursday
+             b.reg(r#"d[e']"#)?, // of
+             time_check!(), // march
+             |ordinal, a, _, b| {
+                 b.value().intersect(a.value())?.the_nth(ordinal.value().value - 1)
+             }
+    );
     b.rule_3("<ordinal> week-end de <time>",
              ordinal_check!(),
              b.reg(r#"week(?:\s|-)?end (?:d['eu]|en|du mois de)"#)?,
