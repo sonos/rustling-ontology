@@ -73,8 +73,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2014]), "来年", "新年");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 12]), "朝", "午前", "今朝");
     example!(v, check_moment!(c, [2013, 12, 25]), "クリスマス", "次のクリスマス",  "二千十三年十二月二十五日", "十二月二十五日");
-    example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 0]), "昨晚");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 0]), "今晚", "今夜");
+    example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 3]), "昨晚");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 3]), "今晚", "今夜");
     example!(v, check_moment!(c, [2013, 8, 1]), "二千十三年八月一日", "八月一日");
     example!(v, check_moment!(c, [2013, 6, 1]), "二千十三年六月一日", "六月一日");
     example!(v, check_moment!(c, [2013, 8, 11]), "山の日");
