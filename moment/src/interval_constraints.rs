@@ -1003,11 +1003,16 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for ShiftBy<T>  where <T as Time
     fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
         if let Some(period_grain) = self.period.finer_grain() {
             let period = self.period.clone();
-            let next_grain = period_grain.next();
+            let is_forward = period.coarse_num_secs() >= 0;
+            let grain_after_shift = period_grain.after_shift();
             let translate = Translate {
                 generator: self.base.clone(),
                 offset: Rc::new(move |i: &Interval<T>, _: &Context<T>| -> Option<Interval<T>> {
-                    Some(i.interval_round_to(next_grain) + &period)
+                    if is_forward && i.is_span() {
+                        Some(i.after().interval_round_to(grain_after_shift) + &period)
+                    } else {
+                        Some(i.interval_round_to(grain_after_shift) + &period)
+                    }
                 }),
             };
             translate.to_walker(origin, context)

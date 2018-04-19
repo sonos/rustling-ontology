@@ -85,12 +85,12 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "en una hora");
     example!(v, check_moment!(c, [2013, 2, 12, 2, 30]), "hace dos horas");
     example!(v, check_moment!(c, [2013, 2, 13, 4, 30]), "en 24 horas", "en veinticuatro horas");
-    example!(v, check_moment!(c, [2013, 2, 13, 4]), "en un dia");
-    example!(v, check_moment!(c, [2013, 2, 19, 4]), "en 7 dias");
+    example!(v, check_moment!(c, [2013, 2, 13]), "en un dia");
+    example!(v, check_moment!(c, [2013, 2, 19]), "en 7 dias");
     example!(v, check_moment!(c, [2013, 2, 19]), "en una semana");
     example!(v, check_moment!(c, [2013, 1, 22]), "hace tres semanas");
-    example!(v, check_moment!(c, [2013, 4, 12]), "en dos meses");
-    example!(v, check_moment!(c, [2012, 11, 12]), "hace tres meses");
+    example!(v, check_moment!(c, [2013, 4]), "en dos meses");
+    example!(v, check_moment!(c, [2012, 11]), "hace tres meses");
     example!(v, check_moment!(c, [2014, 2]), "en un ano", "en 1 año");
     example!(v, check_moment!(c, [2011, 2]), "hace dos años");
     //Seasons

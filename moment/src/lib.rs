@@ -260,6 +260,10 @@ impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
         }
     }
 
+    pub fn is_span(&self) -> bool {
+        self.end.is_some()
+    }
+
     pub fn end_moment(self) -> Moment<T> {
         self.end
             .unwrap_or_else(|| {

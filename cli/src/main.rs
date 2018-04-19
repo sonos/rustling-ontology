@@ -46,13 +46,12 @@ fn main() {
                   });
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_parser(lang).unwrap();
-            let decoder = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2017, 6, 1).and_hms(5, 00, 0)), Grain::Second));
-
+            
             let context = ResolverContext::default();
             let entities = if let Some(kinds) = kinds {
-                parser.parse_with_kind_order(&*sentence, &decoder, &kinds).unwrap()
+                parser.parse_with_kind_order(&*sentence, &context, &kinds).unwrap()
             } else {
-                parser.parse(&*sentence, &decoder).unwrap()
+                parser.parse(&*sentence, &context).unwrap()
             };
             let mut table = Table::new();
             table.set_titles(row!["ix", "log(p)", "p", "text", "value"]);

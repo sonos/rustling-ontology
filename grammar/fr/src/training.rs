@@ -104,12 +104,12 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "dans une heure");
     example!(v, check_moment!(c, [2013, 2, 12, 2, 30]), "il y a deux heures");
     example!(v, check_moment!(c, [2013, 2, 13, 4, 30]), "dans 24 heures", "dans vingt quatre heures");
-    example!(v, check_moment!(c, [2013, 2, 13, 4]), "dans un jour");
-    example!(v, check_moment!(c, [2013, 2, 19, 4]), "dans 7 jours");
+    example!(v, check_moment!(c, [2013, 2, 13]), "dans un jour");
+    example!(v, check_moment!(c, [2013, 2, 19]), "dans 7 jours");
     example!(v, check_moment!(c, [2013, 2, 19]), "dans 1 semaine", "dans une semaine");
     example!(v, check_moment!(c, [2013, 1, 22]), "il y a trois semaines");
-    example!(v, check_moment!(c, [2013, 4, 12]), "dans deux mois");
-    example!(v, check_moment!(c, [2012, 11, 12]), "il y a trois mois");
+    example!(v, check_moment!(c, [2013, 4]), "dans deux mois");
+    example!(v, check_moment!(c, [2012, 11]), "il y a trois mois");
     example!(v, check_moment!(c, [2014, 2]), "dans une année", "dans 1 an");
     example!(v, check_moment!(c, [2011, 2]), "il y a deux ans");
     //Seasons
@@ -190,7 +190,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 sept. 2014");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "d'ici 2 semaines");
     //15j != 2 semaines
-    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 27, 4]), "dans les 15 jours");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 27]), "dans les 15 jours");
     example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 7]), "de 5 à 7");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "jeudi de 9h à 11h");
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "entre midi et 2");

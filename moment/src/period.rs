@@ -29,6 +29,19 @@ impl Grain {
         }
     }
 
+    pub fn after_shift(&self) -> Grain {
+        match self {
+            &Grain::Year => Grain::Month,
+            &Grain::Quarter => Grain::Month,
+            &Grain::Month => Grain::Month,
+            &Grain::Week => Grain::Day,
+            &Grain::Day => Grain::Day,
+            &Grain::Hour => Grain::Minute,
+            &Grain::Minute => Grain::Second,
+            &Grain::Second => Grain::Second,
+        }
+    }
+
     pub fn half_period(&self) -> Option<PeriodComp> {
         match self {
             &Grain::Year => Some(PeriodComp::months(6)),
