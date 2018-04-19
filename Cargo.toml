@@ -5,7 +5,7 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 build = "build.rs"
 
 [workspace]
-members=["values", "cli", "cli-debug", "moment", 
+members=["values", "cli", "cli-debug", "moment", "json-utils",
         "grammar", "grammar/de", "grammar/en", "grammar/es", "grammar/fr", "grammar/ko", "grammar/zh", "grammar/ja"]
 
 [dependencies]
@@ -19,7 +19,9 @@ rustling-ontology-grammar = { path="grammar" }
 
 [dev-dependencies]
 bencher = { git="https://github.com/snipsco/bencher", rev="63910ace" }
+rustling-ontology-json-utils = { path="json-utils" }
 serde_json = "1.0"
+
 
 [build-dependencies]
 rmp-serde = "0.13"

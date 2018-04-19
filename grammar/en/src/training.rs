@@ -167,7 +167,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 11], Direction::Before), "before 11 am");
     example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 13, 11]), "tomorrow before 11 am", "13th feb. 2013 until 11am");
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "in the afternoon");
-    example!(v, check_moment!(c, [2013, 2, 12, 13, 30]), "at 1:30pm", "1:30pm");
+    example!(v, check_moment!(c, [2013, 2, 12, 13, 30]), "at 1:30pm", "1:30pm", "at thirteen thirty");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "in 15 minutes");
     example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "after lunch");
     example!(v, check_moment!(c, [2013, 2, 12, 10, 30]), "10:30");

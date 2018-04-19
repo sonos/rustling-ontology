@@ -85,6 +85,7 @@ impl fmt::Display for Dimension {
 pub struct OrdinalValue {
     pub value: i64,
     pub prefixed: bool,
+    pub grain: Option<u8>,
 }
 
 impl OrdinalValue {
@@ -92,6 +93,15 @@ impl OrdinalValue {
         OrdinalValue {
             value,
             prefixed: false,
+            grain: None,
+        }
+    }
+
+    pub fn new_with_grain(value: i64, grain: u8) -> OrdinalValue {
+        OrdinalValue {
+            value: value,
+            prefixed: false,
+            grain: Some(grain),
         }
     }
 
@@ -99,6 +109,7 @@ impl OrdinalValue {
         OrdinalValue {
             value: self.value,
             prefixed: true,
+            grain: None,
         }
     }
 }
@@ -129,6 +140,12 @@ pub struct MoneyUnitValue {
     pub unit: Option<&'static str>,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum CombinationDirection {
+    Left,
+    Right,
+}
+
 /// Payload for the integral numbers of Dimension
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct IntegerValue {
@@ -141,6 +158,8 @@ pub struct IntegerValue {
     pub prefixed: bool,
     #[doc(hidden)]
     pub suffixed: bool,
+    #[doc(hidden)]
+    pub combine_from: Option<CombinationDirection>,
     #[doc(hidden)]
     pub precision: Precision,
 }
@@ -159,6 +178,39 @@ impl IntegerValue {
             grain: Some(grain),
             ..IntegerValue::default()
         })
+    }
+
+    pub fn with_grain(self, grain: Option<u8>) -> RuleResult<IntegerValue> {
+        Ok(IntegerValue {
+            grain,
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from(self, direction: CombinationDirection) -> RuleResult<IntegerValue> {
+        Ok(IntegerValue {
+            combine_from: Some(direction),
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<IntegerValue> {
+        Ok(IntegerValue {
+            combine_from: direction,
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_left(&self) -> bool {
+        return self.combine_from == Some(CombinationDirection::Left)
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_right(&self) -> bool {
+        return self.combine_from == Some(CombinationDirection::Right)
     }
 }
 
@@ -251,6 +303,8 @@ pub struct FloatValue {
     #[doc(hidden)]
     pub suffixed: bool,
     #[doc(hidden)]
+    pub combine_from: Option<CombinationDirection>,
+    #[doc(hidden)]
     pub precision: Precision,
 }
 
@@ -260,6 +314,32 @@ impl FloatValue {
             value: value,
             ..FloatValue::default()
         })
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from(self, direction: CombinationDirection) -> RuleResult<FloatValue> {
+        Ok(FloatValue {
+            combine_from: Some(direction),
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<FloatValue> {
+        Ok(FloatValue {
+            combine_from: direction,
+            ..self
+        })
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_left(&self) -> bool {
+        return self.combine_from == Some(CombinationDirection::Left)
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_right(&self) -> bool {
+        return self.combine_from == Some(CombinationDirection::Right)
     }
 }
 
@@ -290,6 +370,38 @@ impl NumberValue {
         match self {
             &NumberValue::Float(ref v) => v.suffixed,
             &NumberValue::Integer(ref v) => v.suffixed,
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from(self, direction: CombinationDirection) -> RuleResult<NumberValue> {
+        match self {
+            NumberValue::Float(v) => Ok(v.combine_from(direction)?.into()),
+            NumberValue::Integer(v) => Ok(v.combine_from(direction)?.into()),
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<NumberValue> {
+        match self {
+            NumberValue::Float(v) => Ok(v.combine_from_opt(direction)?.into()),
+            NumberValue::Integer(v) => Ok(v.combine_from_opt(direction)?.into()),
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_left(&self) -> bool {
+        match self {
+            &NumberValue::Float(ref v) => v.combined_from_left(),
+            &NumberValue::Integer(ref v) => v.combined_from_left(),
+        }
+    }
+
+    #[doc(hidden)]
+    pub fn combined_from_right(&self) -> bool {
+        match self {
+            &NumberValue::Float(ref v) => v.combined_from_right(),
+            &NumberValue::Integer(ref v) => v.combined_from_right(),
         }
     }
 
@@ -365,6 +477,16 @@ impl PartialEq for TimeValue {
 impl ::std::fmt::Debug for TimeValue {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
         write!(fmt, "<TimeValue>")
+    }
+}
+
+impl TimeValue {
+    pub fn is_coarse_grain_smaller_than(&self, grain: Grain) -> bool {
+        (self.constraint.coarse_grain_step() as usize) < (grain as usize)
+    }
+
+    pub fn is_coarse_grain_greater_than(&self, grain: Grain) -> bool {
+        (self.constraint.coarse_grain_step() as usize) > (grain as usize)
     }
 }
 

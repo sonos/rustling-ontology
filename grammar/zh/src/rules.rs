@@ -903,10 +903,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"第"#)?,
              integer_check!(),
              |_, b| {
-                 Ok(OrdinalValue {
-                     value: b.value().value,
-                     prefixed: true
-                 })
+                 Ok(OrdinalValue::new(b.value().value).prefixed())
              }
     );
 

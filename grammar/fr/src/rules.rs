@@ -60,7 +60,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("GBP",
-        b.reg(r#"gbp|livres? sterlings"#)?,
+        b.reg(r#"gbp|livres? sterlings?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("cent",
@@ -298,6 +298,13 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
+    b.rule_3("ce <cycle> (la ou ci)",
+             b.reg(r#"cet?t?e?s?"#)?,
+             cycle_check!(),
+             b.reg(r#"-?ci"#)?,
+             |_, cycle, _| helpers::cycle_nth(cycle.value().grain, 0)
+    );
+    
     b.rule_3("le <cycle> dernier",
              b.reg(r#"l[ae']? ?"#)?,
              cycle_check!(),
@@ -346,11 +353,26 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, -1, time.value())
     );
+    b.rule_4("les n derniers <cycle>",
+            b.reg(r#"[cld]es"#)?,
+            integer_check_by_range!(2, 9999),
+            b.reg(r#"derni.re?s?"#)?,
+            cycle_check!(),
+            |_, integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
     b.rule_3("n derniers <cycle>",
              integer_check_by_range!(2, 9999),
              b.reg(r#"derni.re?s?"#)?,
              cycle_check!(),
              |integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+
+    b.rule_4("les n prochains <cycle>",
+            b.reg(r#"[cld]es"#)?,
+            integer_check_by_range!(2, 9999),
+            b.reg(r#"prochaine?s?|suivante?s?|apr[eèé]s"#)?,
+            cycle_check!(),
+            |_, integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     b.rule_3("n prochains <cycle>",
              integer_check_by_range!(2, 9999),
@@ -358,11 +380,25 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              cycle_check!(),
              |integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
+    b.rule_4("les n <cycle> passes|precedents",
+            b.reg(r#"[cld]es"#)?,
+            integer_check_by_range!(2, 9999),
+            cycle_check!(),
+            b.reg(r#"pass[eèé][eèé]?s?|pr[eé]c[eé]dente?s?|(?:d')? ?avant|plus t[oô]t"#)?,
+            |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
     b.rule_3("n <cycle> passes|precedents",
              integer_check_by_range!(2, 9999),
              cycle_check!(),
              b.reg(r#"pass[eèé][eèé]?s?|pr[eé]c[eé]dente?s?|(?:d')? ?avant|plus t[oô]t"#)?,
              |integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    b.rule_4("les n <cycle> suivants",
+            b.reg(r#"[cld]es"#)?,
+            integer_check_by_range!(2, 9999),
+            cycle_check!(),
+            b.reg(r#"prochaine?s?|suivante?s?|apr[eèé]s|qui sui(?:t|ves?)|plus tard"#)?,
+            |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     b.rule_3("n <cycle> suivants",
              integer_check_by_range!(2, 9999),
@@ -693,6 +729,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"d['e]"#)?,
              time_check!(),
              |_, cycle, _, time| cycle.value().last_of(time.value())
+    );
+    b.rule_4("<ordinal> <time> de <time>",
+             ordinal_check!(), // the first
+             time_check!(), // Thursday
+             b.reg(r#"d[e']"#)?, // of
+             time_check!(), // march
+             |ordinal, a, _, b| {
+                 b.value().intersect(a.value())?.the_nth(ordinal.value().value - 1)
+             }
     );
     b.rule_3("<ordinal> week-end de <time>",
              ordinal_check!(),
@@ -1388,7 +1433,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("de <datetime> - <datetime> (interval)",
-             b.reg(r#"de|depuis|du"#)?,
+             b.reg(r#"depuis|d[e'u]?"#)?,
              time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"\-|au|[aà]|jusqu'(?:au|[aà])"#)?,
              time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
@@ -1400,6 +1445,23 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"et"#)?,
              time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    // Specific case with years
+    b.rule_5("de <datetime> - <datetime> <year> (interval)",
+             b.reg(r#"depuis|d[e'u]?"#)?,
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
+             b.reg(r#"\-|au|[aà]|jusqu'(?:au|[aà])"#)?,
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time) && time.is_coarse_grain_greater_than(Grain::Year)),
+             time_check!(form!(Form::Year(_))),
+             |_, a, _, b, year| a.value().span_to(b.value(), true)?.intersect(year.value())
+    );
+    b.rule_5("entre <datetime> et <datetime> <year> (interval)",
+             b.reg(r#"entre"#)?,
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
+             b.reg(r#"et"#)?,
+             time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time) && time.is_coarse_grain_greater_than(Grain::Year)),
+             time_check!(form!(Form::Year(_))),
+             |_, a, _, b, year| a.value().span_to(b.value(), true)?.intersect(year.value())
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
              time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(_))(time)),
@@ -1983,30 +2045,47 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("ordinal (100, 1_000, 1_000_000)",
         b.reg(r#"(cent|mill|million)i[èe]me"#)?,
         |text_match| {
-            let value = match text_match.group(1).as_ref() {
-                "cent" => 100,
-                "mill" => 1_000,
-                "million" => 1_000_000,
+            let (value, grain) = match text_match.group(1).as_ref() {
+                "cent" => (100, 2),
+                "mill" => (1_000, 3),
+                "million" => (1_000_000, 6),
+                "milliard" => (1_000_000_000, 9),
                 _ => return Err(RuleErrorKind::Invalid.into()),
             };
-            Ok(OrdinalValue::new(value))
+            Ok(OrdinalValue::new_with_grain(value, grain))
         }
     );
 
-    b.rule_2("ordinal (200..900, 2_000..9_000, 2_000_000..9_000_000)",
-        integer_check_by_range!(2, 99),
-        b.reg(r#"(cent|mill|million)i[èe]me"#)?,
+    b.rule_2("ordinal (200..900, 2_000..9_000, 2_000_000..9_000_000_000)",
+        integer_check_by_range!(2, 999),
+        b.reg(r#"(cent|mill|million|milliard)i[èe]me"#)?,
         |integer, text_match| {
-            let value = match text_match.group(1).as_ref() {
-                "cent" => 100,
-                "mill" => 1_000,
-                "million" => 1_000_000,
+            let (value, grain) = match text_match.group(1).as_ref() {
+                "cent" => (100, 2),
+                "mill" => (1_000, 3),
+                "million" => (1_000_000, 6),
+                "milliard" => (1_000_000_000, 9),
                 _ => return Err(RuleErrorKind::Invalid.into()),
             };
-            Ok(OrdinalValue::new(integer.value().value * value))
+            Ok(OrdinalValue::new_with_grain(integer.value().value * value, grain))
         }
     );
-    b.rule_2("ordinal (101...9_999_999)",
+
+    b.rule_2("ordinal (1_1_000..9_999_999_000)",
+        integer_check_by_range!(1000, 99_999_999_000),
+        ordinal_check!(|ordinal: &OrdinalValue| {
+            let grain = ordinal.grain.unwrap_or(0);
+            grain == 2 || grain % 3 == 0
+        }),
+        |integer, ordinal| {
+            let grain = ordinal.value().grain.unwrap_or(0);
+            let next_grain = (grain / 3) * 3 + 3;
+            if integer.value().value % 10i64.pow(next_grain as u32) != 0 { return Err(RuleErrorKind::Invalid.into()); }
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+
+    b.rule_2("ordinal (102...9_999_999)",
         integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
         ordinal_check_by_range!(2, 99),
         |integer, ordinal| {
