@@ -284,7 +284,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, 1, time.value())
     );
 
-    b.rule_4("<cycle> after <time>",
+    b.rule_4("<cycle> before <time>",
              b.reg(r#"the"#)?,
              cycle_check!(),
              b.reg(r#"before"#)?,
@@ -292,7 +292,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, -1, time.value())
     );
 
-    b.rule_3("<cycle> after <time>",
+    b.rule_3("<cycle> before <time>",
              cycle_check!(),
              b.reg(r#"before"#)?,
              time_check!(),
@@ -306,7 +306,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
 
-    b.rule_3("last n <cycle>",
+    b.rule_3("next n <cycle>",
              b.reg(r#"next"#)?,
              integer_check_by_range!(1, 9999),
              cycle_check!(),
@@ -717,7 +717,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             start.span_to(&end, true)
         } 
     );
-    b.rule_1_terminal("by the end of week",
+    b.rule_1_terminal("by the end of year",
         b.reg(r#"by (?:the )?(?:eoy|end of (?:the )?year)"#)?,
         |_| {
           let current_year = helpers::cycle_nth(Grain::Year, 0)?;
