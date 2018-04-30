@@ -15,7 +15,7 @@ fn german_article_before_cycle() -> &'static str {
 pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<number> per cent",
         number_check!(),
-        b.reg(r"(?:%|prozent)")?,
+        b.reg(r"(?:%|prozente?s?|vom hundert)")?,
         |number, _| Ok(PercentageValue(number.value().value()))
     );
     Ok(())
@@ -36,7 +36,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
     b.rule_1_terminal("$",
-                      b.reg(r#"\$|dollar"#)?,
+                      b.reg(r#"\$|dollars?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("$") })
     );
     b.rule_1_terminal("EUR",
@@ -44,11 +44,11 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("EUR") })
     );
     b.rule_1_terminal("£",
-                      b.reg(r#"£|pfund sterling|pfund|pfd."#)?,
+                      b.reg(r#"£|pfunds?|pfd."#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("£") })
     );
     b.rule_1_terminal("GBP",
-                      b.reg(r#"gbp"#)?,
+                      b.reg(r#"gbp|pfunds? sterling"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("AUD",
@@ -66,6 +66,10 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("INR",
                       b.reg(r#"inr|₹|(?:indische[rn]? )?rupien?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("INR") })
+    );
+    b.rule_1_terminal("CHF",
+                      b.reg(r#"chf|(?:schweizer )?frankens?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("CHF") })
     );
     b.rule_2("<unit> <amount>",
              money_unit!(),
@@ -2016,6 +2020,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"million(?:en)?"#)?,
                       |_| IntegerValue::new_with_grain(1_000_000, 6)
     );
+    b.rule_1_terminal("million",
+                      b.reg(r#"milliarden?"#)?,
+                      |_| IntegerValue::new_with_grain(1_000_000, 6)
+    );
     b.rule_1_terminal("couple",
                       b.reg(r#"(?:ein )?paar"#)?,
                       |_| IntegerValue::new(2)
@@ -2078,7 +2086,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         integer_check_by_range!(1, 999),
         b.reg(r#"tausend"#)?,
         |a, _| Ok(IntegerValue {
-            value: a.value().value * 1000,
+            value: a.value().value * 1_000,
             grain: Some(3),
             ..IntegerValue::default()
         })
@@ -2088,8 +2096,17 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         integer_check_by_range!(1, 999),
          b.reg(r#"million(?:en)?"#)?,
         |a, _| Ok(IntegerValue {
-            value: a.value().value * 1000000,
+            value: a.value().value * 1_000_000,
             grain: Some(6),
+            ..IntegerValue::default()
+        })
+    );
+    b.rule_2("number billion",
+        integer_check_by_range!(1, 99),
+         b.reg(r#"milliarden?"#)?,
+        |a, _| Ok(IntegerValue {
+            value: a.value().value * 1_000_000_000,
+            grain: Some(9),
             ..IntegerValue::default()
         })
     );
