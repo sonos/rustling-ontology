@@ -28,6 +28,7 @@ pub struct PartialUtterance {
     #[serde(rename = "in_grammar")]
     pub in_grammar: bool,
     pub translation: Option<String>,
+    pub value: Option<SlotValue>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
