@@ -19,11 +19,14 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
 
         let mut candidates = candidates.into_iter()
             .filter_map(|(pn, pm)| {
-                order
-                    .iter()
-                    .rev()
-                    .position(|k| *k == pn.value.kind())
-                    .map(|prio| (pn, pm, prio))
+                if pn.value.is_too_ambiguous() { None }
+                else {
+                    order
+                        .iter()
+                        .rev()
+                        .position(|k| *k == pn.value.kind())
+                        .map(|prio| (pn, pm, prio))
+                }
             })
             .collect::<Vec<_>>();
 

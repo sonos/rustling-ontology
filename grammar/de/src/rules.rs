@@ -344,7 +344,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
     );
     b.rule_2("before last <cycle>",
-             b.reg(r#"vorvergangene[rnm]?|vorletzte[rnm]?"#)?,
+             b.reg(r#"vorvergangene[rnm]?|vorletzte[srnm]?"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, -2)
     );
@@ -538,27 +538,36 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("christmas",
                       b.reg(r#"christtag|weih?nacht(?:en|s(?:feier)?tag)?"#)?,
-                      |_| helpers::month_day(12, 25)
+                      |_| Ok(helpers::month_day(12, 25)?.form(Form::Celebration))
+    );
+    b.rule_1_terminal("christmas days (24/12-26/12)",
+                      b.reg(r#"weihnachtsfest"#)?,
+                      |_| {
+                        Ok(helpers::month_day(12, 24)?
+                          .span_to(&helpers::month_day(12, 26)?, true)?
+                          .form(Form::Celebration))
+                      }
     );
     b.rule_1_terminal("christmas eve",
                       b.reg(r#"christnacht|(?:heilig(?:e[r|n])?|weihnachts) ?abend"#)?,
-                      |_| helpers::month_day(12, 24)
-    );
-    b.rule_1_terminal("three wise men",
-        b.reg(r#"(?:den )heiligen? drei k[öo]nigen?"#)?,
-        |_| helpers::month_day(1, 6)
+                      |_| Ok(helpers::month_day(12, 24)?.form(Form::Celebration))
     );
     b.rule_1_terminal("new year's eve",
                       b.reg(r#"silvester|neujahrsabend"#)?,
-                      |_| helpers::month_day(12, 31)
+                      |_| Ok(helpers::month_day(12, 31)?.form(Form::Celebration))
     );
     b.rule_1_terminal("new year's day",
                       b.reg(r#"neujahr(?:s?tag)?"#)?,
-                      |_| helpers::month_day(1, 1)
+                      |_| Ok(helpers::month_day(1, 1)?.form(Form::Celebration))
     );
     b.rule_1_terminal("Epiphanias",
-                      b.reg(r#"heilige drei k[öo]nige "#)?,
-                      |_| helpers::month_day(1, 6)
+                      b.reg(r#"heiligen? drei k[öo]nigen?"#)?,
+                      |_| Ok(helpers::month_day(1, 6)?.form(Form::Celebration).too_ambiguous())
+    );
+
+    b.rule_1_terminal("Candlemess",
+        b.reg(r#"lichtmess"#)?,
+        |_| Ok(helpers::month_day(2, 2)?.form(Form::Celebration).too_ambiguous())
     );
 
     b.rule_1_terminal("rosenmontag (Shrove Monday)",
@@ -598,7 +607,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1_terminal("fasnet",
-        b.reg(r#"(?:in|w[aä]hrend) der fasnet"#)?,
+        b.reg(r#"fast?nacht|(?:in|w[aä]hrend) der fasnet"#)?,
         |_| Ok(helpers::month_day(11, 11)?
                           .span_to(&helpers::cycle_nth_after(Grain::Day, -47, &helpers::easter()?)?, false)?
                           .form(Form::Celebration))
@@ -620,7 +629,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     );
     b.rule_1_terminal("Pencost",
-        b.reg(r#"pfingst(?:en|sonntag)"#)?,
+        b.reg(r#"pfingst(?:en|sonntag|feiertag(?:en)?)"#)?,
         |_| Ok(helpers::cycle_nth_after(Grain::Day, 49, &helpers::easter()?)?
                 .form(Form::Celebration))
     );
@@ -819,12 +828,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, time| time.value().the_nth_not_immediate(0)
     );
     b.rule_2("last <time>",
-             b.reg(r#"(?:letzt|vor(?:her)?ig)e(?:n|s|m|r)?"#)?,
+             b.reg(r#"(?:letzt|(?:vor(?:her)?ig)|vergangen)e(?:n|s|m|r)?"#)?,
              time_check!(),
              |_, time| time.value().the_nth(-1)
     );
     b.rule_2("before last <time>",
-             b.reg(r#"vorvergangene[rnm]?|vorletzte[rnm]?"#)?,
+             b.reg(r#"vorvergangene[rnm]?|vorletzte[srnm]?"#)?,
              time_check!(),
              |_, time| time.value().the_nth(-2)
     );
@@ -1068,7 +1077,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_1_terminal("noon",
-                      b.reg(r#"mittag|zwolf(?: uhr)?"#)?,
+                      b.reg(r#"(?:am )?mittag|zwolf(?: uhr)?"#)?,
                       |_| helpers::hour(12, false)
     );
     b.rule_1_terminal("midnight|end of day",
@@ -1172,29 +1181,37 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           text_match.group(1).parse()?)
     );
     b.rule_1_terminal("breakfast (latent)",
-                      b.reg(r#"fr[üu]hst[üu]ck(?:szeit|spause)?"#)?,
+                      b.reg(r#"fr[üu]hst[üu]ck(?:szeit|spause|s)?"#)?,
                       |_| Ok(helpers::hour(6, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .latent()
                           .form(Form::Meal))
     );
     b.rule_1("lunch (latent)",
-             b.reg(r#"mittag(?:szeit|pause|essen(?:szeit))"#)?,
+             b.reg(r#"mittag(?:szeit|pause|essen(?:szeit)?)"#)?,
              |_| Ok(helpers::hour(12, false)?
                  .span_to(&helpers::hour(14, false)?, false)?
                  .latent()
                  .form(Form::Meal))
     );
+
     b.rule_1_terminal("lunch",
                       b.reg(r#"mittags"#)?,
                       |_| Ok(helpers::hour(12, false)?
                           .span_to(&helpers::hour(14, false)?, false)?
                           .form(Form::Meal))
     );
+    b.rule_1_terminal("coffee break",
+        b.reg(r#"kaffee"#)?,
+        |_| Ok(helpers::hour(15, false)?
+                .span_to(&helpers::hour(17, false)?, false)?
+                .too_ambiguous()
+                .form(Form::Meal))
+    );
     b.rule_1_terminal("dinner",
-                      b.reg(r#"dinner|souper|abendessen(?:szeit)|abendbrot(?:zeit)|vesper(?:zeit)"#)?,
-                      |_| Ok(helpers::hour_minute(17, 30, false)?
-                          .span_to(&helpers::hour(21, false)?, false)?
+                      b.reg(r#"dinner|souper|abendessen(?:szeit)?|abendbrot(?:zeit)?|vesper(?:zeit)?|brotzeit"#)?,
+                      |_| Ok(helpers::hour(18, false)?
+                          .span_to(&helpers::hour(20, false)?, false)?
                           .latent()
                           .form(Form::Meal))
     );
@@ -1205,14 +1222,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfDay(PartOfDayForm::Morning)).latent())
     );
     b.rule_1_terminal("morning",
-                      b.reg(r#"morgens|in der fr[üu]h|vor ?mittag(?:s(?:zeit)?)?|am morgen"#)?,
+                      b.reg(r#"morgens|vor ?mittag(?:s(?:zeit)?)?|am morgen"#)?,
                       |_| Ok(helpers::hour(3, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
 
     b.rule_1_terminal("morning (latent)",
-        b.reg(r#"fr[üu]h"#)?,
+        b.reg(r#"fr[üu]he?"#)?,
         |_| Ok(helpers::hour(3, false)?
                 .span_to(&helpers::hour(12, false)?, false)?
                 .latent()
@@ -1264,7 +1281,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
     b.rule_1_terminal("evening (latent)",
-                      b.reg(r#"abend"#)?,
+                      b.reg(r#"abend(?:zeit)?"#)?,
                       |_| Ok(helpers::hour(18, false)?
                           .span_to(&helpers::hour(0, false)?, false)?
                           .latent()
@@ -1484,8 +1501,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfYear))
     );
     b.rule_1_terminal("Summer solstice",
-        b.reg(r#"an der sonnenwende"#)?,
-        |_| Ok(helpers::month_day(6, 21)?.form(Form::Celebration))
+        b.reg(r#"sommersonn(?:en)?wende"#)?,
+        |_| Ok(helpers::month_day(6, 21)?.form(Form::Celebration).too_ambiguous())
     );
     b.rule_1_terminal("season",
                       b.reg(r#"herbst(?:zeit|s|es)?|sp[äa]tjahr(?:es)?"#)?,
@@ -1500,8 +1517,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfYear))
     );
     b.rule_1_terminal("Winter solstice",
-        b.reg(r#"an der wintersonnwende"#)?,
-        |_| Ok(helpers::month_day(12, 21)?.form(Form::Celebration))
+        b.reg(r#"wintersonnwende"#)?,
+        |_| Ok(helpers::month_day(12, 21)?.form(Form::Celebration).too_ambiguous())
     );
     b.rule_1_terminal("season",
                       b.reg(r#"(?:fr[üu]hlings?|fr[üu]hjahr(?:es)?)(?:zeit)?"#)?,
@@ -1631,29 +1648,39 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
     );
     b.rule_2("before <time>",
-             b.reg(r#"vor |bis(?:(?: zu[rm]?) |in d(?:en|ie|as))?"#)?,
+             b.reg(r#"vor(?: de[nmr]| )|bis(?:(?: zu[rm]?(?: den)?)| in d(?:en|ie|as))?"#)?,
              time_check!(),
              |_, time| Ok(time.value().clone().mark_before_start())
     );
-    b.rule_2("until <time>",
-        b.reg(r#"sp[äa]testens"#)?,
+    b.rule_2("until inclusive <time>",
+        b.reg(r#"sp[äa]testens (?:ins|i[nm]|beim?|w[äa]h?rend|nach) ?(?:de(?:r|m|s|n)|die|das)?"#)?,
         time_check!(),
-        |_, tod| Ok(tod.value().clone().mark_before_end().not_latent())
+        |_, tod| Ok(tod.value().clone().mark_before_end_all().not_latent())
     );
-    b.rule_2("until <time>",
-        b.reg(r#"kurz vor"#)?,
+    b.rule_2("until exclusive <time>",
+        b.reg(r#"sp[äa]testens (?:zu[rm]?|vor) ?(?:de(?:r|m|s|n)|die|das)?"#)?,
+        time_check!(),
+        |_, tod| Ok(tod.value().clone().mark_before_start().not_latent())
+    );
+    b.rule_2("until exclusive <time-of-day>",
+        b.reg(r#"kurz vor|sp[äa]testens"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
         |_, tod| Ok(tod.value().clone().mark_before_start().not_latent())
     );
+    b.rule_2("until inclusive <time> 2",
+        b.reg_neg_lh(r#"sp[äa]testens"#, r#"\s?zu[rm]?|vor"#)?,
+        time_check!(),
+        |_, tod| Ok(tod.value().clone().mark_before_end_all().not_latent())
+    );
     b.rule_2("after <time>",
-             b.reg(r#"nach"#)?,
+             b.reg(r#"nach(?: de[nmr])?"#)?,
              time_check!(),
-             |_, time| Ok(time.value().clone().mark_after_end())
+             |_, time| Ok(time.value().clone().mark_after_end_all())
     );
     b.rule_2("after <time-of-day>",
         b.reg(r#"kurz nach"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
-        |_, tod| Ok(tod.value().clone().mark_after_end().not_latent())
+        |_, tod| Ok(tod.value().clone().mark_after_end_all().not_latent())
     );
     b.rule_1_terminal("start of week",
                       b.reg(r#"(?:de[rnms]|zu )?(anfang|beginn) der woche"#)?,
@@ -1811,21 +1838,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    // TODO
-    // b.rule_2("under <temp>",
-    //     b.reg(r#"bis(?: zu)?|unter|weniger als"#)?,
-    //     temperature_check!(|temp: &TemperatureValue| !temp.latent),
-    // );
-    // b.rule_2("above <temp>",
-    //     b.reg(r#"[uü]ber|mehr als"#)?,
-    //     temperature_check!(|temp: &TemperatureValue| !temp.latent),
-    // );
-
     b.rule_2("<article> temp",
              b.reg(r#"bei|auf"#)?,
              temperature_check!(|temp: &TemperatureValue| !temp.latent),
              |_, temp| Ok(TemperatureValue {
                  value: temp.value().value,
+                 unit: temp.value().unit,
+                 latent: temp.value().latent,
+             })
+    );
+    b.rule_2("<temperature> plus",
+             temperature_check!(|temp: &TemperatureValue| !temp.latent),
+             b.reg(r#"plus"#)?,
+             |temp, _| Ok(TemperatureValue {
+                 value: temp.value().value,
+                 unit: temp.value().unit,
+                 latent: temp.value().latent,
+             })
+    );
+    b.rule_2("<temperature> minus",
+             temperature_check!(|temp: &TemperatureValue| !temp.latent),
+             b.reg(r#"minus"#)?,
+             |temp, _| Ok(TemperatureValue {
+                 value: -1.0 * temp.value().value,
                  unit: temp.value().unit,
                  latent: temp.value().latent,
              })
@@ -1900,7 +1935,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
     );
     b.rule_2("<latent temp> degrees",
              temperature_check!(),
-             b.reg(r#"grad|°"#)?,
+             b.reg(r#"grade?s?|°"#)?,
              |temp, _| Ok(TemperatureValue {
                  value: temp.value().value,
                  unit: Some("degree"),

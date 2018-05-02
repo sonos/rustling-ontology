@@ -61,7 +61,8 @@ impl ParsingContext<Dimension> for ResolverContext {
                         if let Some(bounded_direction) = tv.direction {
                             let anchor = match bounded_direction.bound {
                                 Bound::Start => interval.start,
-                                Bound::End => interval.end.unwrap_or(interval.start),
+                                Bound::End { only_interval } if only_interval => interval.end.unwrap_or(interval.start),
+                                Bound::End { .. } => interval.end_moment(),
                             };
                             
                             let output = TimeOutput {

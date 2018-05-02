@@ -54,6 +54,25 @@ rustling_value! {
     }
 }
 
+
+impl Dimension {
+    pub fn is_too_ambiguous(&self) -> bool {
+        match self {
+            &Dimension::Number(_) => false,
+            &Dimension::Percentage(_) => false,
+            &Dimension::AmountOfMoney(_) => false,
+            &Dimension::Ordinal(_) => false,
+            &Dimension::Temperature(_) => false,
+            &Dimension::MoneyUnit(_) => false,
+            &Dimension::Time(ref tv) => tv.is_too_ambiguous(),
+            &Dimension::Duration(_) => false,
+            &Dimension::Cycle(_) => true,
+            &Dimension::UnitOfDuration(_) => true,
+            &Dimension::RelativeMinute(_) => true,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
 pub struct Payload(pub Grain);
 
@@ -456,6 +475,13 @@ impl UnitOfDurationValue {
     }
 }
 
+#[derive(Clone, Hash, PartialEq, Eq)]
+pub enum Ambiguity {
+    No,
+    Small,
+    Big,
+}
+
 /// Payload for the time of Dimension
 #[derive(Clone)]
 pub struct TimeValue {
@@ -464,6 +490,13 @@ pub struct TimeValue {
     pub direction: Option<BoundedDirection>,
     pub precision: Precision,
     pub latent: bool,
+    pub ambiguity: Ambiguity,
+}
+
+impl TimeValue {
+    fn is_too_ambiguous(&self) -> bool {
+        return self.ambiguity == Ambiguity::Big;
+    }
 }
 
 // We need partial eq to make Dimension partial eq happy, but this is only
@@ -538,7 +571,7 @@ pub enum Direction {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Bound {
     Start,
-    End,
+    End { only_interval: bool },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -557,14 +590,28 @@ impl BoundedDirection {
 
     pub fn after_end() -> BoundedDirection {
         BoundedDirection {
-            bound: Bound::End,
+            bound: Bound::End { only_interval: true },
+            direction: Direction::After,
+        }
+    }
+
+    pub fn after_end_all() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::End { only_interval: false },
             direction: Direction::After,
         }
     }
 
     pub fn before_end() -> BoundedDirection {
         BoundedDirection {
-            bound: Bound::End,
+            bound: Bound::End { only_interval: true },
+            direction: Direction::Before,
+        }
+    }
+
+    pub fn before_end_all() -> BoundedDirection {
+        BoundedDirection {
+            bound: Bound::End { only_interval: false },
             direction: Direction::Before,
         }
     }
