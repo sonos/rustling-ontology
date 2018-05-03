@@ -678,7 +678,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(helpers::month_day(2, 14)?.form(Form::Celebration)) 
     );
     b.rule_1_terminal("now",
-                      b.reg(r#"今(?:すぐに?)?|現在|只今|ただいま"#)?,
+                      b.reg(r#"今(?:すぐに?)?|現在|只今|(?:ただ)?いま"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("today",
@@ -948,7 +948,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("next <time>",
-             b.reg(r#"次の?|翌"#)?,
+             b.reg(r#"次の?|翌|来"#)?,
              time_check!(|time: &TimeValue| 
                 excluding_form!(Form::Celebration)(time) &&  
                 excluding_form!(Form::Month(_))(time) && 
@@ -966,14 +966,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("next <month>",
-             b.reg(r#"次の?|翌"#)?,
+             b.reg(r#"次の?|翌|来"#)?,
              time_check!(form!(Form::Month(_))),
              |_, a| {
                  a.value().the_nth(1)
              }
     );
     b.rule_2("next <year>",
-             b.reg(r#"次の?|翌"#)?,
+             b.reg(r#"次の?|翌|来"#)?,
              time_check!(form!(Form::Year(_))),
              |_, a| {
                  a.value().the_nth(1)
@@ -2019,26 +2019,34 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_4("<duration> after <time>",
-             time_check!(),
+             time_check!(form!(Form::Celebration)),
              b.reg(r#"の"#)?,
              duration_check!(),
              b.reg(r#"後に?"#)?,
              |time, _, duration, _| duration.value().after(time.value())
     );
 
+    b.rule_4("<duration> after <time>",
+             time_check!(excluding_form!(Form::Celebration)),
+             b.reg(r#"から"#)?,
+             duration_check!(),
+             b.reg(r#"後に?"#)?,
+             |time, _, duration, _| duration.value().after(time.value())
+    );
+
     b.rule_4("<duration> before <time>",
-             time_check!(),
+             time_check!(form!(Form::Celebration)),
              b.reg(r#"の"#)?,
              duration_check!(),
              b.reg(r#"前に?"#)?,
              |time, _, duration, _| duration.value().before(time.value())
     );
     b.rule_4("<duration> before <time>",
-             time_check!(),
-             b.reg(r#"の"#)?,
-             b.reg(r#"前の"#)?,
+             time_check!(excluding_form!(Form::Celebration)),
+             b.reg(r#"から"#)?,
              duration_check!(),
-             |time, _, _, duration| duration.value().before(time.value())
+             b.reg(r#"前に?"#)?,
+             |time, _, duration, _| duration.value().before(time.value())
     );
     b.rule_2("for <duration>",
       duration_check!(),
