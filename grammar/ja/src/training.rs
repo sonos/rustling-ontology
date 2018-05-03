@@ -29,10 +29,12 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(5.0, Some("celsius")), "五度");
-    example!(v, check_temperature(25.0, Some("celsius")), "二十五度");
-    example!(v, check_temperature(-10.0, Some("celsius")), "マイナス十度");
-    example!(v, check_temperature(-10.0, Some("celsius")), "零下十度");
+    example!(v, check_temperature(5.0, Some("degree")), "五度");
+    example!(v, check_temperature(5.0, Some("celsius")), "摂氏五度");
+    example!(v, check_temperature(5.0, Some("fahrenheit")), "華氏五度");
+    example!(v, check_temperature(25.0, Some("degree")), "二十五度");
+    example!(v, check_temperature(-10.0, Some("degree")), "マイナス十度");
+    example!(v, check_temperature(-10.0, Some("degree")), "零下十度");
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
