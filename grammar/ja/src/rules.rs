@@ -4,11 +4,12 @@ use rustling_ontology_values::dimension::Precision::*;
 use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Weekday, Grain, PeriodComp, Period};
 
-pub trait JapaneseDigitReplace {
+pub trait JapaneseReplace {
    fn replace_japanese_digit(&self) -> String;
+   fn replace_comma(&self) -> String;
 }
 
-impl JapaneseDigitReplace for String {
+impl JapaneseReplace for String {
   fn replace_japanese_digit(&self) -> String {
     self.chars().map(|it| {
                 match it {
@@ -27,9 +28,21 @@ impl JapaneseDigitReplace for String {
                 }
             }).collect()
   }
+
+  fn replace_comma(&self) -> String {
+    self.chars().map(|it| {
+                match it {
+                  '，' => '.',
+                  '、' => '.',
+                  ',' => '.',
+                  _ => it,
+
+                }
+            }).collect()
+  }
 }
 
-impl<'a> JapaneseDigitReplace for &'a str {
+impl<'a> JapaneseReplace for &'a str {
   fn replace_japanese_digit(&self) -> String {
     self.chars().map(|it| {
                 match it {
@@ -43,6 +56,18 @@ impl<'a> JapaneseDigitReplace for &'a str {
                   '７' => '7',
                   '８' => '8',
                   '９' => '9',
+                  _ => it,
+
+                }
+            }).collect()
+  }
+
+  fn replace_comma(&self) -> String {
+    self.chars().map(|it| {
+                match it {
+                  '，' => '.',
+                  '、' => '.',
+                  ','  => '.',
                   _ => it,
 
                 }
@@ -197,8 +222,8 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1("float number", 
-        b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
-          let res = text_match.group(1).replace_japanese_digit();
+        b.reg(r#"(\d*[、,，\.]\d+)"#)?, |text_match| {
+          let res = text_match.group(1).replace_japanese_digit().replace_comma();
           let value: f32 = res.parse()?;
           Ok(FloatValue {
               value: value,
@@ -207,7 +232,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     });
     b.rule_3("number dot number",
         number_check!(|number: &NumberValue| !number.prefixed()),
-        b.reg(r#"てん|テン|[、,\.]|点"#)?,
+        b.reg(r#"てん|テン|[、,，\.]|点"#)?,
         number_check!(|number: &NumberValue| !number.suffixed()),
         |a, _, b| {
             Ok(FloatValue {
@@ -217,7 +242,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     });
     b.rule_3("number dot number",
          number_check!(|number: &NumberValue| !number.prefixed()),
-         b.reg(r#"てん|テン|[、,\.]|点"#)?,
+         b.reg(r#"てん|テン|[、,，\.]|点"#)?,
          b.reg(r#"((?:零|一|二|三|四|五|六|七|八|九|ゼロ)+)"#)?,
          |a, _, decimals| {
               fn number_mapping(c: char) -> Option<char> {
@@ -405,25 +430,61 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_1("number as temp",
-        integer_check!(),
-        |a| {
-            Ok(TemperatureValue {
-                value: a.value().value as f32,
-                unit: None,
-                latent: true,
-            })
-    });
-    b.rule_2("<temp> Celcius",
-             temperature_check!(),
-             b.reg(r#"度|°C|℃"#)?,
+    b.rule_2("<temp> degree",
+             number_check!(),
+             b.reg(r#"度|°"#)?,
              |a, _| {
                  Ok(TemperatureValue {
-                     value: a.value().value,
+                     value: a.value().value(),
+                     unit: Some("degree"),
+                     latent: false,
+                 })
+             });
+    b.rule_2("<temp> Celsius",
+             number_check!(),
+             b.reg(r#"°C|℃"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                     value: a.value().value(),
                      unit: Some("celsius"),
                      latent: false,
                  })
              });
+    b.rule_2("<temp> Fahrenheit",
+             number_check!(),
+             b.reg(r#"°F|℉"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                     value: a.value().value(),
+                     unit: Some("fahrenheit"),
+                     latent: false,
+                 })
+             });
+
+    b.rule_3("<temp> Celsius",
+            b.reg(r#"摂氏"#)?,
+            number_check!(),
+            b.reg(r#"度|°"#)?,
+            |_, a, _| {
+                 Ok(TemperatureValue {
+                     value: a.value().value(),
+                     unit: Some("celsius"),
+                     latent: false,
+                 })
+             });
+
+    b.rule_3("<temp> Fahrenheit",
+        b.reg(r#"華氏"#)?,
+        number_check!(),
+        b.reg(r#"度|°"#)?,
+        |_, a, _| {
+            Ok(TemperatureValue {
+                     value: a.value().value(),
+                     unit: Some("fahrenheit"),
+                     latent: false,
+                 })
+        }
+    );
     b.rule_2("<latent temp> below zero",
              b.reg(r#"マイナス|零下"#)?,
              temperature_check!(),
