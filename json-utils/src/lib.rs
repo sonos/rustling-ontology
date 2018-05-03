@@ -7,6 +7,7 @@ extern crate serde_derive;
 
 use rustling_ontology::{Output, dimension, output::TimeIntervalOutput};
 use moment::{Moment, Local};
+use ::std::f64;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -131,19 +132,48 @@ impl From<Output> for SlotValue {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Debug)]
+fn nearly_equal_f64(a: f64, b: f64) -> bool {
+    let abs_a = a.abs();
+    let abs_b = b.abs();
+    let diff = (a - b).abs();
+
+    if a == b { // Handle infinities.
+        true
+    } else if a == 0.0 || b == 0.0 || diff < f64::MIN_POSITIVE {
+        // One of a or b is zero (or both are extremely close to it,) use absolute error.
+        diff < (f64::EPSILON * f64::MIN_POSITIVE)
+    } else { // Use relative error.
+        (diff / f64::min(abs_a + abs_b, f64::MAX)) < 0.00001
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct NumberValue {
     pub value: f64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Debug)]
+impl PartialEq for NumberValue {
+    fn eq(&self, other: &NumberValue) -> bool {
+        nearly_equal_f64(self.value, other.value)
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Copy, Debug)]
 pub struct OrdinalValue {
     pub value: i64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct PercentageValue {
     pub value: f64,
+}
+
+impl PartialEq for PercentageValue {
+    fn eq(&self, other: &PercentageValue) -> bool {
+        nearly_equal_f64(self.value, other.value)
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
