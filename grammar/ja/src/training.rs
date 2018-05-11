@@ -52,15 +52,15 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 13]), "明日", "次の日", "二千十三年二月十三日", "今週の水曜日", "バレンタインデーの前の日"); 
     example!(v, check_moment!(c, [2013, 2, 20]), "次の水曜日");
     example!(v, check_moment!(c, [2013, 2, 14]), "二千十三年二月十四日", "バレンタインデーの日", "今週の木曜日");
-    example!(v, check_moment!(c, [2013, 2, 21]), "次の木曜日");
+    example!(v, check_moment!(c, [2013, 2, 14]), "次の木曜日");
     example!(v, check_moment!(c, [2013, 2, 15]), "二千十三年二月十五日", "今週の金曜日");
-    example!(v, check_moment!(c, [2013, 2, 22]), "次の金曜日");
+    example!(v, check_moment!(c, [2013, 2, 15]), "次の金曜日");
     example!(v, check_moment!(c, [2013, 2, 16]), "今週の土曜日", "二千十三年二月十六日", "二月十六日");
-    example!(v, check_moment!(c, [2013, 2, 23]), "次の土曜日");
+    example!(v, check_moment!(c, [2013, 2, 16]), "次の土曜日");
     example!(v, check_moment!(c, [2013, 2, 17]), "二千十三年二月十七日", "二月十七日", "今週の日曜日");
-    example!(v, check_moment!(c, [2013, 2, 24]), "次の日曜日");
+    example!(v, check_moment!(c, [2013, 2, 17]), "次の日曜日");
     example!(v, check_moment!(c, [2013, 2, 18]), "二千十三年二月十八日", "二月十八日", "来週の月曜日");
-    example!(v, check_moment!(c, [2013, 2, 25]), "次の月曜日");
+    example!(v, check_moment!(c, [2013, 2, 18]), "次の月曜日");
     example!(v, check_moment!(c, [2013, 2, 19]), "二千十三年二月十九日", "二月十九日", "一週間後", "次の火曜日", "来週の火曜日");
     example!(v, check_moment!(c, [2013, 2, 12, 15, 15]), "午後三時十五分", "十五時十五分");
     example!(v, check_moment!(c, [2013, 2, 12, 13, 30]), "十三時三十分", "十三時半", "午後一時半", "午後一時三十分");
@@ -112,6 +112,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2015, 4, 14]), "二千十五年四月十四日");
     example!(v, check_moment!(c, [2013, 2, 12, 20]), "今晚八時" , "今夜八時", "今日二十時", "今日の午後八時");
     example!(v, check_moment!(c, [2013, 3, 8]), "女性の日");
+    example!(v, check_moment!(c, [2013, 2, 15]), "三日後");
+    example!(v, check_moment!(c, [2013, 2, 9]), "三日前");
 
     example!(v, check_moment_span!(c, [2013, 8, 1], [2013, 8, 11]), "八月の上旬");
     example!(v, check_moment_span!(c, [2013, 10, 1], [2013, 10, 11]), "十月の上旬");
