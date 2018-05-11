@@ -113,7 +113,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
 pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("second (unit-of-duration)",
-                      b.reg(r#"sek(?:unden?|\.?)|s.|sec"#)?,
+                      b.reg(r#"sek(?:unden?|\.?)|s\.|sec"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Second))
     );
     b.rule_1_terminal("minute (unit-of-duration)",
@@ -2311,9 +2311,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
     b.rule_1_terminal("ordinals (first..19th)",
-                      b.reg(r#"(erste|zweite|dritte|vierte|f[üu]nfte|sechste|sieb(?:en)?te|achte|neunte|zehnte|elfte|zw[öo]lfte|dreizehnte|vierzehnte|f[üu]nfzehnte|sechzehnte|siebzehnte|achtzehnte|neunzehnte)(?:r|s|n|m)?"#)?,
+                      b.reg(r#"(nullte|erste|zweite|dritte|vierte|f[üu]nfte|sechste|sieb(?:en)?te|achte|neunte|zehnte|elfte|zw[öo]lfte|dreizehnte|vierzehnte|f[üu]nfzehnte|sechzehnte|siebzehnte|achtzehnte|neunzehnte)[rsnm]?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
+                              "nullte" => 0,
                               "erste" => 1,
                               "zweite" => 2,
                               "dritte" => 3,
@@ -2347,7 +2348,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |text_match| Ok(OrdinalValue::new(text_match.group(1).parse()?))
     );
     b.rule_2("der <ordinal>",
-             b.reg(r#"de(?:r|s|n|m)|das|die"#)?,
+             b.reg(r#"de[rsnm]|das|die"#)?,
              ordinal_check!(),
              |_, ordinal| Ok(ordinal.value().clone().prefixed())
     );
@@ -2371,11 +2372,73 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           Ok(OrdinalValue::new(value))
                       }
     );
+    b.rule_2("ordinal (200..900, 2_000..9_000, 2_000_000..9_000_000_000)",
+        integer_check_by_range!(1, 999),
+        b.reg(r#"(hundert|tausend|million|milliard)ste[rnms]?"#)?,
+        |integer, text_match| {
+            let (value, grain) = match text_match.group(1).as_ref() {
+                "hundert" => (100, 2),
+                "tausend" => (1_000, 3),
+                "million" => (1_000_000, 6),
+                "milliard" => (1_000_000_000, 9),
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            Ok(OrdinalValue::new_with_grain(integer.value().value * value, grain))
+        }
+    );
+    b.rule_1_terminal("ordinal (100, 1_000, 1_000_000)",
+        b.reg(r#"(hundert|tausend|million|milliard)ste[rnms]?"#)?,
+        |text_match| {
+            let (value, grain) = match text_match.group(1).as_ref() {
+                "hundert" => (100, 2),
+                "tausend" => (1_000, 3),
+                "million" => (1_000_000, 6),
+                "milliard" => (1_000_000_000, 9),
+                _ => return Err(RuleErrorKind::Invalid.into()),
+            };
+            Ok(OrdinalValue::new_with_grain(value, grain))
+        }
+    );
     b.rule_3("ordinal [2-9][1-9]",
              integer_check_by_range!(1, 9),
              b.reg(r#"und"#)?,
              ordinal_check!(|ordinal: &OrdinalValue| ordinal.value % 10 == 0),
              |integer, _, ordinal| Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+    );
+    b.rule_2("ordinal (102...9_999_999)",
+        integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
+        ordinal_check_by_range!(2, 99),
+        |integer, ordinal| {
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+    b.rule_3("ordinal (102...9_999_999)",
+        integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
+        b.reg(r#"und"#)?,
+        ordinal_check_by_range!(2, 99),
+        |integer, _, ordinal| {
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+    b.rule_2("ordinal (1_1_000..9_999_999_000)",
+        integer_check_by_range!(1000, 99_999_999_000),
+        ordinal_check!(|ordinal: &OrdinalValue| {
+            let grain = ordinal.grain.unwrap_or(0);
+            grain == 2 || (grain % 3 == 0 && grain != 0)
+        }),
+        |integer, ordinal| {
+            let grain = ordinal.value().grain.unwrap_or(0);
+            let next_grain = (grain / 3) * 3 + 3;
+            if integer.value().value % 10i64.pow(next_grain as u32) != 0 { return Err(RuleErrorKind::Invalid.into()); }
+            Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
+        }
+    );
+    b.rule_2("ordinal (101, 201, 301, ...)",
+        integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
+        b.reg(r#"(?:und )?erste[rnms]?"#)?,
+        |integer, _| {
+            Ok(OrdinalValue::new(integer.value().value + 1))
+        }
     );
     Ok(())
 }
