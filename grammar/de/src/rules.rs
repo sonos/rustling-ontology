@@ -5,7 +5,7 @@ use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Grain, PeriodComp, Weekday, Period};
 
 fn german_article_regex() -> &'static str {
-    r#"(?:i[nm]s?|zu[rm]?|beim?|um|w[äa]h?rend|f[uü]r) ?(?:de(?:r|m|s|n)|das)?"#
+    r#"(?:i[nm]s?|zu[rm]?|beim?|um|w[äa]h?rend|f[uü]r) ?(?:de(?:r|m|s|n)|die|das)?"#
 }
 
 fn german_article_before_cycle() -> &'static str {
@@ -899,37 +899,37 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::cycle_nth(Grain::Day, -3)
     );
     b.rule_2("this <time>",
-             b.reg(r#"diese(?:n|r|s|m)?|(?:im )?laufende(?:n|r|s)"#)?,
+             b.reg(r#"diese[nrsm]?|(?:im )?laufende[nrs]"#)?,
              time_check!(),
              |_, time| time.value().the_nth(0)
     );
     b.rule_2("next <time>",
-             b.reg(r#"(?:n[äa]chst|kommend)e(?:n|s|r|m)?"#)?,
+             b.reg(r#"(?:de[rnms] |die |das )?(?:n[äa]chst|kommend)e[nsrm]?"#)?,
              time_check!(),
              |_, time| time.value().the_nth_not_immediate(0)
     );
     b.rule_2("last <time>",
-             b.reg(r#"(?:letzt|(?:vor(?:her)?ig)|vergangen)e(?:n|s|m|r)?"#)?,
+             b.reg(r#"(?:de[rnms] |die |das )?(?:letzt|vor(?:her)?ig|vergangen)e[nsmr]?"#)?,
              time_check!(),
              |_, time| time.value().the_nth(-1)
     );
     b.rule_2("before last <time>",
-             b.reg(r#"vorvergangene[rnm]?|vorletzte[srnm]?"#)?,
+             b.reg(r#"(?:de[rnms] |die |das )?(?:vorvergangene|vorletzte)[srnm]?"#)?,
              time_check!(),
              |_, time| time.value().the_nth(-2)
     );
     b.rule_2("after next <time>",
-             b.reg(r#"[üu]bern[äa]chste(?:r|s|n|m)?"#)?,
+             b.reg(r#"(?:de[rnms] |die |das )?[üu]bern[äa]chste[rsnm]"#)?,
              time_check!(),
              |_, time| time.value().the_nth_not_immediate(1)
     );
     b.rule_2("<time> after next",
              time_check!(),
-             b.reg(r#"nach de(?:m|r|n) n[äa]chsten"#)?,
+             b.reg(r#"nach de[mrn] n[äa]chsten"#)?,
              |time, _| time.value().the_nth_not_immediate(1)
     );
     b.rule_4("last <day-of-week> of <time>",
-             b.reg(r#"letzte(?:r|n|s)?"#)?,
+             b.reg(r#"(?:de[rnms] |die |das )?letzte[rns]?"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
              b.reg(r#"um|im|in der"#)?,
              time_check!(),
@@ -1010,9 +1010,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::Year(_))),
              |_, year| Ok(year.value().clone())
     );
+    // das Jahr
     b.rule_1("year",
              integer_check_by_range!(1900, 2100),
              |integer| {
+                 helpers::year(integer.value().value as i32)
+             }
+    );
+    b.rule_2("year",
+             b.reg(r#"(?:de[rnms]|das|die) jahre?s?n?"#)?,
+             integer_check_by_range!(-1000, 2100),
+             |_, integer| {
                  helpers::year(integer.value().value as i32)
              }
     );
@@ -1306,24 +1314,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .span_to(&helpers::hour(9, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Morning)).latent())
     );
-    b.rule_1_terminal("morning",
-                      b.reg(r#"morgens|vor ?mittag(?:s(?:zeit)?)?|am morgen"#)?,
-                      |_| Ok(helpers::hour(3, false)?
-                          .span_to(&helpers::hour(12, false)?, false)?
-                          .form(Form::PartOfDay(PartOfDayForm::Morning)))
-    );
-
     b.rule_1_terminal("morning (latent)",
-        b.reg(r#"fr[üu]he?"#)?,
-        |_| Ok(helpers::hour(3, false)?
-                .span_to(&helpers::hour(12, false)?, false)?
+        b.reg(r#"morgens|fr[üu]he?|am morgen"#)?,
+        |_| Ok(helpers::hour(5, false)?
+                .span_to(&helpers::hour(10, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("late morning",
-                      b.reg(r#"(?:kurz|am sp[äa]ten) vor ?mittag"#)?,
-                      |_| Ok(helpers::hour(11, false)?
-                          .span_to(&helpers::hour(13, false)?, false)?
+                      b.reg(r#"(?:kurz|am sp[äa]ten) vor mittag|vormittag(?:s(?:zeit)?)?"#)?,
+                      |_| Ok(helpers::hour(10, false)?
+                          .span_to(&helpers::hour(12, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("early afternoon (latent)",
@@ -1813,8 +1814,9 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"ende der woche"#)?,
                       |_| {
                           let current_week = helpers::cycle_nth(Grain::Week, 0)?;
+                          let start = current_week.intersect(&helpers::day_of_week(Weekday::Fri)?)?;
                           let end = current_week.intersect(&helpers::day_of_week(Weekday::Sun)?)?;
-                          helpers::cycle_nth(Grain::Second, 0)?.span_to(&end, true)
+                          start.span_to(&end, true)
                       }
     );
     b.rule_1_terminal("start of month",
@@ -1909,13 +1911,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  start.span_to(&end, true)
              }
     );
-    b.rule_2("since <time> (past)",
-             b.reg(r#"seit(?: de[rm])?"#)?,
-             time_check!(),
-             |_, a| Ok(a.value().the_nth(-1)?.mark_after_start().not_latent())
-    );
-    b.rule_2("since <time> (futur)",
-             b.reg(r#"ab(?: de[rm])?"#)?,
+    b.rule_2("since <time>",
+             b.reg(r#"(?:ab|seit)(?: de[rm])?"#)?,
              time_check!(),
              |_, a| Ok(a.value().clone().mark_after_start().not_latent())
     );
