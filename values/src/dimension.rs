@@ -454,12 +454,20 @@ pub struct TemperatureValue {
 /// Payload for the cycle of Dimension
 #[derive(Debug, PartialEq, Clone)]
 pub struct CycleValue {
+    pub is_plural: bool,
     pub grain: Grain,
 }
 
 impl CycleValue {
     pub fn new(grain: Grain) -> RuleResult<CycleValue> {
-        Ok(CycleValue { grain: grain })
+        Ok(CycleValue { is_plural: false, grain: grain })
+    }
+
+    pub fn mark_as_plural(self) -> RuleResult<CycleValue> {
+        Ok(CycleValue { 
+            is_plural: true,
+            .. self
+        })
     }
 }
 

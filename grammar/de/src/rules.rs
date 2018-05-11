@@ -5,7 +5,7 @@ use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Grain, PeriodComp, Weekday, Period};
 
 fn german_article_regex() -> &'static str {
-    r#"(?:i[nm]s?|zu[rm]?|beim?|um|w[äa]h?rend|f[uü]r) ?(?:de(?:r|m|s|n)|die|das)?"#
+    r#"(?:i[nm]s?|zu[rm]?|beim?|um|w[äa]h?rend|f[uü]r) ?(?:de(?:r|m|s|n)|das)?"#
 }
 
 fn german_article_before_cycle() -> &'static str {
@@ -226,12 +226,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              unit_of_duration_check!(|uod: &UnitOfDurationValue| uod.grain == Grain::Hour),
              |integer, _, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
     );
-    b.rule_2("in next <unit-of-duration>",
-             b.reg(r#"in de(?:n|r|m) (?:n[äa]chste(?:n|r|m)|kommende(?:r|n|m))"#)?,
-             unit_of_duration_check!(),
-             |_, uod| DurationValue::new(PeriodComp::new(uod.value().grain, 1).into())
-                 .in_present()
-    );
     b.rule_2("in <duration>",
              b.reg(r#"in(?:\s(?:de(?:n|r|m)\s)?(?:n[äa]chste(?:n|r|m)|kommende(?:r|n|m)))?"#)?,
              duration_check!(),
@@ -263,7 +257,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| duration.value().ago()
     );
-    // TODO wrong production rules output
+    b.rule_2("<duration> ago",
+             duration_check!(),
+             b.reg(r#"fr[üu]her"#)?,
+             |duration, _| duration.value().ago()
+    );
     b.rule_3("<duration> after <time>",
              duration_check!(),
              b.reg(r#"nach"#)?,
@@ -302,61 +300,144 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
 pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("second (cycle)",
-                      b.reg(r#"sekunden?"#)?,
-                      |_| CycleValue::new(Grain::Second)
+                      b.reg(r#"sekund(en|e)"#)?,
+                      |text_match| {
+                        match text_match.group(1).as_ref() {
+                            "en" => CycleValue::new(Grain::Second)?.mark_as_plural(),
+                            "e"  => CycleValue::new(Grain::Second),
+                            _    => Err(RuleErrorKind::Invalid.into()) 
+                        }
+                    }
     );
     b.rule_1_terminal("minute (cycle)",
-                      b.reg(r#"minuten?"#)?,
-                      |_| CycleValue::new(Grain::Minute)
+                      b.reg(r#"minut(en|e)"#)?,
+                      |text_match| {
+                        match text_match.group(1).as_ref() {
+                            "en" => CycleValue::new(Grain::Minute)?.mark_as_plural(),
+                            "e"  => CycleValue::new(Grain::Minute),
+                            _    => Err(RuleErrorKind::Invalid.into()) 
+                        }
+                    }
     );
     b.rule_1_terminal("hour (cycle)",
-                      b.reg(r#"stunden?"#)?,
-                      |_| CycleValue::new(Grain::Hour)
+                      b.reg(r#"stund(en|e)"#)?,
+                      |text_match| {
+                        match text_match.group(1).as_ref() {
+                            "en" => CycleValue::new(Grain::Hour)?.mark_as_plural(),
+                            "e"  => CycleValue::new(Grain::Hour),
+                            _    => Err(RuleErrorKind::Invalid.into()) 
+                        }
+                    }
     );
     b.rule_1_terminal("day (cycle)",
-                      b.reg(r#"tage?n?s?"#)?,
-                      |_| CycleValue::new(Grain::Day)
+                      b.reg(r#"ta(gen|ges|ge|gs|g)"#)?,
+                      |text_match| {
+                        match text_match.group(1).as_ref() {
+                            "gen" | "ge" => CycleValue::new(Grain::Day)?.mark_as_plural(),
+                            "gs"  | "ges" | "g" => CycleValue::new(Grain::Day),
+                            _    => Err(RuleErrorKind::Invalid.into()) 
+                        }
+                    }
     );
     b.rule_1_terminal("week (cycle)",
-                      b.reg(r#"wochen?"#)?,
-                      |_| CycleValue::new(Grain::Week)
+                      b.reg(r#"woch(en|e)"#)?,
+                      |text_match| {
+                        match text_match.group(1).as_ref() {
+                            "en" => CycleValue::new(Grain::Week)?.mark_as_plural(),
+                            "e"  => CycleValue::new(Grain::Week),
+                            _    => Err(RuleErrorKind::Invalid.into()) 
+                        }
+                    }
     );
     b.rule_1_terminal("month (cycle)",
-                      b.reg(r#"monate?n?s?"#)?,
-                      |_| CycleValue::new(Grain::Month)
+                      b.reg(r#"mona(ten|tes|te|ts|t)"#)?,
+                      |text_match| {
+                        match text_match.group(1).as_ref() {
+                            "ten" | "te" => CycleValue::new(Grain::Month)?.mark_as_plural(),
+                            "ts"  | "tes" | "t" => CycleValue::new(Grain::Month),
+                            _    => Err(RuleErrorKind::Invalid.into()) 
+                        }
+                    }
     );
     b.rule_1_terminal("quarter (cycle)",
-                      b.reg(r#"quartale?"#)?,
-                      |_| CycleValue::new(Grain::Quarter)
+                      b.reg(r#"quarta(len|les|le|ls|l)"#)?,
+                      |text_match| {
+                        match text_match.group(1).as_ref() {
+                            "len" | "le" => CycleValue::new(Grain::Quarter)?.mark_as_plural(),
+                            "ls" | "les" | "l" => CycleValue::new(Grain::Quarter),
+                            _    => Err(RuleErrorKind::Invalid.into()) 
+                        }
+                    }
     );
     b.rule_1_terminal("year (cycle)",
-                      b.reg(r#"jahre?n?s?"#)?,
-                      |_| CycleValue::new(Grain::Year)
+                      b.reg(r#"jah(ren|res|re|rs|r)"#)?,
+                      |text_match|{ 
+                        match text_match.group(1).as_ref() {
+                            "ren" | "re" => CycleValue::new(Grain::Year)?.mark_as_plural(),
+                            "rs" | "res" | "r"  => CycleValue::new(Grain::Year),
+                            _    => Err(RuleErrorKind::Invalid.into()) 
+                        }
+                    }
     );
     b.rule_2("this <cycle>",
              b.reg(r#"(?:in )?diese(?:r|n|s|m)?|de[sr]"#)?,
-             cycle_check!(),
+             cycle_check!(|cycle: &CycleValue| !cycle.is_plural),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
+    b.rule_2("this <cycle>",
+             b.reg(r#"(?:in )?diesen"#)?,
+             cycle_check!(|cycle: &CycleValue| cycle.is_plural),
+             |_, cycle| Ok(helpers::cycle_nth(cycle.value().grain, -1)?
+                 .span_to(&helpers::cycle_nth(cycle.value().grain, 2)?, true)?
+                 .precision(Approximate))
+    );
     b.rule_2("last <cycle>",
-             b.reg(r#"letzte(?:r|n|s)?|vergangene(?:r|n|s)?|vor(?:her)?ige(?:r|n|s)?"#)?,
-             cycle_check!(),
+             b.reg(r#"(?:die )?(?:letzte(?:r|n|s)?|vergangene(?:r|n|s)?|vor(?:her)?ige(?:r|n|s)?)"#)?,
+              cycle_check!(|cycle: &CycleValue| !cycle.is_plural),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
     );
+    b.rule_2("last <cycle>",
+             b.reg(r#"(?:die )?(?:letzten|vergangenen|vor(?:her)?igen)"#)?,
+             cycle_check!(|cycle: &CycleValue| cycle.is_plural),
+             |_, cycle| Ok(helpers::cycle_nth(cycle.value().grain, -3)?
+                 .span_to(&helpers::cycle_nth(cycle.value().grain, -1)?, true)?
+                 .precision(Approximate))
+    );
     b.rule_2("before last <cycle>",
-             b.reg(r#"vorvergangene[rnm]?|vorletzte[srnm]?"#)?,
-             cycle_check!(),
+             b.reg(r#"(?:die )?(?:vorvergangene[rnm]?|vorletzte[srnm]?)"#)?,
+             cycle_check!(|cycle: &CycleValue| !cycle.is_plural),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, -2)
     );
+    b.rule_2("before last <cycle>",
+             b.reg(r#"(?:die )?(?:vorvergangenen|vorletzten)"#)?,
+             cycle_check!(|cycle: &CycleValue| cycle.is_plural),
+             |_, cycle| Ok(helpers::cycle_nth(cycle.value().grain, -5)?
+                 .span_to(&helpers::cycle_nth(cycle.value().grain, -3)?, true)?
+                 .precision(Approximate))
+    );
     b.rule_2("next <cycle>",
-             b.reg(r#"n[äa]chste(?:r|n|s)?|kommende(?:r|n|s)?"#)?,
-             cycle_check!(),
+             b.reg(r#"(?:die )?(?:n[äa]chste[rns]?|kommende[rns]?|folgende[rns]?)"#)?,
+             cycle_check!(|cycle: &CycleValue| !cycle.is_plural),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
     );
+    b.rule_2("next <cycle>",
+             b.reg(r#"(?:die )?(?:n[äa]chsten|kommenden|folgenden)"#)?,
+             cycle_check!(|cycle: &CycleValue| cycle.is_plural),
+             |_, cycle| Ok(helpers::cycle_nth(cycle.value().grain, 1)?
+                 .span_to(&helpers::cycle_nth(cycle.value().grain, 3)?, true)?
+                 .precision(Approximate))
+    );
     b.rule_2("after next <cycle>",
-             b.reg(r#"[üu]bern[äa]chste(?:r|s|n|m)?"#)?,
-             cycle_check!(),
+             b.reg(r#"(?:die )?[üu]bern[äa]chste[rnms]?"#)?,
+             cycle_check!(|cycle: &CycleValue| !cycle.is_plural),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 2)
+    );
+    b.rule_2("after next <cycle>",
+             b.reg(r#"(?:die )?[üu]bern[äa]chsten"#)?,
+             cycle_check!(|cycle: &CycleValue| cycle.is_plural),
+             |_, cycle| Ok(helpers::cycle_nth(cycle.value().grain, 3)?
+                 .span_to(&helpers::cycle_nth(cycle.value().grain, 5)?, true)?
+                 .precision(Approximate))
     );
     b.rule_4("the <cycle> after <time>",
              b.reg(german_article_before_cycle())?,
@@ -1045,11 +1126,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_1("time-of-day (latent)",
-             integer_check_by_range!(0, 23),
+             integer_check_by_range!(1, 23),
              |integer| Ok(helpers::hour(integer.value().value as u32, integer.value().value < 12)?.latent())
     );
     b.rule_1("midnight (latent)",
              integer_check_by_range!(24, 24),
+             |_| Ok(helpers::hour(0, false)?.latent())
+    );
+    b.rule_1("midnight (latent)",
+             integer_check_by_range!(0, 0),
              |_| Ok(helpers::hour(0, false)?.latent())
     );
     b.rule_2("<time-of-day> o'clock",
@@ -1130,11 +1215,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("viertel <integer> (german style hour-of-day)",
              b.reg(r#"vie?rtel"#)?,
-             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
-             |_, time| helpers::hour_relative_minute(
-                 time.value().form_time_of_day()?.full_hour(),
+             integer_check_by_range!(1, 12),
+             |_, integer| helpers::hour_relative_minute(
+                 integer.value().value as u32,
                  -45,
-                 time.value().form_time_of_day()?.is_12_clock())
+                 true)
     );
     b.rule_2("half <integer> (german style hour-of-day)",
              b.reg(r#"halbe?"#)?,
@@ -1434,7 +1519,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, time| Ok(time.value().clone().not_latent())
     );
 
-    b.rule_2("<article> <time>",
+    b.rule_2("around <meal/celebration>",
+             b.reg("um die")?,
+             time_check!(|time: &TimeValue| form!(Form::Celebration)(time) || form!(Form::Meal)(time)),
+             |_, time| Ok(time.value().clone().precision(Precision::Approximate))
+    );
+
+    b.rule_2("<article> <time-of-day>",
         b.reg(r#"a[nm](?: de[rn])?"#)?,
         time_check!(excluding_form!(Form::TimeOfDay(_))),
         |_, time| Ok(time.value().clone().not_latent())
@@ -1643,7 +1734,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  .span_to(&duration.value().in_present()?, false)
     );
     b.rule_2("by the end of <time>",
-             b.reg(r#"bis (?:zum)? ende (?:von)?|(?:noch )?vor "#)?,
+             b.reg(r#"bis zum ende"#)?,
              time_check!(),
              |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
     );
@@ -1674,13 +1765,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("after <time>",
              b.reg(r#"nach(?: de[nmr])?"#)?,
-             time_check!(),
+             time_check!(excluding_form!(Form::TimeOfDay { .. })),
              |_, time| Ok(time.value().clone().mark_after_end_all())
     );
     b.rule_2("after <time-of-day>",
-        b.reg(r#"kurz nach"#)?,
+        b.reg(r#"(?:kurz )?nach"#)?,
         time_check!(form!(Form::TimeOfDay(_))),
-        |_, tod| Ok(tod.value().clone().mark_after_end_all().not_latent())
+        |_, tod| Ok(tod.value().clone().mark_after_end().not_latent())
     );
     b.rule_1_terminal("start of week",
                       b.reg(r#"(?:de[rnms]|zu )?(anfang|beginn) der woche"#)?,
@@ -1710,7 +1801,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("end of week",
-             b.reg(r#"(?:das )?ende der"#)?,
+             b.reg(r#"ende der"#)?,
              time_check!(form!(Form::Cycle(Grain::Week))),
              |_, week| {
                  let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
@@ -1727,7 +1818,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_1_terminal("start of month",
-                      b.reg(r#"(?:de[rnms]|zu )?(anfang|beginn) des monate?s"#)?,
+                      b.reg(r#"(?:zu )?(anfang|beginn) des monate?s"#)?,
                       |_| {
                           let current_month = helpers::cycle_nth(Grain::Month, 0)?;
                           let start = current_month.intersect(&helpers::day_of_month(1)?)?;
@@ -1736,7 +1827,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("start of month",
-             b.reg(r#"(?:de[rmns] )?(anfang|beginn)(?: des)?"#)?,
+             b.reg(r#"(anfang|beginn)(?: des)?"#)?,
              time_check!(|time: &TimeValue| {
             match time.form {
                 Form::Month(_) | Form::Cycle(Grain::Month) => true,
@@ -1750,7 +1841,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_1_terminal("beginning of year",
-                      b.reg(r#"(?:de[rmsn] )?jahres(?:anfang|beginn)|(?:de[rmsn] )?(?:anfang|beginn) des jahres"#)?,
+                      b.reg(r#"jahres(?:anfang|beginn)|(?:anfang|beginn) des jahres"#)?,
                       |_| {
                           let current_year = helpers::cycle_nth(Grain::Year, 0)?;
                           let start = current_year.intersect(&helpers::month(1)?)?;
@@ -1759,7 +1850,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("beginning of year",
-             b.reg(r#"(?:de[rmsn] )?anfang(?: de[sr])?"#)?,
+             b.reg(r#"anfang(?: de[sr])?"#)?,
              time_check!(|time: &TimeValue| {
             match time.form {
                 Form::Year(_) | Form::Cycle(Grain::Year) => true,
@@ -1773,7 +1864,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_1_terminal("end of year",
-                      b.reg(r#"(?:(?:das|de[mnsr]) )?(?:jahr(?:es)?(?:ende|schluss)|ende (?:des|vom) jahr(?:e?s)?)"#)?,
+                      b.reg(r#"(?:jahr(?:es)?(?:ende|schluss)|ende (?:des|vom) jahr(?:e?s)?)"#)?,
                       |_| {
                           let current_year = helpers::cycle_nth(Grain::Year, 0)?;
                           let start = current_year.intersect(&helpers::month(10)?)?;
@@ -1782,7 +1873,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("end of year",
-            b.reg(r#"(?:(?:das|de[ms] ))?ende(?: de[sr])?"#)?,
+            b.reg(r#"ende(?: de[sr])?"#)?,
             time_check!(|time: &TimeValue| {
                 match time.form {
                     Form::Year(_) | Form::Cycle(Grain::Year) => true,
@@ -1810,7 +1901,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_1("end of month",
-             b.reg(r#"(?:(?:das|am) )?ende (?:des|vom) monate?s?|monatsende"#)?,
+             b.reg(r#"(?:am )?ende (?:des|vom) monate?s?|monatsende"#)?,
              |_| {
                  let current_month = helpers::cycle_nth(Grain::Month, 0)?;
                  let start = current_month.intersect(&helpers::day_of_month(25)?)?;
