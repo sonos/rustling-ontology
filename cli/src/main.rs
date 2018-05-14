@@ -26,7 +26,8 @@ fn main() {
              (@arg sentence: +required "Sentence to test")
         )
         (@subcommand utterance =>
-             (@arg path: -p --path +takes_value "Path to utterances file")
+            (@arg force: -f --force "if the value should be recomputed")
+            (@arg path: -p --path +takes_value "Path to utterances file")
         )
         (@subcommand test =>
              (@arg input: -i --input +takes_value "Path to utterances file")
@@ -128,6 +129,8 @@ fn main() {
         }
         ("utterance", Some(matches)) => {
             let path = matches.value_of("path").unwrap();
+            let force_resolution = matches.is_present("force");
+
             let partial_utterances: Vec<PartialUtterance> = {
               let file = ::std::fs::File::open(path).unwrap();
               serde_json::from_reader(&file).unwrap()
@@ -136,7 +139,7 @@ fn main() {
             let default_context = Moment(Local.ymd(2017, 6, 1).and_hms(5, 00, 0));
             let utterances: Vec<Utterance> = partial_utterances.into_iter()
                 .map(|it| {
-                  if it.in_grammar {
+                  if it.in_grammar && (it.value.is_none() || force_resolution) {
                       let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
                       let entities = parser.parse(it.phrase.to_lowercase().as_str(), &context).unwrap();
                       let full_match = entities
@@ -156,7 +159,7 @@ fn main() {
                       in_grammar: it.in_grammar,
                       translation: it.translation,
                       context: default_context.clone(),
-                      value: None,
+                      value: it.value,
                     }
                   }
                 })

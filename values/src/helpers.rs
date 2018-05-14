@@ -165,19 +165,29 @@ impl TimeValue {
             direction: None,
             precision: Precision::Exact,
             latent: false,
+            ambiguity: Ambiguity::No,
         }
     }
 
     pub fn with_latent(self, latent: bool) -> TimeValue {
-        TimeValue { latent, ..self }
+        let ambiguity = if latent {
+            Ambiguity::Small
+        } else {
+            Ambiguity::No
+        };
+        TimeValue { latent, ambiguity, ..self }
     }
 
     pub fn latent(self) -> TimeValue {
-        TimeValue { latent: true, ..self }
+        TimeValue { latent: true, ambiguity: Ambiguity::Small, ..self }
     }
 
     pub fn not_latent(self) -> TimeValue {
-        TimeValue { latent: false, .. self }
+        TimeValue { latent: false, ambiguity: Ambiguity::No, .. self }
+    }
+
+    pub fn too_ambiguous(self) -> TimeValue {
+        TimeValue { latent: true, ambiguity: Ambiguity::Big, .. self }
     }
 
     pub fn form(self, form: Form) -> TimeValue {
@@ -209,6 +219,13 @@ impl TimeValue {
         }
     }
 
+    pub fn mark_after_end_all(self) -> TimeValue {
+        TimeValue {
+            direction: Some(BoundedDirection::after_end_all()),
+            .. self
+        }
+    }
+
     pub fn mark_before_start(self) -> TimeValue {
         TimeValue {
             direction: Some(BoundedDirection::before_start()),
@@ -219,6 +236,13 @@ impl TimeValue {
     pub fn mark_before_end(self) -> TimeValue {
         TimeValue {
             direction: Some(BoundedDirection::before_end()),
+            .. self
+        }
+    }
+    // End moment for IntervalTime and IntantTime
+    pub fn mark_before_end_all(self) -> TimeValue {
+        TimeValue {
+            direction: Some(BoundedDirection::before_end_all()),
             .. self
         }
     }

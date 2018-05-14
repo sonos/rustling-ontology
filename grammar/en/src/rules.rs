@@ -976,10 +976,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_1("time-of-day (latent)",
-             integer_check_by_range!(0, 23),
+             integer_check_by_range!(1, 23),
              |integer| {
                  Ok(helpers::hour(integer.value().value as u32, integer.value().value <= 12)?.latent())
              }
+    );
+    b.rule_1("time-of-day (latent)",
+             integer_check_by_range!(0, 0),
+             |_| Ok(helpers::hour(0, false)?.latent())
     );
     b.rule_1("time-of-day (latent)",
             number_check!(|number: &NumberValue| {
