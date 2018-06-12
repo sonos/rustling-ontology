@@ -1322,7 +1322,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("late morning",
-                      b.reg(r#"(?:kurz|am sp[äa]ten) vor mittag|vormittag(?:s(?:zeit)?)?"#)?,
+                      b.reg(r#"(?:kurz|am sp[äa]ten) vor ?mittag|vormittag(?:s(?:zeit)?)?"#)?,
                       |_| Ok(helpers::hour(10, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
