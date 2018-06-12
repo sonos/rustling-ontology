@@ -1223,11 +1223,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("viertel <integer> (german style hour-of-day)",
              b.reg(r#"vie?rtel"#)?,
-             integer_check_by_range!(1, 12),
-             |_, integer| helpers::hour_relative_minute(
-                 integer.value().value as u32,
+             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
+             |_, time| helpers::hour_relative_minute(
+                 time.value().form_time_of_day()?.full_hour(),
                  -45,
-                 true)
+                 time.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_2("half <integer> (german style hour-of-day)",
              b.reg(r#"halbe?"#)?,
