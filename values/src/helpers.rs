@@ -350,6 +350,14 @@ impl TimeValue {
             Err(format!("Form {:?} is not a time of day form", self.form))?
         }
     }
+
+    pub fn form_part_of_day(&self) -> RuleResult<PartOfDayForm> {
+        if let Form::PartOfDay(v) = self.form.clone() {
+            Ok(v)
+        } else {
+            Err(format!("Form {:?} is not a part of day form", self.form))?
+        }
+    }
 }
 
 pub fn year(y: i32) -> RuleResult<TimeValue> {

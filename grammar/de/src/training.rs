@@ -176,8 +176,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 13, 12]), "morgen mittag", "morgen zu mittag");
     example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 00]), "gestern abend");
     example!(v, check_moment_span!(c, [2013, 2, 15, 18], [2013, 2, 18, 00]), "dieses wochenende");
-    example!(v, check_moment_span!(c, [2013, 2, 18, 3], [2013, 2, 18, 12]), "montag morgens");
-    example!(v, check_moment_span!(c, [2013, 2, 15, 3], [2013, 2, 15, 12]), "morgens am 15. februar", "15. februar morgens", "am morgen des 15. februar");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 5], [2013, 2, 18, 10]), "montag morgens");
+    example!(v, check_moment_span!(c, [2013, 2, 15, 5], [2013, 2, 15, 10]), "morgens am 15. februar", "15. februar morgens", "am morgen des 15. februar");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "letzte 2 sekunden", "letzten zwei sekunden");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "nachste 3 sekunden", "nachsten drei sekunden", "nächste 3 sekunden", "nächsten drei sekunden");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "letzte 2 minuten", "letzten zwei minuten");
@@ -212,7 +212,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "in 15 minuten");
     example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 16]), "nach dem mittagessen");
     example!(v, check_moment!(c, [2013, 2, 12, 10, 30]), "10:30");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 3], [2013, 2, 12, 12]), "in der früh", "am morgen");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 10]), "in der früh", "am morgen");
     example!(v, check_moment!(c, [2013, 2, 18]), "nächsten montag", "kommenden montag");
     example!(v, check_moment!(c, [2013, 12, 10]), "10.12.");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18, 30], [2013, 2, 12, 19, 1]), "18:30h - 19:00h");
@@ -220,7 +220,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     // Additional examples
     example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in anderthalb stunde");
     example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in eineinhalb std", "in eineinhalb Std.", "in der nächsten eineinhalb Stunde");
-    example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "in der nächsten Stunde");
+    example!(v, check_moment!(c, [2013, 2, 12, 5]), "in der nächsten Stunde");
     example!(v, check_moment_with_precision!(c, [2013, 3, 5], Precision::Approximate), "in fast drei Wochen");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 45, 0]), "in einer Stunde und eine viertelstunde");
     example!(v, check_moment!(c, [2013, 2, 12, 6, 0, 0]), "in einer Stunde und dreissig minuten");
@@ -233,7 +233,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_moment!(c, [2013, 6, ]), "männertag"); // TODO Lunear Calendar
     example!(v, check_moment!(c, [2017, 5, 12, 10, 32]), "Freitag, der Zwölfte Mai um 10 Uhr 32 vormittags");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "am frühen vormittag", "bei tagesanbruch", "beim morgengrauen", "im morgengrauen", "in der morgenfrühe", "frühmorgens", "am frühen morgen");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 13]), "kurz vor mittag", "am späten vormittag");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "kurz vor mittag", "am späten vormittag");
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "am späten nachmittag","in den späten nachmittagsstunden","zu später nachmittagsstunde","spätnachmittags","spätnachmittag");
     example!(v, check_moment!(c, [2013, 7, 15], Grain::Week), "die dritte juliwoche");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 11, 31]), "ab dem frühen vormittag bis nach halb zwölf");
