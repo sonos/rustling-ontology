@@ -1817,16 +1817,16 @@ mod tests {
             .to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 05, 14).and_hms(0, 0, 0)),
-                                              Grain::Hour)),
+                                              Grain::Day)),
                    walker.forward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 06, 14).and_hms(0, 0, 0)),
-                                              Grain::Hour)),
+                                              Grain::Day)),
                    walker.forward.clone().skip(1).next());
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 14).and_hms(0, 0, 0)),
-                                              Grain::Hour)),
+                                              Grain::Day)),
                    walker.backward.clone().next());
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 03, 14).and_hms(0, 0, 0)),
-                                              Grain::Hour)),
+                                              Grain::Day)),
                    walker.backward.clone().skip(1).next());
 
     }

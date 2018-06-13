@@ -1,5 +1,6 @@
 # rustling-ontology
 [![Build Status](https://travis-ci.org/snipsco/rustling-ontology.svg?branch=develop)](https://travis-ci.org/snipsco/rustling-ontology)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/snipsco/snips-nlu-rs?branch=develop&svg=true)](https://ci.appveyor.com/project/adrienball/snips-nlu-rs)
 
 Probabilistic parser for entity detection based on Rustling (https://github.com/snipsco/rustling)
 
