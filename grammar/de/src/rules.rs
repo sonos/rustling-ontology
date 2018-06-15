@@ -52,7 +52,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("EUR") })
     );
     b.rule_1_terminal("£",
-                      b.reg(r#"£|pfund(?:e?s)?|pfd"#)?,
+                      b.reg(r#"£|pfund(?:e?s)?|pfd\."#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("£") })
     );
     b.rule_1_terminal("GBP",
@@ -64,7 +64,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("CHF") })
     );
     b.rule_1_terminal("KR",
-                      b.reg(r#"kr|kronen?"#)?,
+                      b.reg(r#"kronen?|kr"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("KR") })
     );
     b.rule_1_terminal("DKK",
@@ -80,7 +80,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("SEK") })
     );
     b.rule_1_terminal("RUB",
-                      b.reg(r#"rub|₽|(?:russische[rnm]? )?rubel[sn]?"#)?,
+                      b.reg(r#"₽|(?:russische[rnm]? )?rubel[sn]?|rub"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("RUB") })
     );
     b.rule_1_terminal("INR",
@@ -131,7 +131,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              })
     );
     b.rule_2("about <amount-of-money>",
-             b.reg(r#"[cz]irka|nahezu|beinahe|ungef[äa]hr|fast|ca\.?"#)?,
+             b.reg(r#"zirka|circa|nahezu|beinahe|ungef[äa]hr|fast|ca\.?"#)?,
              amount_of_money_check!(),
              |_, a| {
                  Ok(AmountOfMoneyValue {
