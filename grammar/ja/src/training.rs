@@ -29,12 +29,19 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(5.0, Some("degree")), "五度");
-    example!(v, check_temperature(5.0, Some("celsius")), "摂氏五度");
-    example!(v, check_temperature(5.0, Some("fahrenheit")), "華氏五度");
+    example!(v, check_temperature(5.0, Some("degree")), "五度", "5度", "5 °", "5°");
+    example!(v, check_temperature(6.0, Some("degree")), "六ど", "6ど");
+    example!(v, check_temperature(14.0, Some("degree")), "14度");
     example!(v, check_temperature(25.0, Some("degree")), "二十五度");
-    example!(v, check_temperature(-10.0, Some("degree")), "マイナス十度");
-    example!(v, check_temperature(-10.0, Some("degree")), "零下十度");
+    example!(v, check_temperature(50.0, Some("celsius")), "摂氏50度", "摂氏五十ど");
+    example!(v, check_temperature(7.0, Some("celsius")), "7°C", "七℃");
+    example!(v, check_temperature(5.0, Some("fahrenheit")), "華氏五度", "華氏5ど");
+    example!(v, check_temperature(3.0, Some("fahrenheit")), "三°F", "三℉");
+    example!(v, check_temperature(12.0, Some("kelvin")), "12ケルビン度", "十二ケルビンど");
+    example!(v, check_temperature(25.0, Some("kelvin")), "25°K");
+    example!(v, check_temperature(-10.0, Some("degree")), "マイナス十度", "零下十度", "れいか十ど", "-10°");
+    example!(v, check_temperature(-7.0, Some("celsius")), "マイナス七°C", "零下7℃");
+    example!(v, check_temperature(-3.0, Some("fahrenheit")), "れいか3°f", "-3℉");
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
