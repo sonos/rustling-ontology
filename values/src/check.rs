@@ -188,6 +188,25 @@ pub fn check_finance(value: f32, unit: Option<&'static str>, precision: Precisio
 }
 
 #[derive(Debug)]
+pub struct CheckPercentage {
+    pub value: f32,
+}
+
+impl Check<Dimension> for CheckPercentage {
+    fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
+        PercentageValue::attempt_from(pn.value.clone())
+            .map(|v| v.0 == self.value)
+            .unwrap_or(false)
+    }
+}
+
+pub fn check_percentage(value: f32) -> CheckPercentage {
+    CheckPercentage {
+        value: value,
+    }
+}
+
+#[derive(Debug)]
 pub struct CheckTemperature {
     pub value: f32,
     pub unit: Option<&'static str>,
@@ -207,3 +226,4 @@ pub fn check_temperature(value: f32, unit: Option<&'static str>) -> CheckTempera
         unit: unit,
     }
 }
+
