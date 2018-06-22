@@ -105,7 +105,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("BTC",
                       b.reg(r#"btc|฿|bitcoins?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("BTC") })
+                      |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("cent",
                       b.reg(r#"cents?|penn(?:y|ies)|pence|cts?|c|¢"#)?,
