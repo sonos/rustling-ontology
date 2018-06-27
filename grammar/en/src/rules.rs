@@ -1585,7 +1585,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  })
              });
     b.rule_2("<latent temp> degrees",
-             temperature_check!(),
+             temperature_check!(|temp: &TemperatureValue| temp.latent),
              b.reg(r#"(?:deg(?:ree?)?s?\.?)|°"#)?,
              |a, _| {
                  Ok(TemperatureValue {
@@ -1595,7 +1595,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  })
              });
     b.rule_2("<temp> Celcius",
-             temperature_check!(),
+             temperature_check!(|temp: &TemperatureValue| temp.latent),
              b.reg(r#"c(?:el[cs]?(?:ius)?)?\.?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
@@ -1605,7 +1605,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  })
              });
     b.rule_2("<temp> Fahrenheit",
-             temperature_check!(),
+             temperature_check!(|temp: &TemperatureValue| temp.latent),
              b.reg(r#"f(?:ah?rh?eh?n(?:h?eit)?)?\.?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
@@ -1628,7 +1628,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value()));
     b.rule_1_terminal("integer (0..19)",
-                      b.reg(r#"(none|zilch|naught|nought|nil|zero|one|two|three|fourteen|four|five|sixteen|six|seventeen|seven|eighteen|eight|nineteen|nine|eleven|twelve|thirteen|fifteen)"#)?,
+                      b.reg(r#"(none|zilch|naught|nought|nil|zero|one|two|three|fourteen|four|five|sixteen|six|seventeen|seven|eighteen|eight|nineteen|nine|eleven|twelve|thirteen|fifteen|ten)"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "none" => 0,
@@ -1660,10 +1660,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           };
                           IntegerValue::new_with_grain(value, 1)
                       });
-    b.rule_1_terminal("ten",
-                      b.reg(r#"ten"#)?,
-                      |_| IntegerValue::new_with_grain(10, 1)
-    );
     b.rule_1_terminal("single",
                       b.reg(r#"single"#)?,
                       |_| IntegerValue::new_with_grain(1, 1)
