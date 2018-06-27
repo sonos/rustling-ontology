@@ -1078,6 +1078,16 @@ mod tests {
         assert_eq!(None, forward.next());
 
         assert_eq!(None, walker.backward.clone().next());
+
+        let year = Year(100);
+        let walker = year.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.backward.clone().next());
+        assert_eq!(None, walker.forward.clone().next());
+
+        let year = Year(-100);
+        let walker = year.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.backward.clone().next());
+        assert_eq!(None, walker.forward.clone().next());
     }
 
        
