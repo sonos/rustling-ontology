@@ -137,19 +137,16 @@ impl<T: TimeZone> IntervalConstraint<T> for Year where <T as TimeZone>::Offset: 
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
-        let normalized_year = if self.0 <= 99 {
-            (self.0 + 50) % 100 + 2000 - 50
-        } else {
-            self.0
-        };
-
-        if origin.start.year() <= normalized_year {
-            let moment_year = Moment(origin.timezone().ymd(normalized_year, 1, 1).and_hms(0, 0, 0));
+    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
+        let year =  self.0;
+        if year > context.max.start.year() || year < context.min.start.year() {
+            BidirectionalWalker::new()
+        } else if origin.start.year() <= year {
+            let moment_year = Moment(origin.timezone().ymd(year, 1, 1).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Year);
             BidirectionalWalker::new().forward_values(vec![interval])
         } else {
-            let moment_year = Moment(origin.timezone().ymd(normalized_year, 1, 1).and_hms(0, 0, 0));
+            let moment_year = Moment(origin.timezone().ymd(year, 1, 1).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Year);
             BidirectionalWalker::new().backward_values(vec![interval])
         }
@@ -178,20 +175,18 @@ impl<T: TimeZone> IntervalConstraint<T> for YearMonthDay where <T as TimeZone>::
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
-        let normalized_year = if self.year < 99 {
-            (self.year + 50) % 100 + 2000 - 50
-        } else {
-            self.year
-        };
-        if self.day > last_day_in_month(normalized_year, self.month, origin.timezone()) {
+    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
+        let year =  self.year;
+        if year > context.max.start.year() || year < context.min.start.year() {
+            BidirectionalWalker::new()
+        } else if self.day > last_day_in_month(year, self.month, origin.timezone()) {
             BidirectionalWalker::new() 
-        } else if origin.start.year() <= normalized_year {
-            let moment_year = Moment(origin.timezone().ymd(normalized_year, self.month, self.day).and_hms(0, 0, 0));
+        } else if origin.start.year() <= year {
+            let moment_year = Moment(origin.timezone().ymd(year, self.month, self.day).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Day);
             BidirectionalWalker::new().forward_values(vec![interval])
         } else {
-            let moment_year = Moment(origin.timezone().ymd(normalized_year, self.month, self.day).and_hms(0, 0, 0));
+            let moment_year = Moment(origin.timezone().ymd(year, self.month, self.day).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Day);
             BidirectionalWalker::new().backward_values(vec![interval])
         }

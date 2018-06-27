@@ -360,7 +360,16 @@ impl TimeValue {
     }
 }
 
+pub fn normalize_year(y: i32) -> RuleResult<i32> {
+    if y <= 99 && y >= 0 {
+        Ok((y + 50) % 100 + 2000 - 50)
+    } else {
+        Ok(y)
+    }
+}
+
 pub fn year(y: i32) -> RuleResult<TimeValue> {
+    let y = normalize_year(y)?;
     Ok(TimeValue::constraint(Year::new(y)).form(Form::Year(y)))
 }
 
@@ -387,6 +396,7 @@ pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
 }
 
 pub fn year_month_day(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
+    let y = normalize_year(y)?;
     Ok(TimeValue::constraint(YearMonthDay::new(y, m, d)).form(Form::YearMonthDay(Some(YearMonthDayForm { year: y, month: m, day_of_month: d }))))
 }
 
