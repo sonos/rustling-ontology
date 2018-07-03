@@ -462,7 +462,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
              });
     b.rule_2("<temp> Kelvin",
              number_check!(),
-             b.reg(r#"°k|ケルビン度|ケルビンど"#)?,
+             b.reg(r#"°k|ケルビン"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: a.value().value(),
