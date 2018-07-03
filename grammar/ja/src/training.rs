@@ -28,20 +28,46 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_ordinal(91), "九十一番目");
 }
 
+pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800$", "800ドル", "八百ドル");
+    example!(v, check_finance(10.0, Some("USD"), Precision::Exact), "10アメリカドル", "十米ドル");
+    example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "3豪ドル", "三オーストラリアドル");
+    example!(v, check_finance(0.0, Some("HKD"), Precision::Exact), "0香港ドル", "零香港ドル");
+    example!(v, check_finance(125.0, Some("CAD"), Precision::Exact), "125カナダドル", "百二十五カナダドル");
+    example!(v, check_finance(45.0, Some("EUR"), Precision::Exact), "45€", "四十五ユーロ", "45ユーロ");
+    example!(v, check_finance(2.0, Some("£"), Precision::Exact), "2ポンド");
+    example!(v, check_finance(20.0, Some("GBP"), Precision::Exact), "二十イギリスポンド", "20英ポンド");
+    example!(v, check_finance(38.0, Some("CHF"), Precision::Exact), "38スイスフラン");
+    example!(v, check_finance(447.0, Some("KR"), Precision::Exact), "四百四十七クローネ");
+    example!(v, check_finance(10000.0, Some("DKK"), Precision::Exact), "一万デンマーククローネ");
+    example!(v, check_finance(100.0, Some("NOK"), Precision::Exact), "100ノルウェークローネ");
+    example!(v, check_finance(2005.0, Some("SEK"), Precision::Exact), "二千五スウェーデンクローナ");
+    example!(v, check_finance(96.0, Some("INR"), Precision::Exact), "96ルピー", "九十六インドルピー");
+    example!(v, check_finance(5.0, Some("RUB"), Precision::Exact), "5ルーブル", "5ルーブリ");
+    example!(v, check_finance(89.0, Some("JPY"), Precision::Exact), "八十九円", "89日本円");
+    example!(v, check_finance(100.0, Some("CNY"), Precision::Exact), "100元", "百人民元");
+    example!(v, check_finance(7.0, Some("KRW"), Precision::Exact), "七ウォン", "7韓国ウォン");
+    example!(v, check_finance(3.0, Some("฿"), Precision::Exact), "3ビット", "三ビットコイン");
+    }
+
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_temperature(0.0, Some("degree")), "零度", "0度", "零ど", "0ど", "0 °", "0°");
     example!(v, check_temperature(5.0, Some("degree")), "五度", "5度", "5 °", "5°");
     example!(v, check_temperature(6.0, Some("degree")), "六ど", "6ど");
     example!(v, check_temperature(14.0, Some("degree")), "14度");
     example!(v, check_temperature(25.0, Some("degree")), "二十五度");
+    example!(v, check_temperature(0.0, Some("celsius")), "摂氏0度", "摂氏零ど", "0°C", "0℃");
     example!(v, check_temperature(50.0, Some("celsius")), "摂氏50度", "摂氏五十ど");
-    example!(v, check_temperature(7.0, Some("celsius")), "7°C", "七℃");
-    example!(v, check_temperature(5.0, Some("fahrenheit")), "華氏五度", "華氏5ど");
-    example!(v, check_temperature(3.0, Some("fahrenheit")), "三°F", "三℉");
+    example!(v, check_temperature(7.0, Some("celsius")), "七°C", "七℃", "7°C", "7℃");
+    example!(v, check_temperature(0.0, Some("fahrenheit")), "華氏0度", "華氏零ど", "カ氏0度", "カ氏零ど", "0°F", "零℉");
+    example!(v, check_temperature(5.0, Some("fahrenheit")), "華氏五度", "華氏5ど", "カ氏5ど");
+    example!(v, check_temperature(3.0, Some("fahrenheit")), "三°F", "三℉", "3 °F", "3 ℉");
+    example!(v, check_temperature(0.0, Some("kelvin")), "0ケルビン", "零ケルビン");
     example!(v, check_temperature(12.0, Some("kelvin")), "12ケルビン", "十二ケルビン");
     example!(v, check_temperature(25.0, Some("kelvin")), "25°K");
-    example!(v, check_temperature(-10.0, Some("degree")), "マイナス十度", "零下十度", "れいか十ど", "-10°");
-    example!(v, check_temperature(-7.0, Some("celsius")), "マイナス七°C", "零下7℃");
-    example!(v, check_temperature(-3.0, Some("fahrenheit")), "れいか3°f", "-3℉");
+    example!(v, check_temperature(-10.0, Some("degree")), "マイナス十度", "零下十度", "れいか十ど",  "れいか10ど", "-10°");
+    example!(v, check_temperature(-7.0, Some("celsius")), "マイナス七°C", "零下7℃", "摂氏マイナス七度", "摂氏零下7ど", "摂氏れいか7度");
+    example!(v, check_temperature(-3.0, Some("fahrenheit")), "マイナス3°F", "零下三℉", "華氏マイナス3度", "華氏零下三度", "カ氏れいか三ど");
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
