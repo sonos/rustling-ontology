@@ -481,13 +481,36 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
+    b.rule_3("<temp> Celsius below zero",
+            b.reg(r#"摂氏(?:マイナス|零下|れいか|-)"#)?,
+            number_check!(),
+            b.reg(r#"度|ど|°"#)?,
+            |_, a, _| {
+                 Ok(TemperatureValue {
+                     value: -1.0 * a.value().value(),
+                     unit: Some("celsius"),
+                     latent: false,
+                 })
+             });
     b.rule_3("<temp> Fahrenheit",
-        b.reg(r#"華氏"#)?,
+        b.reg(r#"華氏|カ氏"#)?,
         number_check!(),
         b.reg(r#"度|ど|°"#)?,
         |_, a, _| {
             Ok(TemperatureValue {
                      value: a.value().value(),
+                     unit: Some("fahrenheit"),
+                     latent: false,
+                 })
+        }
+    );
+    b.rule_3("<temp> Fahrenheit below zero",
+        b.reg(r#"(?:華氏|カ氏)(?:マイナス|零下|れいか|-)"#)?,
+        number_check!(),
+        b.reg(r#"度|ど|°"#)?,
+        |_, a, _| {
+            Ok(TemperatureValue {
+                     value: -1.0 * a.value().value(),
                      unit: Some("fahrenheit"),
                      latent: false,
                  })
