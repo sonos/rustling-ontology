@@ -105,7 +105,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 1, 22]), "three weeks ago");
     example!(v, check_moment!(c, [2012, 11]), "three months ago");
     example!(v, check_moment!(c, [2011, 2]), "two years ago");
-    example!(v, check_moment!(c, [1954]), "1954");
+    example!(v, check_moment!(c, [2001]), "2001");
     example!(v, check_moment!(c, [2013, 2, 19]), "7 days hence");
     example!(v, check_moment!(c, [2013, 2, 26]), "14 days hence", "a fortnight hence");
     example!(v, check_moment!(c, [2013, 2, 19]), "a week hence", "one week hence", "1 week hence");

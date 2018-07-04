@@ -42,6 +42,7 @@ impl<T: TimeZone> Context<T> where <T as TimeZone>::Offset: Copy {
         let now_end = now.end_moment();
         let max_year = if 2038 > now_end.year() + 70 { now_end.year() + 70 } else { 2038 };
         let min_year = if 1970 < now.start.year() - 70 { now.start.year() - 70  } else { 1970 };
+        println!("MAX: {:?} MIN {:?}", max_year, min_year);
         let min_interval = Interval::starting_at(Moment(now.timezone().ymd(min_year, 1, 1).and_hms(0, 0, 0)), Grain::Second);
         let max_interval = Interval::starting_at(Moment(now.timezone().ymd(max_year, 1, 1).and_hms(0, 0, 0)), Grain::Second);
         Context::new(now, min_interval, max_interval)
@@ -137,19 +138,16 @@ impl<T: TimeZone> IntervalConstraint<T> for Year where <T as TimeZone>::Offset: 
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
-        let normalized_year = if self.0 <= 99 {
-            (self.0 + 50) % 100 + 2000 - 50
-        } else {
-            self.0
-        };
-
-        if origin.start.year() <= normalized_year {
-            let moment_year = Moment(origin.timezone().ymd(normalized_year, 1, 1).and_hms(0, 0, 0));
+    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
+        let year =  self.0;
+        if year > context.max.start.year() || year < context.min.start.year() {
+            BidirectionalWalker::new()
+        } else if origin.start.year() <= year {
+            let moment_year = Moment(origin.timezone().ymd(year, 1, 1).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Year);
             BidirectionalWalker::new().forward_values(vec![interval])
         } else {
-            let moment_year = Moment(origin.timezone().ymd(normalized_year, 1, 1).and_hms(0, 0, 0));
+            let moment_year = Moment(origin.timezone().ymd(year, 1, 1).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Year);
             BidirectionalWalker::new().backward_values(vec![interval])
         }
@@ -178,20 +176,18 @@ impl<T: TimeZone> IntervalConstraint<T> for YearMonthDay where <T as TimeZone>::
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
-        let normalized_year = if self.year < 99 {
-            (self.year + 50) % 100 + 2000 - 50
-        } else {
-            self.year
-        };
-        if self.day > last_day_in_month(normalized_year, self.month, origin.timezone()) {
+    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
+        let year =  self.year;
+        if year > context.max.start.year() || year < context.min.start.year() {
+            BidirectionalWalker::new()
+        } else if self.day > last_day_in_month(year, self.month, origin.timezone()) {
             BidirectionalWalker::new() 
-        } else if origin.start.year() <= normalized_year {
-            let moment_year = Moment(origin.timezone().ymd(normalized_year, self.month, self.day).and_hms(0, 0, 0));
+        } else if origin.start.year() <= year {
+            let moment_year = Moment(origin.timezone().ymd(year, self.month, self.day).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Day);
             BidirectionalWalker::new().forward_values(vec![interval])
         } else {
-            let moment_year = Moment(origin.timezone().ymd(normalized_year, self.month, self.day).and_hms(0, 0, 0));
+            let moment_year = Moment(origin.timezone().ymd(year, self.month, self.day).and_hms(0, 0, 0));
             let interval = Interval::starting_at(moment_year, Grain::Day);
             BidirectionalWalker::new().backward_values(vec![interval])
         }
@@ -1078,6 +1074,16 @@ mod tests {
         assert_eq!(None, forward.next());
 
         assert_eq!(None, walker.backward.clone().next());
+
+        let year = Year(100);
+        let walker = year.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.backward.clone().next());
+        assert_eq!(None, walker.forward.clone().next());
+
+        let year = Year(-100);
+        let walker = year.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.backward.clone().next());
+        assert_eq!(None, walker.forward.clone().next());
     }
 
        
