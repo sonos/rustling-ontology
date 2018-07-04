@@ -34,21 +34,29 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "3豪ドル", "三オーストラリアドル");
     example!(v, check_finance(0.0, Some("HKD"), Precision::Exact), "0香港ドル", "零香港ドル");
     example!(v, check_finance(125.0, Some("CAD"), Precision::Exact), "125カナダドル", "百二十五カナダドル");
-    example!(v, check_finance(45.0, Some("EUR"), Precision::Exact), "45€", "四十五ユーロ", "45ユーロ");
+    example!(v, check_finance(45.0, Some("EUR"), Precision::Approximate), "45€ほど", "四十五ユーロくらい", "45ユーロ程");
     example!(v, check_finance(2.0, Some("£"), Precision::Exact), "2ポンド");
-    example!(v, check_finance(20.0, Some("GBP"), Precision::Exact), "二十イギリスポンド", "20英ポンド");
+    example!(v, check_finance(20.0, Some("GBP"), Precision::Exact), "ちょうど二十イギリスポンド", "まさに20英ポンド");
     example!(v, check_finance(38.0, Some("CHF"), Precision::Exact), "38スイスフラン");
-    example!(v, check_finance(447.0, Some("KR"), Precision::Exact), "四百四十七クローネ");
+    example!(v, check_finance(447.0, Some("KR"), Precision::Approximate), "四百四十七クローネ位");
     example!(v, check_finance(10000.0, Some("DKK"), Precision::Exact), "一万デンマーククローネ");
     example!(v, check_finance(100.0, Some("NOK"), Precision::Exact), "100ノルウェークローネ");
     example!(v, check_finance(2005.0, Some("SEK"), Precision::Exact), "二千五スウェーデンクローナ");
     example!(v, check_finance(96.0, Some("INR"), Precision::Exact), "96ルピー", "九十六インドルピー");
-    example!(v, check_finance(5.0, Some("RUB"), Precision::Exact), "5ルーブル", "5ルーブリ");
+    example!(v, check_finance(5.0, Some("RUB"), Precision::Approximate), "約5ルーブル", "だいたい5ルーブリ");
     example!(v, check_finance(89.0, Some("JPY"), Precision::Exact), "八十九円", "89日本円");
     example!(v, check_finance(100.0, Some("CNY"), Precision::Exact), "100元", "百人民元");
     example!(v, check_finance(7.0, Some("KRW"), Precision::Exact), "七ウォン", "7韓国ウォン");
     example!(v, check_finance(3.0, Some("฿"), Precision::Exact), "3ビット", "三ビットコイン");
     }
+
+pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_percentage(0.3), "0,3 %", "0,3%");
+    example!(v, check_percentage(25.0), "25%", "25パーセント", "二十五パーセント");
+    example!(v, check_percentage(10.0), "割");
+    example!(v, check_percentage(1.0), "分");
+    example!(v, check_percentage(0.1), "厘");
+}
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_temperature(0.0, Some("degree")), "零度", "0度", "零ど", "0ど", "0 °", "0°");
