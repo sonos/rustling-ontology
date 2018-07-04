@@ -3,6 +3,44 @@ use rustling_ontology_moment::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::ResolverContext;
 
+pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_percentage(0.3), "0.3%", "zero point three per cent");
+    example!(v, check_percentage(15.0), "15%", "15 %", "fifteen percent");
+    example!(v, check_percentage(202.0), "202%", "202 p.c.", "202percent");
+}
+
+pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_temperature(3.0, Some("degree")), "three degrees", "3 degrees", "3°", "3 °");
+    example!(v, check_temperature(32.0, Some("celsius")), "thirty two degrees celsius", "32°C", "32 °c");
+    example!(v, check_temperature(-27.0, Some("celsius")), "minus 27 celsius", "-27C", "- 27 c");
+    example!(v, check_temperature(-5.0, Some("fahrenheit")), "minus five degrees fahrenheit", "-5 °F", "- 5°f");
+    example!(v, check_temperature(168.0, Some("fahrenheit")), "one hundred and sixty-eight fahrenheit", "168 F", "168f");
+    example!(v, check_temperature(10.0, Some("kelvin")), "ten degrees kelvin", "10 °K", "10°k");
+    example!(v, check_temperature(21.0, Some("kelvin")), "21 kelvin", "21 K", "21k");
+}
+
+pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800$", "eight hundred dollars", "eight hundred dollar");
+    example!(v, check_finance(10.0, Some("USD"), Precision::Approximate), "around ten us dollars", "almost 10US$");
+    example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "exactly 3 australian dollar", "precisely 3 AUD");
+    example!(v, check_finance(0.0, Some("HKD"), Precision::Exact), "zero hk dollar");
+    example!(v, check_finance(125.0, Some("CAD"), Precision::Exact), "125 cad");
+    example!(v, check_finance(45.0, Some("EUR"), Precision::Exact), "forty five euros", "45 €", "45EUR");
+    example!(v, check_finance(2.0, Some("£"), Precision::Exact), "2 pounds", "two £");
+    example!(v, check_finance(20.0, Some("GBP"), Precision::Exact), "twenty british pounds", "20 sterlings", "20 GBP");
+    example!(v, check_finance(38.0, Some("CHF"), Precision::Exact), "38 swiss francs");
+    example!(v, check_finance(447.0, Some("KR"), Precision::Exact), "447 kroner", "447 crowns");
+    example!(v, check_finance(10000.0, Some("DKK"), Precision::Exact), "10,000 DKK");
+    example!(v, check_finance(100.0, Some("NOK"), Precision::Exact), "one hundred norwegian crowns", "100 norwegian kroner");
+    example!(v, check_finance(2005.0, Some("SEK"), Precision::Exact), "2005 SEK");
+    example!(v, check_finance(96.0, Some("INR"), Precision::Exact), "96 rupees");
+    example!(v, check_finance(5.0, Some("RUB"), Precision::Exact), "five rubles");
+    example!(v, check_finance(89.0, Some("JPY"), Precision::Approximate), "about 89 yen");
+    example!(v, check_finance(200.0, Some("CNY"), Precision::Exact), "two hundred yuan");
+    example!(v, check_finance(7.0, Some("KRW"), Precision::Exact), "7 wons", "7₩");
+    example!(v, check_finance(3.0, Some("฿"), Precision::Exact), "3฿", "3 ฿", "three bitcoins");
+}
+
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "now", "right now", "just now");
