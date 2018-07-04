@@ -1115,14 +1115,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("mm/.dd/.yyyy",
                       b.reg(r#"(0?[1-9]|1[0-2])[-/.](3[01]|[12]\d|0?[1-9])[-/.](\d{2,4})"#)?,
-                      |text_match| helpers::ymd(
+                      |text_match| helpers::year_month_day(
                           text_match.group(3).parse()?,
                           text_match.group(1).parse()?,
                           text_match.group(2).parse()?)
     );
     b.rule_1_terminal("yyyy-mm-dd",
                       b.reg(r#"(\d{2,4})-(0?[1-9]|1[0-2])-(3[01]|[12]\d|0?[1-9])"#)?,
-                      |text_match| helpers::ymd(
+                      |text_match| helpers::year_month_day(
                           text_match.group(1).parse()?,
                           text_match.group(2).parse()?,
                           text_match.group(3).parse()?)

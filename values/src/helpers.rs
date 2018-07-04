@@ -488,10 +488,6 @@ pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<TimeValue> {
     Ok(TimeValue::constraint(Cycle::rc(grain).take_not_immediate(n)).form(Form::Cycle(grain)))
 }
 
-pub fn ymd(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
-     Ok(TimeValue::constraint(YearMonthDay::new(y, m, d)))
-}
-
 pub fn easter() -> RuleResult<TimeValue> {
     fn offset(i: &Interval<Local>, _: &Context<Local>) -> Option<Interval<Local>> {
         let (year, month, day) = computer_easter(i.start.year());
