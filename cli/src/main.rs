@@ -84,12 +84,12 @@ fn main() {
                 .unwrap_or(OutputKind::all());
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
             let parser = build_raw_parser(lang).unwrap();
-            let decoder = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2017, 6, 1).and_hms(5, 00, 0)), Grain::Second));
 
             let context = ResolverContext::default();
+            
             let tagger = CandidateTagger {
                 order: &kinds,
-                context: &decoder,
+                context: &context,
                 resolve_all_candidates: true,
             };
             let candidates = parser.candidates(&*sentence, &tagger).unwrap();
