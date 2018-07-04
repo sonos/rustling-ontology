@@ -96,7 +96,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("¥") })
     );
     b.rule_1_terminal("KRW",
-        b.reg(r#"krw|wons? (?:sud[- ])?cor[ée]ns?|wons?"#)?,
+        b.reg(r#"₩|krw|wons? (?:sud[- ])?cor[ée]ns?|wons?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
     b.rule_1_terminal("Bitcoin",
@@ -138,7 +138,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             })
     });
     b.rule_2("about <amount-of-money>",
-             b.reg(r#"(?:autour|pas loin|pr[eè]s|aux alentours) d[e']|environ|(?:approximative|quasi)ment"#)?,
+             b.reg(r#"(?:autour|pas loin|pr[eè]s|aux alentours) d[e']|environ|presque|(?:approximative|quasi)ment"#)?,
              amount_of_money_check!(),
              |_, a| {
                  Ok(AmountOfMoneyValue {
@@ -1574,13 +1574,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_1("number as temp", number_check!(), |a| {
-        Ok(TemperatureValue {
-            value: a.value().value(),
-            unit: None,
-            latent: true,
-        })
-    });
+    b.rule_1("number as temp",
+            number_check!(),
+            |a| {
+                 Ok(TemperatureValue {
+                    value: a.value().value(),
+                    unit: None,
+                    latent: true,
+                })
+            });
     b.rule_2("<latent temp> degrees",
              temperature_check!(),
              b.reg(r#"(?:deg(?:r[éeè])?s?\.?)|°"#)?,
