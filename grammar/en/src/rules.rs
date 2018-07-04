@@ -1639,7 +1639,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  Ok(TemperatureValue {
                      value: a.value().value,
                      unit: Some("degree"),
-                     latent: false,
+                     latent: true,
                  })
              });
     b.rule_2("<temp> Celcius",
