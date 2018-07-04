@@ -3,9 +3,9 @@ use rustling_ontology_moment::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::ResolverContext;
 
-
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(15.0), "15%", "fünfzehn prozent", "15 vom Hundert");
+    example!(v, check_percentage(3.2), "3,2 %", "drei komma zwei prozent", "3,2 vom Hundert");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
@@ -61,8 +61,8 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(0.0, Some("¥"), Precision::Exact), "0¥");
     example!(v, check_finance(980.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
     example!(v, check_finance(10.5, Some("KRW"), Precision::Exact), "10,5 ₩");
-    example!(v, check_finance(1.0, Some("BTC"), Precision::Exact), "1 bitcoin");
-    example!(v, check_finance(10.0, Some("BTC"), Precision::Exact), "zehn Bitcoins");
+    example!(v, check_finance(1.0, Some("฿"), Precision::Exact), "1 bitcoin");
+    example!(v, check_finance(10.0, Some("฿"), Precision::Exact), "zehn Bitcoins");
     example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
     example!(v, check_finance(300.0, Some("cent"), Precision::Exact), "300 pennies");
     example!(v, check_finance(1.0, Some("cent"), Precision::Exact), "1 penny", "1 cent", "1 cts", "1 ct");

@@ -2118,7 +2118,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
     );
     b.rule_2("<temp> fahrenheit",
              temperature_check!(),
-             b.reg(r#"f(?:ahrenheit)?"#)?,
+             b.reg(r#"f(?:ah?rh?enh?eit)?"#)?,
              |temp, _| Ok(TemperatureValue {
                  value: temp.value().value,
                  unit: Some("fahrenheit"),
