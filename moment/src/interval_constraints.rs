@@ -42,7 +42,6 @@ impl<T: TimeZone> Context<T> where <T as TimeZone>::Offset: Copy {
         let now_end = now.end_moment();
         let max_year = if 2038 > now_end.year() + 70 { now_end.year() + 70 } else { 2038 };
         let min_year = if 1970 < now.start.year() - 70 { now.start.year() - 70  } else { 1970 };
-        println!("MAX: {:?} MIN {:?}", max_year, min_year);
         let min_interval = Interval::starting_at(Moment(now.timezone().ymd(min_year, 1, 1).and_hms(0, 0, 0)), Grain::Second);
         let max_interval = Interval::starting_at(Moment(now.timezone().ymd(max_year, 1, 1).and_hms(0, 0, 0)), Grain::Second);
         Context::new(now, min_interval, max_interval)
