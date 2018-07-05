@@ -43,9 +43,45 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"us[d\$]|dollars? am[eé]ricains?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("USD") })
     );
+    b.rule_1_terminal("AUD",
+        b.reg(r#"au[d\$]|dollars? australiens?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("AUD") })
+    );
+    b.rule_1_terminal("CAD",
+        b.reg(r#"cad|dollars? canadiens?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CAD") })
+    );
+    b.rule_1_terminal("HKD",
+        b.reg(r#"hkd|dollars? de hong[- ]kong"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("HKD") })
+    );
+    b.rule_1_terminal("KR",
+        b.reg(r#"kr|couronnes?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("KR") })
+    );
+    b.rule_1_terminal("DKK",
+        b.reg(r#"dkk|couronnes? danoises?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("DKK") })
+    );
+    b.rule_1_terminal("NOK",
+        b.reg(r#"nok|couronnes? norv[ée]giennes?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("NOK") })
+    );
+    b.rule_1_terminal("SEK",
+        b.reg(r#"sek|couronnes? su[ée]doises?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("SEK") })
+    );
     b.rule_1_terminal("CHF",
         b.reg(r#"chf|francs? suisses?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("CHF") })
+    );
+    b.rule_1_terminal("RUB",
+        b.reg(r#"rub|roubles?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("RUB") })
+    );
+    b.rule_1_terminal("INR",
+        b.reg(r#"inr|roupies?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_1_terminal("JPY",
         b.reg(r#"jpy|yens?"#)?,
@@ -53,10 +89,18 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("RMB|CNH|CNY",
         b.reg(r#"cny|cnh|rmb|yuans?|renmimbis?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CNY") })
+    );
+    b.rule_1_terminal("¥",
+        b.reg(r#"¥"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("¥") })
     );
+    b.rule_1_terminal("KRW",
+        b.reg(r#"₩|krw|wons? (?:sud[- ])?cor[ée]ns?|wons?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("KRW") })
+    );
     b.rule_1_terminal("Bitcoin",
-        b.reg(r#"bitcoins?"#)?,
+        b.reg(r#"฿|bitcoins?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("GBP",
@@ -94,7 +138,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             })
     });
     b.rule_2("about <amount-of-money>",
-             b.reg(r#"(?:autour|pas loin|pr[eè]s|aux alentours) d[e']|environ|(?:approximative|quasi)ment"#)?,
+             b.reg(r#"(?:autour|pas loin|pr[eè]s|aux alentours) d[e']|environ|presque|(?:approximative|quasi)ment"#)?,
              amount_of_money_check!(),
              |_, a| {
                  Ok(AmountOfMoneyValue {
@@ -1530,13 +1574,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_1("number as temp", number_check!(), |a| {
-        Ok(TemperatureValue {
-            value: a.value().value(),
-            unit: None,
-            latent: true,
-        })
-    });
+    b.rule_1("number as temp",
+            number_check!(),
+            |a| {
+                 Ok(TemperatureValue {
+                    value: a.value().value(),
+                    unit: None,
+                    latent: true,
+                })
+            });
     b.rule_2("<latent temp> degrees",
              temperature_check!(),
              b.reg(r#"(?:deg(?:r[éeè])?s?\.?)|°"#)?,
@@ -1564,6 +1610,16 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  Ok(TemperatureValue {
                      value: a.value().value,
                      unit: Some("fahrenheit"),
+                     latent: false,
+                 })
+             });
+    b.rule_2("<temp> Kelvin",
+             temperature_check!(),
+             b.reg(r#"k(?:elvin)?\.?"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                     value: a.value().value,
+                     unit: Some("kelvin"),
                      latent: false,
                  })
              });

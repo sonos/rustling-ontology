@@ -30,7 +30,9 @@ pub fn examples() -> Vec<::rustling::train::Example<rustling_ontology_values::Di
     let mut v = vec![];
     training::examples_numbers(&mut v);
     training::examples_time(&mut v);
+    training::examples_temperature(&mut v);
     training::examples_finance(&mut v);
+    training::examples_percentage(&mut v);
     v
 }
 

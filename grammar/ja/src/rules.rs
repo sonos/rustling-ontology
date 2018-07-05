@@ -305,7 +305,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(),
              |a, b| helpers::compose_money_number(&a.value(), &b.value()));
     b.rule_1_terminal("USD",
-        b.reg(r#"アメリカドル"#)?,
+        b.reg(r#"米ドル|アメリカドル"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("USD") })
     );
     b.rule_1_terminal("$",
@@ -321,11 +321,11 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("£") })
     );
     b.rule_1_terminal("GBP",
-        b.reg(r#"GBP|イギリスポンド"#)?,
+        b.reg(r#"GBP|英ポンド|イギリスポンド"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("JPY",
-        b.reg(r#"JPY|円"#)?,
+        b.reg(r#"JPY|(?:日本)?円"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("JPY") })
     );
     b.rule_1_terminal("CNY",
@@ -357,19 +357,19 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("CHF") })
     );
     b.rule_1_terminal("KRW",
-        b.reg(r#"ウォン|₩"#)?,
+        b.reg(r#"韓国ウォン|ウォン|₩"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
     b.rule_1_terminal("INR",
-        b.reg(r#"ルピー"#)?,
+        b.reg(r#"インドルピー|ルピー"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_1_terminal("RUB",
-        b.reg(r#"ルーブル"#)?,
+        b.reg(r#"ルーブル|ルーブリ"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("RUB") })
     );
     b.rule_1_terminal("AUD",
-        b.reg(r#"オーストラリアドル"#)?,
+        b.reg(r#"豪ドル|オーストラリアドル"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("AUD") })
     );
     b.rule_1_terminal("HKD",
@@ -381,7 +381,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("CAD") })
     );
     b.rule_1_terminal("Bitcoin",
-        b.reg(r#"ビットコイン|฿"#)?,
+        b.reg(r#"ビットコイン|ビット|฿"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("cent",
@@ -432,7 +432,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<temp> degree",
              number_check!(),
-             b.reg(r#"度|°"#)?,
+             b.reg(r#"度|ど|°"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: a.value().value(),
@@ -442,7 +442,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
              });
     b.rule_2("<temp> Celsius",
              number_check!(),
-             b.reg(r#"°C|℃"#)?,
+             b.reg(r#"°c|℃"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: a.value().value(),
@@ -452,7 +452,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
              });
     b.rule_2("<temp> Fahrenheit",
              number_check!(),
-             b.reg(r#"°F|℉"#)?,
+             b.reg(r#"°f|℉"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: a.value().value(),
@@ -460,11 +460,20 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
-
+    b.rule_2("<temp> Kelvin",
+             number_check!(),
+             b.reg(r#"°k|ケルビン"#)?,
+             |a, _| {
+                 Ok(TemperatureValue {
+                     value: a.value().value(),
+                     unit: Some("kelvin"),
+                     latent: false,
+                 })
+             });
     b.rule_3("<temp> Celsius",
             b.reg(r#"摂氏"#)?,
             number_check!(),
-            b.reg(r#"度|°"#)?,
+            b.reg(r#"度|ど|°"#)?,
             |_, a, _| {
                  Ok(TemperatureValue {
                      value: a.value().value(),
@@ -472,11 +481,21 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
-
+    b.rule_3("<temp> Celsius below zero",
+            b.reg(r#"摂氏(?:マイナス|零下|れいか|-)"#)?,
+            number_check!(),
+            b.reg(r#"度|ど|°"#)?,
+            |_, a, _| {
+                 Ok(TemperatureValue {
+                     value: -1.0 * a.value().value(),
+                     unit: Some("celsius"),
+                     latent: false,
+                 })
+             });
     b.rule_3("<temp> Fahrenheit",
-        b.reg(r#"華氏"#)?,
+        b.reg(r#"華氏|カ氏"#)?,
         number_check!(),
-        b.reg(r#"度|°"#)?,
+        b.reg(r#"度|ど|°"#)?,
         |_, a, _| {
             Ok(TemperatureValue {
                      value: a.value().value(),
@@ -485,8 +504,20 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                  })
         }
     );
+    b.rule_3("<temp> Fahrenheit below zero",
+        b.reg(r#"(?:華氏|カ氏)(?:マイナス|零下|れいか|-)"#)?,
+        number_check!(),
+        b.reg(r#"度|ど|°"#)?,
+        |_, a, _| {
+            Ok(TemperatureValue {
+                     value: -1.0 * a.value().value(),
+                     unit: Some("fahrenheit"),
+                     latent: false,
+                 })
+        }
+    );
     b.rule_2("<latent temp> below zero",
-             b.reg(r#"マイナス|零下"#)?,
+             b.reg(r#"マイナス|零下|れいか|-"#)?,
              temperature_check!(),
              |_, a| {
                  Ok(TemperatureValue {

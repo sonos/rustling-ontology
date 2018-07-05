@@ -3,52 +3,76 @@ use rustling_ontology_moment::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::ResolverContext;
 
+pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+    example!(v, check_percentage(15.0), "15%", "fünfzehn prozent", "15 vom Hundert");
+    example!(v, check_percentage(3.2), "3,2 %", "drei komma zwei prozent", "3,2 vom Hundert");
+}
+
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(10.0, Some("degree")), "10 Grad");
-    example!(v, check_temperature(-20.0, None), "minus 20");
-    example!(v, check_temperature(-20.0, Some("degree")), "minus 20 Grad");
-    example!(v, check_temperature(3.0, Some("degree")), "plus 3 Grad");
-    example!(v, check_temperature(71.0, Some("degree")), "71 Grad");
-    example!(v, check_temperature(-7.0, Some("degree")), "sieben Grad unter null");
-    example!(v, check_temperature(-10.0, None), "10 unterm gefrierpunkt");
-    example!(v, check_temperature(5.0, Some("degree")), "5 grad über null");
-    example!(v, check_temperature(20.0, Some("degree")), "20 grad über null");
-    example!(v, check_temperature(15.0, Some("celsius")), "15 C", "15°C");
-    example!(v, check_temperature(23.0, Some("degree")), "plus 23 °", "23°");
-    example!(v, check_temperature(-24.0, Some("degree")), "minus 24 grad");
-    example!(v, check_temperature(-15.0, Some("degree")), "15 grad unter den gefrierpunkt");
-    example!(v, check_temperature(-34.0, Some("degree")), "34 grad unterm gefrierpunkt");
-    example!(v, check_temperature(13.0, Some("degree")), "plus 13 grad");
-    example!(v, check_temperature(130.0, Some("kelvin")), "130 kelvin");
-    example!(v, check_temperature(223.0, Some("kelvin")), "223 k");
-    example!(v, check_temperature(78.0, Some("fahrenheit")), "78 fahrenheit", "78 f");
-    example!(v, check_temperature(19.0, Some("degree")), "19 grad über null");
-    example!(v, check_temperature(-18.0, Some("degree")), "Bei -18 Grad");
+    example!(v, check_temperature(3.0, Some("degree")), "3°", "3 °", "plus 3°", "3 ° über null");
+    example!(v, check_temperature(71.0, Some("degree")), "71 grad", "71 Grad", "plus 71 Grad", "71 Grad über null", "ein und siebzig Grad");
+    example!(v, check_temperature(-7.0, Some("degree")), "-7°", "-7 Grad", "minus sieben grad", "7 Grad unter null", "sieben grad unter dem gefrierpunkt", "7 Grad unterm gefrierpunkt");
+    example!(v, check_temperature(-92.0, None), "zwei und neunzig unter dem gefrierpunkt", "92 unterm gefrierpunkt");
+    example!(v, check_temperature(-18.0, Some("degree")), "bei -18°", "Bei -18 Grad");
+    example!(v, check_temperature(15.0, Some("celsius")), "15 celsius", "15 Grad Celsius", "fünfzehn Grad CELSIUS", "15 C", "15°C");
+    example!(v, check_temperature(-115.0, Some("celsius")), "minus 115 celsius", "-115 Grad Celsius", "minus hundertfünfzehn Grad CELSIUS", "- 115 C", "-115°C");
+    example!(v, check_temperature(78.0, Some("fahrenheit")), "78 fahrenheit", "78 Grad Fahrenheit", "achtundsiebzig Grad FAHRENHEIT", "78 f", "78°F");
+    example!(v, check_temperature(-78.0, Some("fahrenheit")), "minus 78 fahrenheit", "-78 Grad Fahrenheit", "minus acht und siebzig Grad FAHRENHEIT", "- 78 f", "-78°F");
+    example!(v, check_temperature(130.0, Some("kelvin")), "130 kelvin", "130 Grad Kelvin", "hundert dreißig Grad KELVIN", "130 k", "130°K");
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_finance(30.0, Some("EUR"), Precision::Exact), "dreissig Euro");
     example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 dollar");
+    example!(v, check_finance(2134.0, Some("$"), Precision::Exact), "2.134 $");
+    example!(v, check_finance(90.0, Some("$"), Precision::Exact), "präzise neunzig $");
+    example!(v, check_finance(478.0, Some("USD"), Precision::Exact), "478 US-Dollar");
+    example!(v, check_finance(5.0, Some("USD"), Precision::Exact), "5 us$");
+    example!(v, check_finance(674.0, Some("AUD"), Precision::Exact), "674 australische dollar");
+    example!(v, check_finance(7438.0, Some("AUD"), Precision::Exact), "7438 AUD");
+    example!(v, check_finance(8.0, Some("CAD"), Precision::Exact), "8Can$");
+    example!(v, check_finance(5.0, Some("CAD"), Precision::Approximate), "ungefähr fünf Kanadische Dollars");
+    example!(v, check_finance(1.0, Some("HKD"), Precision::Exact), "eines HKD");
+    example!(v, check_finance(12.0, Some("HKD"), Precision::Exact), "12 hongkong dollarn");
+    example!(v, check_finance(849.0, Some("EUR"), Precision::Approximate), "ungefähr 849 €");
+    example!(v, check_finance(4775.0, Some("EUR"), Precision::Exact), "haargenau 4.775 Euro");
+    example!(v, check_finance(30.0, Some("EUR"), Precision::Exact), "dreissig Euro");
+    example!(v, check_finance(6739.0, Some("EUR"), Precision::Approximate), "circa 6739 €");
+    example!(v, check_finance(839.0, Some("EUR"), Precision::Approximate), "ca 839 €");
+    example!(v, check_finance(293.0, Some("EUR"), Precision::Approximate), "zirka 293 €");
+    example!(v, check_finance(150.0, Some("EUR"), Precision::Approximate), "nahezu hundertfünfzig Euro");
+    example!(v, check_finance(9840.0, Some("£"), Precision::Exact), "9840£");
+    example!(v, check_finance(902.0, Some("£"), Precision::Approximate), "fast 902 Pfd.");
+    example!(v, check_finance(230983.0, Some("£"), Precision::Approximate), "beinahe 230983 £");
+    example!(v, check_finance(1000.0, Some("GBP"), Precision::Exact), "1000 Pfund Sterling");
+    example!(v, check_finance(2.0, Some("CHF"), Precision::Exact), "zwei CHF");
+    example!(v, check_finance(5.0, Some("CHF"), Precision::Exact), "Fünf schweizer Franken");
+    example!(v, check_finance(1.0, Some("KR"), Precision::Exact), "einer KRONE");
+    example!(v, check_finance(17000.0, Some("DKK"), Precision::Exact), "siebzehn tausend dänischen kronen");
+    example!(v, check_finance(2.2, Some("NOK"), Precision::Exact), "genau 2,2 NOK");
+    example!(v, check_finance(5.0, Some("NOK"), Precision::Exact), "5 norwegischer Kronen");
+    example!(v, check_finance(1.0, Some("SEK"), Precision::Exact), "einer schwedischen Krone");
+    example!(v, check_finance(1000000.0, Some("RUB"), Precision::Approximate), "fast eine million ₽");
+    example!(v, check_finance(1.0, Some("RUB"), Precision::Exact), "1 russischer Rubel");
+    example!(v, check_finance(100.0, Some("INR"), Precision::Exact), "sehr genau hundert indische Rupien");
+    example!(v, check_finance(23.0, Some("INR"), Precision::Exact), "drei und zwanzig ₹");
+    example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
+    example!(v, check_finance(270.0, Some("JPY"), Precision::Exact), "270 yen");
+    example!(v, check_finance(1.0, Some("CNY"), Precision::Exact), "1 Yuan");
+    example!(v, check_finance(0.0, Some("¥"), Precision::Exact), "0¥");
+    example!(v, check_finance(980.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
+    example!(v, check_finance(10.5, Some("KRW"), Precision::Exact), "10,5 ₩");
+    example!(v, check_finance(1.0, Some("฿"), Precision::Exact), "1 bitcoin");
+    example!(v, check_finance(10.0, Some("฿"), Precision::Exact), "zehn Bitcoins");
     example!(v, check_finance(800.0, Some("cent"), Precision::Exact), "achthundert cent");
     example!(v, check_finance(300.0, Some("cent"), Precision::Exact), "300 pennies");
     example!(v, check_finance(1.0, Some("cent"), Precision::Exact), "1 penny", "1 cent", "1 cts", "1 ct");
-    example!(v, check_finance(4000.0, Some("INR"), Precision::Exact), "exakt viertausend rupien");
-    example!(v, check_finance(980.0, Some("KRW"), Precision::Exact), "ganz genau neunhundertachtzig Won");
-    example!(v, check_finance(478.0, Some("USD"), Precision::Exact), "478 US-Dollar");
-    example!(v, check_finance(2134.0, Some("$"), Precision::Exact), "2134 $");
-    example!(v, check_finance(9840.0, Some("£"), Precision::Exact), "9840 £");
-    example!(v, check_finance(902.0, Some("£"), Precision::Approximate), "fast 902 Pfd.");
-    example!(v, check_finance(849.0, Some("EUR"), Precision::Approximate), "ungefähr 849 €");
-    example!(v, check_finance(4775.0, Some("EUR"), Precision::Exact), "haargenau 4775 Euro");
-    example!(v, check_finance(90.0, Some("$"), Precision::Exact), "präzise neunzig $");
-    example!(v, check_finance(674.0, Some("AUD"), Precision::Exact), "674 australische dollar");
-    example!(v, check_finance(7438.0, Some("AUD"), Precision::Exact), "7438 AUD");
-    example!(v, check_finance(6739.0, Some("EUR"), Precision::Approximate), "cirka 6739 €");
-    example!(v, check_finance(839.0, Some("EUR"), Precision::Approximate), "ca 839 €");
-    example!(v, check_finance(293.0, Some("EUR"), Precision::Approximate), "zirka 293 €");
-    example!(v, check_finance(230983.0, Some("£"), Precision::Approximate), "beinahe 230983 £");
-    example!(v, check_finance(150.0, Some("EUR"), Precision::Approximate), "nahezu hundertfünfzig Euro");
-    example!(v, check_finance(100.0, Some("INR"), Precision::Exact), "sehr genau hundert indische Rupien");
+    example!(v, check_finance(10.5, Some("EUR"), Precision::Exact), "10 € 50 ¢");
+    example!(v, check_finance(7.8, Some("$"), Precision::Approximate), "fast 7$ 80c");
+    example!(v, check_finance(102.1, Some("GBP"), Precision::Exact), "hundert zwei britische pfund zehn pennies");
+    example!(v, check_finance(105.0, Some("$"), Precision::Exact), "einhundert fünf dollar");
+    example!(v, check_finance(1047.0, Some("EUR"), Precision::Approximate), "ungefähr eintausend siebenundvierzig Euro");
+    example!(v, check_finance(1001.0, Some("CHF"), Precision::Exact), "tausendeines Schweizer Frankens");
+    example!(v, check_finance(500736.0, Some("EUR"), Precision::Exact), "fünfhunderttausendsiebenhundertsechsunddreißig euro");
 }
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
