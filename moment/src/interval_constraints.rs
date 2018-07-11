@@ -255,7 +255,8 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
+    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
+        if !is_valid_month_day(self.0, self.1) { return BidirectionalWalker::new(); }
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
                                         .and_hms(0, 0, 0));
@@ -316,7 +317,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for Month where <T as TimeZone
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
+    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
         if !is_valid_month(self.0) { return BidirectionalWalker::new(); }
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
