@@ -369,6 +369,21 @@ pub fn normalize_year(y: i32) -> RuleResult<i32> {
     }
 }
 
+trait MomentToRuleError {
+    type Output;
+    fn invalid_if_err(self) -> RuleResult<Self::Output>;
+}
+
+impl<T> MomentToRuleError for MomentResult<T> {
+    type Output = T;
+    fn invalid_if_err(self) -> RuleResult<T> {
+        Ok(self.map_err(|e| {
+            println!("TOTO {:?}", e);
+            RuleError::Invalid
+        })?)
+    }
+}
+
 pub fn year(y: i32) -> RuleResult<TimeValue> {
     let y = normalize_year(y)?;
     Ok(TimeValue::constraint(Year::new(y)).form(Form::Year(y)))
@@ -378,14 +393,14 @@ pub fn month(m: u32) -> RuleResult<TimeValue> {
     if !(1 <= m && m <= 12) {
         return Err(RuleError::Invalid.into())
     }
-    Ok(TimeValue::constraint(Month::new(m)).form(Form::Month(m)))
+    Ok(TimeValue::constraint(Month::new(m).invalid_if_err()?).form(Form::Month(m)))
 }
 
 pub fn day_of_month(dom: u32) -> RuleResult<TimeValue> {
     if !(1 <= dom && dom <= 31) {
         return Err(RuleError::Invalid.into())
     }
-    Ok(TimeValue::constraint(DayOfMonth::new(dom)).form(Form::DayOfMonth))
+    Ok(TimeValue::constraint(DayOfMonth::new(dom).invalid_if_err()?).form(Form::DayOfMonth))
 }
 
 pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
@@ -393,36 +408,36 @@ pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
 }
 
 pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(MonthDay::new(m, d)).form(Form::MonthDay(Some(MonthDayForm { month: m, day_of_month: d }))))
+    Ok(TimeValue::constraint(MonthDay::new(m, d).invalid_if_err()?).form(Form::MonthDay(Some(MonthDayForm { month: m, day_of_month: d }))))
 }
 
 pub fn year_month_day(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
     let y = normalize_year(y)?;
-    Ok(TimeValue::constraint(YearMonthDay::new(y, m, d)).form(Form::YearMonthDay(Some(YearMonthDayForm { year: y, month: m, day_of_month: d }))))
+    Ok(TimeValue::constraint(YearMonthDay::new(y, m, d).invalid_if_err()?).form(Form::YearMonthDay(Some(YearMonthDayForm { year: y, month: m, day_of_month: d }))))
 }
 
 pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if is_12_clock {
-        Ok(TimeValue::constraint(Hour::clock_12(h)).form(Form::time_of_day_hour(h, is_12_clock)))
+        Ok(TimeValue::constraint(Hour::clock_12(h).invalid_if_err()?).form(Form::time_of_day_hour(h, is_12_clock)))
     } else {
-        Ok(TimeValue::constraint(Hour::clock_24(h)).form(Form::time_of_day_hour(h, is_12_clock)))
+        Ok(TimeValue::constraint(Hour::clock_24(h).invalid_if_err()?).form(Form::time_of_day_hour(h, is_12_clock)))
     }
 }
 
 pub fn minute(m: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Minute::new(m)))
+    Ok(TimeValue::constraint(Minute::new(m).invalid_if_err()?))
 }
 
 pub fn second(s: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Second::new(s)))
+    Ok(TimeValue::constraint(Second::new(s).invalid_if_err()?))
 }
 
 pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if is_12_clock {
-        Ok(TimeValue::constraint(HourMinute::clock_12(h, m))
+        Ok(TimeValue::constraint(HourMinute::clock_12(h, m).invalid_if_err()?)
             .form(Form::time_of_day_hour_minute(h, m, is_12_clock)))
     } else {
-        Ok(TimeValue::constraint(HourMinute::clock_24(h, m))
+        Ok(TimeValue::constraint(HourMinute::clock_24(h, m).invalid_if_err()?)
            .form(Form::time_of_day_hour_minute(h, m, is_12_clock)))
     }
 }
@@ -494,7 +509,7 @@ pub fn easter() -> RuleResult<TimeValue> {
         let (year, month, day) = computer_easter(i.start.year());
         Some(Interval::ymd(year, month, day))
     }
-    Ok(TimeValue::constraint(Month::new(3).translate_with(offset)))
+    Ok(TimeValue::constraint(Month::new(3).invalid_if_err()?.translate_with(offset)))
 }
 
 pub fn computer_easter(year: i32) -> (i32, u32, u32) {
