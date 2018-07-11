@@ -70,6 +70,15 @@ macro_rules! rc {
     ($obj:expr) => (RcConstraint(Rc::new($obj)))
 }
 
+impl<T: TimeZone+'static> Walker<Interval<T>> where <T as TimeZone>::Offset: Copy {
+    pub fn bound_to_context(self, context: &Context<T>) -> Walker<Interval<T>> {
+         let bound = (Rc::new(context.min.start.clone()), Rc::new(context.max.start.clone()));
+         self.take_while(move |interval| {
+                    *bound.0 <= interval.start && interval.start <= *bound.1
+                })
+    }
+}
+
 
 impl<T: TimeZone+'static> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
     pub fn shift_by(&self, period: Period) -> RcConstraint<T> {
@@ -212,7 +221,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
+    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
                                         .and_hms(0, 0, 0));
@@ -224,15 +233,16 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let day_of_month = self.1;
         let forward_walker =
             Walker::generator(anchor, |prev| prev + PeriodComp::years(1))
+                .bound_to_context(context)
                 .filter(move |interval| {
-                            day_of_month <=
-                            last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
-                        })
+                        day_of_month <= last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
+                })
                 .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
 
         let backward_walker =
             Walker::generator(anchor - PeriodComp::years(1),
                               |prev| prev - PeriodComp::years(1))
+                    .bound_to_context(context)
                     .filter(move |interval| {
                                 day_of_month <=
                                 last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
@@ -250,12 +260,12 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
 pub struct Month(pub u32);
 
 impl Month {
-    pub fn new<T: TimeZone>(m: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
+    pub fn new<T: TimeZone + 'static>(m: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
         rc!(Month(m))
     }
 }
 
-impl<T: TimeZone> IntervalConstraint<T> for Month where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone + 'static> IntervalConstraint<T> for Month where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         Grain::Month
     }
@@ -264,18 +274,21 @@ impl<T: TimeZone> IntervalConstraint<T> for Month where <T as TimeZone>::Offset:
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
+    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
                                         .and_hms(0, 0, 0));
         let rounded_interval = Interval::starting_at(rounded_moment, Grain::Month);
         let offset_year = !(origin.start <= rounded_interval.end_moment()) as i64;
         let anchor = rounded_interval + PeriodComp::years(offset_year);
-
-        BidirectionalWalker::new()
-            .forward_with(anchor, |prev| prev + PeriodComp::years(1))
-            .backward_with(anchor - PeriodComp::years(1),
+        let forward_walker = Walker::generator(anchor, |prev| prev + PeriodComp::years(1))
+                .bound_to_context(context);
+        let backward_walker = Walker::generator(anchor - PeriodComp::years(1),
                            |prev| prev - PeriodComp::years(1))
+                .bound_to_context(context);
+        BidirectionalWalker::new()
+            .forward(forward_walker)
+            .backward(backward_walker)
     }
 }
 
@@ -1834,5 +1847,14 @@ mod tests {
                                               Grain::Day)),
                    walker.backward.clone().skip(1).next());
 
+    }
+
+    #[test]
+    fn test_month_day_special_case() {
+        let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let month = MonthDay(2, 31);
+        let walker = month.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.forward.clone().next());
+        assert_eq!(None, walker.backward.clone().next());
     }
 }
