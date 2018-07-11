@@ -1394,7 +1394,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"\-|to|th?ru|through|(?:un)?til(?:l)?"#)?,
              time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
-             |_, a, _, b| a.value().span_to(b.value(), true)
+             |_, a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("between <datetime> and <datetime> (interval)",
              b.reg(r#"between"#)?,

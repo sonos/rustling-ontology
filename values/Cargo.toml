@@ -5,5 +5,5 @@ authors = ["Mathieu Poumeyrol <kali@zoy.org>"]
 
 [dependencies]
 regex = "0.2"
+rustling = { git="https://github.com/snipsco/rustling", tag="0.9.0" }
 rustling-ontology-moment = { path="../moment"}
-rustling = { git="https://github.com/snipsco/rustling", tag="0.8.1" }
