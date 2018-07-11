@@ -300,6 +300,7 @@ impl TimeValue {
         }
     }
 
+    
     pub fn span_to(&self, to: &TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
         if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
            is_inclusive {
