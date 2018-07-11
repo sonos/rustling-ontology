@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate failure;
+#[macro_use]
 extern crate rustling;
 extern crate rustling_ontology_moment as moment;
 extern crate regex;

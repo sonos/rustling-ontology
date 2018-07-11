@@ -115,7 +115,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "七" => 7,
                 "八" => 8,
                 "九" => 9,
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             IntegerValue::new(value) 
         }
@@ -570,7 +570,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                             "金曜" => Weekday::Fri,
                             "土曜" => Weekday::Sat,
                             "日曜" => Weekday::Sun,
-                            _ => return Err(RuleErrorKind::Invalid.into()),
+                            _ => return Err(RuleError::Invalid.into()),
                         };
                         helpers::day_of_week(value)
                       }
@@ -591,7 +591,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                             "十" => 10,
                             "十一" => 11,
                             "十二" => 12,
-                            _ => return Err(RuleErrorKind::Invalid.into()),
+                            _ => return Err(RuleError::Invalid.into()),
                         };
                         helpers::month(value)
                       }
@@ -1121,7 +1121,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     let nth_week_of_year = helpers::cycle_nth_after(Grain::Week, number.value().value - 1, &helpers::year_month_day(year, 1, 1)?)?;
                     weekdays_of_year.intersect(&nth_week_of_year)
                  } else {
-                    Err(RuleErrorKind::Invalid.into())
+                    Err(RuleError::Invalid.into())
                  }
              }
     );
@@ -1134,7 +1134,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     "先" => -1,
                     "今" => 0,
                     "来" => 1,
-                    _ => return Err(RuleErrorKind::Invalid.into()),
+                    _ => return Err(RuleError::Invalid.into()),
                 };
                 helpers::cycle_nth(Grain::Month, value)?.intersect(&helpers::day_of_month(integer.value().value as u32)?)
             }
@@ -1172,7 +1172,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     let nth_week_of_year = helpers::cycle_nth_after(Grain::Week, 0, &helpers::year_month_day(year, 1, 1)?)?;
                     time.intersect(&nth_week_of_year)
                  } else {
-                    Err(RuleErrorKind::Invalid.into())
+                    Err(RuleError::Invalid.into())
                  }
              }
     );
@@ -1190,7 +1190,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     let nth_week_of_year = helpers::cycle_nth_after(Grain::Week, -1, &helpers::year_month_day(year + 1, 1, 1)?)?;
                     time.intersect(&nth_week_of_year)
                  } else {
-                    Err(RuleErrorKind::Invalid.into())
+                    Err(RuleError::Invalid.into())
                  }
              }
     );
@@ -1999,7 +1999,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             let start_year = match emperor.group(1).as_ref() {
                 "平成" => 1989,
                 "昭和" => 1926,
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
 
             let year = integer.value().value + &start_year - 1;

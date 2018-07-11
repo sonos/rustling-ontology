@@ -241,7 +241,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "금" => Weekday::Fri,
                               "토" => Weekday::Sat,
                               "일" => Weekday::Sun,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           helpers::day_of_week(dow)
                       }
@@ -280,7 +280,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               let groups = helpers::find_regex_group(&regex, s)?
                                   .into_iter()
                                   .nth(0)
-                                  .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, s))?
+                                  .ok_or_else(|| format_err!("Regex {:?} has no match for {:?}", regex, s))?
                                   .groups;
                               let number = 10 * groups.get(1).and_then(|g| *g)
                                   .and_then(|g| g.chars().nth(0))
@@ -309,7 +309,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "칠" => 7,
                               "팔" => 8,
                               "구" => 9,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           helpers::day_of_month(dom)
                       }
@@ -1130,7 +1130,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "아흐레" => 9,
                               "열흘" => 10,
                               "열하루" => 11,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           Ok(DurationValue::new(PeriodComp::new(Grain::Day, number_of_days).into()))
                       }
@@ -1294,7 +1294,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               let groups = helpers::find_regex_group(&regex, s)?
                                   .into_iter()
                                   .nth(0)
-                                  .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, s))?
+                                  .ok_or_else(|| format_err!("Regex {:?} has no match for {:?}", regex, s))?
                                   .groups;
                               let coef_1 = groups.get(4).and_then(|g| *g)
                                   .and_then(|g| g.chars().nth(0))
@@ -1330,7 +1330,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           let groups = helpers::find_regex_group(&regex, text_match.group(0))?
                               .into_iter()
                               .nth(0)
-                              .ok_or_else(|| format!("Regex {:?} has no match for {:?}", regex, text_match.group(0)))?
+                              .ok_or_else(|| format_err!("Regex {:?} has no match for {:?}", regex, text_match.group(0)))?
                               .groups;
 
                           let coef_1000000000000 = groups.get(1).and_then(|g| *g)
@@ -1377,7 +1377,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "일곱" => 7,
                               "여덟" => 8,
                               "아홉" => 9,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new(value)
                       }
@@ -1420,7 +1420,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "두" => 2,
                               "세" => 3,
                               "네" => 4,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new(value)
                       }
@@ -1442,7 +1442,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "일흔" => 70,
                               "여든" => 80,
                               "아흔" => 90,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new(value)
                       }

@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate failure;
 extern crate regex;
 extern crate rustling;
 #[macro_use]

@@ -840,7 +840,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "trece" => 13,
                               "catorce" => 14,
                               "quince" => 15,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new(value)
                       }
@@ -857,7 +857,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "setenta" => 70,
                               "ochenta" => 80,
                               "noventa" => 90,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new(value)
                       });
@@ -894,7 +894,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "veintisiete" => 27,
                               "veintiocho" => 28,
                               "veintinueve" => 29,
-                              _ => return Err(RuleErrorKind::Invalid.into())
+                              _ => return Err(RuleError::Invalid.into())
                           };
                           IntegerValue::new(value)
                       });
@@ -914,7 +914,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "ochocientos" => 800,
                               "novecientos" => 900,
                               "mil" => 1000,
-                              _ => return Err(RuleErrorKind::Invalid.into())
+                              _ => return Err(RuleError::Invalid.into())
                           };
                           IntegerValue::new(value)
                       });
@@ -989,7 +989,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      "k" => 1000,
                      "m" => 1000000,
                      "g" => 1000000000,
-                     _ => return Err(RuleErrorKind::Invalid.into()),
+                     _ => return Err(RuleError::Invalid.into()),
                  };
                  Ok(match a.value().clone() {
                      // checked
@@ -1075,7 +1075,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "novenas" => 9,
                               "décimas" => 10,
                               "decimas" => 10,
-                              _ => return Err(RuleErrorKind::Invalid.into())
+                              _ => return Err(RuleError::Invalid.into())
                           };
                           Ok(OrdinalValue::new(value))
                       });
