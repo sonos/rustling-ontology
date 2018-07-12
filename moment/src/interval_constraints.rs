@@ -431,30 +431,32 @@ pub struct HourMinute {
 }
 
 impl HourMinute {
-    pub fn clock_12<T: TimeZone>(hour: u32, minute: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+    fn new(hour: u32, minute: u32) -> MomentResult<HourMinute> {
         let args = HourMinute {
             hour: hour,
             minute: minute,
             is_12_clock: true,
         };
         if is_valid_hour(hour) && is_valid_minute(minute) {
-            Ok(rc!(args))
+            Ok(args)
         } else {
             Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
         }
     }
 
-    pub fn clock_24<T: TimeZone>(hour: u32, minute: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
-        let args = HourMinute {
-            hour: hour,
-            minute: minute,
-            is_12_clock: false,
-        };
-        if is_valid_hour(hour) && is_valid_minute(minute) {
-            Ok(rc!(args))
-        } else {
-            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+    fn with_is_12_clock(self, is_12_clock: bool) -> HourMinute {
+        HourMinute {
+            is_12_clock,
+            .. self
         }
+    }
+
+    pub fn clock_12<T: TimeZone>(hour: u32, minute: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        Ok(rc!(HourMinute::new(hour, minute)?.with_is_12_clock(true)))
+    }
+
+    pub fn clock_24<T: TimeZone>(hour: u32, minute: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        Ok(rc!(HourMinute::new(hour, minute)?.with_is_12_clock(false)))
     }
 }
 
@@ -487,33 +489,36 @@ impl<T: TimeZone> IntervalConstraint<T> for HourMinute where <T as TimeZone>::Of
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Hour {
-    pub quantity: u32,
+    pub hour: u32,
     pub is_12_clock: bool,
 }
 
 impl Hour {
-    pub fn clock_12<T: TimeZone>(quantity: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+    fn new(hour: u32) -> MomentResult<Hour> {
         let args = Hour {
-            quantity: quantity,
+            hour,
             is_12_clock: true,
         };
-        if is_valid_hour(quantity) {
-            Ok(rc!(args))
+        if is_valid_hour(hour) {
+            Ok(args)
         } else {
             Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
         }
     }
 
-    pub fn clock_24<T: TimeZone>(quantity: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
-        let args = Hour {
-            quantity: quantity,
-            is_12_clock: false,
-        };
-        if is_valid_hour(quantity) {
-            Ok(rc!(args))
-        } else {
-            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+    fn with_is_12_clock(self, is_12_clock: bool) -> Hour {
+        Hour {
+            is_12_clock,
+            .. self
         }
+    }
+
+    pub fn clock_12<T: TimeZone>(hour: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        Ok(rc!(Hour::new(hour)?.with_is_12_clock(true)))
+    }
+
+    pub fn clock_24<T: TimeZone>(hour: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        Ok(rc!(Hour::new(hour)?.with_is_12_clock(false)))
     }
 }
 
@@ -527,12 +532,12 @@ impl<T: TimeZone> IntervalConstraint<T> for Hour where <T as TimeZone>::Offset: 
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
-        let clock_step = if self.quantity <= 12 && self.is_12_clock {
+        let clock_step = if self.hour <= 12 && self.is_12_clock {
             12
         } else {
             24
         };
-        let offset = (self.quantity as i64 - origin.start.hour() as i64 + clock_step) % clock_step;
+        let offset = (self.hour as i64 - origin.start.hour() as i64 + clock_step) % clock_step;
         let anchor = origin.start_round_to(Grain::Hour) + PeriodComp::hours(offset);
 
         BidirectionalWalker::new()
