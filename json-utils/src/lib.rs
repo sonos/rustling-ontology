@@ -16,7 +16,8 @@ pub struct Utterance {
     #[serde(with = "moment_json")]
     pub context: Moment<Local>,
     #[serde(rename = "in_grammar")]
-    pub in_grammar: bool,
+    pub in_grammar: Option<bool>,
+    pub skip_rustling: Option<bool>,
     pub translation: Option<String>,
     pub value: Option<SlotValue>,
 }
@@ -26,7 +27,8 @@ pub struct Utterance {
 pub struct PartialUtterance {
     pub phrase: String,
     #[serde(rename = "in_grammar")]
-    pub in_grammar: bool,
+    pub in_grammar: Option<bool>,
+    pub skip_rustling: Option<bool>,
     pub translation: Option<String>,
     pub value: Option<SlotValue>,
 }
