@@ -22,6 +22,12 @@ pub struct Utterance {
     pub value: Option<SlotValue>,
 }
 
+impl Utterance {
+    pub fn keep(&self) -> bool {
+        self.skip_rustling.map(|it| !it).or(self.in_grammar).unwrap_or(true)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PartialUtterance {
@@ -31,6 +37,12 @@ pub struct PartialUtterance {
     pub skip_rustling: Option<bool>,
     pub translation: Option<String>,
     pub value: Option<SlotValue>,
+}
+
+impl PartialUtterance {
+    pub fn keep(&self) -> bool {
+        self.skip_rustling.map(|it| !it).or(self.in_grammar).unwrap_or(true)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -67,7 +79,8 @@ impl<A, B> TestAssertion<A, B> {
 pub struct TestOutput {
     pub phrase: String,
     #[serde(rename = "in_grammar")]
-    pub in_grammar: bool,
+    pub in_grammar: Option<bool>,
+    pub skip_rustling: Option<bool>,
     #[serde(with = "moment_json")]
     pub context: Moment<Local>,
     pub translation: Option<String>,

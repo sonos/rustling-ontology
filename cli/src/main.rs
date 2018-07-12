@@ -139,7 +139,7 @@ fn main() {
             let default_context = Moment(Local.ymd(2017, 6, 1).and_hms(5, 00, 0));
             let utterances: Vec<Utterance> = partial_utterances.into_iter()
                 .map(|it| {
-                  if it.in_grammar && (it.value.is_none() || force_resolution) {
+                  if it.keep() && (it.value.is_none() || force_resolution) {
                       let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
                       let entities = parser.parse(it.phrase.to_lowercase().as_str(), &context).unwrap();
                       let full_match = entities
@@ -149,6 +149,7 @@ fn main() {
                       Utterance {
                           phrase: it.phrase,
                           in_grammar: it.in_grammar,
+                          skip_rustling: it.skip_rustling,
                           translation: it.translation,
                           context: default_context.clone(),
                           value: full_match.map(|it| it.value.into()),
@@ -157,6 +158,7 @@ fn main() {
                     Utterance {
                       phrase: it.phrase,
                       in_grammar: it.in_grammar,
+                      skip_rustling: it.skip_rustling,
                       translation: it.translation,
                       context: default_context.clone(),
                       value: it.value,
@@ -179,7 +181,7 @@ fn main() {
             
             let output: Vec<TestOutput> = utterances.into_iter()
                 .map(|utterance| {
-                  if utterance.in_grammar {
+                  if utterance.keep() {
                       let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
                       let entities = parser.parse(utterance.phrase.to_lowercase().as_str(), &context).unwrap();
                       let assertion = if entities.len() == 1 {
@@ -232,6 +234,7 @@ fn main() {
                       TestOutput {
                           phrase: utterance.phrase,
                           in_grammar: utterance.in_grammar,
+                          skip_rustling: utterance.skip_rustling,
                           context: utterance.context,
                           translation: utterance.translation,
                           output: assertion,
@@ -240,6 +243,7 @@ fn main() {
                     TestOutput {
                       phrase: utterance.phrase,
                       in_grammar: utterance.in_grammar,
+                      skip_rustling: utterance.skip_rustling,
                       context: utterance.context,
                       translation: utterance.translation,
                       output: TestAssertion::Success(None),
