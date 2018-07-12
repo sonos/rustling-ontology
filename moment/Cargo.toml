@@ -5,9 +5,10 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 
 [dependencies]
 chrono = "0.3"
-enum_primitive = "0.1.1"
-vec_map = "0.8"
 derive-new = "0.5"
+enum_primitive = "0.1.1"
+failure = "0.1.1"
+vec_map = "0.8"
 
 [dev-dependencies]
 bencher = "0.1"

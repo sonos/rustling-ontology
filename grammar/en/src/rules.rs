@@ -1351,7 +1351,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                   "ten" => 10,
                   "eleven" => 11,
                   "twelve" => 12,
-                   _ => return Err(RuleErrorKind::Invalid.into()),
+                   _ => return Err(RuleError::Invalid.into()),
                 };
                 Ok(helpers::hour(hour, true)?.precision(Approximate))
     });
@@ -1394,7 +1394,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"\-|to|th?ru|through|(?:un)?til(?:l)?"#)?,
              time_check!(|time: &TimeValue| !time.latent && excluding_form!(Form::TimeOfDay(_))(time)),
-             |_, a, _, b| a.value().span_to(b.value(), true)
+             |_, a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("between <datetime> and <datetime> (interval)",
              b.reg(r#"between"#)?,
@@ -1714,7 +1714,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "seventeen" => 17,
                               "eighteen" => 18,
                               "nineteen" => 19,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new_with_grain(value, 1)
                       });
@@ -1751,7 +1751,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "seventy" => 70,
                               "eighty" => 80,
                               "ninety" => 90,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new_with_grain(value, 1)
                       });
@@ -1790,7 +1790,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "thousand" => (1_000, 3),
                 "million" => (1_000_000, 6),
                 "billion" => (1_000_000_000, 9),
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             IntegerValue::new_with_grain(value, grain)
         }
@@ -1805,7 +1805,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "thousand" => (1_000, 3),
                 "million" => (1_000_000, 6),
                 "billion" => (1_000_000_000, 9),
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             IntegerValue::new_with_grain(integer.value().value * value, grain)
         }
@@ -1909,7 +1909,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      "k" => 1000,
                      "m" => 1000000,
                      "g" => 1000000000,
-                     _ => return Err(RuleErrorKind::Invalid.into()),
+                     _ => return Err(RuleError::Invalid.into()),
                  };
                  Ok(match a.value().clone() {
                      // checked
@@ -1965,7 +1965,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "seventeenth" => 17,
                 "eighteenth" => 18,
                 "nineteenth" => 19,
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             Ok(OrdinalValue::new(value))
     });
@@ -1981,7 +1981,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "seven" => 70,
                 "eigh" => 80,
                 "nine" => 90,
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             Ok(OrdinalValue::new(value))
     });
@@ -2008,7 +2008,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "thousand" => (1_000, 3),
                 "million" => (1_000_000, 6),
                 "billion" => (1_000_000_000, 9),
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             Ok(OrdinalValue::new_with_grain(value, grain))
         }
@@ -2023,7 +2023,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "thousand" => (1_000, 3),
                 "million" => (1_000_000, 6),
                 "billion" => (1_000_000_000, 9),
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             Ok(OrdinalValue::new_with_grain(integer.value().value * value, grain))
         }
@@ -2038,7 +2038,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |integer, ordinal| {
             let grain = ordinal.value().grain.unwrap_or(0);
             let next_grain = (grain / 3) * 3 + 3;
-            if integer.value().value % 10i64.pow(next_grain as u32) != 0 { return Err(RuleErrorKind::Invalid.into()); }
+            if integer.value().value % 10i64.pow(next_grain as u32) != 0 { return Err(RuleError::Invalid.into()); }
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
     );

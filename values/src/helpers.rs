@@ -14,13 +14,13 @@ pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberVal
             _ => Ok(NumberValue::Float(FloatValue::new(a.value() + b.value())?)),
         }
     } else {
-        Err(RuleErrorKind::Invalid.into())
+        Err(RuleError::Invalid.into())
     }
 }
 
 pub fn compose_numbers_from_left(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberValue> {
     if b.combined_from_left() { 
-        Err(RuleErrorKind::Invalid.into())  
+        Err(RuleError::Invalid.into())  
     } else {
         let res = compose_numbers(a, b)?;
         let combination_direction = match &res {
@@ -35,10 +35,10 @@ pub fn compose_numbers_from_left(a: &NumberValue, b: &NumberValue) -> RuleResult
 
 pub fn compose_duration_with_integer(duration: &DurationValue, value: &IntegerValue) -> RuleResult<DurationValue> {
     let grain = duration.period.finer_grain()
-        .ok_or_else(|| -> RuleError { RuleErrorKind::Invalid.into() })?;
+        .ok_or_else(|| -> RuleError { RuleError::Invalid.into() })?;
     let next_grain = grain.next();
     if next_grain <= grain  {
-        return Err(RuleErrorKind::Invalid.into());
+        return Err(RuleError::Invalid.into());
     }
     let period: Period = PeriodComp::new(next_grain, value.value).into();
     Ok(duration + DurationValue::new(period))
@@ -53,7 +53,7 @@ pub fn find_regex_group<'a>(regex: &Regex, sentence: &'a str) -> RuleResult<Vec<
     let mut matches = Vec::new();
     for cap in regex.captures_iter(&sentence) {
         let _ = cap.get(0)
-                    .ok_or_else(|| format!("No capture for regexp {} for sentence: {}", regex, sentence))?;
+                    .ok_or_else(|| format_err!("No capture for regexp {} for sentence: {}", regex, sentence))?;
         let mut groups = Vec::new();
         for group in cap.iter() {
             groups.push(group.map(|g| g.as_str()));
@@ -300,6 +300,7 @@ impl TimeValue {
         }
     }
 
+    
     pub fn span_to(&self, to: &TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
         if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
            is_inclusive {
@@ -315,7 +316,7 @@ impl TimeValue {
         if let Form::Month(m) = self.form {
             Ok(m)
         } else {
-            Err(format!("Form {:?} is not a month form", self.form))?
+            Err(format_err!("Form {:?} is not a month form", self.form))?
         }
     }
 
@@ -323,7 +324,7 @@ impl TimeValue {
         if let Form::YearMonthDay(v) = self.form {
             Ok(v)
         } else {
-            Err(format!("Form {:?} is not a month form", self.form))?
+            Err(format_err!("Form {:?} is not a month form", self.form))?
         }
     }
 
@@ -331,7 +332,7 @@ impl TimeValue {
         if let Form::MonthDay(v) = self.form {
             Ok(v)
         } else {
-            Err(format!("Form {:?} is not a month form", self.form))?
+            Err(format_err!("Form {:?} is not a month form", self.form))?
         }
     }
 
@@ -339,7 +340,7 @@ impl TimeValue {
         if let Form::Year(m) = self.form {
             Ok(m)
         } else {
-            Err(format!("Form {:?} is not a year form", self.form))?
+            Err(format_err!("Form {:?} is not a year form", self.form))?
         }
     }
 
@@ -347,7 +348,7 @@ impl TimeValue {
         if let Form::TimeOfDay(v) = self.form.clone() {
             Ok(v)
         } else {
-            Err(format!("Form {:?} is not a time of day form", self.form))?
+            Err(format_err!("Form {:?} is not a time of day form", self.form))?
         }
     }
 
@@ -355,7 +356,7 @@ impl TimeValue {
         if let Form::PartOfDay(v) = self.form.clone() {
             Ok(v)
         } else {
-            Err(format!("Form {:?} is not a part of day form", self.form))?
+            Err(format_err!("Form {:?} is not a part of day form", self.form))?
         }
     }
 }
@@ -368,6 +369,21 @@ pub fn normalize_year(y: i32) -> RuleResult<i32> {
     }
 }
 
+trait MomentToRuleError {
+    type Output;
+    fn invalid_if_err(self) -> RuleResult<Self::Output>;
+}
+
+impl<T> MomentToRuleError for MomentResult<T> {
+    type Output = T;
+    fn invalid_if_err(self) -> RuleResult<T> {
+        Ok(self.map_err(|e| {
+            println!("TOTO {:?}", e);
+            RuleError::Invalid
+        })?)
+    }
+}
+
 pub fn year(y: i32) -> RuleResult<TimeValue> {
     let y = normalize_year(y)?;
     Ok(TimeValue::constraint(Year::new(y)).form(Form::Year(y)))
@@ -375,16 +391,16 @@ pub fn year(y: i32) -> RuleResult<TimeValue> {
 
 pub fn month(m: u32) -> RuleResult<TimeValue> {
     if !(1 <= m && m <= 12) {
-        return Err(RuleErrorKind::Invalid.into())
+        return Err(RuleError::Invalid.into())
     }
-    Ok(TimeValue::constraint(Month::new(m)).form(Form::Month(m)))
+    Ok(TimeValue::constraint(Month::new(m).invalid_if_err()?).form(Form::Month(m)))
 }
 
 pub fn day_of_month(dom: u32) -> RuleResult<TimeValue> {
     if !(1 <= dom && dom <= 31) {
-        return Err(RuleErrorKind::Invalid.into())
+        return Err(RuleError::Invalid.into())
     }
-    Ok(TimeValue::constraint(DayOfMonth::new(dom)).form(Form::DayOfMonth))
+    Ok(TimeValue::constraint(DayOfMonth::new(dom).invalid_if_err()?).form(Form::DayOfMonth))
 }
 
 pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
@@ -392,36 +408,36 @@ pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
 }
 
 pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(MonthDay::new(m, d)).form(Form::MonthDay(Some(MonthDayForm { month: m, day_of_month: d }))))
+    Ok(TimeValue::constraint(MonthDay::new(m, d).invalid_if_err()?).form(Form::MonthDay(Some(MonthDayForm { month: m, day_of_month: d }))))
 }
 
 pub fn year_month_day(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
     let y = normalize_year(y)?;
-    Ok(TimeValue::constraint(YearMonthDay::new(y, m, d)).form(Form::YearMonthDay(Some(YearMonthDayForm { year: y, month: m, day_of_month: d }))))
+    Ok(TimeValue::constraint(YearMonthDay::new(y, m, d).invalid_if_err()?).form(Form::YearMonthDay(Some(YearMonthDayForm { year: y, month: m, day_of_month: d }))))
 }
 
 pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if is_12_clock {
-        Ok(TimeValue::constraint(Hour::clock_12(h)).form(Form::time_of_day_hour(h, is_12_clock)))
+        Ok(TimeValue::constraint(Hour::clock_12(h).invalid_if_err()?).form(Form::time_of_day_hour(h, is_12_clock)))
     } else {
-        Ok(TimeValue::constraint(Hour::clock_24(h)).form(Form::time_of_day_hour(h, is_12_clock)))
+        Ok(TimeValue::constraint(Hour::clock_24(h).invalid_if_err()?).form(Form::time_of_day_hour(h, is_12_clock)))
     }
 }
 
 pub fn minute(m: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Minute::new(m)))
+    Ok(TimeValue::constraint(Minute::new(m).invalid_if_err()?))
 }
 
 pub fn second(s: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Second::new(s)))
+    Ok(TimeValue::constraint(Second::new(s).invalid_if_err()?))
 }
 
 pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if is_12_clock {
-        Ok(TimeValue::constraint(HourMinute::clock_12(h, m))
+        Ok(TimeValue::constraint(HourMinute::clock_12(h, m).invalid_if_err()?)
             .form(Form::time_of_day_hour_minute(h, m, is_12_clock)))
     } else {
-        Ok(TimeValue::constraint(HourMinute::clock_24(h, m))
+        Ok(TimeValue::constraint(HourMinute::clock_24(h, m).invalid_if_err()?)
            .form(Form::time_of_day_hour_minute(h, m, is_12_clock)))
     }
 }
@@ -438,10 +454,10 @@ pub fn hour_minute_second(h: u32,
 
 pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<TimeValue> {
     if !(h <= 23) {
-        Err(format!("Invalid hour {:?}", h))?
+        Err(format_err!("Invalid hour {:?}", h))?
     }
     if !(-59 <= m && m <= 59) {
-        Err(format!("Invalid relative minutes {:?}", m))?
+        Err(format_err!("Invalid relative minutes {:?}", m))?
     }
     let normalized_minute = ((m + 60) % 60) as u32;
 
@@ -493,7 +509,7 @@ pub fn easter() -> RuleResult<TimeValue> {
         let (year, month, day) = computer_easter(i.start.year());
         Some(Interval::ymd(year, month, day))
     }
-    Ok(TimeValue::constraint(Month::new(3).translate_with(offset)))
+    Ok(TimeValue::constraint(Month::new(3).invalid_if_err()?.translate_with(offset)))
 }
 
 pub fn computer_easter(year: i32) -> (i32, u32, u32) {
@@ -525,7 +541,7 @@ impl DurationValue {
 
     fn check_period(&self) -> RuleResult<()> {
         if self.period.coarse_num_secs() >= PeriodComp::years(1000).coarse_num_secs() { 
-            Err(RuleErrorKind::Invalid.into()) 
+            Err(RuleError::Invalid.into()) 
         } else {
             Ok(())
         }

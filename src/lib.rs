@@ -29,7 +29,7 @@ extern crate rustling_ontology_grammar as grammar;
 extern crate rustling_ontology_values;
 
 pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, Sym, ParsingAnalysis};
-pub use rustling::errors::*;
+pub use rustling::RustlingResult;
 pub use grammar::{Lang, dims};
 pub use rustling_ontology_values::dimension;
 pub use rustling_ontology_values::output;
@@ -133,7 +133,7 @@ pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
         Lang::JA => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ja.rmp"))[..]) },
         Lang::KO => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ko.rmp"))[..]) },
         Lang::ZH => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/zh.rmp"))[..]) },
-    }.map_err(|e| format!("{:?}", e))?;
+    }?;
     Ok(::RawParser::new(rules, model, ::parser::FeatureExtractor()))
 }
 

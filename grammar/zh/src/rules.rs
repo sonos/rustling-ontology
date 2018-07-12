@@ -768,7 +768,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "八" => 8,
                               "九" => 9,
                               "十" => 10,
-                              _ => return Err(RuleErrorKind::Invalid.into())
+                              _ => return Err(RuleError::Invalid.into())
                           };
                           IntegerValue::new_with_grain(value, 1)
                       });
@@ -845,7 +845,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      "k" => 1000,
                      "m" => 1000000,
                      "g" => 1000000000,
-                     _ => return Err(RuleErrorKind::Invalid.into()),
+                     _ => return Err(RuleError::Invalid.into()),
                  };
                  Ok(match a.value().clone() {
                      // checked

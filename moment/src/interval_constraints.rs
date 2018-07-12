@@ -1,3 +1,4 @@
+use { MomentResult, MomentError};
 use std::rc::Rc;
 
 use bidirectional_walker::*;
@@ -68,6 +69,30 @@ impl<T: TimeZone> ops::Deref for RcConstraint<T> where <T as TimeZone>::Offset: 
 
 macro_rules! rc {
     ($obj:expr) => (RcConstraint(Rc::new($obj)))
+}
+
+fn is_valid_month(m: u32) -> bool {
+    1<= m && m <= 12
+}
+
+fn is_valid_day_of_month(d: u32) -> bool {
+    1 <= d && d <= 31
+}
+
+fn is_valid_month_day(m: u32, d: u32) -> bool {
+    is_valid_month(m) && ((m == 2 &&  d <= 29) || m != 2 && is_valid_day_of_month(d))
+}
+
+fn is_valid_hour(h: u32) -> bool {
+    h <= 24
+}
+
+fn is_valid_minute(m: u32) -> bool {
+    m <= 59
+}
+
+fn is_valid_second(s: u32) -> bool {
+    s <= 59
 }
 
 
@@ -161,7 +186,16 @@ pub struct YearMonthDay {
 }
 
 impl YearMonthDay {
-    pub fn new<T: TimeZone>(y: i32, m: u32, d: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
+    pub fn new<T: TimeZone>(y: i32, m: u32, d: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = YearMonthDay { year: y, month: m, day: d };
+        if is_valid_month_day(m, d) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
+    }
+
+    pub fn new_unchecked<T: TimeZone>(y: i32, m: u32, d: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
         rc!(YearMonthDay { year: y, month: m, day: d })
     }
 }
@@ -198,7 +232,16 @@ impl<T: TimeZone> IntervalConstraint<T> for YearMonthDay where <T as TimeZone>::
 pub struct MonthDay(pub u32, pub u32);
 
 impl MonthDay {
-    pub fn new<T: TimeZone + 'static>(m: u32, d: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy{
+    pub fn new<T: TimeZone + 'static>(m: u32, d: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = MonthDay(m, d);
+        if is_valid_month_day(m, d) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
+    }
+
+    pub fn new_unchecked<T: TimeZone + 'static>(m: u32, d: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
         rc!(MonthDay(m, d))
     }
 }
@@ -213,6 +256,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
+        if !is_valid_month_day(self.0, self.1) { return BidirectionalWalker::new(); }
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
                                         .and_hms(0, 0, 0));
@@ -225,14 +269,14 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let forward_walker =
             Walker::generator(anchor, |prev| prev + PeriodComp::years(1))
                 .filter(move |interval| {
-                            day_of_month <=
-                            last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
-                        })
+                        day_of_month <= last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
+                })
                 .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
 
         let backward_walker =
             Walker::generator(anchor - PeriodComp::years(1),
                               |prev| prev - PeriodComp::years(1))
+
                     .filter(move |interval| {
                                 day_of_month <=
                                 last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
@@ -250,12 +294,21 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
 pub struct Month(pub u32);
 
 impl Month {
-    pub fn new<T: TimeZone>(m: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
+    pub fn new<T: TimeZone + 'static>(m: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = Month(m);
+        if is_valid_month(m) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
+    }
+
+    pub fn new_unchecked<T: TimeZone + 'static>(m: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
         rc!(Month(m))
     }
 }
 
-impl<T: TimeZone> IntervalConstraint<T> for Month where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone + 'static> IntervalConstraint<T> for Month where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         Grain::Month
     }
@@ -265,17 +318,19 @@ impl<T: TimeZone> IntervalConstraint<T> for Month where <T as TimeZone>::Offset:
     }
 
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
+        if !is_valid_month(self.0) { return BidirectionalWalker::new(); }
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
                                         .and_hms(0, 0, 0));
         let rounded_interval = Interval::starting_at(rounded_moment, Grain::Month);
         let offset_year = !(origin.start <= rounded_interval.end_moment()) as i64;
         let anchor = rounded_interval + PeriodComp::years(offset_year);
-
+        let forward_walker = Walker::generator(anchor, |prev| prev + PeriodComp::years(1));
+        let backward_walker = Walker::generator(anchor - PeriodComp::years(1),
+                           |prev| prev - PeriodComp::years(1));
         BidirectionalWalker::new()
-            .forward_with(anchor, |prev| prev + PeriodComp::years(1))
-            .backward_with(anchor - PeriodComp::years(1),
-                           |prev| prev - PeriodComp::years(1))
+            .forward(forward_walker)
+            .backward(backward_walker)
     }
 }
 
@@ -284,7 +339,16 @@ impl<T: TimeZone> IntervalConstraint<T> for Month where <T as TimeZone>::Offset:
 pub struct DayOfMonth(pub u32);
 
 impl DayOfMonth {
-    pub fn new<T: TimeZone + 'static>(dom: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
+    pub fn new<T: TimeZone + 'static>(dom: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = DayOfMonth(dom);
+        if is_valid_day_of_month(dom) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
+    }
+
+    pub fn new_unchecked<T: TimeZone + 'static>(dom: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
         rc!(DayOfMonth(dom))
     }
 }
@@ -367,20 +431,30 @@ pub struct HourMinute {
 }
 
 impl HourMinute {
-    pub fn clock_12<T: TimeZone>(hour: u32, minute: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
-        rc!(HourMinute {
+    pub fn clock_12<T: TimeZone>(hour: u32, minute: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = HourMinute {
             hour: hour,
             minute: minute,
             is_12_clock: true,
-        })
+        };
+        if is_valid_hour(hour) && is_valid_minute(minute) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
     }
 
-    pub fn clock_24<T: TimeZone>(hour: u32, minute: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
-        rc!(HourMinute {
+    pub fn clock_24<T: TimeZone>(hour: u32, minute: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = HourMinute {
             hour: hour,
             minute: minute,
             is_12_clock: false,
-        })
+        };
+        if is_valid_hour(hour) && is_valid_minute(minute) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
     }
 }
 
@@ -418,18 +492,28 @@ pub struct Hour {
 }
 
 impl Hour {
-    pub fn clock_12<T: TimeZone>(quantity: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
-        rc!(Hour {
+    pub fn clock_12<T: TimeZone>(quantity: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = Hour {
             quantity: quantity,
             is_12_clock: true,
-        })
+        };
+        if is_valid_hour(quantity) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
     }
 
-    pub fn clock_24<T: TimeZone>(quantity: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
-        rc!(Hour {
+    pub fn clock_24<T: TimeZone>(quantity: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = Hour {
             quantity: quantity,
             is_12_clock: false,
-        })
+        };
+        if is_valid_hour(quantity) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
     }
 }
 
@@ -463,7 +547,16 @@ impl<T: TimeZone> IntervalConstraint<T> for Hour where <T as TimeZone>::Offset: 
 pub struct Minute(pub u32);
 
 impl Minute {
-    pub fn new<T: TimeZone>(m: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
+    pub fn new<T: TimeZone>(m: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = Minute(m);
+        if is_valid_minute(m) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
+    }
+
+    pub fn new_unchecked<T: TimeZone + 'static>(m: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
         rc!(Minute(m))
     }
 }
@@ -492,7 +585,16 @@ impl<T: TimeZone> IntervalConstraint<T> for Minute where <T as TimeZone>::Offset
 pub struct Second(pub u32);
 
 impl Second {
-    pub fn new<T: TimeZone>(s: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
+    pub fn new<T: TimeZone>(s: u32) -> MomentResult<RcConstraint<T>> where <T as TimeZone>::Offset: Copy {
+        let args = Second(s);
+        if is_valid_second(s) {
+            Ok(rc!(args))
+        } else {
+            Err(MomentError::ConstraintsInvalidArgs {  context: format!("{:?}", args)})
+        }
+    }
+
+    pub fn new_unchecked<T: TimeZone + 'static>(s: u32) -> RcConstraint<T> where <T as TimeZone>::Offset: Copy {
         rc!(Second(s))
     }
 }
@@ -1089,8 +1191,8 @@ mod tests {
     #[test]
     fn test_year_month_day() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let ymd = YearMonthDay::new(2015, 6, 5);
-        let walker = ymd.to_walker(&context.reference, &context);
+        let contraint = YearMonthDay::new_unchecked(2015, 6, 5);
+        let walker = contraint.to_walker(&context.reference, &context);
         let mut backward = walker.backward.clone();
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2015, 6, 5).and_hms(0, 0, 0)),
                                               Grain::Day)),
@@ -1099,8 +1201,8 @@ mod tests {
         assert_eq!(None, backward.next());
         assert_eq!(None, walker.forward.clone().next());
 
-        let ymd = YearMonthDay::new(2018, 6, 5);
-        let walker = ymd.to_walker(&context.reference, &context);
+        let constraint = YearMonthDay::new_unchecked(2018, 6, 5);
+        let walker = constraint.to_walker(&context.reference, &context);
         assert_eq!(None, walker.backward.clone().next());
 
         let mut forward = walker.forward.clone();
@@ -1110,8 +1212,8 @@ mod tests {
         assert_eq!(None, forward.next());
         assert_eq!(None, walker.backward.clone().next());
 
-        let ymd = YearMonthDay::new(2018, 2, 30);
-        let walker = ymd.to_walker(&context.reference, &context);
+        let constraint = YearMonthDay::new_unchecked(2018, 2, 30);
+        let walker = constraint.to_walker(&context.reference, &context);
         assert_eq!(None, walker.backward.clone().next());
         assert_eq!(None, walker.forward.clone().next());
     }
@@ -1138,7 +1240,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_forward_positive() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month::new(5).take_the_nth(3);
+        let take_the_nth = Month::new(5).unwrap().take_the_nth(3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2020, 05, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -1153,7 +1255,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_backward_positive() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month::new(3).take_the_nth(3);
+        let take_the_nth = Month::new(3).unwrap().take_the_nth(3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2021, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -1165,7 +1267,7 @@ mod tests {
     #[test]
     fn test_take_the_nth_backward_negative() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let take_the_nth = Month::new(3).take_the_nth(-3);
+        let take_the_nth = Month::new(3).unwrap().take_the_nth(-3);
         let walker = take_the_nth.to_walker(&context.reference, &context);
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2015, 03, 1).and_hms(0, 0, 0)),
                                               Grain::Month)),
@@ -1432,8 +1534,8 @@ mod tests {
     #[test]
     fn test_hour_minute_24_clock_under_12() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = HourMinute::clock_24(11, 24);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = HourMinute::clock_24(11, 24);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 25).and_hms(11, 24, 0)),
                                               Grain::Minute)),
@@ -1452,8 +1554,8 @@ mod tests {
     #[test]
     fn test_hour_minute_24_clock_above_12() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = HourMinute::clock_24(15, 24);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = HourMinute::clock_24(15, 24);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 25).and_hms(15, 24, 0)),
                                               Grain::Minute)),
@@ -1472,8 +1574,8 @@ mod tests {
     #[test]
     fn test_hour_24_clock_under_12() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::clock_24(11);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = Hour::clock_24(11);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 25).and_hms(11, 0, 0)),
                                               Grain::Hour)),
@@ -1493,8 +1595,8 @@ mod tests {
     #[test]
     fn test_hour_24_clock_above_12() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::clock_24(15);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = Hour::clock_24(15);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 25).and_hms(15, 0, 0)),
                                               Grain::Hour)),
@@ -1514,8 +1616,8 @@ mod tests {
     #[test]
     fn test_hour_24_clock_under_current_hour() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::clock_24(4);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = Hour::clock_24(4);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 26).and_hms(4, 0, 0)),
                                               Grain::Hour)),
@@ -1535,8 +1637,8 @@ mod tests {
     #[test]
     fn test_hour_12_clock_under_12() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::clock_12(11);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = Hour::clock_12(11);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 25).and_hms(11, 0, 0)),
                                               Grain::Hour)),
@@ -1556,8 +1658,8 @@ mod tests {
     #[test]
     fn test_hour_12_clock_above_12() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::clock_12(14);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = Hour::clock_12(14);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 25).and_hms(14, 0, 0)),
                                               Grain::Hour)),
@@ -1576,8 +1678,8 @@ mod tests {
     #[test]
     fn test_hour_12_clock_under_current_hour() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Hour::clock_12(8);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = Hour::clock_12(8);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 25).and_hms(20, 0, 0)),
                                               Grain::Hour)),
@@ -1597,8 +1699,8 @@ mod tests {
     #[test]
     fn test_minute_above_current_minute() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let day = Minute(15);
-        let walker = day.to_walker(&context.reference, &context);
+        let constraint = Minute::new(15);
+        let walker = constraint.unwrap().to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 15, 0)),
                                               Grain::Minute)),
@@ -1659,7 +1761,7 @@ mod tests {
     fn test_intersect_dom_month() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        let inter = DayOfMonth::new(12).intersect(&rc!(Month(3)));
+        let inter = DayOfMonth::new(12).unwrap().intersect(&rc!(Month(3)));
         let walker = inter.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2018, 03, 12).and_hms(0, 0, 0)),
@@ -1681,7 +1783,7 @@ mod tests {
         let context = build_context(Moment(Paris.ymd(2013, 02, 12).and_hms(4, 30, 0)));
 
         let weekday = rc!(DayOfWeek(Weekday::Mon));
-        let month_day = DayOfMonth::new(1).intersect(&rc!(Month(11)));
+        let month_day = DayOfMonth::new(1).unwrap().intersect(&rc!(Month(11)));
         let inter = weekday.intersect(&month_day);
         let walker = inter.to_walker(&context.reference, &context);
 
@@ -1704,7 +1806,7 @@ mod tests {
     fn test_intersect_dow_dom() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
 
-        let inter = DayOfMonth::new(12).intersect(&rc!(DayOfWeek(Weekday::Wed)));
+        let inter = DayOfMonth::new(12).unwrap().intersect(&rc!(DayOfWeek(Weekday::Wed)));
         let walker = inter.to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 07, 12).and_hms(0, 0, 0)),
@@ -1730,7 +1832,7 @@ mod tests {
         fn offset(i: &Interval<Paris>, _: &Context<Paris>) -> Option<Interval<Paris>> {
             Some(*i + PeriodComp::days(32))
         }
-        let walker = DayOfMonth::new(12).translate_with(offset)
+        let walker = DayOfMonth::new(12).unwrap().translate_with(offset)
                 .to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 05, 14).and_hms(0, 0, 0)),
@@ -1755,7 +1857,7 @@ mod tests {
         fn offset(i: &Interval<Paris>, _: &Context<Paris>) -> Option<Interval<Paris>> {
             Some(*i - PeriodComp::days(32))
         }
-        let walker = DayOfMonth::new(12).translate_with(offset).to_walker(&context.reference,
+        let walker = DayOfMonth::new(12).unwrap().translate_with(offset).to_walker(&context.reference,
                                                                              &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 05, 11).and_hms(0, 0, 0)),
@@ -1779,7 +1881,7 @@ mod tests {
         fn offset(i: &Interval<Paris>, _: &Context<Paris>) -> Option<Interval<Paris>> {
             Some(*i + PeriodComp::days(100))
         }
-        let walker = DayOfMonth::new(12).translate_with(offset).to_walker(&context.reference,
+        let walker = DayOfMonth::new(12).unwrap().translate_with(offset).to_walker(&context.reference,
                                                                              &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 05, 23).and_hms(0, 0, 0)),
@@ -1818,7 +1920,7 @@ mod tests {
     #[test]
     fn test_shift_by_days() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
-        let walker = DayOfMonth::new(12).shift_by(PeriodComp::days(2).into())
+        let walker = DayOfMonth::new(12).unwrap().shift_by(PeriodComp::days(2).into())
             .to_walker(&context.reference, &context);
 
         assert_eq!(Some(Interval::starting_at(Moment(Paris.ymd(2017, 05, 14).and_hms(0, 0, 0)),
@@ -1834,5 +1936,34 @@ mod tests {
                                               Grain::Day)),
                    walker.backward.clone().skip(1).next());
 
+    }
+
+    #[test]
+    fn test_month_day_special_case() {
+        let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let month = MonthDay::new_unchecked(2, 31);
+        let walker = month.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.forward.clone().next());
+        assert_eq!(None, walker.backward.clone().next());
+    }
+
+     #[test]
+    fn test_month_special_case() {
+        let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let month = Month::new_unchecked(13);
+        let walker = month.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.forward.clone().next());
+        assert_eq!(None, walker.backward.clone().next());
+    }
+
+    #[test]
+    fn test_new_with_result_for_invalid_args() {
+        assert!(MonthDay::new::<Local>(2, 31).is_err());
+        assert!(MonthDay::new::<Local>(3, 33).is_err());
+        assert!(MonthDay::new::<Local>(3, 0).is_err());
+        assert!(Month::new::<Local>(0).is_err());
+        assert!(Month::new::<Local>(13).is_err());
+        assert!(DayOfMonth::new::<Local>(0).is_err());
+        assert!(DayOfMonth::new::<Local>(32).is_err());
     }
 }

@@ -250,7 +250,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      "elf" => 11,
                      "zwolf" => 12,
                      "zwölf" => 12,
-                     _ => return Err(RuleErrorKind::Invalid.into()),
+                     _ => return Err(RuleError::Invalid.into()),
                  };
                  Ok(DurationValue::new(PeriodComp::minutes(value * 60 + 30).into()))
              }
@@ -345,7 +345,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         match text_match.group(1).as_ref() {
                             "en" => CycleValue::new(Grain::Second)?.mark_as_plural(),
                             "e"  => CycleValue::new(Grain::Second),
-                            _    => Err(RuleErrorKind::Invalid.into()) 
+                            _    => Err(RuleError::Invalid.into()) 
                         }
                     }
     );
@@ -355,7 +355,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         match text_match.group(1).as_ref() {
                             "en" => CycleValue::new(Grain::Minute)?.mark_as_plural(),
                             "e"  => CycleValue::new(Grain::Minute),
-                            _    => Err(RuleErrorKind::Invalid.into()) 
+                            _    => Err(RuleError::Invalid.into()) 
                         }
                     }
     );
@@ -365,7 +365,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         match text_match.group(1).as_ref() {
                             "en" => CycleValue::new(Grain::Hour)?.mark_as_plural(),
                             "e"  => CycleValue::new(Grain::Hour),
-                            _    => Err(RuleErrorKind::Invalid.into()) 
+                            _    => Err(RuleError::Invalid.into()) 
                         }
                     }
     );
@@ -375,7 +375,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         match text_match.group(1).as_ref() {
                             "gen" | "ge" => CycleValue::new(Grain::Day)?.mark_as_plural(),
                             "gs"  | "ges" | "g" => CycleValue::new(Grain::Day),
-                            _    => Err(RuleErrorKind::Invalid.into()) 
+                            _    => Err(RuleError::Invalid.into()) 
                         }
                     }
     );
@@ -385,7 +385,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         match text_match.group(1).as_ref() {
                             "en" => CycleValue::new(Grain::Week)?.mark_as_plural(),
                             "e"  => CycleValue::new(Grain::Week),
-                            _    => Err(RuleErrorKind::Invalid.into()) 
+                            _    => Err(RuleError::Invalid.into()) 
                         }
                     }
     );
@@ -395,7 +395,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         match text_match.group(1).as_ref() {
                             "ten" | "te" => CycleValue::new(Grain::Month)?.mark_as_plural(),
                             "ts"  | "tes" | "t" => CycleValue::new(Grain::Month),
-                            _    => Err(RuleErrorKind::Invalid.into()) 
+                            _    => Err(RuleError::Invalid.into()) 
                         }
                     }
     );
@@ -405,7 +405,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         match text_match.group(1).as_ref() {
                             "len" | "le" => CycleValue::new(Grain::Quarter)?.mark_as_plural(),
                             "ls" | "les" | "l" => CycleValue::new(Grain::Quarter),
-                            _    => Err(RuleErrorKind::Invalid.into()) 
+                            _    => Err(RuleError::Invalid.into()) 
                         }
                     }
     );
@@ -415,7 +415,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                         match text_match.group(1).as_ref() {
                             "ren" | "re" => CycleValue::new(Grain::Year)?.mark_as_plural(),
                             "rs" | "res" | "r"  => CycleValue::new(Grain::Year),
-                            _    => Err(RuleErrorKind::Invalid.into()) 
+                            _    => Err(RuleError::Invalid.into()) 
                         }
                     }
     );
@@ -2181,7 +2181,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "siebzehn" => 17,
                               "achtzehn" => 18,
                               "neunzehn" => 19,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new(value)
                       }
@@ -2243,7 +2243,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                             "siebzig" => 70,
                             "achtzig" => 80,
                             "neunzig" => 90,
-                            _ => return Err(RuleErrorKind::Invalid.into()),
+                            _ => return Err(RuleError::Invalid.into()),
                         };
                         IntegerValue::new_with_grain(value, 1)
                       }
@@ -2346,7 +2346,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      "k" => 1000,
                      "m" => 1000000,
                      "g" => 1000000000,
-                     _ => return Err(RuleErrorKind::Invalid.into()),
+                     _ => return Err(RuleError::Invalid.into()),
                  };
                  Ok(match a.value().clone() {
                      // checked
@@ -2406,7 +2406,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "siebzehnte" => 17,
                               "achtzehnte" => 18,
                               "neunzehnte" => 19,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           Ok(OrdinalValue::new(value))
                       }
@@ -2435,7 +2435,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "siebzigste" => 70,
                               "achtzigste" => 80,
                               "neunzigste" => 90,
-                              _ => return Err(RuleErrorKind::Invalid.into()),
+                              _ => return Err(RuleError::Invalid.into()),
                           };
                           Ok(OrdinalValue::new(value))
                       }
@@ -2449,7 +2449,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "tausend" => (1_000, 3),
                 "million" => (1_000_000, 6),
                 "milliard" => (1_000_000_000, 9),
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             Ok(OrdinalValue::new_with_grain(integer.value().value * value, grain))
         }
@@ -2462,7 +2462,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 "tausend" => (1_000, 3),
                 "million" => (1_000_000, 6),
                 "milliard" => (1_000_000_000, 9),
-                _ => return Err(RuleErrorKind::Invalid.into()),
+                _ => return Err(RuleError::Invalid.into()),
             };
             Ok(OrdinalValue::new_with_grain(value, grain))
         }
@@ -2497,7 +2497,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |integer, ordinal| {
             let grain = ordinal.value().grain.unwrap_or(0);
             let next_grain = (grain / 3) * 3 + 3;
-            if integer.value().value % 10i64.pow(next_grain as u32) != 0 { return Err(RuleErrorKind::Invalid.into()); }
+            if integer.value().value % 10i64.pow(next_grain as u32) != 0 { return Err(RuleError::Invalid.into()); }
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
     );

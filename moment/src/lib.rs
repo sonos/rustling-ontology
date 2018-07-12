@@ -3,6 +3,8 @@ extern crate chrono;
 extern crate derive_new;
 #[macro_use]
 extern crate enum_primitive;
+#[macro_use]
+extern crate failure;
 extern crate vec_map;
 
 mod period;
@@ -20,6 +22,13 @@ use chrono::datetime::DateTime;
 pub use interval_constraints::*;
 pub use period::*;
 
+pub type MomentResult<T> = Result<T, MomentError>;
+
+#[derive(Debug, Fail)]
+pub enum MomentError {
+    #[fail(display = "Invalid args given for this constraints: {}", context)]
+    ConstraintsInvalidArgs { context: String },
+}
 
 #[derive(Clone)]
 pub struct Moment<T: TimeZone>(pub DateTime<T>);
