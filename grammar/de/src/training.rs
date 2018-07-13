@@ -139,7 +139,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2014, 10, 8]), "zweiter mittwoch im oktober 2014");
     // nth after
     example!(v, check_moment!(c, [2015, 1, 13]), "dritter dienstag nach weihnachten 2014");
-    example!(v, check_moment!(c, [2013, 2, 13, 3]), "um 3 in der früh");
+    example!(v, check_moment!(c, [2013, 2, 12, 3]), "um 3 in der früh");
     example!(v, check_moment!(c, [2013, 2, 12, 15]), "um 3", "3 uhr", "um drei");
     // TODO Check this example
     //example!(v, check_moment!(c, [2013, 2, 13, 3, 18]), "3:18 fruh", "3:18"); //"3:18 früh", "3:18"
