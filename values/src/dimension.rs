@@ -501,12 +501,6 @@ pub struct TimeValue {
     pub ambiguity: Ambiguity,
 }
 
-impl TimeValue {
-    fn is_too_ambiguous(&self) -> bool {
-        return self.ambiguity == Ambiguity::Big;
-    }
-}
-
 // We need partial eq to make Dimension partial eq happy, but this is only
 // useful for testing.
 impl PartialEq for TimeValue {
