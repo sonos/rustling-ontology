@@ -13,7 +13,7 @@ pub fn run_json_test<P: AsRef<path::Path>>(lang: Lang, path: P) {
     let parser = build_parser(lang).unwrap();
     for utterance in utterances {
         let context = ResolverContext::new(Interval::starting_at(utterance.context, moment::Grain::Second));
-        let entities = parser.parse(utterance.phrase.as_str(), &context).unwrap();
+        let entities = parser.parse(utterance.phrase.to_lowercase().as_str(), &context).unwrap();
         assert_eq!(entities.len(), 1, "Only one match was exepcted for this sentence: {:?}", utterance.phrase.as_str());
 
         let entity = entities.first();
