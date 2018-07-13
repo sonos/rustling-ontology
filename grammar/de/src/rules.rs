@@ -938,33 +938,35 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"vorvorgestern"#)?,
                       |_| helpers::cycle_nth(Grain::Day, -3)
     );
+
+
     b.rule_2("this <time>",
              b.reg(r#"diese[nrsm]?|(?:im )?laufende[nrs]"#)?,
-             time_check!(),
+             time_check!(excluding_too_ambiguous!()),
              |_, time| time.value().the_nth(0)
     );
     b.rule_2("next <time>",
              b.reg(r#"(?:de[rnms] |die |das )?(?:n[äa]chst|kommend)e[nsrm]?"#)?,
-             time_check!(),
+             time_check_exclude_too_ambiguous!(),
              |_, time| time.value().the_nth_not_immediate(0)
     );
     b.rule_2("last <time>",
              b.reg(r#"(?:de[rnms] |die |das )?(?:letzt|vor(?:her)?ig|vergangen)e[nsmr]?"#)?,
-             time_check!(),
+             time_check!(excluding_too_ambiguous!()),
              |_, time| time.value().the_nth(-1)
     );
     b.rule_2("before last <time>",
              b.reg(r#"(?:de[rnms] |die |das )?(?:vorvergangene|vorletzte)[srnm]?"#)?,
-             time_check!(),
+             time_check!(excluding_too_ambiguous!()),
              |_, time| time.value().the_nth(-2)
     );
     b.rule_2("after next <time>",
              b.reg(r#"(?:de[rnms] |die |das )?[üu]bern[äa]chste[rsnm]"#)?,
-             time_check!(),
+             time_check!(excluding_too_ambiguous!()),
              |_, time| time.value().the_nth_not_immediate(1)
     );
     b.rule_2("<time> after next",
-             time_check!(),
+             time_check!(excluding_too_ambiguous!()),
              b.reg(r#"nach de[mrn] n[äa]chsten"#)?,
              |time, _| time.value().the_nth_not_immediate(1)
     );
@@ -972,7 +974,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"(?:de[rnms] |die |das )?letzte[rns]?"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
              b.reg(r#"um|im|in der"#)?,
-             time_check!(),
+             time_check!(excluding_too_ambiguous!()),
              |_, dow, _, time| dow.value().last_of(time.value())
     );
     b.rule_3(" <day-of-week> <ordinal> <month>",
@@ -986,7 +988,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             time_check!(form!(Form::DayOfWeek{..})),
             ordinal_check_by_range!(1, 31),
             time_check!(form!(Form::Month(_))),
-            time_check!(|time: &TimeValue| !time.latent && form!(Form::Year(_))(time)),
+            time_check!(|time: &TimeValue| excluding_latent!()(time) && form!(Form::Year(_))(time)),
              |dow, ordinal, month, year| helpers::year(year.value().form_year()?)?.intersect(&helpers::month_day(month.value().form_month()?, ordinal.value().value as u32)?)?
                 .intersect(dow.value())
     );
@@ -1466,94 +1468,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfDay(PartOfDayForm::Night)))
     );
 
-    b.rule_2("<time-of-day> morning",
-        time_of_day_check_hour!(1, 12),
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Morning))),
-        |tod, _| {
-            let period = helpers::hour(1, false)?
-                     .span_to(&helpers::hour(12, false)?, true)?;
-            Ok(tod.value().intersect(&period)?
-                .form(tod.value().form.clone()))
-        }
-    );
-
-    b.rule_2("morning <time-of-day>",
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Morning))),
-        time_of_day_check_hour!(1, 12),
-        |_, tod| {
-            let period = helpers::hour(1, false)?
-                     .span_to(&helpers::hour(12, false)?, true)?;
-            Ok(tod.value().intersect(&period)?
-                .form(tod.value().form.clone()))
-        }
-    );
-
-    b.rule_2("<time-of-day> afternoon",
-        time_of_day_check_hour!(1, 7, 13, 19),
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Afternoon))),
-        |tod, _| {
-            let period = helpers::hour(13, false)?
-                     .span_to(&helpers::hour(19, false)?, true)?;
-            Ok(tod.value().intersect(&period)?
-                .form(tod.value().form.clone()))
-        }
-    );
-
-    b.rule_2("afternoon <time-of-day>",
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Afternoon))),
-        time_of_day_check_hour!(1, 7, 13, 19),
-        |_, tod| {
-            let period = helpers::hour(13, false)?
-                     .span_to(&helpers::hour(19, false)?, true)?;
-            Ok(tod.value().intersect(&period)?
-                .form(tod.value().form.clone()))
-        }
-    );
-
-    b.rule_2("<time-of-day> evening",
-        time_of_day_check_hour!(7, 11, 19, 23),
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Evening))),
-        |tod, _| {
-            let period = helpers::hour(19, false)?
-                     .span_to(&helpers::hour(24, false)?, true)?;
-            Ok(tod.value().intersect(&period)?
-                .form(tod.value().form.clone()))
-        }
-    );
-
-    b.rule_2("evening <time-of-day>",
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Evening))),
-        time_of_day_check_hour!(7, 11, 19, 23),
-        |_, tod| {
-            let period = helpers::hour(19, false)?
-                     .span_to(&helpers::hour(24, false)?, true)?;
-            Ok(tod.value().intersect(&period)?
-                .form(tod.value().form.clone()))
-        }
-    );
-
-    b.rule_2("<time-of-day> night",
-        time_of_day_check_hour!(1, 4),
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Night))),
-        |tod, _| {
-            let period = helpers::hour(1, false)?
-                     .span_to(&helpers::hour(4, false)?, true)?;
-            Ok(tod.value().intersect(&period)?
-                .form(tod.value().form.clone()))
-        }
-    );
-
-    b.rule_2("night <time-of-day>",
-        time_check!(form!(Form::PartOfDay(PartOfDayForm::Night))),
-        time_of_day_check_hour!(1, 4),
-        |_, tod| {
-            let period = helpers::hour(1, false)?
-                     .span_to(&helpers::hour(4, false)?, true)?;
-            Ok(tod.value().intersect(&period)?
-                .form(tod.value().form.clone()))
-        }
-    );
-
     b.rule_2("<article> <time>",
              b.reg(german_article_regex())?,
              time_check!(),
@@ -1562,7 +1476,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("around <meal/celebration>",
              b.reg("um die")?,
-             time_check!(|time: &TimeValue| form!(Form::Celebration)(time) || form!(Form::Meal)(time)),
+             time_check!(|time: &TimeValue| (form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)) && !time.is_too_ambiguous()),
              |_, time| Ok(time.value().clone().precision(Precision::Approximate))
     );
 
@@ -1574,7 +1488,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("this <part-of-day>",
         b.reg(r#"diese[snm]?|heute"#)?,
-        time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+        time_check!(|time: &TimeValue| (form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)) && !time.is_too_ambiguous()),
         |_, time| Ok(helpers::cycle_nth(Grain::Day, 0)?
             .intersect(time.value())?
             .form(time.value().form.clone()))
@@ -1630,9 +1544,68 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 },
                 PartOfDayForm::None => pod.value().clone()
             };
-            a.value().intersect(b.value())?.intersect(&period)
+            a.value().intersect(&period)?.intersect(b.value())
         }
     );
+
+    b.rule_2("<time-of-day> <part-of-day>",
+        time_check!(form!(Form::TimeOfDay(_))),
+        time_check!(form!(Form::PartOfDay(_))),
+        |tod, pod| {
+            let pod_form = pod.value().form_part_of_day()?;
+            let period = match pod_form {
+                PartOfDayForm::Morning => {
+                    helpers::hour(1, false)?
+                        .span_to(&helpers::hour(12, false)?, true)?
+                },
+                PartOfDayForm::Afternoon => {
+                    helpers::hour(12, false)?
+                        .span_to(&helpers::hour(20, false)?, true)?
+                },
+                PartOfDayForm::Evening => {
+                    helpers::hour(17, false)?
+                        .span_to(&helpers::hour(23, false)?, true)?
+                },
+                PartOfDayForm::Night => {
+                    helpers::hour(18, false)?
+                        .span_to(&helpers::hour(4, false)?, true)?
+                },
+                PartOfDayForm::None => pod.value().clone()
+            };
+            Ok(period.intersect(tod.value())?.form(tod.value().form.clone()))
+        }
+    );
+
+
+    b.rule_2("<part-of-day> <time-of-day>",
+        time_check!(form!(Form::PartOfDay(_))),
+        time_check!(form!(Form::TimeOfDay(_))),
+        |pod, tod| {
+            let pod_form = pod.value().form_part_of_day()?;
+            let period = match pod_form {
+                PartOfDayForm::Morning => {
+                    helpers::hour(1, false)?
+                        .span_to(&helpers::hour(12, false)?, true)?
+                },
+                PartOfDayForm::Afternoon => {
+                    helpers::hour(12, false)?
+                        .span_to(&helpers::hour(20, false)?, true)?
+                },
+                PartOfDayForm::Evening => {
+                    helpers::hour(17, false)?
+                        .span_to(&helpers::hour(23, false)?, true)?
+                },
+                PartOfDayForm::Night => {
+                    helpers::hour(18, false)?
+                        .span_to(&helpers::hour(4, false)?, true)?
+                },
+                PartOfDayForm::None => pod.value().clone()
+            };
+            Ok(period.intersect(tod.value())?.form(tod.value().form.clone()))
+        }
+    );
+
+
     // b.rule_2("<part-of-day/meal> <time>", // There are rules for <time-of-day> and <part-of-day>
     //     time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::TimeOfDay(_))(time) && excluding_form!(Form::Month(_))(time)),
     //     time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
