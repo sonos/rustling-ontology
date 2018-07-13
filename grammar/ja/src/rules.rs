@@ -220,6 +220,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             b.reg(r#"番目"#)?,
             |integer, _| Ok(OrdinalValue::new(integer.value().value))
     );
+    b.rule_1("ordinal number special first",
+            b.reg(r#"最初"#)?,
+            |_| Ok(OrdinalValue::new(1))
+    );
 
     b.rule_1("float number", 
         b.reg(r#"(\d*[、,，\.]\d+)"#)?, |text_match| {
@@ -271,6 +275,30 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  ..FloatValue::default()
               })
     });
+    b.rule_2("numbers prefix with -, negative or minus",
+             b.reg(r#"-|マイナス|零下|れいか"#)?,
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             |_, a| -> RuleResult<NumberValue> {
+                 Ok(match a.value().clone() {
+                     // checked
+                     NumberValue::Integer(integer) => {
+                         IntegerValue {
+                             value: integer.value * -1,
+                             prefixed: true,
+                             ..integer
+                         }
+                             .into()
+                     }
+                     NumberValue::Float(float) => {
+                         FloatValue {
+                             value: float.value * -1.0,
+                             prefixed: true,
+                             ..float
+                         }
+                             .into()
+                     }
+                 })
+             });
     Ok(())
 }
 
@@ -409,7 +437,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              });
     b.rule_2("about <amount-of-money>",
          amount_of_money_check!(),
-         b.reg(r#"ほど|くらい|程|位"#)?,
+         b.reg(r#"ほど|くらい|ぐらい|程|位"#)?,
          |a, _| {
              Ok(AmountOfMoneyValue {
                  precision: Approximate,
@@ -629,10 +657,10 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"天皇誕生日"#)?,
                       |_| Ok(helpers::month_day(12, 23)?.form(Form::Celebration)) // To be deleted for 2019 as there will be no emperor's birthday in 2019 and a new date for 2020 as there will be a new emperor
     );
-    b.rule_1_terminal("the emperor's birthday",
-                      b.reg(r#"天皇誕生日"#)?,
-                      |_| Ok(helpers::month_day(2, 23)?.form(Form::Celebration)) // New date from 2020 to be uncomment for 2020
-    );
+//    b.rule_1_terminal("the emperor's birthday",
+//                      b.reg(r#"天皇誕生日"#)?,
+//                      |_| Ok(helpers::month_day(2, 23)?.form(Form::Celebration)) // New date from 2020 to be uncomment for 2020
+//    );
     b.rule_1_terminal("girls day",
                       b.reg(r#"ひな(?:まつり|祭り)(?:の日)?"#)?,
                       |_| Ok(helpers::month_day(3, 3)?.form(Form::Celebration)) 
@@ -1786,7 +1814,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<time-of-day> approximately",
              time_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"くらいに|頃"#)?,
+             b.reg(r#"くらいに?|ぐらいに?|頃"#)?,
              |time, _| Ok(time.value().clone().not_latent().precision(Precision::Approximate))
     );
     b.rule_2("<time-of-day> sharp",
@@ -1986,7 +2014,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("around <time>",
         time_check!(),
-        b.reg(r#"くらいに?"#)?,
+        b.reg(r#"くらいに?|ぐらいに?"#)?,
         |a, _| Ok(a.value().clone().precision(Approximate))
     );
 
@@ -2196,7 +2224,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("about <duration>",
              duration_check!(),
-             b.reg(r#"くらい|ほど"#)?,
+             b.reg(r#"くらい|ぐらい|ほど"#)?,
              |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
     );
     b.rule_2("<duration> (approximate)",
