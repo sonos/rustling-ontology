@@ -190,6 +190,10 @@ impl TimeValue {
         TimeValue { latent: true, ambiguity: Ambiguity::Big, .. self }
     }
 
+    pub fn is_too_ambiguous(&self) -> bool {
+        return self.ambiguity == Ambiguity::Big;
+    }
+
     pub fn form(self, form: Form) -> TimeValue {
         TimeValue { form: form, ..self }
     }
