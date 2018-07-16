@@ -2043,17 +2043,17 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
 
-    b.rule_2("ordinal (102...9_999_999)",
+    b.rule_2("ordinal (101...9_999_999)",
         integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
-        ordinal_check_by_range!(2, 99),
+        ordinal_check_by_range!(1, 99),
         |integer, ordinal| {
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
     );
-    b.rule_3("ordinal (102...9_999_999)",
+    b.rule_3("ordinal (101...9_999_999)",
         integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
         b.reg(r#"and"#)?,
-        ordinal_check_by_range!(2, 99),
+        ordinal_check_by_range!(1, 99),
         |integer, _, ordinal| {
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
