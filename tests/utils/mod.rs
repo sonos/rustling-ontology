@@ -9,7 +9,7 @@ use std::path;
 pub fn run_json_test<P: AsRef<path::Path>>(lang: Lang, path: P) {
     let file = ::std::fs::File::open(path).unwrap();
     let utterances: Vec<Utterance> = serde_json::from_reader(&file).unwrap();
-    let utterances: Vec<Utterance> = utterances.into_iter().filter(|it| it.in_grammar).collect();
+    let utterances: Vec<Utterance> = utterances.into_iter().filter(|it| it.keep()).collect();
     let parser = build_parser(lang).unwrap();
     for utterance in utterances {
         let context = ResolverContext::new(Interval::starting_at(utterance.context, moment::Grain::Second));
