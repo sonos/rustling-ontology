@@ -33,7 +33,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(10000.0, Some("DKK"), Precision::Exact), "10,000 DKK");
     example!(v, check_finance(100.0, Some("NOK"), Precision::Exact), "one hundred norwegian crowns", "100 norwegian kroner");
     example!(v, check_finance(2005.0, Some("SEK"), Precision::Exact), "2005 SEK");
-    example!(v, check_finance(96.0, Some("INR"), Precision::Exact), "96 rupees");
+    example!(v, check_finance(96.0, Some("INR"), Precision::Exact), "96 indian rupees");
     example!(v, check_finance(5.0, Some("RUB"), Precision::Exact), "five rubles");
     example!(v, check_finance(89.0, Some("JPY"), Precision::Approximate), "about 89 yen");
     example!(v, check_finance(200.0, Some("CNY"), Precision::Exact), "two hundred yuan");
