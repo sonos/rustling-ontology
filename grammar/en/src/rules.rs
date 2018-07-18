@@ -166,7 +166,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<duration> from now",
              duration_check!(),
              b.reg(r#"from (?:today|now)"#)?,
-             |a, _| a.value().in_present()
+             |duration, _| {
+                 let start = helpers::cycle_nth(Grain::Second, 0)?;
+                 let end = duration.value().in_present()?;
+                 start.span_to(&end, false)
+             }
     );
 
     b.rule_2("<duration> ago",
