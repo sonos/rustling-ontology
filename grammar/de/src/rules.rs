@@ -278,27 +278,39 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<duration> from now",
              duration_check!(),
-             b.reg(r#"ab (?:heute|jetzt|sofort)"#)?,
-             |duration, _| {
-                 let start = helpers::cycle_nth(Grain::Second, 0)?;
-                 let end = duration.value().in_present()?;
-                 start.span_to(&end, false)
-             }
+             b.reg(r#"(?:ab|von) (?:heute|jetzt|sofort)(?: an)?"#)?,
+             |duration, _| duration.value().in_present()
     );
     b.rule_2("<duration> from now",
-             b.reg(r#"von (?:heute|jetzt|sofort) an"#)?,
+             b.reg(r#"(?:ab|von) (?:heute|jetzt|sofort)(?: an)?"#)?,
              duration_check!(),
-             |_, duration| {
-                 let start = helpers::cycle_nth(Grain::Second, 0)?;
-                 let end = duration.value().in_present()?;
-                 start.span_to(&end, false)
-             }
+             |_, duration| duration.value().in_present()
     );
     b.rule_3("in <duration> from now",
              b.reg(r#"in"#)?,
              duration_check!(),
-             b.reg(r#"ab (?:heute|jetzt|sofort)"#)?,
+             b.reg(r#"(?:ab|von) (?:heute|jetzt|sofort)(?: an)?"#)?,
+             |_, duration, _| duration.value().in_present()
+    );
+    b.rule_2("in <duration> from now",
+             b.reg(r#"(?:ab|von) (?:heute|jetzt|sofort)(?: an)? in"#)?,
+             duration_check!(),
+             |_, duration| duration.value().in_present()
+    );
+    b.rule_3("for <duration> from now",
+             b.reg(r#"f[uü]r"#)?,
+             duration_check!(),
+             b.reg(r#"(?:ab|von) (?:heute|jetzt|sofort)(?: an)?"#)?,
              |_, duration, _| {
+                 let start = helpers::cycle_nth(Grain::Second, 0)?;
+                 let end = duration.value().in_present()?;
+                 start.span_to(&end, false)
+             }
+    );
+    b.rule_2("for <duration> from now",
+             b.reg(r#"(?:ab|von) (?:heute|jetzt|sofort)(?: an)? f[uü]r"#)?,
+             duration_check!(),
+             |_, duration| {
                  let start = helpers::cycle_nth(Grain::Second, 0)?;
                  let end = duration.value().in_present()?;
                  start.span_to(&end, false)
