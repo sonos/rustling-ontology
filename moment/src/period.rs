@@ -33,7 +33,7 @@ impl Grain {
         match self {
             &Grain::Year => Grain::Month,
             &Grain::Quarter => Grain::Month,
-            &Grain::Month => Grain::Month,
+            &Grain::Month => Grain::Day,
             &Grain::Week => Grain::Day,
             &Grain::Day => Grain::Day,
             &Grain::Hour => Grain::Minute,
