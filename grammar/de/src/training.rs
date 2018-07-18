@@ -179,7 +179,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 1, 29]), "vor zwei wochen");
     example!(v, check_moment!(c, [2013, 2, 5]), "vor einer woche");
     example!(v, check_moment!(c, [2013, 1, 22]), "vor drei wochen");
-    example!(v, check_moment!(c, [2012, 11]), "vor drei monaten");
+    example!(v, check_moment!(c, [2012, 11, 12]), "vor drei monaten");
     example!(v, check_moment!(c, [2011, 2]), "vor zwei jahren");
     example!(v, check_moment!(c, [2013, 2, 19]), "in 7 tagen");
     example!(v, check_moment!(c, [2013, 12]), "ein jahr nach weihnachten");
