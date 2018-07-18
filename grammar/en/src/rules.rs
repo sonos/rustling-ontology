@@ -1550,11 +1550,11 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("SEK") })
     );
     b.rule_1_terminal("RUB",
-                      b.reg(r#"rubles?|rub"#)?,
+                      b.reg(r#"(?:russian )?rubles?|rub"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("RUB") })
     );
     b.rule_1_terminal("INR",
-                      b.reg(r#"inr|rs(?:. )?|rupees?"#)?,
+                      b.reg(r#"inr|rs(?:. )?|(?:indian )?rupees?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_1_terminal("JPY",
