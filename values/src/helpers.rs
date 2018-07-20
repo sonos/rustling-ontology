@@ -363,6 +363,14 @@ impl TimeValue {
             Err(format_err!("Form {:?} is not a part of day form", self.form))?
         }
     }
+
+    pub fn form_part_of_form(&self) -> RuleResult<PartOfForm> {
+        if let Form::PartOfForm(v) = self.form.clone() {
+            Ok(v)
+        } else {
+            Err(format_err!("Form {:?} is not a part of form", self.form))?
+        }
+    }
 }
 
 pub fn normalize_year(y: i32) -> RuleResult<i32> {
