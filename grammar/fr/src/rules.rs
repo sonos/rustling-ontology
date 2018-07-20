@@ -1794,7 +1794,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                })
     });
     b.rule_2("number billions",
-        integer_check_by_range!(1, 99),
+        integer_check_by_range!(1, 999),
         b.reg(r#"milliards?"#)?,
         |a, _| {
             Ok(IntegerValue {
@@ -1951,7 +1951,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
     });
     b.rule_1_terminal("ordinal 0",
-        b.reg(r#"z[eé]roi[eè]me"#)?,
+        b.reg(r#"z[eé]rot?i[eè]me"#)?,
         |_| {
             Ok(OrdinalValue::new(0))
         }
@@ -1962,12 +1962,17 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             Ok(OrdinalValue::new(1))
         }
     );
+    b.rule_1_terminal("ordinal 2",
+        b.reg(r#"seconde?|deuxi[eè]me"#)?,
+        |_| {
+            Ok(OrdinalValue::new(2))
+        }
+    );
     b.rule_1_terminal(
             "ordinals (premier..seizieme)",
-            b.reg(r#"(deux|trois|quatr|cinqu|six|sept|huit|neuv|dix|onz|douz|treiz|quatorz|quinz|seiz)i[eè]me"#)?,
+            b.reg(r#"(trois|quatr|cinqu|six|sept|huit|neuv|dix|onz|douz|treiz|quatorz|quinz|seiz)i[eè]me"#)?,
             |text_match| {
                 let value = match text_match.group(1).as_ref() {
-                    "deux" => 2,
                     "trois" => 3,
                     "quatr" => 4, 
                     "cinqu" => 5, 
@@ -2043,9 +2048,16 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
     );
-    b.rule_2("21, 31, 41, 51, 61, 81",
+    b.rule_2("21, 31, 41, 51, 61",
         integer_check_by_range!(20, 80, |integer: &IntegerValue| integer.value % 10 == 0 && integer.value != 70),
         b.reg(r#"(?:et |-)uni[èe]me"#)?,
+        |integer, _| {
+            Ok(OrdinalValue::new(integer.value().value + 1))
+        }
+    );
+    b.rule_2("81",
+        integer_check_by_range!(80, 80),
+        b.reg(r#"(?:et )?uni[èe]me"#)?,
         |integer, _| {
             Ok(OrdinalValue::new(integer.value().value + 1))
         }
@@ -2065,7 +2077,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("70, 80, 90 (Belgium and Switzerland)",
-        b.reg(r#"(sept|huit|non)ante( et un)"#)?,
+        b.reg(r#"(sept|huit|non)ante"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
                 "sept" => 70,
@@ -2077,7 +2089,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("71, 81, 91 (Belgium and Switzerland)",
-        b.reg(r#"(sept|huit|non)ante et un"#)?,
+        b.reg(r#"(sept|huit|non)ante et une?"#)?,
         |text_match| {
             let value = match text_match.group(1).as_ref() {
                 "sept" => 71,
