@@ -92,7 +92,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("JPY") })
     );
     b.rule_1_terminal("CNY",
-                      b.reg(r#"cny|yuans?"#)?,
+                      b.reg(r#"cny|(?:chinesische[rnm]? )?yuans?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("CNY") })
     );
     b.rule_1_terminal("¥",
@@ -267,9 +267,18 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |integer, _, _| Ok(DurationValue::new(PeriodComp::minutes(integer.value().value * 60 + 30).into()))
     );
     b.rule_2("in <duration>",
-             b.reg(r#"in(?:\s(?:de(?:n|r|m)\s)?(?:n[äa]chste(?:n|r|m)|kommende(?:r|n|m)))?"#)?,
+             b.reg(r#"in"#)?,
              duration_check!(),
              |_, duration| duration.value().in_present()
+    );
+    b.rule_2("in next <duration>",
+             b.reg(r#"in(?:\s(?:de(?:n|r|m)\s)?(?:n[äa]chste(?:n|r|m)|kommende(?:r|n|m)))"#)?,
+             duration_check!(),
+             |_, duration| {
+                 let start = helpers::cycle_nth(Grain::Second, 0)?;
+                 let end = duration.value().in_present()?;
+                 start.span_to(&end, false)
+             }
     );
     b.rule_2("after <duration>",
              b.reg(r#"nach"#)?,
@@ -1368,42 +1377,71 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::Meal))
     );
     b.rule_1_terminal("dinner",
-                      b.reg(r#"dinner|souper|abendessen(?:szeit)?|abendbrot(?:zeit)?|vesper(?:zeit)?|brotzeit"#)?,
+                      b.reg(r#"abendessen(?:szeit)?|abendbrot(?:zeit)?|vesper(?:zeit)?|brotzeit"#)?,
                       |_| Ok(helpers::hour(18, false)?
                           .span_to(&helpers::hour(20, false)?, false)?
                           .latent()
                           .form(Form::Meal))
     );
-    b.rule_1_terminal("early morning",
-                      b.reg(r#"fr[üu]hen vormittag|tagesanbruch|morgen(?:grauen|fr[üu]he)|fr[üu]h(?:en )?morgens?|am morgen fruh"#)?,
+    b.rule_1_terminal("dawn",
+                      b.reg(r#"tagesanbruch|morgengrauen"#)?,
+                      |_| Ok(helpers::hour(4, false)?
+                          .span_to(&helpers::hour(7, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)).latent())
+    );
+    b.rule_1_terminal("very early morning",
+                      b.reg(r#"fr[üu]h(?:en )?morgens?|am morgen(?: fruh)|fr[üu]he?"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Morning)).latent())
     );
-    b.rule_1_terminal("morning (latent)",
-        b.reg(r#"morgens|fr[üu]he?|am morgen"#)?,
-        |_| Ok(helpers::hour(5, false)?
-                .span_to(&helpers::hour(10, false)?, false)?
-                .latent()
-                .form(Form::PartOfDay(PartOfDayForm::Morning)))
+    b.rule_1_terminal("very early morning",
+                      b.reg(r#"morgens|am morgen"#)?,
+                      |_| Ok(helpers::hour(4, false)?
+                          .span_to(&helpers::hour(10, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)).latent())
+    );
+    b.rule_1_terminal("early morning",
+                      b.reg(r#"fr[üu]hen vormittag"#)?,
+                      |_| Ok(helpers::hour(7, false)?
+                          .span_to(&helpers::hour(9, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)).latent())
+    );
+    b.rule_1_terminal("morning",
+                      b.reg(r#"vormittag(?:s(?:zeit)?)?"#)?,
+                      |_| Ok(helpers::hour(7, false)?
+                          .span_to(&helpers::hour(12, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)).latent())
     );
     b.rule_1_terminal("late morning",
-                      b.reg(r#"(?:kurz|am sp[äa]ten) vor ?mittag|vormittag(?:s(?:zeit)?)?"#)?,
+                      b.reg(r#"am sp[äa]ten vor ?mittag"#)?,
                       |_| Ok(helpers::hour(10, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
+    b.rule_1_terminal("just before noon",
+                      b.reg(r#"kurz vor ?mittag"#)?,
+                      |_| Ok(helpers::hour(11, false)?
+                          .span_to(&helpers::hour(12, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)))
+    );
+    b.rule_1_terminal("just after noon",
+                      b.reg(r#"kurz nach mittag"#)?,
+                      |_| Ok(helpers::hour(12, false)?
+                          .span_to(&helpers::hour(13, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
+    );
+    b.rule_1_terminal("after lunch",
+                      b.reg(r#"nach dem mittagessen"#)?,
+                      |_| Ok(helpers::hour(13, false)?
+                          .span_to(&helpers::hour(14, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
+    );
     b.rule_1_terminal("early afternoon (latent)",
                       b.reg(r#"fr[üu]hen nachmittags?(?:stunden?)?"#)?,
                       |_| Ok(helpers::hour(13, false)?
-                          .span_to(&helpers::hour(17, false)?, false)?
-                          .latent()
-                          .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
-    );
-    b.rule_1_terminal("early afternoon",
-                      b.reg(r#"nach dem mittagessen|kurz nach mittag"#)?,
-                      |_| Ok(helpers::hour(13, false)?
                           .span_to(&helpers::hour(16, false)?, false)?
+                          .latent()
                           .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
     );
     b.rule_1_terminal("afternoon",
@@ -1414,7 +1452,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("late afternoon (latent)",
                       b.reg(r#"sp[äa]t(?:e[nr] )?nachmittags?(?:stunden?)?"#)?,
-                      |_| Ok(helpers::hour(17, false)?
+                      |_| Ok(helpers::hour(16, false)?
                           .span_to(&helpers::hour(19, false)?, false)?
                           .latent()
                           .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
@@ -1435,27 +1473,27 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("evening (latent)",
                       b.reg(r#"abend(?:zeit)?"#)?,
                       |_| Ok(helpers::hour(18, false)?
-                          .span_to(&helpers::hour(0, false)?, false)?
+                          .span_to(&helpers::hour(23, false)?, false)?
                           .latent()
                           .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
     b.rule_1_terminal("evening",
                       b.reg(r#"abends"#)?,
                       |_| Ok(helpers::hour(18, false)?
-                          .span_to(&helpers::hour(0, false)?, false)?
+                          .span_to(&helpers::hour(23, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
     b.rule_1_terminal("late evening (latent)",
                       b.reg(r#"sp[äa]te[nr] abend(?:stunden?)?|abend sp[äa]t"#)?,
                       |_| Ok(helpers::hour(21, false)?
-                          .span_to(&helpers::hour(0, false)?, false)?
+                          .span_to(&helpers::hour(23, false)?, false)?
                           .latent()
                           .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
     b.rule_1_terminal("late evening",
                       b.reg(r#"sp[äa]t(?: am )?abends?|abends sp[äa]t|sp[äa]t abends"#)?,
                       |_| Ok(helpers::hour(21, false)?
-                          .span_to(&helpers::hour(0, false)?, false)?
+                          .span_to(&helpers::hour(23, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Evening)))
     );
     b.rule_1_terminal("early night (latent)",
@@ -1474,21 +1512,27 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("night (latent)",
                       b.reg(r#"nacht"#)?,
-                      |_| Ok(helpers::hour(0, false)?
-                          .span_to(&helpers::hour(4, false)?, false)?
+                      |_| Ok(helpers::hour(23, false)?
+                          .span_to(&helpers::hour(5, false)?, false)?
                           .latent()
                           .form(Form::PartOfDay(PartOfDayForm::Night)))
     );
     b.rule_1_terminal("night",
                       b.reg(r#"nachts"#)?,
+                      |_| Ok(helpers::hour(23, false)?
+                          .span_to(&helpers::hour(5, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Night)))
+    );
+    b.rule_1_terminal("deep night",
+                      b.reg(r#"tief(?: in der)? ?nachts?"#)?,
                       |_| Ok(helpers::hour(0, false)?
-                          .span_to(&helpers::hour(4, false)?, false)?
+                          .span_to(&helpers::hour(3, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Night)))
     );
     b.rule_1_terminal("late night",
-                      b.reg(r#"(?:sp[äa]t|tief)(?: in der)? ?nachts?"#)?,
-                      |_| Ok(helpers::hour(0, false)?
-                          .span_to(&helpers::hour(4, false)?, false)?
+                      b.reg(r#"sp[äa]t(?: in der)? ?nachts?"#)?,
+                      |_| Ok(helpers::hour(3, false)?
+                          .span_to(&helpers::hour(5, false)?, false)?
                           .form(Form::PartOfDay(PartOfDayForm::Night)))
     );
 
@@ -1799,16 +1843,30 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, duration| helpers::cycle_nth(Grain::Second, 0)?
                  .span_to(&duration.value().in_present()?, false)
     );
-    b.rule_2("by the end of <time>",
-             b.reg(r#"bis zum ende"#)?,
-             time_check!(),
-             |_, time| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), true)
-    );
+//    b.rule_2("by the end of <time>",
+//             b.reg(r#"bis zum ende"#)?,
+//             time_check!(excluding_form!(Form::PartOfCycle(_))),
+//             |_, time| Ok(time.value().clone().mark_before_end_all())
+//    );
     b.rule_2("before <time>",
              b.reg(r#"vor(?: de[nmr]| )|bis(?:(?: zu[rm]?(?: den)?)| in d(?:en|ie|as))?"#)?,
-             time_check!(),
+             time_check!(excluding_form!(Form::PartOfForm(_))),
              |_, time| Ok(time.value().clone().mark_before_start())
     );
+
+    b.rule_2("before <part-of-form> (specific cases)",
+             b.reg(r#"vor(?: de[nmr]| )|bis(?:(?: zu[rm]?(?: den)?)| in d(?:en|ie|as))?"#)?,
+             time_check!(form!(Form::PartOfForm(_))),
+             |_, time| {
+                let part_of_form = time.value().form_part_of_form()?;
+                match part_of_form.position {
+                    Position::Start => Ok(time.value().clone().mark_before_start()),
+                    Position::Middle => Ok(time.value().clone().mark_before_start()),
+                    Position::End => Ok(time.value().clone().mark_before_end_all()),
+                }
+              }
+    );
+
     b.rule_2("until inclusive <time>",
         b.reg(r#"sp[äa]testens (?:ins|i[nm]|beim?|w[äa]h?rend|nach) ?(?:de(?:r|m|s|n)|die|das)?"#)?,
         time_check!(),
@@ -1845,43 +1903,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           let current_week = helpers::cycle_nth(Grain::Week, 0)?;
                           let start = current_week.intersect(&helpers::day_of_week(Weekday::Mon)?)?;
                           let end = current_week.intersect(&helpers::day_of_week(Weekday::Tue)?)?;
-                          start.span_to(&end, true)
-                      }
-    );
-    b.rule_2("start of week",
-             b.reg(r#"(?:de[rmns] )?(anfang|beginn) der"#)?,
-             time_check!(form!(Form::Cycle(Grain::Week))),
-             |_, week| {
-                 let start = week.value().intersect(&helpers::day_of_week(Weekday::Mon)?)?;
-                 let end = week.value().intersect(&helpers::day_of_week(Weekday::Tue)?)?;
-                 start.span_to(&end, true)
-             }
-    );
-    b.rule_2("middle of week",
-             b.reg(r#"(?:in |im )?(?:der |die )?mitte der"#)?,
-             time_check!(form!(Form::Cycle(Grain::Week))),
-             |_, week| {
-                 let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
-                 let end = week.value().intersect(&helpers::day_of_week(Weekday::Sun)?)?;
-                 start.span_to(&end, true)
-             }
-    );
-    b.rule_2("end of week",
-             b.reg(r#"ende der"#)?,
-             time_check!(form!(Form::Cycle(Grain::Week))),
-             |_, week| {
-                 let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
-                 let end = week.value().intersect(&helpers::day_of_week(Weekday::Sun)?)?;
-                 start.span_to(&end, true)
-             }
-    );
-    b.rule_1_terminal("end of week",
-                      b.reg(r#"ende der woche"#)?,
-                      |_| {
-                          let current_week = helpers::cycle_nth(Grain::Week, 0)?;
-                          let start = current_week.intersect(&helpers::day_of_week(Weekday::Fri)?)?;
-                          let end = current_week.intersect(&helpers::day_of_week(Weekday::Sun)?)?;
-                          start.span_to(&end, true)
+                          Ok(start.span_to(&end, true)?
+                            .form(PartOfForm::start_of(Form::PartOfYear)))
                       }
     );
     b.rule_1_terminal("start of month",
@@ -1890,102 +1913,72 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           let current_month = helpers::cycle_nth(Grain::Month, 0)?;
                           let start = current_month.intersect(&helpers::day_of_month(1)?)?;
                           let end = current_month.intersect(&helpers::day_of_month(10)?)?;
-                          start.span_to(&end, true)
+                          Ok(start.span_to(&end, true)?
+                            .form(PartOfForm::start_of(Form::PartOfYear)))
                       }
     );
-    b.rule_2("start of month",
-             b.reg(r#"(anfang|beginn)(?: des)?"#)?,
-             time_check!(|time: &TimeValue| {
-            match time.form {
-                Form::Month(_) | Form::Cycle(Grain::Month) => true,
-                _ => false
-            }
-        }),
-             |_, month| {
-                 let start = month.value().intersect(&helpers::day_of_month(1)?)?;
-                 let end = month.value().intersect(&helpers::day_of_month(10)?)?;
-                 start.span_to(&end, true)
-             }
-    );
-    b.rule_1_terminal("beginning of year",
+    b.rule_1_terminal("start of year",
                       b.reg(r#"jahres(?:anfang|beginn)|(?:anfang|beginn) des jahres"#)?,
                       |_| {
                           let current_year = helpers::cycle_nth(Grain::Year, 0)?;
                           let start = current_year.intersect(&helpers::month(1)?)?;
                           let end = current_year.intersect(&helpers::month(3)?)?;
-                          start.span_to(&end, true)
+                          Ok(start.span_to(&end, true)?
+                                .form(PartOfForm::start_of(Form::PartOfYear)))
                       }
     );
-    b.rule_2("beginning of year",
-             b.reg(r#"anfang(?: de[sr])?"#)?,
-             time_check!(|time: &TimeValue| {
-            match time.form {
-                Form::Year(_) | Form::Cycle(Grain::Year) => true,
-                _ => false
-            }
-        }),
-             |_, year| {
-                 let start = year.value().intersect(&helpers::month(1)?)?;
-                 let end = year.value().intersect(&helpers::month(3)?)?;
-                 start.span_to(&end, true)
+    b.rule_2("middle of week",
+             b.reg(r#"(?:in |im )?(?:der |die )?mitte der"#)?,
+             time_check!(form!(Form::Cycle(Grain::Week))),
+             |_, week| {
+                 let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
+                 let end = week.value().intersect(&helpers::day_of_week(Weekday::Sun)?)?;
+                 Ok(start.span_to(&end, true)?
+                    .form(PartOfForm::middle_of(Form::PartOfWeek)))
              }
     );
-    b.rule_1_terminal("end of year",
-                      b.reg(r#"(?:jahr(?:es)?(?:ende|schluss)|ende (?:des|vom) jahr(?:e?s)?)"#)?,
-                      |_| {
-                          let current_year = helpers::cycle_nth(Grain::Year, 0)?;
-                          let start = current_year.intersect(&helpers::month(10)?)?;
-                          let end = current_year.intersect(&helpers::month(12)?)?;
-                          start.span_to(&end, true)
-                      }
+    b.rule_1_terminal("end of week",
+        b.reg(r#"ende der woche"#)?,
+        |_| Ok(helpers::day_of_week(Weekday::Thu)
+                    ?.span_to(&helpers::day_of_week(Weekday::Sun)?, false)?
+                    .form(PartOfForm::end_of(Form::PartOfWeek)))
     );
-    b.rule_2("end of year",
-            b.reg(r#"ende(?: de[sr])?"#)?,
-            time_check!(|time: &TimeValue| {
-                match time.form {
-                    Form::Year(_) | Form::Cycle(Grain::Year) => true,
-                    _ => false
-                }
-            }),
-            |_, year| {
-                 let start = year.value().intersect(&helpers::month(10)?)?;
-                 let end = year.value().intersect(&helpers::month(12)?)?;
-                 start.span_to(&end, true)
-             }
-    );
-    b.rule_2("end of month",
-             b.reg(r#"ende"#)?,
-             time_check!(|time: &TimeValue| {
-            match time.form {
-                Form::Month(_) | Form::Cycle(Grain::Month) => true,
-                _ => false
-            }
-        }),
-             |_, month| {
-                 let start = month.value().intersect(&helpers::day_of_month(25)?)?;
-                 let end = helpers::cycle(Grain::Day)?.last_of(month.value())?;
-                 start.span_to(&end, true)
-             }
-    );
-    b.rule_1("end of month",
+
+    b.rule_1_terminal("end of month",
              b.reg(r#"(?:am )?ende (?:des|vom) monate?s?|monatsende"#)?,
-             |_| {
-                 let current_month = helpers::cycle_nth(Grain::Month, 0)?;
-                 let start = current_month.intersect(&helpers::day_of_month(25)?)?;
-                 let end = helpers::cycle(Grain::Day)?.last_of(&current_month)?;
-                 start.span_to(&end, true)
-             }
+        |_| {
+            let month = helpers::cycle_nth(Grain::Month, 1)?;
+            Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
+                .span_to(&month, false)?
+                .latent()
+                .form(PartOfForm::end_of(Form::PartOfMonth)))
+        }
     );
+
+    b.rule_1_terminal("end of year",
+         b.reg(r#"jahr(?:es)?(?:ende|schluss)|ende (?:des|vom) jahr(?:e?s)?"#)?,
+        |_| {
+            let current_year = helpers::cycle_nth(Grain::Year, 0)?;
+            let start = current_year.intersect(&helpers::month(10)?)?;
+            let end = current_year.intersect(&helpers::month(12)?)?;
+            Ok(start.span_to(&end, true)?
+                .form(PartOfForm::end_of(Form::PartOfYear)))
+        }
+    );
+
+
     b.rule_2("since <time>",
              b.reg(r#"(?:ab|seit)(?: de[rm])?"#)?,
              time_check!(),
-             |_, a| Ok(a.value().clone().mark_after_start().not_latent())
+             |_, time| Ok(time.value().the_nth(-1)?.mark_after_start().not_latent())
     );
+
     b.rule_3("since <time>",
              b.reg(r#"vo[nm](?: de[rm])?"#)?,
              time_check!(),
              b.reg(r#"an"#)?,
-             |_, time, _| Ok(time.value().clone().mark_after_start().not_latent())
+             |_, time, _| Ok(time.value().the_nth(-1)?.mark_after_start().not_latent())
+             //|_, time, _| Ok(time.value().clone().mark_after_start().not_latent())
     );
     Ok(())
 }
@@ -2208,7 +2201,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"million(?:en)?"#)?,
                       |_| IntegerValue::new_with_grain(1_000_000, 6)
     );
-    b.rule_1_terminal("million",
+    b.rule_1_terminal("billion",
                       b.reg(r#"milliarden?"#)?,
                       |_| IntegerValue::new_with_grain(1_000_000, 6)
     );
@@ -2290,7 +2283,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         })
     );
     b.rule_2("number billion",
-        integer_check_by_range!(1, 99),
+        integer_check_by_range!(1, 999),
          b.reg(r#"milliarden?"#)?,
         |a, _| Ok(IntegerValue {
             value: a.value().value * 1_000_000_000,
