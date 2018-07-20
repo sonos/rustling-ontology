@@ -32,6 +32,8 @@ macro_rules! check_moment_with_precision {
 #[macro_export]
 macro_rules! check_moment_with_direction {
     ($context:expr, [$($item:expr),*], $direction:expr) => ( ::rustling_ontology_values::check::check_moment($context, moment!($( $item ),*), grain!($( $item ),*), Precision::Exact, Some($direction)) );
+    ($context:expr, [$($item:expr),*], $direction:expr, $grain:expr) => ( ::rustling_ontology_values::check::check_moment($context, moment!($( $item ),*), $grain, Precision::Exact, Some($direction)) );
+
 }
 
 #[macro_export]
