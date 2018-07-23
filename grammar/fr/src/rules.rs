@@ -126,17 +126,29 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
     b.rule_3("<amount> de <unit>",
-        integer_check!(|integer: &IntegerValue| integer.group),
+        number_check!(),
         b.reg(r#"d[e']"#)?,
         money_unit!(),
         |a, _, b| {
             Ok(AmountOfMoneyValue {
-                value: a.value().value as f32,
-                precision: Approximate,
-                unit: b.value().unit,
-                ..AmountOfMoneyValue::default()
+                 value: a.value().value(),
+                 unit: b.value().unit,
+                 ..AmountOfMoneyValue::default()
             })
     });
+    // todo: see with Hubert how to improve rule below, to get rid of the one just above
+//    b.rule_3("<amount> de <unit>",
+//        integer_check!(|integer: &IntegerValue| integer.group),
+//        b.reg(r#"d[e']"#)?,
+//        money_unit!(),
+//        |a, _, b| {
+//            Ok(AmountOfMoneyValue {
+//                value: a.value().value as f32,
+//                precision: Approximate,
+//                unit: b.value().unit,
+//                ..AmountOfMoneyValue::default()
+//            })
+//    });
     b.rule_2("about <amount-of-money>",
              b.reg(r#"(?:autour|pas loin|pr[eè]s|aux alentours) d[e']|environ|presque|(?:approximative|quasi)ment"#)?,
              amount_of_money_check!(),
@@ -229,6 +241,15 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  let minute_period = Period::from(PeriodComp::new(Grain::Minute, minute.value().clone().value));
                  Ok(DurationValue::new(hour_period + minute_period))
              }
+    );
+    b.rule_3("<integer> <unit-of-duration> et quart",
+        integer_check_by_range!(0),
+        unit_of_duration_check!(),
+        b.reg(r#"et quart"#)?,
+        |integer, uod, _| {
+           let quarter_period: Period = uod.value().grain.quarter_period().map(|a| a.into()).unwrap_or_else(|| Period::default());
+           Ok(DurationValue::new(quarter_period + PeriodComp::new(uod.value().grain, integer.value().value)))
+        }
     );
     b.rule_3("<integer> <unit-of-duration> et demi",
         integer_check_by_range!(0),
