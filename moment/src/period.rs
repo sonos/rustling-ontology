@@ -55,6 +55,19 @@ impl Grain {
         }
     }
 
+    pub fn quarter_period(&self) -> Option<PeriodComp> {
+        match self {
+            &Grain::Year => Some(PeriodComp::months(3)),
+            &Grain::Quarter => Some(PeriodComp::days(22)),
+            &Grain::Month => Some(PeriodComp::days(7)),
+            &Grain::Week => Some(PeriodComp::days(2)),
+            &Grain::Day => Some(PeriodComp::hours(6)),
+            &Grain::Hour => Some(PeriodComp::minutes(15)),
+            &Grain::Minute => Some(PeriodComp::seconds(15)),
+            &Grain::Second => None,
+        }
+    }
+
     pub fn coarse_num_secs(&self) -> i64 {
         match self {
             &Grain::Year => 12 * 30 * 24 * 3600,
