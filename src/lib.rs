@@ -35,7 +35,7 @@ pub use rustling_ontology_values::dimension;
 pub use rustling_ontology_values::output;
 pub use rustling_ontology_values::output::{Output, OutputKind};
 pub use rustling_ontology_values::{ResolverContext, IdentityContext, ParsingContext};
-pub use rustling_ontology_moment::Interval;
+pub use rustling_ontology_moment::{Interval, Moment, Local, TimeZone};
 pub use rustling_ontology_moment::Grain;
 
 mod parser;

@@ -38,6 +38,7 @@ impl Context<Local> {
 }
 
 impl<T: TimeZone> Context<T> where <T as TimeZone>::Offset: Copy {
+
     pub fn for_reference(now: Interval<T>) -> Context<T> {
         // TODO: Should be refactor with the min, max date offer by chrono crate
         let now_end = now.end_moment();
