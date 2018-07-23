@@ -42,6 +42,8 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(100.0, Some("CNY"), Precision::Exact), "pile cent yuans", "100 yuan pile");
     example!(v, check_finance(7.0, Some("KRW"), Precision::Exact), "7 wons", "7₩");
     example!(v, check_finance(3.0, Some("฿"), Precision::Exact), "3฿", "3 ฿", "trois bitcoins");
+    example!(v, check_finance(15.0, Some("$"), Precision::Approximate), "une quinzaine de dollars");
+    example!(v, check_finance(3000000.0, Some("EUR"), Precision::Exact), "trois millions d'euros");
 }
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {

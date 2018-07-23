@@ -125,30 +125,30 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..AmountOfMoneyValue::default()
                  })
              });
-    b.rule_3("<amount> de <unit>",
-        number_check!(),
+    b.rule_3("<amount> de <unit>",  // "un million de dollars"
+        integer_check!(|integer: &IntegerValue| !integer.group),
         b.reg(r#"d[e']"#)?,
         money_unit!(),
         |a, _, b| {
             Ok(AmountOfMoneyValue {
-                 value: a.value().value(),
-                 unit: b.value().unit,
-                 ..AmountOfMoneyValue::default()
+                value: a.value().value as f32,
+                precision: Exact,
+                unit: b.value().unit,
+                ..AmountOfMoneyValue::default()
             })
     });
-    // todo: see with Hubert how to improve rule below, to get rid of the one just above
-//    b.rule_3("<amount> de <unit>",
-//        integer_check!(|integer: &IntegerValue| integer.group),
-//        b.reg(r#"d[e']"#)?,
-//        money_unit!(),
-//        |a, _, b| {
-//            Ok(AmountOfMoneyValue {
-//                value: a.value().value as f32,
-//                precision: Approximate,
-//                unit: b.value().unit,
-//                ..AmountOfMoneyValue::default()
-//            })
-//    });
+    b.rule_3("<amount> de <unit>",  // "une douzaine de dollars"
+        integer_check!(|integer: &IntegerValue| integer.group),
+        b.reg(r#"d[e']"#)?,
+        money_unit!(),
+        |a, _, b| {
+            Ok(AmountOfMoneyValue {
+                value: a.value().value as f32,
+                precision: Approximate,
+                unit: b.value().unit,
+                ..AmountOfMoneyValue::default()
+            })
+    });
     b.rule_2("about <amount-of-money>",
              b.reg(r#"(?:autour|pas loin|pr[eè]s|aux alentours) d[e']|environ|presque|(?:approximative|quasi)ment"#)?,
              amount_of_money_check!(),
