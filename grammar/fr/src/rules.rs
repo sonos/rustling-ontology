@@ -247,7 +247,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         unit_of_duration_check!(),
         b.reg(r#"et quart"#)?,
         |integer, uod, _| {
-           let quarter_period: Period = uod.value().grain.quarter_period().map(|a| a.into()).unwrap_or_else(|| Period::default());
+           let quarter_period: Period = uod.value().grain.quarter_period().map(|a| a.into()).ok_or_else(|| RuleError::Invalid)?;
            Ok(DurationValue::new(quarter_period + PeriodComp::new(uod.value().grain, integer.value().value)))
         }
     );
@@ -256,7 +256,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         unit_of_duration_check!(),
         b.reg(r#"et demie?"#)?,
         |integer, uod, _| {
-           let half_period: Period = uod.value().grain.half_period().map(|a| a.into()).unwrap_or_else(|| Period::default());
+           let half_period: Period = uod.value().grain.half_period().map(|a| a.into()).ok_or_else(|| RuleError::Invalid)?;
            Ok(DurationValue::new(half_period + PeriodComp::new(uod.value().grain, integer.value().value)))
         }
     );
@@ -2070,7 +2070,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("21, 31, 41, 51, 61",
-        integer_check_by_range!(20, 80, |integer: &IntegerValue| integer.value % 10 == 0 && integer.value != 70),
+        integer_check_by_range!(20, 60, |integer: &IntegerValue| integer.value % 10 == 0),
         b.reg(r#"(?:et |-)uni[èe]me"#)?,
         |integer, _| {
             Ok(OrdinalValue::new(integer.value().value + 1))
