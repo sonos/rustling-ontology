@@ -32,7 +32,13 @@ pub struct ResolverContext {
     ctx: Context<Local>,
 }
 
-impl ResolverContext {
+impl ResolverContext { 
+
+    pub fn from_secs(secs: i64) -> ResolverContext {
+        let anchor = Interval::starting_at(Moment(Local.timestamp(secs, 0)), Grain::Second);
+        ResolverContext::new(anchor)
+    }
+
     pub fn new(now: Interval<Local>) -> ResolverContext {
         ResolverContext {
            ctx: Context::for_reference(now) 
