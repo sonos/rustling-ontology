@@ -378,7 +378,6 @@ impl<T> MomentToRuleError for MomentResult<T> {
     type Output = T;
     fn invalid_if_err(self) -> RuleResult<T> {
         Ok(self.map_err(|e| {
-            println!("TOTO {:?}", e);
             RuleError::Invalid
         })?)
     }
