@@ -34,8 +34,8 @@ pub struct ResolverContext {
 
 impl ResolverContext { 
 
-    pub fn from_nsecs(nsecs: i64) -> ResolverContext {
-        let anchor = Interval::starting_at(Moment(Local.timestamp(nsecs, 0)), Grain::Second);
+    pub fn from_secs(secs: i64) -> ResolverContext {
+        let anchor = Interval::starting_at(Moment(Local.timestamp(secs, 0)), Grain::Second);
         ResolverContext::new(anchor)
     }
 
