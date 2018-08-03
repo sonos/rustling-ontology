@@ -501,12 +501,6 @@ pub struct TimeValue {
     pub ambiguity: Ambiguity,
 }
 
-impl TimeValue {
-    fn is_too_ambiguous(&self) -> bool {
-        return self.ambiguity == Ambiguity::Big;
-    }
-}
-
 // We need partial eq to make Dimension partial eq happy, but this is only
 // useful for testing.
 impl PartialEq for TimeValue {
@@ -542,8 +536,10 @@ pub enum Form {
     TimeOfDay(TimeOfDayForm),
     DayOfWeek { not_immediate: bool },
     PartOfDay(PartOfDayForm),
+    PartOfWeek,
     PartOfMonth,
     PartOfYear,
+    PartOfForm(PartOfForm),
     Meal,
     Celebration,
     Empty,
@@ -566,6 +562,8 @@ impl Form {
             &Form::PartOfMonth => None,
             &Form::PartOfYear => None,
             &Form::DayOfMonth => None,
+            &Form::PartOfForm(_) => None,
+            &Form::PartOfWeek => None,
         }
     }
 }
@@ -629,6 +627,42 @@ impl BoundedDirection {
             bound: Bound::Start,
             direction: Direction::Before,
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Position {
+    Start,
+    Middle,
+    End,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PartOfForm {
+    pub inner_form: Box<Form>,
+    pub position: Position,
+}
+
+impl PartOfForm {
+    pub fn start_of(inner_form: Form) -> Form {
+        Form::PartOfForm(PartOfForm {
+           position: Position::Start,
+           inner_form: Box::new(inner_form),
+        })
+    }
+
+    pub fn middle_of(inner_form: Form) -> Form {
+        Form::PartOfForm(PartOfForm {
+           position: Position::Middle,
+           inner_form: Box::new(inner_form),
+        })
+    }
+
+    pub fn end_of(inner_form: Form) -> Form {
+        Form::PartOfForm(PartOfForm {
+           position: Position::End,
+           inner_form: Box::new(inner_form),
+        })
     }
 }
 

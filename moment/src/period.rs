@@ -33,7 +33,7 @@ impl Grain {
         match self {
             &Grain::Year => Grain::Month,
             &Grain::Quarter => Grain::Month,
-            &Grain::Month => Grain::Month,
+            &Grain::Month => Grain::Day,
             &Grain::Week => Grain::Day,
             &Grain::Day => Grain::Day,
             &Grain::Hour => Grain::Minute,
@@ -51,6 +51,19 @@ impl Grain {
             &Grain::Day => Some(PeriodComp::hours(12)),
             &Grain::Hour => Some(PeriodComp::minutes(30)),
             &Grain::Minute => Some(PeriodComp::seconds(30)),
+            &Grain::Second => None,
+        }
+    }
+
+    pub fn quarter_period(&self) -> Option<PeriodComp> {
+        match self {
+            &Grain::Year => Some(PeriodComp::months(3)),
+            &Grain::Quarter => Some(PeriodComp::days(22)),
+            &Grain::Month => Some(PeriodComp::days(7)),
+            &Grain::Week => Some(PeriodComp::days(2)),
+            &Grain::Day => Some(PeriodComp::hours(6)),
+            &Grain::Hour => Some(PeriodComp::minutes(15)),
+            &Grain::Minute => Some(PeriodComp::seconds(15)),
             &Grain::Second => None,
         }
     }

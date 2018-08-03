@@ -89,6 +89,12 @@ macro_rules! time_check {
     ($($predicate:expr),*) => ( ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![ $( b!($predicate) ),*]) );
 }
 
+
+#[macro_export]
+macro_rules! time_check_exclude_too_ambiguous {
+    () => ( ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| !time.is_too_ambiguous())]) );
+}
+
 #[macro_export]
 macro_rules! time_of_day_check_hour {
     ($min:expr, $max:expr) => ( 
@@ -138,4 +144,14 @@ macro_rules! form {
 #[macro_export]
 macro_rules! excluding_form {
     ($form:pat) => (|time: &TimeValue| if let $form = time.form { false } else { true })
+}
+
+#[macro_export]
+macro_rules! excluding_too_ambiguous {
+    () => (|time: &TimeValue| !time.is_too_ambiguous())
+}
+
+#[macro_export]
+macro_rules! excluding_latent {
+    () => (|time: &TimeValue| !time.latent)
 }

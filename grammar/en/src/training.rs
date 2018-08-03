@@ -33,7 +33,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(10000.0, Some("DKK"), Precision::Exact), "10,000 DKK");
     example!(v, check_finance(100.0, Some("NOK"), Precision::Exact), "one hundred norwegian crowns", "100 norwegian kroner");
     example!(v, check_finance(2005.0, Some("SEK"), Precision::Exact), "2005 SEK");
-    example!(v, check_finance(96.0, Some("INR"), Precision::Exact), "96 rupees");
+    example!(v, check_finance(96.0, Some("INR"), Precision::Exact), "96 indian rupees");
     example!(v, check_finance(5.0, Some("RUB"), Precision::Exact), "five rubles");
     example!(v, check_finance(89.0, Some("JPY"), Precision::Approximate), "about 89 yen");
     example!(v, check_finance(200.0, Some("CNY"), Precision::Exact), "two hundred yuan");
@@ -141,14 +141,14 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 1, 29]), "14 days ago", "a fortnight ago");
     example!(v, check_moment!(c, [2013, 2, 5]), "a week ago", "one week ago", "1 week ago");
     example!(v, check_moment!(c, [2013, 1, 22]), "three weeks ago");
-    example!(v, check_moment!(c, [2012, 11]), "three months ago");
+    example!(v, check_moment!(c, [2012, 11, 12]), "three months ago");
     example!(v, check_moment!(c, [2011, 2]), "two years ago");
     example!(v, check_moment!(c, [2001]), "2001");
     example!(v, check_moment!(c, [2013, 2, 19]), "7 days hence");
     example!(v, check_moment!(c, [2013, 2, 26]), "14 days hence", "a fortnight hence");
     example!(v, check_moment!(c, [2013, 2, 19]), "a week hence", "one week hence", "1 week hence");
     example!(v, check_moment!(c, [2013, 3, 5]), "three weeks hence");
-    example!(v, check_moment!(c, [2013, 5]), "three months hence");
+    example!(v, check_moment!(c, [2013, 5, 12]), "three months hence");
     example!(v, check_moment!(c, [2015, 2]), "two years hence");
     example!(v, check_moment!(c, [2013, 12]), "one year after christmas");
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "this summer", "current summer");

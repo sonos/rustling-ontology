@@ -163,10 +163,21 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| Ok(a.value() + b.value())
     );
 
-    b.rule_2("<duration> from now",
+    b.rule_2("<duration> from now", // "10 minutes from now"
              duration_check!(),
              b.reg(r#"from (?:today|now)"#)?,
              |a, _| a.value().in_present()
+    );
+
+    b.rule_3("for <duration> from now", // "for 10 minutes from now"
+             b.reg(r#"for"#)?,
+             duration_check!(),
+             b.reg(r#"from (?:today|now)"#)?,
+             |_, duration, _| {
+                 let start = helpers::cycle_nth(Grain::Second, 0)?;
+                 let end = duration.value().in_present()?;
+                 start.span_to(&end, false)
+             }
     );
 
     b.rule_2("<duration> ago",
@@ -1550,11 +1561,11 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("SEK") })
     );
     b.rule_1_terminal("RUB",
-                      b.reg(r#"rubles?|rub"#)?,
+                      b.reg(r#"(?:russian )?rubles?|rub"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("RUB") })
     );
     b.rule_1_terminal("INR",
-                      b.reg(r#"inr|rs(?:. )?|rupees?"#)?,
+                      b.reg(r#"inr|rs\.?|(?:indian )?rupees?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_1_terminal("JPY",
@@ -2043,17 +2054,17 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
 
-    b.rule_2("ordinal (102...9_999_999)",
+    b.rule_2("ordinal (101...9_999_999)",
         integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
-        ordinal_check_by_range!(2, 99),
+        ordinal_check_by_range!(1, 99),
         |integer, ordinal| {
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
     );
-    b.rule_3("ordinal (102...9_999_999)",
+    b.rule_3("ordinal (101...9_999_999)",
         integer_check!(|integer: &IntegerValue| integer.value >= 100 || integer.value % 100 == 0),
         b.reg(r#"and"#)?,
-        ordinal_check_by_range!(2, 99),
+        ordinal_check_by_range!(1, 99),
         |integer, _, ordinal| {
             Ok(OrdinalValue::new(integer.value().value + ordinal.value().value))
         }
