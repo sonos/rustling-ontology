@@ -299,13 +299,13 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("last <cycle>",
-             b.reg(r#"last|past|previous"#)?,
+             b.reg(r#"(?:the )?(?:last|past|previous)"#)?,
              cycle_check!(),
              |_, a| helpers::cycle_nth(a.value().grain, -1)
     );
 
     b.rule_2("next <cycle>",
-             b.reg(r#"next|the following"#)?,
+             b.reg(r#"(?:the )?next|the following"#)?,
              cycle_check!(),
              |_, a| helpers::cycle_nth(a.value().grain, 1)
     );
@@ -445,8 +445,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, a| Ok(a.value().clone().not_latent())
     );
-    b.rule_2("for <date>",
+    b.rule_2("at <date>",
              b.reg(r#"for"#)?,
+             time_check!(|time: &TimeValue| !time.latent),
+             |_, a| Ok(a.value().clone().not_latent())
+    );
+    b.rule_2("for <date>",
+             b.reg(r#"at"#)?,
              time_check!(|time: &TimeValue| !time.latent),
              |_, a| Ok(a.value().clone().not_latent())
     );
@@ -773,7 +778,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_2("this|next <day-of-week>",
-             b.reg(r#"this|next"#)?,
+             b.reg(r#"this|(?:the )?next"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
              |_, a| {
                  a.value().the_nth_not_immediate(0)
@@ -815,7 +820,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_4("last <day-of-week> of <time>",
-             b.reg(r#"last"#)?,
+             b.reg(r#"(?:the )?last"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
              b.reg(r#"of"#)?,
              time_check!(),
@@ -824,7 +829,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_4("last <cycle> of <time>",
-             b.reg(r#"last"#)?,
+             b.reg(r#"(?:the )?last"#)?,
              cycle_check!(),
              b.reg(r#"of|in"#)?,
              time_check!(),
