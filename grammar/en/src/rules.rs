@@ -298,6 +298,14 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a| helpers::cycle_nth(a.value().grain, 0)
     );
 
+    b.rule_2("the <cycle>",
+             b.reg(r#"the"#)?,
+             cycle_check!(),
+             |_, a| {
+                 Ok(helpers::cycle_nth(a.value().grain, 0)?.too_ambiguous())
+             }
+    );
+
     b.rule_2("last <cycle>",
              b.reg(r#"(?:the )?(?:last|past|previous)"#)?,
              cycle_check!(),
@@ -875,6 +883,22 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  a.value().the_nth_after(ordinal.value().value - 1, b.value())
              }
     );
+    b.rule_2("the year integer",
+             b.reg(r#"(?:the )?year"#)?,
+             integer_check_by_range!(1000, 2100),
+             |_, integer| {
+                 helpers::year(integer.value().value as i32)
+             }
+    );
+    b.rule_3("the year composed",
+             b.reg(r#"(?:the )?year"#)?,
+             integer_check_by_range!(19, 21),
+             integer_check_by_range!(10, 99),
+             |_, a, b| {
+                 let y = a.value().value * 100 + b.value().value;
+                 Ok(helpers::year(y as i32)?.latent())
+             }
+    );
     b.rule_1("year",
              integer_check_by_range!(1000, 2100),
              |integer| {
@@ -963,6 +987,16 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::Month(_))),
              integer_check_by_range!(1, 31),
              |month, integer| {
+                let m = month.value().form_month()?;
+                let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: integer.value().value as u32}));
+                Ok(month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)?.form(form))
+             }
+    );
+    b.rule_3("<named-month> the <day-of-month> (non ordinal)",
+             time_check!(form!(Form::Month(_))),
+             b.reg(r#"the"#)?,
+             integer_check_by_range!(1, 31),
+             |month, _, integer| {
                 let m = month.value().form_month()?;
                 let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: integer.value().value as u32}));
                 Ok(month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)?.form(form))
