@@ -10,7 +10,6 @@ extern crate prettytable;
 use std::str::FromStr;
 
 use rustling_ontology::*;
-use rustling_ontology_moment::*;
 use prettytable::Table;
 use json_utils::{PartialUtterance, Utterance, TestOutput, TestAssertion, SlotValue};
 
