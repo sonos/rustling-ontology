@@ -7,8 +7,7 @@ use {Moment, Interval, last_day_in_month};
 use period::*;
 use std::ops;
 use std::fmt;
-use chrono::offset::local::Local;
-use chrono::{Datelike, TimeZone, Timelike, Weekday};
+use chrono::{Datelike, Local, TimeZone, Timelike, Weekday};
 
 #[derive(Clone, PartialEq, new)]
 pub struct Context<T: TimeZone> {
