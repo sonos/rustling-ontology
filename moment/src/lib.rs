@@ -16,9 +16,8 @@ use std::ops;
 use std::cmp::Ordering;
 use std::fmt;
 
-use chrono::{Duration, Datelike, Timelike};
+use chrono::{DateTime, Duration, Datelike, Timelike};
 pub use chrono::{Weekday, Local, TimeZone};
-use chrono::datetime::DateTime;
 pub use interval_constraints::*;
 pub use period::*;
 

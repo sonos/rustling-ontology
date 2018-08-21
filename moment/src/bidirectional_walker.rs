@@ -68,8 +68,7 @@ mod tests {
     use Moment;
     use Interval;
     use period::*;
-    use chrono::offset::local::Local;
-    use chrono::TimeZone;
+    use chrono::{Local, TimeZone};
 
     #[test]
     fn test_interval_iterator() {

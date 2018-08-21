@@ -4,7 +4,7 @@ version = "0.17.4"
 authors = ["Anaïs <anais@chanclu.fr>"]
 
 [dependencies]
-regex = "0.2"
+regex = "1.0"
 rustling = { git="https://github.com/snipsco/rustling", tag="0.9.0" }
 rustling-ontology-moment = { path="../../moment"}
 rustling-ontology-values = { path="../../values"}
