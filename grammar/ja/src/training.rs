@@ -4,7 +4,7 @@ use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::ResolverContext;
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_integer(0), "零");
+    example!(v, check_integer(0), "零", "0", "０", "〇");
     example!(v, check_integer(1), "一", "一尾", "一把");
     example!(v, check_integer(2), "二", "二名", "二羽");
     example!(v, check_integer(3), "三", "三話", "三人", "三画");
@@ -24,6 +24,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(340), "三百四十", "三百四十語", "三百四十戸");
     example!(v, check_integer(1096), "千九十六", "千九十六台", "千九十六切れ");
     example!(v, check_integer(40020), "四万二十", "四万二十坪", "四万二十つ", "四万二十カ国", "四万二十字", "四万二十拍子");
+
+    example!(v, check_float(0.8), "0.8", "0点８", "零点八", "〇点８", "〇.８");
 
     example!(v, check_ordinal(1), "最初", "一番目", "一行目", "一錠目", "一匹目");
     example!(v, check_ordinal(7), "七番目", "七体目", "七問目", "七拍子目", "七種目", "七種類目");
