@@ -4,6 +4,10 @@ use rustling_ontology_values::dimension::Precision::*;
 use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Weekday, Grain, PeriodComp, Period};
 
+fn ja_quantifier_regex() -> &'static str {
+    r#"(?:尾|台|名|枚|話|部|面|両|問|拍子|条|段|輪|門|倍|度|番|畳|合|膳|錠|ページ|頁|例|字|文|行|語|把|羽|頭|つ|人|個|冊|匹|回|曲|本|杯|点|種類|種|等|足|階|カ国|ヶ国|クラス|丁|件|体|勝|区|口|坪|基|局|席|式|振|挺|敗|束|校|株|機|歩|滴|発|社|票|組|艦|行|通り|通|隻|首|客|戸|着|箱|脚|軒|切れ|品|斤|粒|貫|句|巻|画|稿|筆|言|級)"#
+}
+
 pub trait JapaneseReplace {
    fn replace_japanese_digit(&self) -> String;
    fn replace_comma(&self) -> String;
@@ -215,10 +219,18 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
           IntegerValue::new_with_grain(a.value().value * 100_000_000, 8)
         }
     );
-    b.rule_2("ordinal number",
+
+     b.rule_2("cardinal number with quantifier",
             integer_check_by_range!(0),
-            b.reg(r#"番目"#)?,
-            |integer, _| Ok(OrdinalValue::new(integer.value().value))
+            b.reg(ja_quantifier_regex())?,
+            |integer, _| Ok(integer.value().clone())
+    );
+
+    b.rule_3("ordinal number",
+            integer_check_by_range!(0),
+            b.reg(ja_quantifier_regex())?,
+            b.reg(r#"目"#)?,
+            |integer, _, _| Ok(OrdinalValue::new(integer.value().value))
     );
     b.rule_1("ordinal number special first",
             b.reg(r#"最初"#)?,
