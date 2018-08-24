@@ -17,6 +17,7 @@ impl JapaneseReplace for String {
   fn replace_japanese_digit(&self) -> String {
     self.chars().map(|it| {
                 match it {
+                  '〇' => '0',
                   '０' => '0',
                   '１' => '1',
                   '２' => '2',
@@ -50,6 +51,7 @@ impl<'a> JapaneseReplace for &'a str {
   fn replace_japanese_digit(&self) -> String {
     self.chars().map(|it| {
                 match it {
+                  '〇' => '0',
                   '０' => '0',
                   '１' => '1',
                   '２' => '2',
@@ -97,7 +99,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     // TODO: This rule leads to crashes because of japanese digit number
     b.rule_1_terminal("number as digits",
-        b.reg(r#"(\d+)"#)?,
+        b.reg(r#"(\d+|〇)"#)?,
         |digit| {
             let res = digit.group(1).replace_japanese_digit();
             let value = res.parse()?;
@@ -238,7 +240,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1("float number", 
-        b.reg(r#"(\d*[、,，\.]\d+)"#)?, |text_match| {
+        b.reg(r#"((?:\d|〇)*[、,，\.](?:\d|〇)+)"#)?, |text_match| {
           let res = text_match.group(1).replace_japanese_digit().replace_comma();
           let value: f32 = res.parse()?;
           Ok(FloatValue {
