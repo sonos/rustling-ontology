@@ -179,6 +179,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 10, 31]), "halloween");
     example!(v, check_moment!(c, [2013, 11, 28]), "thanksgiving day", "thanksgiving");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "this evening", "today evening", "tonight");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 00], [2013, 2, 12, 05]), "this night");
     example!(v, check_moment_span!(c, [2013, 2, 8, 18], [2013, 2, 11, 00]), "this past weekend");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "last 2 seconds", "last two seconds");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "next 3 seconds", "next three seconds");
