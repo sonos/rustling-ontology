@@ -40,6 +40,10 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"months?"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Month))
     );
+    b.rule_1_terminal("quarter (unit-of-duration)",
+                      b.reg(r#"quarters?"#)?,
+                      |_| Ok(UnitOfDurationValue::new(Grain::Quarter))
+    );
     b.rule_1_terminal("year (unit-of-duration)",
                       b.reg(r#"years?"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Year))
