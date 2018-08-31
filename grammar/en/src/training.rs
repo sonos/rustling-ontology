@@ -238,6 +238,7 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_duration!([0, 2, 0]), "during two months", "for 2 months");
     example!(v, check_duration!([1]), "during a year");
     example!(v, check_duration!([0, 0, 0, 0, 0, 1, 3]), "during one minute and three seconds", "for 1 minute and 3 seconds", "for 1min3sec");
+    example!(v, check_duration!([0, 0, 0, 0, 7, 15], Precision::Approximate), "during about seven hours and a quarter");
     example!(v, check_duration!([0, 0, 0, 0, 3, 30], Precision::Approximate), "about three and a half hours", "around 3 hours and a half");
     example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "about one hour and a half");
     example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "about 1h30", "for around one hour and thirty minutes");
