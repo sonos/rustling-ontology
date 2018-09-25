@@ -21,8 +21,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 14]), "pasado mañana");
     example!(v, check_moment!(c, [2013, 2, 18]), "lunes", "lu", "lun.", "este lunes");
     example!(v, check_moment!(c, [2013, 2, 18]), "lunes, 18 de febrero");
-    example!(v, check_moment!(c, [2013, 2, 19]), "martes", "ma", "ma.");
     example!(v, check_moment!(c, [2013, 2, 13]), "miercoles", "miércoles", "mx", "mié.");
+    example!(v, check_moment!(c, [2013, 2, 19]), "martes", "ma", "ma.");
     example!(v, check_moment!(c, [2013, 2, 14]), "jueves");
     example!(v, check_moment!(c, [2013, 2, 15]), "viernes");
     example!(v, check_moment!(c, [2013, 2, 16]), "sabado");
