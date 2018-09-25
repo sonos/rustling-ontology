@@ -33,7 +33,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 7, 4]), "el 4 de julio", "el 4/7");
     example!(v, check_moment!(c, [2013, 3, 3]), "el 3 de marzo", "3 de marzo", "el 3-3");
     example!(v, check_moment!(c, [2013, 4, 5]), "el 5 de abril", "5 de abril");
-    example!(v, check_moment!(c, [2013, 3, 1]), "el 1 de marzo", "1 de marzo", "el primero de marzo", "el uno de marzo", "primero de marzo", "uno de marzo");
+    example!(v, check_moment!(c, [2013, 3, 1]), "el 1 de marzo", "1 de marzo", "el primero de marzo", "el uno de marzo", "uno de marzo");
     example!(v, check_moment!(c, [2013, 3, 1]), "1-3-2013", "1.3.2013", "1/3/2013");
     example!(v, check_moment!(c, [2013, 2, 16]), "el 16", "16 de febrero");
     example!(v, check_moment!(c, [2013, 2, 17]), "el 17", "17 de febrero", "17-2", "el 17/2");

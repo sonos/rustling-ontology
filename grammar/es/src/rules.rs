@@ -436,8 +436,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, integer| helpers::year(integer.value().value as i32)
     );
     b.rule_1_terminal("day of month (1st)",
-                      b.reg(r#"primero|uno|prem\.?|1o"#)?,
-                      |_| helpers::day_of_month(1)
+             b.reg(r#"el primero|uno|prem\.?|1o"#)?,
+             |_| helpers::day_of_month(1)
     );
     b.rule_2("el <day-of-month> (non ordinal)",
              b.reg(r#"el"#)?,
