@@ -47,8 +47,16 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("GBP",
-        b.reg(r#"gbp|libras? esterlina"#)?,
+        b.reg(r#"gbp|libras? esterlinas?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("GBP") })
+    );
+    b.rule_1_terminal("JPY",
+                      b.reg(r#"jpy|yen(?:es)?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("JPY") })
+    );
+    b.rule_1_terminal("INR",
+                      b.reg(r#"rupias?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_1_terminal("cent",
                       b.reg(r#"centavos?"#)?,
@@ -428,8 +436,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, integer| helpers::year(integer.value().value as i32)
     );
     b.rule_1_terminal("day of month (1st)",
-                      b.reg(r#"primero|uno|prem\.?|1o"#)?,
-                      |_| helpers::day_of_month(1)
+             b.reg(r#"el primero|uno|prem\.?|1o"#)?,
+             |_| helpers::day_of_month(1)
     );
     b.rule_2("el <day-of-month> (non ordinal)",
              b.reg(r#"el"#)?,
@@ -758,6 +766,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"dentro de"#)?,
              duration_check!(),
              |_, duration| helpers::cycle_nth(Grain::Second, 0)?.span_to(&duration.value().in_present()?, false)
+    );
+    b.rule_2("during <duration>",
+             b.reg(r#"durante"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
     );
     Ok(())
 }
