@@ -392,7 +392,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "mil" => 1000,
                               _ => return Err(RuleError::Invalid.into())
                           };
-                          IntegerValue::new(value)
+                          IntegerValue::new_with_grain(value, 2)
                       });
     b.rule_2("numbers 100..199",
              integer_check_by_range!(100, 100),
@@ -462,49 +462,19 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
     b.rule_1_terminal("ordinals (primo..10)",
-                      b.reg(r#"((?:prim|second|terz|quart|quint|sest|settim|ottav|non|decim)[oiae])"#)?,
+                      b.reg(r#"(prim|second|terz|quart|quint|sest|settim|ottav|non|decim)[oiae]"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
-                              "primo" => 1,
-                              "secondo" => 2,
-                              "terzo" => 3,
-                              "quarto" => 3,
-                              "quinto" => 4,
-                              "sesto" => 5,
-                              "settimo" => 7,
-                              "ottavo" => 8,
-                              "nono" => 9,
-                              "decimo" => 10,
-                              "primi" => 1,
-                              "secondi" => 2,
-                              "terzi" => 3,
-                              "quarti" => 3,
-                              "quinti" => 4,
-                              "sesti" => 5,
-                              "settimi" => 7,
-                              "ottavi" => 8,
-                              "noni" => 9,
-                              "decimi" => 10,
-                              "prima" => 1,
-                              "seconda" => 2,
-                              "terza" => 3,
-                              "quarta" => 3,
-                              "quinta" => 4,
-                              "sesta" => 5,
-                              "settima" => 7,
-                              "ottava" => 8,
-                              "nona" => 9,
-                              "decima" => 10,
-                              "prime" => 1,
-                              "seconde" => 2,
-                              "terze" => 3,
-                              "quarte" => 3,
-                              "quinte" => 4,
-                              "seste" => 5,
-                              "settime" => 7,
-                              "ottave" => 8,
-                              "none" => 9,
-                              "decime" => 10,
+                              "prim" => 1,
+                              "second" => 2,
+                              "terz" => 3,
+                              "quart" => 3,
+                              "quint" => 4,
+                              "sest" => 5,
+                              "settim" => 7,
+                              "ottav" => 8,
+                              "non" => 9,
+                              "decim" => 10,
                               _ => return Err(RuleError::Invalid.into())
                           };
                           Ok(OrdinalValue::new(value))
