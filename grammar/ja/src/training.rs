@@ -85,6 +85,8 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_duration!([0, 0, 0, 0, 1]), "一時間");
     example!(v, check_duration!([0, 0, 0, 5]), "五日間");
     example!(v, check_duration!([0, 10]), "十ヶ月間", "十カ月間");
+    example!(v, check_duration!([0, 0, 0, 0, 2], Precision::Approximate), "およそ二時間", "二時間程", "二時間位");
+
 }
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {

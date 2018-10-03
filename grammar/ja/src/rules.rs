@@ -2218,13 +2218,13 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
       |duration, _| Ok(duration.value().clone())
     );
     b.rule_2("about <duration>",
-             b.reg(r#"だいたい|約"#)?,
+             b.reg(r#"だいたい|約|およそ"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
     );
-    b.rule_2("about <duration>",
+    b.rule_2("<duration> about",
              duration_check!(),
-             b.reg(r#"くらい|ぐらい|ほど"#)?,
+             b.reg(r#"くらい|ぐらい|ほど|位|程"#)?,
              |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
     );
     b.rule_2("<duration> (approximate)",
