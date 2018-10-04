@@ -4,29 +4,34 @@ use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::ResolverContext;
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_integer(0), "零");
-    example!(v, check_integer(1), "一");
-    example!(v, check_integer(2), "二");
-    example!(v, check_integer(3), "三");
-    example!(v, check_integer(4), "四");
-    example!(v, check_integer(5), "五");
-    example!(v, check_integer(6), "六");
-    example!(v, check_integer(7), "七");
-    example!(v, check_integer(8), "八");
-    example!(v, check_integer(9), "九");
-    example!(v, check_integer(10), "十");
-    example!(v, check_integer(20), "二十");
-    example!(v, check_integer(30), "三十");
-    example!(v, check_integer(40), "四十");
-    example!(v, check_integer(90), "九十");
-    example!(v, check_integer(33), "三十三");
-    example!(v, check_integer(96), "九十六");
-    example!(v, check_integer(14), "十四");
-    example!(v, check_integer(11), "十一");
-    example!(v, check_ordinal(1), "最初");
-    example!(v, check_ordinal(7), "七番目");
-    example!(v, check_ordinal(11), "十一番目");
-    example!(v, check_ordinal(91), "九十一番目");
+    example!(v, check_integer(0), "零", "0", "０", "〇");
+    example!(v, check_integer(1), "一", "一尾", "一把");
+    example!(v, check_integer(2), "二", "二名", "二羽");
+    example!(v, check_integer(3), "三", "三話", "三人", "三画");
+    example!(v, check_integer(4), "四", "四面", "四冊");
+    example!(v, check_integer(5), "五", "五問", "五曲");
+    example!(v, check_integer(6), "六", "六拍子", "六種");
+    example!(v, check_integer(7), "七", "七段", "七種類");
+    example!(v, check_integer(8), "八", "八門", "八カ国");
+    example!(v, check_integer(9), "九", "九度", "九ヶ国");
+    example!(v, check_integer(10), "十", "十畳", "十クラス");
+    example!(v, check_integer(11), "十一", "十一膳", "十一丁");
+    example!(v, check_integer(14), "十四", "十四ページ", "十四口");
+    example!(v, check_integer(20), "二十", "二十例", "二十束");
+    example!(v, check_integer(30), "三十", "三十字", "三十機");
+    example!(v, check_integer(33), "三十三", "三十三文", "三十三行");
+    example!(v, check_integer(90), "九十", "九十行", "九十通", "九十通り");
+    example!(v, check_integer(340), "三百四十", "三百四十語", "三百四十戸");
+    example!(v, check_integer(1096), "千九十六", "千九十六台", "千九十六切れ");
+    example!(v, check_integer(40020), "四万二十", "四万二十坪", "四万二十つ", "四万二十カ国", "四万二十字", "四万二十拍子");
+
+    example!(v, check_float(0.8), "0.8", "0点８", "零点八", "〇点８", "〇.８");
+
+    example!(v, check_ordinal(1), "最初", "一番目", "一行目", "一錠目", "一匹目");
+    example!(v, check_ordinal(7), "七番目", "七体目", "七問目", "七拍子目", "七種目", "七種類目");
+    example!(v, check_ordinal(11), "十一番目", "十一句目", "十一面目", "十一ページ目", "十一口目");
+    example!(v, check_ordinal(91), "九十一番目", "九十一滴目", "九十一段目", "九十一拍子目", "九十一切れ目");
+    example!(v, check_ordinal(40020), "四万二十坪目", "四万二十つ目", "四万二十カ国目", "四万二十字目", "四万二十拍子目");
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
