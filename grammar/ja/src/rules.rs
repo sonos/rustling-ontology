@@ -305,7 +305,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<number> per cent",
         number_check!(),
-        b.reg(r#"パーセント|%"#)?,
+        b.reg(r#"パーセント|%|％"#)?,
         |number, _| Ok(PercentageValue(number.value().value()))
     );
     b.rule_1_terminal("ten per cent",
