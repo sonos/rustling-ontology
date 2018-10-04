@@ -52,8 +52,8 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     }
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_percentage(0.3), "0,3 %", "0,3%");
-    example!(v, check_percentage(25.0), "25%", "25パーセント", "二十五パーセント");
+    example!(v, check_percentage(0.3), "0,3 %", "0,3%", "0,3％");
+    example!(v, check_percentage(25.0), "25%", "25％", "25パーセント", "二十五パーセント");
     example!(v, check_percentage(10.0), "割");
     example!(v, check_percentage(1.0), "分");
     example!(v, check_percentage(0.1), "厘");
