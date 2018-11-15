@@ -13,7 +13,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
     example!(v, check_temperature(71.0, Some("degree")), "71 grad", "71 Grad", "plus 71 Grad", "71 Grad über null", "ein und siebzig Grad");
     example!(v, check_temperature(-7.0, Some("degree")), "-7°", "-7 Grad", "minus sieben grad", "7 Grad unter null", "sieben grad unter dem gefrierpunkt", "7 Grad unterm gefrierpunkt");
     example!(v, check_temperature(-92.0, None), "zwei und neunzig unter dem gefrierpunkt", "92 unterm gefrierpunkt");
-    example!(v, check_temperature(-18.0, Some("degree")), "bei -18°", "Bei -18 Grad");
+    example!(v, check_temperature(-18.0, Some("degree")), "-18°", "-18 Grad");
     example!(v, check_temperature(15.0, Some("celsius")), "15 celsius", "15 Grad Celsius", "fünfzehn Grad CELSIUS", "15 C", "15°C");
     example!(v, check_temperature(-115.0, Some("celsius")), "minus 115 celsius", "-115 Grad Celsius", "minus hundertfünfzehn Grad CELSIUS", "- 115 C", "-115°C");
     example!(v, check_temperature(78.0, Some("fahrenheit")), "78 fahrenheit", "78 Grad Fahrenheit", "achtundsiebzig Grad FAHRENHEIT", "78 f", "78°F");
