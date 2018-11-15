@@ -1489,7 +1489,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     });
     b.rule_2("<time-of-day> approximately",
              time_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"(?:-?ish|about|around|approximately)"#)?,
+             b.reg(r#"(?:-?ish|approximately)"#)?,
              |time, _| Ok(time.value().clone().not_latent().precision(Precision::Approximate))
     );
     b.rule_2("about <time-of-day>",
