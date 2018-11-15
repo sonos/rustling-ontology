@@ -118,7 +118,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 10, 6, 15]), "two days ago at fifteen past six am", "the day before yesterday at quarter past six am", "quarter past six in the morning two days ago");
     example!(v, check_moment!(c, [2013, 2, 12, 18, 15]), "fifteen past six pm", "quarter past six pm", "quarter past six in the evening");
     example!(v, check_moment!(c, [2013, 2, 12, 18, 15]), "precisely fifteen past six pm", "quarter past six pm sharp");
-    example!(v, check_moment_with_precision!(c, [2013, 2, 12, 18, 15], Precision::Approximate), "approximately quarter past six in the evening", "15 past 6 in the afternoon about");
+    example!(v, check_moment_with_precision!(c, [2013, 2, 12, 18, 15], Precision::Approximate), "approximately quarter past six in the evening", "15 past 6 in the afternoon approximately");
     example!(v, check_moment!(c, [2013, 2, 12, 15]), "at 3pm", "@ 3pm", "3PM", "3pm", "3 oclock pm", "3 o'clock in the afternoon");
     example!(v, check_moment_with_precision!(c, [2013, 2, 12, 15], Precision::Approximate), "3ish pm", "3pm approximately", "at about 3pm");
     example!(v, check_moment!(c, [2013, 2, 12, 14, 50]), "at ten to three", "at 10 to 3 pm", "10 to 3 in the afternoon");
