@@ -1984,15 +1984,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("<article> temp",
-             b.reg(r#"bei|auf"#)?,
-             temperature_check!(|temp: &TemperatureValue| !temp.latent),
-             |_, temp| Ok(TemperatureValue {
-                 value: temp.value().value,
-                 unit: temp.value().unit,
-                 latent: temp.value().latent,
-             })
-    );
     b.rule_2("<temperature> plus",
              temperature_check!(|temp: &TemperatureValue| !temp.latent),
              b.reg(r#"plus"#)?,
