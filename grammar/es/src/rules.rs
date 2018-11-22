@@ -115,6 +115,16 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"a(?:n|ñ)os?"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
+    b.rule_1_terminal("quarter of an hour",
+                      // TODO: Add alt. written forms, add "of an hour"
+                      b.reg(r#"cuarto"#)?,
+                      |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
+    );
+    b.rule_1_terminal("three-quarters of an hour",
+                      // TODO: Add alt. written forms, add "of an hour"
+                      b.reg(r#"(3|tres) cuartos?"#)?,
+                      |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
+    );
     b.rule_2("<integer> <unit-of-duration>",
              integer_check_by_range!(0),
              unit_of_duration_check!(),
@@ -134,35 +144,35 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_1_terminal("segundo (cycle)",
+    b.rule_1_terminal("second (cycle)",
                       b.reg(r#"segundos?"#)?,
                       |_| CycleValue::new(Grain::Second)
     );
-    b.rule_1_terminal("minutos (cycle)",
+    b.rule_1_terminal("minute (cycle)",
                       b.reg(r#"minutos?"#)?,
                       |_| CycleValue::new(Grain::Minute)
     );
-    b.rule_1_terminal("hora (cycle)",
+    b.rule_1_terminal("hour (cycle)",
                       b.reg(r#"horas?"#)?,
                       |_| CycleValue::new(Grain::Hour)
     );
-    b.rule_1_terminal("dia (cycle)",
+    b.rule_1_terminal("day (cycle)",
                       b.reg(r#"d(?:í|i)as?"#)?,
                       |_| CycleValue::new(Grain::Day)
     );
-    b.rule_1_terminal("semana (cycle)",
+    b.rule_1_terminal("week (cycle)",
                       b.reg(r#"semanas?"#)?,
                       |_| CycleValue::new(Grain::Week)
     );
-    b.rule_1_terminal("mes (cycle)",
+    b.rule_1_terminal("month (cycle)",
                       b.reg(r#"mes(?:es)?"#)?,
                       |_| CycleValue::new(Grain::Month)
     );
-    b.rule_1_terminal("trimestre (cycle)",
+    b.rule_1_terminal("trimester (cycle)",
                       b.reg(r#"trimestres?"#)?,
                       |_| CycleValue::new(Grain::Quarter)
     );
-    b.rule_1_terminal("año (cycle)",
+    b.rule_1_terminal("year (cycle)",
                       b.reg(r#"a(?:n|ñ)os?"#)?,
                       |_| CycleValue::new(Grain::Year)
     );
@@ -551,7 +561,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(RelativeMinuteValue(15))
     );
     b.rule_1_terminal("half (relative minutes)",
-                      b.reg(r#"y media"#)?,
+                      b.reg(r#"media"#)?,
                       |_| Ok(RelativeMinuteValue(30))
     );
     b.rule_1_terminal("3 quarter (relative minutes)",

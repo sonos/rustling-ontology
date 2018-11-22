@@ -47,7 +47,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 11]), "el lunes de esta semana");
     example!(v, check_moment!(c, [2013, 2, 12]), "martes de esta semana");
     example!(v, check_moment!(c, [2013, 2, 13]), "el miércoles de esta semana");
-    //Cycles
+    // InstantTime involving Cycles
     example!(v, check_moment!(c, [2013, 2, 11], Grain::Week), "esta semana");
     example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "la semana pasada");
     example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "la semana que viene", "la proxima semana");
@@ -58,7 +58,6 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2014]), "el año que viene", "el proximo ano");
     example!(v, check_moment!(c, [2013, 2, 10]), "el domingo pasado", "el domingo de la semana pasada");
     example!(v, check_moment!(c, [2013, 2, 5]), "el martes pasado");
-    // Hours
     example!(v, check_moment!(c, [2013, 2, 12, 15]), "a las tres de la tarde", "a las tres", "a las 3 pm", "a las 15 horas");
     example!(v, check_moment!(c, [2013, 2, 12, 20]), "a las ocho de la tarde");
     example!(v, check_moment!(c, [2013, 2, 12, 15, 0]), "15:00", "15.00");
@@ -71,7 +70,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 13, 3]), "las tres de la manana", "las tres en la manana");
     example!(v, check_moment!(c, [2013, 2, 12, 15, 15]), "a las tres y quince", "a las 3 y cuarto", "a las tres y cuarto de la tarde", "a las tres y cuarto en la tarde", "15:15", "15.15");
     example!(v, check_moment!(c, [2013, 2, 12, 15, 30]), "a las tres y media", "a las 3 y treinta", "a las tres y media de la tarde", "a las 3 y treinta del mediodía", "15:30", "15.30");
-    //"hoy a 11:45"
+    // "hoy a 11:45"
     example!(v, check_moment!(c, [2013, 2, 12, 11, 45]), "las doce menos cuarto", "11:45", "las once y cuarenta y cinco", "hoy a las doce menos cuarto", "hoy a las once y cuarenta y cinco");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 15]), "5 y cuarto");
     example!(v, check_moment!(c, [2013, 2, 12, 6]), "6 de la mañana");
