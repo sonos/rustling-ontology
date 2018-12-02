@@ -41,15 +41,15 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("EUR") })
     );
     b.rule_1_terminal("£",
-        b.reg(r#"lir[ae]|£"#)?,
+        b.reg(r#"lir[ae]|pound|£"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("£") })
     );
     b.rule_1_terminal("GBP",
-                      b.reg(r#"gbp|(?:lir[ae] )?sterlin[ae](?: britannich[ae]| ingles[ei])?"#)?,
+                      b.reg(r#"gbp|(?:lir[ae] )?sterlin[ae](?: britannich?[ae]| ingles[ei])?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("USD",
-        b.reg(r#"\$|us[d\$]|dollar[oi]? american[oi]"#)?,
+        b.reg(r#"\$|us[d\$]|dollar[oi]? (?:american[oi]|u\.?s\.?a\.?|statunitens[ei])"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("USD") })
     );
     b.rule_1_terminal("AUD",
@@ -1740,7 +1740,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
              });
     b.rule_2("<latent temp> temp below zero",
              temperature_check!(),
-             b.reg(r#"(?:(?:grad[oi]?)|°)?(?: sotto (lo) zero)"#)?,
+             b.reg(r#"(?:grad[oi] |° )?(?:sotto (?:lo )?zero)"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: -1.0 * a.value().value,
@@ -1756,6 +1756,11 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value()));
+    b.rule_3("intersect with and",
+             number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
+             b.reg(r#"e"#)?,
+             number_check!(),
+             |a, _, b| helpers::compose_numbers(&a.value(), &b.value()));
     // Keep the order of patterns as is, otherwise 'undici' is caught with 'un'
     b.rule_1_terminal("number (0..19)",
                       b.reg(r#"(dici(?:assette|otto|annove)|(?:un|do|tre|quattor|quin|se)dici|zero|un[oa']?|due|tr[eé]|quattro|cinque|sei|sette|otto|nove|dieci)"#)?,
@@ -1860,7 +1865,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(100, 100),
              integer_check_by_range!(0, 99),
              |a, b, c| IntegerValue::new(a.value().value * b.value().value + c.value().value));
-
+    b.rule_1_terminal("hundred",
+                      b.reg(r#"cento"#)?,
+                      |_| IntegerValue::new_with_grain(100, 2)
+    );
     b.rule_2("N hundreds",
              integer_check_by_range!(1, 99),
              b.reg(r#"cento"#)?,
@@ -1871,6 +1879,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..IntegerValue::default()
                  })
              });
+    b.rule_1_terminal("thousand",
+                      b.reg(r#"mil(?:le|a)"#)?,
+                      |_| IntegerValue::new_with_grain(1000, 3)
+    );
     b.rule_2("N thousands",
              integer_check_by_range!(1, 999),
              b.reg(r#"mil(?:le|a)"#)?,
@@ -1881,6 +1893,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..IntegerValue::default()
                  })
              });
+    b.rule_1_terminal("million",
+                      b.reg(r#"milione?"#)?,
+                      |_| IntegerValue::new_with_grain(1000000, 6)
+    );
     b.rule_2("N millions",
              integer_check_by_range!(1, 999),
              b.reg(r#"milion[ei]?(?: e)?"#)?,
@@ -1891,6 +1907,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..IntegerValue::default()
                  })
              });
+    b.rule_1_terminal("billion",
+                      b.reg(r#"miliardo"#)?,
+                      |_| IntegerValue::new_with_grain(1000000000, 9)
+    );
     b.rule_2("N billions",
              integer_check_by_range!(1, 999),
              b.reg(r#"miliard[oi]"#)?,
@@ -2034,15 +2054,16 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           Ok(OrdinalValue::new(value))
                       });
     b.rule_1_terminal("ordinals (primo..10)",
-                      b.reg(r#"((?:il |la )?1[oa°]|prim|second|terz|quart|quint|sest|settim|ottav|non|decim)[oiae]"#)?,
+                      b.reg(r#"((?:il |la )?1[oa°]|zeresim|prim|second|terz|quart|quint|sest|settim|ottav|non|decim)[oiae]"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
+                              "zeresim" => 0,
                               "prim" => 1,
                               "second" => 2,
                               "terz" => 3,
-                              "quart" => 3,
-                              "quint" => 4,
-                              "sest" => 5,
+                              "quart" => 4,
+                              "quint" => 5,
+                              "sest" => 6,
                               "settim" => 7,
                               "ottav" => 8,
                               "non" => 9,
