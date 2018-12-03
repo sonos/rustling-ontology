@@ -251,7 +251,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
            Ok(DurationValue::new(quarter_period + PeriodComp::new(uod.value().grain, integer.value().value)))
         }
     );
-    b.rule_3("<integer> <unit-of-duration> et demi",
+    b.rule_3("<integer> <unit-of-duration> et demie",
         integer_check_by_range!(0),
         unit_of_duration_check!(),
         b.reg(r#"et demie?"#)?,
@@ -308,12 +308,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             duration.value().ago()?
                 .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
     });
-    b.rule_3("<duration> apres <time>",
-             duration_check!(),
-             b.reg(r#"apr[eè]s"#)?,
-             time_check!(),
-             |duration, _, time| duration.value().after(time.value())
-    );
     b.rule_3("<duration> apres <time>",
              duration_check!(),
              b.reg(r#"apr[eè]s"#)?,
@@ -1168,6 +1162,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
         }
     );
+    // TODO: APERO
     b.rule_1_terminal("début de journée",
         b.reg(r#"d[ée]but de (?:la )?journ[ée]e"#)?,
         |_| {
@@ -1306,7 +1301,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::day_of_week(Weekday::Wed)
                     ?.span_to(&helpers::day_of_week(Weekday::Thu)?, false)
     );
-    b.rule_1_terminal("fin de semaine",
+    b.rule_1_terminal("fin de semaine (Warning: this is the weekend in Quebec)",
         b.reg(r#"(?:en |à la )?fin de (?:cette |la )?semaine"#)?,
         |_| helpers::day_of_week(Weekday::Thu)
                     ?.span_to(&helpers::day_of_week(Weekday::Sun)?, false)
