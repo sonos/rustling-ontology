@@ -23,6 +23,11 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"e"#)?,
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
              |a, _, b| helpers::compose_money(&a.value(), &b.value()));
+    b.rule_3("intersect (and X)",
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
+             b.reg(r#"e"#)?,
+             number_check!(),
+             |a, _, b| helpers::compose_money_number(&a.value(), &b.value()));
     b.rule_2("intersect",
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
              number_check!(),
@@ -84,6 +89,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"chf|franch?[oi] svizzer[oi]"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("CHF") })
     );
+    // This is not recognized for a very obscure reason
     b.rule_1_terminal("RUB",
                       b.reg(r#"rub|rubl[oi]"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("RUB") })
