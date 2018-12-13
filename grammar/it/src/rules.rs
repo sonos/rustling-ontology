@@ -23,6 +23,11 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"e"#)?,
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
              |a, _, b| helpers::compose_money(&a.value(), &b.value()));
+    b.rule_3("intersect (and X)",
+             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
+             b.reg(r#"e"#)?,
+             number_check!(),
+             |a, _, b| helpers::compose_money_number(&a.value(), &b.value()));
     b.rule_2("intersect",
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
              number_check!(),
@@ -84,6 +89,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"chf|franch?[oi] svizzer[oi]"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("CHF") })
     );
+    // This is not recognized for a very obscure reason
     b.rule_1_terminal("RUB",
                       b.reg(r#"rub|rubl[oi]"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("RUB") })
@@ -1042,7 +1048,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("lunch",
-                      b.reg(r#"pranzo|seconda colazione"#)?,
+                      b.reg(r#"(?:all' ?ora di )?pranzo|seconda colazione"#)?,
                       |_| Ok(helpers::hour(12, false)?
                           .span_to(&helpers::hour(14, false)?, false)?
                           .latent()
@@ -1231,7 +1237,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| a.value().intersect(b.value())
     );
     b.rule_2("in the <part-of-day>",
-             b.reg(r#"(?:durante )?(?:il|la)|d(?:['i]|el(?:l['ao])?)|in|nel(?:la)?|nel corso del(?:la)?"#)?,
+             b.reg(r#"(?:durante )?(?:il|la)|d(?:['i]|el(?:l['ao])?)|in|nel(?:la)?|nel corso del(?:la)?|a(?:ll(?:e|' ?)?(?: ora d[i'])?)?"#)?,
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |_, a| Ok(a.value().clone().not_latent())
     );

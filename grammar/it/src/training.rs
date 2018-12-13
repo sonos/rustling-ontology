@@ -44,7 +44,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 19]), "martedì prossimo", "il martedì seguente", "il prossimo martedì", "martedì della settimana prossima", "martedì della prossima settimana", "martedì della settimana che viene", "martedì della settimana seguente", "martedì della settimana successiva", "martedì della settimana dopo");
     //  when today is Tuesday, "mercredi prochain" should be tomorrow
     example!(v, check_moment!(c, [2013, 2, 13]), "mercoledì prossimo", "mercoledi prossimo", "il prossimo mercoledì");
-    // fix_example!(v, check_moment!(c, [2013, 2, 20]), "il mercoledì seguente", "il mercoledì successivo", "il mercoledì della settimana prossima", "il mercoledì della prossima settimana", "il mercoledì della settimana seguente", "il mercoledì della settimana successiva", "il mercoledì della settimana che viene", "mercoledì della settimana dopo");
+    example!(v, check_moment!(c, [2013, 2, 13]), "il mercoledì seguente", "il mercoledì successivo");
+    example!(v, check_moment!(c, [2013, 2, 20]), "il mercoledì della settimana prossima", "il mercoledì della prossima settimana", "il mercoledì della settimana seguente", "il mercoledì della settimana successiva", "il mercoledì della settimana che viene", "mercoledì della settimana dopo");
     // fix_example!(v, check_moment!(c, [2013, 2, 11]), "lunedì di questa settimana", "il lunedì di questa settimana");
     // fix_example!(v, check_moment!(c, [2013, 2, 12]), "martedì di questa settimana", "il martedì di questa settimana");
     // fix_example!(v, check_moment!(c, [2013, 2, 13]), "mercoledì di questa settimana", "il mercoledì di questa settimana");
@@ -91,19 +92,29 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     // FIXME - expressions or resolution issue?
     // fix_example!(v, check_moment!(c, [2013, 3, 2, 5, 0]), "2 marzo verso le 05:00", "il 2 marzo intorno alle 5:00", "2 marzo alle 5 circa");
     // FIXME: Also time-of-the-day issues
-    // fix_example!(v, check_moment!(c, [2013, 3, 2, 5]), "il 2 alle 5h", "il 2 alle 5 del mattino");
-    // fix_example!(v, check_moment!(c, [2013, 2, 16, 18]), "il 16 alle 18", "il 16 verso le 18:00", "il 16 tipo verso le 18", "il 16 alle 6 del pomeriggio", "il 16 alle 6 di pomeriggio", "il 16 intorno alle 18h", "il 16 verso le 6 di sera", "sabato 16 alle 6 della sera");
-    // fix_example!(v, check_moment!(c, [2013, 2, 13, 11]), "domani alle ore 11");
-    // fix_example!(v, check_moment!(c, [2013, 2, 14, 11]), "giovedì alle 11", "dopodomani alle ore 11", "dopo domani alle 11:00");
-    // fix_example!(v, check_moment!(c, [2013, 2, 15, 12]), "venerdì a mezzogiorno", "venerdì alle 12", "a mezzogiorno di venerdì");
-    // fix_example!(v, check_moment!(c, [2013, 2, 15, 16]), "venerdì quindici alle sedici", "il venerdì quindici alle ore sedici", "venerdì 15 alle 16:00", "venerdì quindici alle 16");
-    // fix_example!(v, check_moment!(c, [2013, 2, 13, 11]), "mercoledì alle 11:00");
+    example!(v, check_moment!(c, [2013, 3, 2, 5]), "il 2 alle 5 del mattino");
+    // fix_example!(v, check_moment!(c, [2013, 3, 2, 5]), "il 2 alle 5h");
+    example!(v, check_moment!(c, [2013, 2, 16, 18]), "il 16 alle 18", "il 16 alle 6 del pomeriggio", "il 16 alle 6 di pomeriggio", "sabato 16 alle 6 della sera");
+    // fix_example!(v, check_moment!(c, [2013, 2, 16, 18]), "il 16 verso le 18:00", "il 16 tipo verso le 18", "il 16 intorno alle 18h", "il 16 verso le 6 di sera");
+    example!(v, check_moment!(c, [2013, 2, 13, 11]), "domani alle ore 11");
+    example!(v, check_moment!(c, [2013, 2, 14, 11]), "giovedì alle 11", "dopodomani alle ore 11");
+    // Warning! 'alle ore 11' and '11:00' don't have same grain
+    example!(v, check_moment!(c, [2013, 2, 14, 11, 0]), "dopo domani alle 11:00");
+    example!(v, check_moment!(c, [2013, 2, 15, 12]), "venerdì a mezzogiorno", "venerdì alle 12");
+    // fix_example!(v, check_moment!(c, [2013, 2, 15, 12]), "a mezzogiorno di venerdì");
+    example!(v, check_moment!(c, [2013, 2, 15, 16]), "venerdì quindici alle sedici", "il venerdì quindici alle ore sedici", "venerdì quindici alle 16");
+    example!(v, check_moment!(c, [2013, 2, 15, 16, 0]), "venerdì 15 alle 16:00");
+    example!(v, check_moment!(c, [2013, 2, 13, 11, 0]), "mercoledì alle 11:00");
 
     // In + duration / duration + ago
-    // todo_example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 1]), "tra un secondo", "fra un secondo", "a un secondo da ora", "a un secondo da adesso", "tra un sec");
-    // todo_example!(v, check_moment!(c, [2013, 2, 12, 4, 31, 0]), "tra un minuto", "fra un minuto", "a un minuto da ora", "a un minuto da adesso", "tra un min");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 1]), "tra un secondo", "fra un secondo", "tra un sec");
+    // fix_example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 1]), "a un secondo da ora", "a un secondo da adesso");
+
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 31, 0]), "tra un minuto", "fra un minuto");
+    // fix_example!(v, check_moment!(c, [2013, 2, 12, 4, 31, 0]), "a un minuto da ora", "a un minuto da adesso", "tra un min");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 32, 0]), "tra 2 minuti", "fra due min");
-    // todo_example!(v, check_moment!(c, [2013, 2, 12, 5, 30, 0]), "tra 60 minuti", "fra 60 minuti", "a sessanta minuti da adesso");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 30, 0]), "tra 60 minuti", "fra 60 minuti");
+    // fix_example!(v, check_moment!(c, [2013, 2, 12, 5, 30, 0]), "a sessanta minuti da adesso");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "tra un'ora", "fra un'ora");
     example!(v, check_moment!(c, [2013, 2, 12, 2, 30]), "due ore fa");
     example!(v, check_moment!(c, [2013, 2, 13, 4, 30]), "tra 24 ore", "fra venti quattro ore");
@@ -122,30 +133,39 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     // Holidays
     // TODO
-    // todo_example!(v, check_moment!(c, [2013, 12, 25]), "Natale", "natale", "giorno di natale");
-    // todo_example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "la sera di natale", "la notte di Natale");
-    // todo_example!(v, check_moment!(c, [2014, 1, 1]), "primo giorno dell'anno", "capodanno", "primo gennaio", "il primo gennaio", "il primo giorno di gennaio");
-    // todo_example!(v, check_moment!(c, [2013, 11, 1]), "tutti i santi", "il giorno di tutti i santi", "ognissanti", "il giorno di ognissanti", "il giorno d'ognissanti");
-    // todo_example!(v, check_moment!(c, [2013, 05, 1]), "festa del lavoro", "la festa dei lavoratori", "il primo maggio");
+    // holiday_example!(v, check_moment!(c, [2013, 12, 25]), "Natale", "natale", "giorno di natale");
+    // holiday_example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "la sera di natale", "la notte di Natale");
+    // "il primo gennaio & co. works already"
+    // holiday_example!(v, check_moment!(c, [2014, 1, 1]), "primo giorno dell'anno", "capodanno", "primo gennaio", "il primo gennaio", "il primo giorno di gennaio");
+    // holiday_example!(v, check_moment!(c, [2013, 11, 1]), "tutti i santi", "il giorno di tutti i santi", "ognissanti", "il giorno di ognissanti", "il giorno d'ognissanti");
+    // "il primo maggio & co. works already"
+    // holiday_example!(v, check_moment!(c, [2013, 05, 1]), "festa del lavoro", "la festa dei lavoratori", "il primo maggio");
 
     // Part of day (morning, afternoon...)
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "questo pomeriggio", "il pomeriggio", "oggi pomeriggio");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 15], [2013, 2, 12, 17]), "a metà pomeriggio", "a metà del pomeriggio", "nel mezzo del pomeriggio", "alla metà del pomeriggio");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "a inizio mattinata", "la mattina presto", "la mattina sul presto", "di prima mattina", "di primo mattino", "nel mattinata sul presto", "all'inizio della mattinata");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 9], [2013, 2, 12, 11]), "a metà mattina", "a metà mattinata", "a metà della mattina", "a metà della mattinata");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "a fine mattina", "a fine mattinata", "alla fine della mattina", "alla fine della mattinata", "nella tarda mattinata", "la mattina sul tardi", "la seconda mattinata");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "dopo pranzo", "dopo ora di pranzo");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 15], [2013, 2, 12, 17]), "nel mezzo del pomeriggio");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 15], [2013, 2, 12, 17]), "a metà pomeriggio", "a metà del pomeriggio", "alla metà del pomeriggio");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "la mattina presto", "la mattina sul presto", "di prima mattina", "di primo mattino", "nel mattinata sul presto");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "a inizio mattinata", "all'inizio della mattinata");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 9], [2013, 2, 12, 11]), "a metà mattina", "a metà mattinata", "a metà della mattina", "a metà della mattinata");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "a fine mattina", "a fine mattinata", "alla fine della mattina", "alla fine della mattinata", "la mattina sul tardi");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "nella tarda mattinata", "la seconda mattinata");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "dopo pranzo");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "dopo ora di pranzo");
     example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "prima di pranzo");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "durante il pranzo", "all'ora di pranzo");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "durante il pranzo");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "all'ora di pranzo");
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "dopo il lavoro", "dopo l'orario di lavoro");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 15]), "nel primo pomeriggio", "all'inizio del pomeriggio", "il pomeriggio presto", "il pomeriggio sul presto", "a inizio pomeriggio");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "nel secondo pomeriggio", "il pomeriggio tardi", "il pomeriggio sul tardi", "a fine pomeriggio", "alla fine del pomeriggio");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 6], [2013, 2, 12, 10]), "a inizio giornata", "all'inizio del giorno", "all'inizio della giornata");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "a metà giornata", "a metà della giornata", "nel mezzo del giorno");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "a fine giornata", "alla fine della giornata", "alla fine del giorno");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 15]), "nel primo pomeriggio", "il pomeriggio presto", "il pomeriggio sul presto");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 15]), "all'inizio del pomeriggio", "a inizio pomeriggio");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 19]), "nel secondo pomeriggio", "il pomeriggio tardi", "il pomeriggio sul tardi", "a fine pomeriggio", "alla fine del pomeriggio");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 6], [2013, 2, 12, 10]), "a inizio giornata", "all'inizio del giorno", "all'inizio della giornata");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "a metà giornata", "a metà della giornata");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "nel mezzo del giorno");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "a fine giornata", "alla fine della giornata", "alla fine del giorno");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "questa sera", "stasera", "in serata");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 12, 21]), "a inizio serata", "all'inizio della serata", "la sera presto");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 00]), "a fine serata", "alla fine della serata", "la sera tardi");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 12, 21]), "a inizio serata", "all'inizio della serata", "la sera presto");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 00]), "a fine serata", "alla fine della serata", "la sera tardi");
     example!(v, check_moment_span!(c, [2013, 2, 18, 4], [2013, 2, 18, 12]), "lunedì mattina");
     example!(v, check_moment_span!(c, [2013, 2, 18, 12], [2013, 2, 18, 19]), "lunedì pomeriggio", "lunedì nel pomeriggio", "il pomeriggio di lunedi");
     example!(v, check_moment_span!(c, [2013, 2, 18, 17], [2013, 2, 18, 19]), "lunedì nel tardo pomeriggio", "lunedì nel secondo pomeriggio", "nel tardo pomeriggio di lunedì");
@@ -163,59 +183,73 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 11], [2013, 2, 16]), "in settimana");
     example!(v, check_moment_span!(c, [2013, 2, 19], [2013, 3, 01]), "alla fine del mese", "a fine mese");
     // TODO "en inizio de settimana prochaine" interval (2013, 2, 18) (2013, 2, 20)
-    //ok_example!(v, check_moment_span!(c, [2013, 9, 6, 18], [2013, 9, 9, 00]), "il primo week-end di settembre", "il primo weekend di settembre", "il primo fine-settimana del mese di settembre");
-    //ok_example!(v, check_moment_span!(c, [2013, 9, 6, 18], [2013, 9, 9, 00]), "il primo week-end di settembre", "il primo weekend di settembre", "il primo fine-settimana del mese di settembre");
-    //ok_example!(v, check_moment_span!(c, [2013, 9, 13, 18], [2013, 9, 16, 00]), "il secondo weekend di settembre");
-    //ok_example!(v, check_moment_span!(c, [2013, 9, 27, 18], [2013, 9, 30, 00]), "l'ultimo fine settimana di settembre");
+    example!(v, check_moment_span!(c, [2013, 9, 6, 18], [2013, 9, 9, 00]), "il primo week-end di settembre", "il primo weekend di settembre", "il primo fine-settimana del mese di settembre");
+    example!(v, check_moment_span!(c, [2013, 9, 6, 18], [2013, 9, 9, 00]), "il primo week-end di settembre", "il primo weekend di settembre", "il primo fine-settimana del mese di settembre");
+    example!(v, check_moment_span!(c, [2013, 9, 13, 18], [2013, 9, 16, 00]), "il secondo weekend di settembre");
+    example!(v, check_moment_span!(c, [2013, 9, 27, 18], [2013, 9, 30, 00]), "l'ultimo fine settimana di settembre");
 
     // Intervals involving cycles
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "ultimi 2 secondi", "ultimi due secondi");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "i prossimi 3 secondi", "prossimi tre secondi");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "ultimi 2 minuti", "ultimi due minuti");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 31], [2013, 2, 12, 4, 34]), "nei prossimi 3 minuti", "prossimi tre minuti");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 8]), "le prossime 3 ore", "le 3 ore seguenti");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 10], [2013, 2, 12]), "ultimi 2 giorni", "ultimi due giorni", "negli scorsi due giorni");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "prossimi 3 giorni");
-    // todo_example!(v, check_moment_span!(c, [2013, 1, 28], [2013, 2, 11]), "ultime 2 settimane", "ultime due settimane", "scorse 2 settimane");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 18], [2013, 3, 11]), "prossime tre settimane");
-    // todo_example!(v, check_moment_span!(c, [2012, 12], [2013, 02]), "ultimi 2 mesi", "due mesi scorsi");
-    // todo_example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "prossimi 3 mesi", "tre mesi seguenti");
-    // todo_example!(v, check_moment_span!(c, [2011], [2013]), "ultimi 2 anni", "scorsi due anni");
-    // todo_example!(v, check_moment_span!(c, [2014], [2017]), "prossimi 3 anni");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "ultimi 2 secondi", "ultimi due secondi");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "i prossimi 3 secondi", "prossimi tre secondi");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "ultimi 2 minuti", "ultimi due minuti");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 31], [2013, 2, 12, 4, 34]), "nei prossimi 3 minuti", "prossimi tre minuti");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 8]), "le prossime 3 ore", "le 3 ore seguenti");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 10], [2013, 2, 12]), "ultimi 2 giorni", "ultimi due giorni", "negli scorsi due giorni");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "prossimi 3 giorni");
+    // fix_example!(v, check_moment_span!(c, [2013, 1, 28], [2013, 2, 11]), "ultime 2 settimane", "ultime due settimane", "scorse 2 settimane");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 18], [2013, 3, 11]), "prossime tre settimane");
+    // fix_example!(v, check_moment_span!(c, [2012, 12], [2013, 02]), "ultimi 2 mesi", "due mesi scorsi");
+    // fix_example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "prossimi 3 mesi", "tre mesi seguenti");
+    // fix_example!(v, check_moment_span!(c, [2011], [2013]), "ultimi 2 anni", "scorsi due anni");
+    // fix_example!(v, check_moment_span!(c, [2014], [2017]), "prossimi 3 anni");
 
     // Explicit intervals
-    // todo_example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13-15 luglio", "dal 13 al 15 luglio", "dal 13 fino al 15 luglio", "dal 13 luglio al 15 luglio", "13 luglio - 15 luglio", "tra il 13 e il 15 luglio", "da sabato 13 a domenica 15 luglio", "dal sabato 13 alla domenica 15 di luglio", "dal 13 alla domenica 15 luglio");
-    // todo_example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 11]), "dall'1 al 10 luglio", "da lunedì 1 a mercoledì 10 luglio", "dal lunedì 1 al mercoledì 10 luglio", "dal lunedì primo al mercoledì 10 di luglio", "dal 1° luglio al mercoledì 10 luglio");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 19]), "dal 13 al 18", "tra il 13 e il 18", "fra il 13 e il 18");
-    // todo_example!(v, check_moment_span!(c, [2023, 2, 1], [2023, 4, 1]), "tra febbraio e marzo due mila venti tre", "tra il febbraio e il marzo del due mila venti tre");
-    // todo_example!(v, check_moment_span!(c, [2013, 6, 10], [2013, 7, 2]), "dal 10 giugno al primo luglio", "tra il 10 di giugno e l'uno di luglio", "fra il 10 di giugno e il primo luglio", "dal 10 giugno al 1° luglio");
-    // todo_example!(v, check_moment_span!(c, [2017,4,6], [2017,6,9]), "dal sei aprile all'otto giugno due mila diciassette", "dal sei di aprile all'otto di giugno del due mila diciassette");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11]), "09:30 - 11:00 giovedì", "dalle 9:30 fino alle 11 giovedì", "dalle 9 e mezza alle 11 di giovedì", "giovedì dalle ore 9 e 30 alle ore 11", "giovedì tra le 9 e mezzo e le 11", "giovedì fra le 9h30 e le 11h", "giovedì tipo tra le 09:30 e le 11:00");
-    // todo_example!(v, check_moment_with_direction!(c, [2013, 3, 8], Direction::After), "a partire dall'8", "dall'8 marzo", "dall'8 di marzo in poi");
+    example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13-15 luglio", "dal 13 al 15 luglio", "dal 13 fino al 15 luglio", "dal 13 luglio al 15 luglio", "tra il 13 e il 15 luglio", "da sabato 13 a domenica 15 luglio");
+    // fix_example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13 luglio - 15 luglio", "dal sabato 13 alla domenica 15 di luglio", "dal 13 alla domenica 15 luglio");
+    example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 11]), "dall'1 al 10 luglio", "da lunedì 1 a mercoledì 10 luglio", "dal lunedì 1 al mercoledì 10 luglio", "dal 1° luglio al mercoledì 10 luglio");
+    // FIXME: Resolution issue
+    // fix_example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 11]), "dal lunedì primo al mercoledì 10 di luglio");
+    example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 19]), "tra il 13 e il 18");
+    // FIXME: Recognized but as time-of-day interval
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 19]), "dal 13 al 18", "fra il 13 e il 18");
+    example!(v, check_moment_span!(c, [2023, 2, 1], [2023, 4, 1]), "tra febbraio e marzo due mila venti tre", "tra il febbraio e il marzo del due mila venti tre");
+    example!(v, check_moment_span!(c, [2013, 6, 10], [2013, 7, 2]), "dal 10 giugno al primo luglio", "tra il 10 di giugno e l'uno di luglio", "dal 10 giugno al 1° luglio");
+    // fix_example!(v, check_moment_span!(c, [2013, 6, 10], [2013, 7, 2]), "fra il 10 di giugno e il primo luglio");
+    example!(v, check_moment_span!(c, [2017,4,6], [2017,6,9]), "dal sei aprile all'otto giugno due mila diciassette", "dal sei di aprile all'otto di giugno del due mila diciassette");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11]), "09:30 - 11:00 giovedì", "dalle 9:30 fino alle 11 giovedì", "dalle 9 e mezza alle 11 di giovedì", "giovedì dalle ore 9 e 30 alle ore 11", "giovedì tra le 9 e mezzo e le 11", "giovedì fra le 9h30 e le 11h", "giovedì tipo tra le 09:30 e le 11:00");
+    example!(v, check_moment_with_direction!(c, [2013, 3, 8], Direction::After), "a partire dall'8");
+    // fix_example!(v, check_moment_with_direction!(c, [2013, 3, 8], Direction::After), "dall'8 marzo", "dall'8 di marzo in poi");
     // todo_example!(v, check_moment_with_direction!(c, [2013, 2, 14, 9, 30], Direction::After), "a partire dalle 09:30 di giovedì", "giovedì dopo le 9 e 30", "giovedì mattina dalle 9 e mezza");
     // todo_example!(v, check_moment_with_direction!(c, [2013, 11, 1, 16], Direction::After), "dopo le 16 il primo novembre", "dopo le 16 del primo novembre", "l'1 novembre dopo le ore 16");
     // todo_example!(v, check_moment_with_direction!(c, [2013, 11, 1], Direction::After), "dopo il primo di novembre");
     // todo_example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16], Direction::Before), "prima delle 16", "entro le 16:00", "fino alle ore 16");
     // todo_example!(v, check_moment_span!(c, [2013, 2, 13, 0], [2013, 2, 13, 16]), "domani fino alle 16", "domani prima delle 16:00", "entro le 16 di domani");
     // todo_example!(v, check_moment_with_direction!(c, [2013, 2, 20, 10], Direction::After), "il 20 a partire dalle 10", "il 20 dalle 10:00", "dalle ore 10 del 20");
-    // todo_example!(v, check_moment_with_direction!(c, [2013, 2, 15, 12], Direction::After), "venerdì a partire da mezzogiorno", "venerdì da mezzogiorno in poi", "dal mezzodì di venerdi");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 15, 12], Direction::After), "venerdì a partire da mezzogiorno");
+    // fix_example!(v, check_moment_with_direction!(c, [2013, 2, 15, 12], Direction::After), "venerdì da mezzogiorno in poi", "dal mezzodì di venerdi");
     // todo_example!(v, check_moment_span!(c, [2013, 2, 20], [2013, 2, 20, 18]), "il 20 fino alle 18");
-    //ok_example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 set. 2014", "14-20 sett 2014");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "entro 2 settimane", "in due settimane");
+    example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 set. 2014", "14-20 sett 2014");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "entro 2 settimane");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "in due settimane");
     // 15j != 2 settimanas
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 5, 12]), "entro 3 mesi", "in tre mesi");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 27]), "in 15 giorni", "nei prossimi 15 giorni", "entro 15 giorni");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 5, 12]), "entro 3 mesi");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 5, 12]), "in tre mesi");
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 27]), "in 15 giorni", "nei prossimi 15 giorni");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 27]), "entro 15 giorni");
     // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 7]), "dalle 5 alle 7", "tra le 5 e le 7");
     // todo_example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "giovedì dalle 9 alle 11", "giovedì tra le 9 e le 11");
     // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "tra mezzogiorno e le 2", "fra mezzogiorno e le 2 di pomeriggio", "tra mezzogiorno e le quattordici");
     // todo_example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 30]), "11:30-13:30", "dalle 11:30 all'1 e trenta", "dalle 11 e mezza fino all'una e mezza");
-    // todo_example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "alle 13:30 sabato 21 settembre", "alle 13:30 il sabato 21 settembre", "alle 13:30 del sabato 21 settembre");
-    // todo_example!(v, check_moment_span!(c, [2013, 3, 25], [2013, 4, 1]), "fine marzo", "alla fine del mese di marzo", "a fine marzo", "alla fine di marzo");
-    // todo_example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 6]), "inizio aprile", "all'inizio del mese d'aprile", "all'inizio del mese di aprile", "all'inizio d'aprile", "all'inizio di aprile");
-    // todo_example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 15]), "la prima quindicina d'aprile", "la prima quindicina di aprile");
-    // todo_example!(v, check_moment_span!(c, [2013, 4, 15], [2013, 5, 01]), "la seconda quindicina d'aprile", "la seconda quindicina di aprile");
+    example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "alle 13:30 sabato 21 settembre", "alle 13:30 il sabato 21 settembre", "alle 13:30 del sabato 21 settembre");
+    example!(v, check_moment_span!(c, [2013, 3, 25], [2013, 4, 1]), "fine marzo");
+    // fix_example!(v, check_moment_span!(c, [2013, 3, 25], [2013, 4, 1]),//"alla fine del mese di marzo",//"a fine marzo",//"alla fine di marzo");
+    example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 6]), "inizio aprile");
+    // fix_example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 6]), "all'inizio del mese d'aprile", "all'inizio del mese di aprile", "all'inizio d'aprile", "all'inizio di aprile");
+    example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 15]), "la prima quindicina d'aprile", "la prima quindicina di aprile");
+    example!(v, check_moment_span!(c, [2013, 4, 15], [2013, 5, 01]), "la seconda quindicina d'aprile", "la seconda quindicina di aprile");
     // todo_example!(v, check_moment_span!(c, [2013, 12, 10], [2013, 12, 20]), "metà dicembre", "alla metà di dicembre", "alla metà del mese di dicembre");
-    // todo_example!(v, check_moment!(c, [2013, 3]), "marzo", "a marzo", "in marzo", "nel mese di marzo", "il mese di marzo");
+    example!(v, check_moment!(c, [2013, 3]), "marzo", "a marzo", "in marzo", "il mese di marzo");
+    // fix_example!(v, check_moment!(c, [2013, 3]), "nel mese di marzo",);
     example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "tra un quarto d'ora", "fra 1/4 d'ora");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 0, 0]), "tra mezzora", "tra una mezzora", "fra 1/2 ora");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 15, 0]), "tra tre quarti d'ora", "fra 3/4 d'ora");
@@ -296,14 +330,14 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(100.0, Some("NOK"), Precision::Exact), "100 corone norvegesi", "cento corone norvegesi");
     example!(v, check_finance(2005.0, Some("SEK"), Precision::Exact), "2005 corone svedesi", "due mila cinque corone svedesi");
     example!(v, check_finance(96.0, Some("INR"), Precision::Approximate), "approssimativamente 96 rupie", "novanta sei rupie all'incirca");
-    // TODO: FIXME
-    //example!(v, check_finance(5.3, Some("RUB"), Precision::Exact), "cinque rubli e trenta", "5,3 rubli");
+    // TODO: FIXME 'rubli' not working ?!
+    // fix_example!(v, check_finance(5.3, Some("RUB"), Precision::Exact), "cinque rubli e trenta", "5,3 rubli");
     example!(v, check_finance(89.0, Some("JPY"), Precision::Exact), "esattamente 89 JPY", "89 yen esatti", "precisamente ottanta nove yen giapponesi");
     example!(v, check_finance(8.0, Some("¥"), Precision::Exact), "8¥");
     example!(v, check_finance(100.0, Some("CNY"), Precision::Exact), "cento yuan esatti", "esattamente 100 yuan cinesi", "100 renminbi precisi");
     example!(v, check_finance(7.0, Some("KRW"), Precision::Exact), "7 won", "7₩", "sette won sudcoreani");
     example!(v, check_finance(3.0, Some("฿"), Precision::Exact), "3฿", "3 ฿", "tre bitcoin", "tre bitcoins");
     // TODO: FIXME - add approx. numbers in IT rules
-    //example!(v, check_finance(15.0, Some("$"), Precision::Approximate), "una quindicina di dollari", "una 15ina di dollari");
+    // todo_example!(v, check_finance(15.0, Some("$"), Precision::Approximate), "una quindicina di dollari", "una 15ina di dollari");
     example!(v, check_finance(3000000.0, Some("EUR"), Precision::Exact), "tre milioni di euro");
 }
