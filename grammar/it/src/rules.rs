@@ -1048,7 +1048,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("lunch",
-                      b.reg(r#"pranzo|seconda colazione"#)?,
+                      b.reg(r#"(?:all' ?ora di )?pranzo|seconda colazione"#)?,
                       |_| Ok(helpers::hour(12, false)?
                           .span_to(&helpers::hour(14, false)?, false)?
                           .latent()
@@ -1237,7 +1237,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| a.value().intersect(b.value())
     );
     b.rule_2("in the <part-of-day>",
-             b.reg(r#"(?:durante )?(?:il|la)|d(?:['i]|el(?:l['ao])?)|in|nel(?:la)?|nel corso del(?:la)?"#)?,
+             b.reg(r#"(?:durante )?(?:il|la)|d(?:['i]|el(?:l['ao])?)|in|nel(?:la)?|nel corso del(?:la)?|a(?:ll(?:e|' ?)?(?: ora d[i'])?)?"#)?,
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |_, a| Ok(a.value().clone().not_latent())
     );
