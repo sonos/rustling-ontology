@@ -11,7 +11,7 @@ pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_temperature(3.0, Some("degree")), "trois degrés", "3 degrés", "3°", "3 °");
-    example!(v, check_temperature(32.0, Some("celsius")), "trente deux degrés celsius", "32°C", "32 °c");
+    example!(v, check_temperature(32.0, Some("celsius")), "trente deux degrés celsius", "trente deux degrés centigrade", "32°C", "32 °c");
     example!(v, check_temperature(-27.0, Some("celsius")), "moins 27 celsius", "-27C", "- 27 c");
     example!(v, check_temperature(-5.0, Some("fahrenheit")), "moins cinq degrés fahrenheit", "-5 °F", "- 5°f");
     example!(v, check_temperature(168.0, Some("fahrenheit")), "cent soixante-huit fahrenheit", "168 F", "168f");

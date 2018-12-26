@@ -1611,7 +1611,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
              });
     b.rule_2("<temp> Celcius",
              temperature_check!(),
-             b.reg(r#"c(?:el[cs]?(?:ius)?)?\.?"#)?,
+             b.reg(r#"centigrades?|c(?:el[cs]?(?:ius)?)?\.?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: a.value().value,
