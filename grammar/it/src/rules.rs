@@ -1704,6 +1704,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
             latent: true,
         })
     });
+    // FIXME: should be with number check
     b.rule_2("<latent temp> degrees",
              temperature_check!(),
              b.reg(r#"(?:grad[oi]?)|°"#)?,
