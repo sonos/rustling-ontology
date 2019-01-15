@@ -253,8 +253,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"てん|テン|[、,，\.]|点"#)?,
         number_check!(|number: &NumberValue| !number.suffixed()),
         |a, _, b| {
+            let power = b.value().value().to_string().chars().count();
+            let coeff = 10.0_f32.powf(-1.0 * power as f32);
             Ok(FloatValue {
-                value: b.value().value() * 0.1 + a.value().value(),
+                value: b.value().value() * coeff + a.value().value(),
                 ..FloatValue::default()
             })
     });

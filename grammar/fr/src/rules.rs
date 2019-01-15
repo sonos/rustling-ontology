@@ -1851,13 +1851,13 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 ..FloatValue::default()
             })
     });
-    b.rule_4("number dot number",
+    b.rule_4("number dot zero ... number",
          number_check!(|number: &NumberValue| !number.prefixed()),
          b.reg(r#"virgule|point"#)?,
-         b.reg(r#"(?:(?:z[eé]ro )*(?:z[eé]ro))"#)?,
+             b.reg(r#"(?:(?:z[eé]ro )*(?:z[eé]ro))"#)?,
          number_check!(|number: &NumberValue| !number.suffixed()),
          |a, _, zeros, b| {
-             let power = zeros.group(0).split_whitespace().count() + 1;
+             let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
              let coeff = 10.0_f32.powf(-1.0 * power as f32);
              Ok(FloatValue {
                  value: b.value().value() * coeff + a.value().value(),

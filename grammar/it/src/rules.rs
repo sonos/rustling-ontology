@@ -1956,19 +1956,22 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"punto|virgola"#)?,
              number_check!(|number: &NumberValue| !number.suffixed()),
              |a, _, b| {
+                 let power = b.value().value().to_string().chars().count();
+                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
                  Ok(FloatValue {
-                     value: b.value().value() * 0.1 + a.value().value(),
+                     value: b.value().value() * coeff + a.value().value(),
                      ..FloatValue::default()
                  })
              });
 
-    b.rule_4("number dot zero+ number",
+    b.rule_4("number dot zero ... number",
              number_check!(|number: &NumberValue| !number.prefixed()),
-             b.reg(r#"punto|virgula"#)?,
+             b.reg(r#"punto|virgola"#)?,
              b.reg(r#"(?:(?:zero )*(?:zero))"#)?,
              number_check!(|number: &NumberValue| !number.suffixed()),
              |a, _, zeros, b| {
-                 let coeff = 10.0_f32.powf(-1.0 * (zeros.group(0).split_whitespace().count() + 1) as f32);
+                 let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
+                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
                  Ok(FloatValue {
                      value: b.value().value() * coeff + a.value().value(),
                      ..FloatValue::default()
