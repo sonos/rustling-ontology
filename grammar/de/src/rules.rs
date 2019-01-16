@@ -2290,8 +2290,28 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(|number: &NumberValue| !number.prefixed()),
              b.reg(r#"komma"#)?,
              number_check!(|number: &NumberValue| !number.suffixed()),
-             |a, _, b| FloatValue::new(b.value().value() * 0.1 + a.value().value())
+             |a, _, b| {
+                 let power = b.value().value().to_string().chars().count();
+                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 Ok(FloatValue {
+                     value: b.value().value() * coeff + a.value().value(),
+                     ..FloatValue::default()
+                 })
+             }
     );
+    b.rule_4("number dot zero ... number",
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             b.reg(r#"komma"#)?,
+             b.reg(r#"(?:(?:null )*(?:null))"#)?,
+             number_check!(|number: &NumberValue| !number.suffixed()),
+             |a, _, zeros, b| {
+                 let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
+                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 Ok(FloatValue {
+                     value: b.value().value() * coeff + a.value().value(),
+                     ..FloatValue::default()
+                 })
+             });
     b.rule_1_terminal("decimal with thousands separator",
                       b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
                       |text_match| FloatValue::new(text_match.group(1).replace(".", "").replace(",", ".").parse()?)

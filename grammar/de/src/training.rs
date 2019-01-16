@@ -316,6 +316,10 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_ordinal(4), "vierter", "4ter");
     example!(v, check_float(1416.15), "1416,15");
     example!(v, check_float(1416.15), "1.416,15");
+    example!(v, check_float(1.1), "1,1", "1,10", "01,10", "eins komma eins", "eins komma zehn");
+    example!(v, check_float(0.5), "0,5", "0,50", "null komma fünf", "null komma fünfzig");
+    //example!(v, check_float(32.75), "32,75", "zweiunddreißig komma fünfundsiebzig");
+    example!(v, check_float(10.08), "10,08", "zehn komma null acht");
     example!(v, check_float(1000000.0), "1.000.000,00");
     example!(v, check_ordinal(44), "der vierundvierzigste");
     example!(v, check_integer(455628), "vierhundertfünfundfünfzigtausendsechshundertachtundzwanzig");

@@ -472,7 +472,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::day_of_week(Weekday::Tue)
     );
     b.rule_1_terminal("named-day",
-                      b.reg(r#"mi(?:e|é)\.?(?:rcoles)?|mx|mier?\."#)?,
+                      b.reg(r#"mi[eé]\.?(?:rcoles)?|mx|mier?\."#)?,
                       |_| helpers::day_of_week(Weekday::Wed)
     );
     b.rule_1_terminal("named-day",
@@ -1320,6 +1320,16 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
+    b.rule_2("exactly <duration>",
+             b.reg(r#"(?:precis|exact)amente|justo"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed().precision(Precision::Exact))
+    );
+    b.rule_2("<duration> exactly",
+             duration_check!(),
+             b.reg(r#"(?:precis|exact)amente|justo"#)?,
+             |duration, _| Ok(duration.value().clone().prefixed().precision(Precision::Exact))
+    );
     b.rule_2("approx <duration>",
              b.reg(r#"sobre|cerca de"#)?,
              duration_check!(),
@@ -1453,7 +1463,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| helpers::compose_numbers(&a.value(), &b.value())
     );
     b.rule_1_terminal("number (0..15)",
-                      b.reg(r#"((?:c|z)ero|un[oa]?|dos|tr(?:é|e)s|cuatro|cinco|s(?:e|é)is|siete|ocho|nueve|die(?:z|s)|once|doce|trece|catorce|quince)"#)?,
+                      b.reg(r#"(und[eé]cimo|[cz]ero|un[oa]?|dos|tr[ée]s|cuatro|cinco|s[eé]is|siete|ocho|nueve|die(?:z|s)|once|doce|trece|catorce|quince)"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "cero" => 0,
@@ -1510,7 +1520,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 9),
              |a, _, b| IntegerValue::new(a.value().value + b.value().value));
     b.rule_1_terminal("number (16..19 21..29)",
-                      b.reg(r#"(die[cs]i(?:s[eéè]is|siete|ocho|nueve)|veinti(?:un[oa]|dos|tr[eéè]s|cuatro|cinco|s[eéè]is|siete|ocho|nueve))"#)?,
+                      b.reg(r#"(die[cs]i(?:s[eéè]is|siete|ocho|nueve)|veinti(?:un[oa]|d[oó]s|tr[eéè]s|cuatro|cinco|s[eéè]is|siete|ocho|nueve))"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "dieciseis" => 16,
@@ -1523,6 +1533,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "veintiuno" => 21,
                               "veintiuna" => 21,
                               "veintidos" => 22,
+                              "veintidós" => 22,
                               "veintitres" => 23,
                               "veintitrés" => 23,
                               "veinticuatro" => 24,
@@ -1561,7 +1572,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           |_| IntegerValue::new(500)
     );
     b.rule_1_terminal("thousand",
-                      b.reg(r#"mil|un milar"#)?,
+                      b.reg(r#"mil|un millar"#)?,
                       |_| IntegerValue::new_with_grain(1000, 3)
     );
     b.rule_1_terminal("million",
@@ -1648,11 +1659,27 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"punto|coma"#)?,
              number_check!(|number: &NumberValue| !number.suffixed()),
              |a, _, b| {
+                 let power = b.value().value().to_string().chars().count();
+                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
                  Ok(FloatValue {
-                     value: b.value().value() * 0.1 + a.value().value(),
+                     value: b.value().value() * coeff + a.value().value(),
                      ..FloatValue::default()
                  })
              });
+    b.rule_4("number dot zero ... number",
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             b.reg(r#"punto|coma"#)?,
+             b.reg(r#"(?:(?:[zc]ero )*(?:[zc]ero))"#)?,
+             number_check!(|number: &NumberValue| !number.suffixed()),
+             |a, _, zeros, b| {
+                 let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
+                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 Ok(FloatValue {
+                     value: b.value().value() * coeff + a.value().value(),
+                     ..FloatValue::default()
+                 })
+             });
+
     b.rule_1_terminal("decimal with thousands separator",
                       b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
                       |text_match| {
@@ -1737,7 +1764,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_1_terminal("ordinals (primero..10)",
-                      b.reg(r#"(primer|segund|tercer|cuart|quint|sext|s[eéè]ptim|octav|noven|d[eéè]cim)[oa]s?"#)?,
+                      b.reg(r#"(primer|segund|tercer|cuart|quint|sext|s[eéè]ptim|octav|noven|d[eéè]cim)(?:[oa]s?)?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "primer" => 1,
@@ -1754,6 +1781,48 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "décim" => 10,
                               "dècim" => 10,
                               "decim" => 10,
+                              _ => return Err(RuleError::Invalid.into())
+                          };
+                          Ok(OrdinalValue::new(value))
+                      }
+    );
+    b.rule_1_terminal("ordinals 11 and 12",
+                      b.reg(r#"(un|duo)d[eé]cim[oa]s?"#)?,
+                      |text_match| {
+                          let value = match text_match.group(1).as_ref() {
+                              "un" => 11,
+                              "duo" => 12,
+                              _ => return Err(RuleError::Invalid.into())
+                          };
+                          Ok(OrdinalValue::new(value))
+                      }
+    );
+    b.rule_1_terminal("ordinals 20 and 30",
+                      b.reg(r#"(vi|tri)g[eé]simo"#)?,
+                      |text_match| {
+                          let value = match text_match.group(1).as_ref() {
+                              "vi" => 20,
+                              "tri" => 30,
+                              _ => return Err(RuleError::Invalid.into())
+                          };
+                          Ok(OrdinalValue::new(value))
+                      }
+    );
+    b.rule_1_terminal("ordinals 11-19",
+                      b.reg(r#"d[eé]cimo? ?(primer|segund|tercer|cuart|quint|sext|s[eéè]ptim|octav|noven)(?:[oa]s?)?"#)?,
+                      |text_match| {
+                          let value = match text_match.group(1).as_ref() {
+                              "primer" => 11,
+                              "segund" => 12,
+                              "tercer" => 13,
+                              "cuart" => 14,
+                              "quint" => 15,
+                              "sext" => 16,
+                              "séptim" => 17,
+                              "sèptim" => 17,
+                              "septim" => 17,
+                              "octav" => 18,
+                              "noven" => 19,
                               _ => return Err(RuleError::Invalid.into())
                           };
                           Ok(OrdinalValue::new(value))

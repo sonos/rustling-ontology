@@ -292,6 +292,10 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(3000000), "3M", "3000K", "3000000", "3.000.000");
     example!(v, check_integer(1200000), "1.200.000", "1200000", "1,2M", "1200K", ",0012G");
     example!(v, check_integer(-1200000), "- 1.200.000", "-1200000", "meno 1200000", "-1,2M", "-1200K", "-,0012G");
+    example!(v, check_float(1.1), "1,1", "1,10", "01,10", "uno punto uno", "uno virgola uno", "uno punto dieci", "uno virgola dieci");
+    example!(v, check_float(0.5), "0,5", "0,50", "zero punto cinque", "zero virgola cinque", "zero punto cinquanta", "zero virgola cinquanta");
+    example!(v, check_float(32.75), "32,75", "trenta due punto settanta cinque", "trenta due virgola settanta cinque");
+    example!(v, check_float(10.08), "10,08", "dieci punto zero otto");//, "dieci virgola zero otto");
     example!(v, check_ordinal(1), "1o", "1a", "il 1o", "la 1a", "1°");
     example!(v, check_ordinal(3), "3o", "il 3o", "3a", "la 3a", "3°", "terzo", "terza");
 }

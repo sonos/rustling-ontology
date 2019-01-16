@@ -259,8 +259,10 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(16), "16", "sixteen");
     example!(v, check_integer(17), "17", "seventeen");
     example!(v, check_integer(18), "18", "eighteen");
-    example!(v, check_float(1.1), "1.1", "1.10", "01.10");
-    example!(v, check_float(0.77), "0.77", ".77");
+    example!(v, check_float(1.1), "1.1", "1.10", "01.10", "one point ten", "one point one");
+    example!(v, check_float(0.5), "0.5", "0.50", "zero point five");
+    example!(v, check_float(32.75), "32.75", "thirty-two point seventy-five");
+    example!(v, check_float(10.08), "10.08", "ten point zero eight");
     example!(v,
              check_integer(100000),
              "100,000",

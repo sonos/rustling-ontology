@@ -286,6 +286,10 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(3000000), "3M", "3000K", "3000000", "3.000.000", "tres millones");
     example!(v, check_integer(1200000), "1.200.000", "1200000", "1,2M", "1200K", ",0012G", "un millón doscientos mil");
     example!(v, check_integer(-1200000), "- 1.200.000", "-1200000", "menos 1200000", "-1,2M", "-1200K", "-,0012G", "menos un millón doscientos mil");
+    example!(v, check_float(1.1), "1,1", "1,10", "1,10", "uno punto uno", "uno coma uno", "uno punto diez", "uno coma diez");
+    example!(v, check_float(0.5), "0,5", "0,50", "cero punto cinco", "cero coma cinco", "cero punto cincuenta", "cero coma cincuenta");
+    example!(v, check_float(32.75), "32,75", "treinta y dos punto setenta y cinco", "treinta y dos coma setenta y cinco");
+    example!(v, check_float(10.08), "10,08", "diez punto cero ocho", "diez coma cero ocho");
     // TODO: Check if want/need support for ordinal special character/overscript
     example!(v, check_ordinal(1), "1o", "1a", "primer", "primero", "primera", "1º", "1ª");
     example!(v, check_ordinal(3), "3o", "3o", "3a", "3º", "3ª", "tercero", "tercera");
