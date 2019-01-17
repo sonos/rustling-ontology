@@ -334,8 +334,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(100.0, Some("NOK"), Precision::Exact), "100 corone norvegesi", "cento corone norvegesi");
     example!(v, check_finance(2005.0, Some("SEK"), Precision::Exact), "2005 corone svedesi", "due mila cinque corone svedesi");
     example!(v, check_finance(96.0, Some("INR"), Precision::Approximate), "approssimativamente 96 rupie", "novanta sei rupie all'incirca");
-    // TODO: FIXME 'rubli' not working ?!
-    // fix_example!(v, check_finance(5.3, Some("RUB"), Precision::Exact), "cinque rubli e trenta", "5,3 rubli");
+    example!(v, check_finance(5.3, Some("RUB"), Precision::Exact), "cinque rubli e trenta", "5,3 rubli");
     example!(v, check_finance(89.0, Some("JPY"), Precision::Exact), "esattamente 89 JPY", "89 yen esatti", "precisamente ottanta nove yen giapponesi");
     example!(v, check_finance(8.0, Some("¥"), Precision::Exact), "8¥");
     example!(v, check_finance(100.0, Some("CNY"), Precision::Exact), "cento yuan esatti", "esattamente 100 yuan cinesi", "100 renminbi precisi");

@@ -91,7 +91,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // This is not recognized for a very obscure reason
     b.rule_1_terminal("RUB",
-                      b.reg(r#"rub|rubl[oi]"#)?,
+                      b.reg(r#"rub(?:l[oi])?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("RUB") })
     );
     b.rule_1_terminal("INR",
