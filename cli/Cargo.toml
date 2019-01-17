@@ -1,6 +1,6 @@
 [package]
 name = "rustling-cli"
-version = "0.17.6"
+version = "0.17.7"
 authors = ["hdlj <hubert.delajonquiere@snips.net>", "Mathieu Poumeyrol <kali@zoy.org>"]
 
 [dependencies]
