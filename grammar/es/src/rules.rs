@@ -8,7 +8,7 @@ pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()>
     b.rule_2("<number> per cent",
         number_check!(),
         // FIXME
-        b.reg(r"(?:%|p\.c\.|por ?cien(?:tos?))?")?,
+        b.reg(r#"(?:%|p\.c\.|por ?cien(?:tos?))?"#)?,
         |number, _| Ok(PercentageValue(number.value().value()))
     );
     Ok(())
@@ -555,7 +555,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"ahor(?:it)?a(?: mismo)?|ya|en\s?seguida|cuanto antes|en este preciso (?:istante|momento)"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
-    b.rule_1_terminal("now",
+    b.rule_1_terminal("now / today",
                       b.reg(r#"(?:hoy)|(?:en este momento)"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
@@ -1413,22 +1413,13 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
+    // FIXME: Check double Kelvin removal
     b.rule_2("<temp> Kelvin",
              temperature_check!(),
              b.reg(r#"k(?:elvin)?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: a.value().value,
-                     unit: Some("kelvin"),
-                     latent: false,
-                 })
-             });
-    b.rule_2("<temp> Kelvin",
-             number_check!(),
-             b.reg(r#"kelvin"#)?,
-             |a, _| {
-                 Ok(TemperatureValue {
-                     value: a.value().value(),
                      unit: Some("kelvin"),
                      latent: false,
                  })
