@@ -275,7 +275,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         // Boundaries for iteration
         let max_context_moment = context.max.end_moment();
         let min_context_moment = context.min.start;
-        println!("{:?}", context);
+
         let day_of_month = self.1;
         let forward_walker =
             Walker::generator(anchor, |prev| prev + PeriodComp::years(1))
