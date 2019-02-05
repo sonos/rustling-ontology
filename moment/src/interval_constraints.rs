@@ -79,8 +79,16 @@ fn is_valid_day_of_month(d: u32) -> bool {
     1 <= d && d <= 31
 }
 
+/// The purpose of this function is to pre-filter valid month/day pairs. Hence it never returns
+/// false negatives, however it may return false positives.
 fn is_valid_month_day(m: u32, d: u32) -> bool {
-    is_valid_month(m) && ((m == 2 &&  d <= 29) || m != 2 && is_valid_day_of_month(d))
+    is_valid_month(m)
+        && is_valid_day_of_month(d)
+        && match m {
+            2 => d <= 29,
+            4 | 6 | 9 | 11 => d <= 30,
+            _ => true,
+        }
 }
 
 fn is_valid_hour(h: u32) -> bool {
@@ -255,7 +263,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
+    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
         if !is_valid_month_day(self.0, self.1) { return BidirectionalWalker::new(); }
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
@@ -264,10 +272,14 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let offset_year = !(origin.start <= rounded_interval.end_moment()) as i64;
         let anchor = rounded_interval + PeriodComp::years(offset_year);
         let origin_copied = origin.clone();
+        // Boundaries for iteration
+        let max_context_moment = context.max.end_moment();
+        let min_context_moment = context.min.start;
 
         let day_of_month = self.1;
         let forward_walker =
             Walker::generator(anchor, |prev| prev + PeriodComp::years(1))
+                .take_while(move |i| i.end_moment() <= max_context_moment)
                 .filter(move |interval| {
                         day_of_month <= last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
                 })
@@ -276,12 +288,12 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let backward_walker =
             Walker::generator(anchor - PeriodComp::years(1),
                               |prev| prev - PeriodComp::years(1))
-
-                    .filter(move |interval| {
-                                day_of_month <=
+                .take_while(move |i| i.start >= min_context_moment)
+                .filter(move |interval| {
+                        day_of_month <=
                                 last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
-                            })
-                    .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
+                })
+                .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
 
         BidirectionalWalker::new()
             .forward(forward_walker)
@@ -1154,6 +1166,31 @@ mod tests {
         fn offset_from_utc_date(&self, _utc: &NaiveDate) -> FixedOffset { FixedOffset::east(2*3600) }
         fn offset_from_utc_datetime(&self, _utc: &NaiveDateTime) -> FixedOffset { FixedOffset::east(2*3600) }
     }
+
+    #[test]
+    fn test_valid_month_day() {
+        assert!(!is_valid_month_day(14, 1));
+
+        assert!(!is_valid_month_day(1, 60));
+
+        assert!(is_valid_month_day(1, 31));
+        assert!(!is_valid_month_day(2, 30));
+        assert!(is_valid_month_day(2, 29));
+        assert!(is_valid_month_day(3, 31));
+        assert!(is_valid_month_day(4, 30));
+        assert!(!is_valid_month_day(4, 31));
+        assert!(is_valid_month_day(5, 31));
+        assert!(is_valid_month_day(6, 30));
+        assert!(!is_valid_month_day(6, 31));
+        assert!(is_valid_month_day(7, 31));
+        assert!(is_valid_month_day(8, 31));
+        assert!(is_valid_month_day(9, 30));
+        assert!(!is_valid_month_day(9, 31));
+        assert!(is_valid_month_day(10, 31));
+        assert!(is_valid_month_day(11, 30));
+        assert!(!is_valid_month_day(11, 31));
+        assert!(is_valid_month_day(12, 31));
+    }
     
     #[test]
     fn test_year() {
@@ -1947,6 +1984,15 @@ mod tests {
     fn test_month_day_special_case() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
         let month = MonthDay::new_unchecked(2, 31);
+        let walker = month.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.forward.clone().next());
+        assert_eq!(None, walker.backward.clone().next());
+    }
+
+    #[test]
+    fn test_month_day_special_case_on_30_ending_months() {
+        let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let month = MonthDay::new_unchecked(9, 31);
         let walker = month.to_walker(&context.reference, &context);
         assert_eq!(None, walker.forward.clone().next());
         assert_eq!(None, walker.backward.clone().next());
