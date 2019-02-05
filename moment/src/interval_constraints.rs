@@ -255,7 +255,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         Grain::Year
     }
 
-    fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T> {
+    fn to_walker(&self, origin: &Interval<T>, context: &Context<T>) -> IntervalWalker<T> {
         if !is_valid_month_day(self.0, self.1) { return BidirectionalWalker::new(); }
         let rounded_moment = Moment(origin.timezone()
                                         .ymd(origin.start.year(), self.0, 1)
@@ -264,11 +264,14 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let offset_year = !(origin.start <= rounded_interval.end_moment()) as i64;
         let anchor = rounded_interval + PeriodComp::years(offset_year);
         let origin_copied = origin.clone();
-
+        // Boundaries for iteration
+        let max_context_moment = context.max.end_moment();
+        let min_context_moment = context.min.start;
+        println!("{:?}", context);
         let day_of_month = self.1;
         let forward_walker =
             Walker::generator(anchor, |prev| prev + PeriodComp::years(1))
-                .take(128) // Security in case this day of a month is impossible
+                .take_while(move |i| i.end_moment() <= max_context_moment)
                 .filter(move |interval| {
                         day_of_month <= last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
                 })
@@ -277,7 +280,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let backward_walker =
             Walker::generator(anchor - PeriodComp::years(1),
                               |prev| prev - PeriodComp::years(1))
-                .take(128) // Security in case this day of a month is impossible
+                .take_while(move |i| i.start >= min_context_moment)
                 .filter(move |interval| {
                         day_of_month <=
                                 last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
