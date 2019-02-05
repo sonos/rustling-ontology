@@ -1260,8 +1260,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"halbe?"#)?,
                       |_| Ok(RelativeMinuteValue(30))
     );
-    b.rule_1("number (as relative minutes)",
-             integer_check_by_range!(1, 59),
+    b.rule_1_terminal("number (as relative minutes for minute=1)",
+             b.reg(r#"eins"#)?,
+             |_| Ok(RelativeMinuteValue(1))
+    );
+    b.rule_1("number (as relative minutes for minute>1)",
+             integer_check_by_range!(2, 59),
              |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
     );
     b.rule_2("number <minutes> (as relative minutes)",
