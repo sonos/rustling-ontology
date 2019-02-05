@@ -79,8 +79,16 @@ fn is_valid_day_of_month(d: u32) -> bool {
     1 <= d && d <= 31
 }
 
+/// The purpose of this function is to pre-filter valid month/day pairs. Hence it never returns
+/// false negatives, however it may return false positives.
 fn is_valid_month_day(m: u32, d: u32) -> bool {
-    is_valid_month(m) && ((m == 2 &&  d <= 29) || m != 2 && is_valid_day_of_month(d))
+    is_valid_month(m)
+        && is_valid_day_of_month(d)
+        && match m {
+            2 => d <= 29,
+            4 | 6 | 9 | 11 => d <= 30,
+            _ => true,
+        }
 }
 
 fn is_valid_hour(h: u32) -> bool {
@@ -1157,6 +1165,31 @@ mod tests {
     
         fn offset_from_utc_date(&self, _utc: &NaiveDate) -> FixedOffset { FixedOffset::east(2*3600) }
         fn offset_from_utc_datetime(&self, _utc: &NaiveDateTime) -> FixedOffset { FixedOffset::east(2*3600) }
+    }
+
+    #[test]
+    fn test_valid_month_day() {
+        assert!(!is_valid_month_day(14, 1));
+
+        assert!(!is_valid_month_day(1, 60));
+
+        assert!(is_valid_month_day(1, 31));
+        assert!(!is_valid_month_day(2, 30));
+        assert!(is_valid_month_day(2, 29));
+        assert!(is_valid_month_day(3, 31));
+        assert!(is_valid_month_day(4, 30));
+        assert!(!is_valid_month_day(4, 31));
+        assert!(is_valid_month_day(5, 31));
+        assert!(is_valid_month_day(6, 30));
+        assert!(!is_valid_month_day(6, 31));
+        assert!(is_valid_month_day(7, 31));
+        assert!(is_valid_month_day(8, 31));
+        assert!(is_valid_month_day(9, 30));
+        assert!(!is_valid_month_day(9, 31));
+        assert!(is_valid_month_day(10, 31));
+        assert!(is_valid_month_day(11, 30));
+        assert!(!is_valid_month_day(11, 31));
+        assert!(is_valid_month_day(12, 31));
     }
     
     #[test]
