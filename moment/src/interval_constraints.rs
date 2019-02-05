@@ -268,6 +268,7 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let day_of_month = self.1;
         let forward_walker =
             Walker::generator(anchor, |prev| prev + PeriodComp::years(1))
+                .take(128) // Security in case this day of a month is impossible
                 .filter(move |interval| {
                         day_of_month <= last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
                 })
@@ -276,12 +277,12 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZ
         let backward_walker =
             Walker::generator(anchor - PeriodComp::years(1),
                               |prev| prev - PeriodComp::years(1))
-
-                    .filter(move |interval| {
-                                day_of_month <=
+                .take(128) // Security in case this day of a month is impossible
+                .filter(move |interval| {
+                        day_of_month <=
                                 last_day_in_month(interval.start.year(), interval.start.month(), origin_copied.timezone())
-                            })
-                    .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
+                })
+                .map(move |interval| interval + PeriodComp::days(day_of_month as i64 - 1));
 
         BidirectionalWalker::new()
             .forward(forward_walker)
@@ -1947,6 +1948,15 @@ mod tests {
     fn test_month_day_special_case() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
         let month = MonthDay::new_unchecked(2, 31);
+        let walker = month.to_walker(&context.reference, &context);
+        assert_eq!(None, walker.forward.clone().next());
+        assert_eq!(None, walker.backward.clone().next());
+    }
+
+    #[test]
+    fn test_month_day_special_case_on_30_ending_months() {
+        let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));
+        let month = MonthDay::new_unchecked(9, 31);
         let walker = month.to_walker(&context.reference, &context);
         assert_eq!(None, walker.forward.clone().next());
         assert_eq!(None, walker.backward.clone().next());
