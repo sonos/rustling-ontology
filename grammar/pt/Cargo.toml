@@ -1,0 +1,9 @@
+[package]
+name = "rustling-ontology-pt"
+version = "0.17.7"
+authors = ["hdlj <rosa.stern@snips.ai>"]
+
+[dependencies]
+rustling = { git="https://github.com/snipsco/rustling", tag="0.9.0" }
+rustling-ontology-moment = { path="../../moment"}
+rustling-ontology-values = { path="../../values"}

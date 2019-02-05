@@ -131,6 +131,7 @@ pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
         Lang::ES => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/es.rmp"))[..]) },
         Lang::IT => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/it.rmp"))[..]) },
         Lang::FR => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/fr.rmp"))[..]) },
+        Lang::PT => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/pt.rmp"))[..]) },
         Lang::JA => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ja.rmp"))[..]) },
         Lang::KO => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ko.rmp"))[..]) },
         Lang::ZH => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/zh.rmp"))[..]) },
