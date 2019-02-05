@@ -13,7 +13,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(6), "六", "六拍子", "六種");
     example!(v, check_integer(7), "七", "七段", "七種類");
     example!(v, check_integer(8), "八", "八門", "八カ国");
-    example!(v, check_integer(9), "九", "九度", "九ヶ国");
+    example!(v, check_integer(9), "九", "九倍", "九ヶ国");
     example!(v, check_integer(10), "十", "十畳", "十クラス");
     example!(v, check_integer(11), "十一", "十一膳", "十一丁");
     example!(v, check_integer(14), "十四", "十四ページ", "十四口");
