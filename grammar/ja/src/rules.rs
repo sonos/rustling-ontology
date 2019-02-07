@@ -1449,20 +1449,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  relative_minute.value().0,
                  true)
     );
-    // b.rule_1_terminal("yyyy-mm-dd",
-    //                   b.reg(r#"(\d{2,4})-(0?[1-9]|1[0-2])-(3[01]|[12]\d|0?[1-9])"#)?,
-    //                   |text_match| helpers::ymd(
-    //                       text_match.group(1).parse()?,
-    //                       text_match.group(2).parse()?,
-    //                       text_match.group(3).parse()?)
-    // );
-
-    // b.rule_1_terminal("mm/dd",
-    //                   b.reg(r#"(0?[1-9]|1[0-2])/(3[01]|[12]\d|0?[1-9])"#)?,
-    //                   |text_match| helpers::month_day(
-    //                       text_match.group(1).parse()?,
-    //                       text_match.group(2).parse()?)
-    // );
+    // Written dates in numeric formats
+    b.rule_1_terminal("yyyy-mm-dd - ISO - additional separator '.' allowed",
+                      b.reg(r#"(\d{4})[-/\.](0?[1-9]|1[0-2])[-/\.](3[01]|[12]\d|0?[1-9])"#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(1).parse()?,
+                          text_match.group(2).parse()?,
+                          text_match.group(3).parse()?)
+    );
+    // End of Written dates in numeric formats
     b.rule_1_terminal("morning",
         b.reg(r#"朝の?|午前中?|今朝"#)?,
         |_| {

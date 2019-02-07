@@ -1245,27 +1245,60 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     30, 
                     true)?.precision(a.value().precision))
     );
-    b.rule_1_terminal("mm/.dd/.yyyy",
-                      b.reg(r#"(0?[1-9]|1[0-2])[-/.](3[01]|[12]\d|0?[1-9])[-/.](\d{2,4})"#)?,
-                      |text_match| helpers::year_month_day(
-                          text_match.group(3).parse()?,
-                          text_match.group(1).parse()?,
-                          text_match.group(2).parse()?)
-    );
-    b.rule_1_terminal("yyyy-mm-dd",
-                      b.reg(r#"(\d{2,4})-(0?[1-9]|1[0-2])-(3[01]|[12]\d|0?[1-9])"#)?,
+    // Written dates in numeric formats
+    b.rule_1_terminal("yyyy-mm-dd - ISO",
+                      b.reg(r#"(\d{4})[-/](0?[1-9]|1[0-2])[-/](3[01]|[12]\d|0?[1-9])"#)?,
                       |text_match| helpers::year_month_day(
                           text_match.group(1).parse()?,
                           text_match.group(2).parse()?,
                           text_match.group(3).parse()?)
     );
+    // Non ambiguous month-day combinations: 13<=d<=31 && 01<=m<=12
+    // Ambiguous month-day combinations: 01<=d<=12 && 01<=m<=12
+    // regexes:
+    // month and ambiguous day: (0?[1-9]|1[0-2])
+    // non ambiguous day: (1[3-9]|2\d|3[01])
+    b.rule_1_terminal("dd/mm/yy or dd/mm/yyyy - Non ambiguous cases - Non US standard",
+                      b.reg(r#"(1[3-9]|2\d|3[01])[-/\.](0?[1-9]|1[0-2])[-/\.](\d{2,4})"#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(3).parse()?,
+                          text_match.group(2).parse()?,
+                          text_match.group(1).parse()?)
+    );
 
-    b.rule_1_terminal("mm/dd",
-                      b.reg(r#"(0?[1-9]|1[0-2])/(3[01]|[12]\d|0?[1-9])"#)?,
+    b.rule_1_terminal("mm/dd/yy or mm/dd/yyyy - Non ambiguous cases - US standard",
+                      b.reg(r#"(0?[1-9]|1[0-2])[-/\.](1[3-9]|2\d|3[01])[-/\.](\d{2,4})"#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(3).parse()?,
+                          text_match.group(1).parse()?,
+                          text_match.group(2).parse()?)
+    );
+    b.rule_1_terminal("mm/dd/yy or mm/dd/yyyy - Ambiguous cases - interpret as US standard",
+                      b.reg(r#"(0?[1-9]|1[0-2])[-/\.](0?[1-9]|1[0-2])[-/\.](\d{2,4})"#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(3).parse()?,
+                          text_match.group(1).parse()?,
+                          text_match.group(2).parse()?)
+    );
+    b.rule_1_terminal("dd/mm - Non ambiguous cases - Non US standard",
+                      b.reg(r#"(1[3-9]|2\d|3[01])[/\.](0?[1-9]|1[0-2])"#)?,
+                      |text_match| helpers::month_day(
+                          text_match.group(2).parse()?,
+                          text_match.group(1).parse()?)
+    );
+    b.rule_1_terminal("mm/dd - Non ambiguous cases - US standard",
+                      b.reg(r#"(0?[1-9]|1[0-2])[/\.](3[01]|2\d|1[3-9])"#)?,
                       |text_match| helpers::month_day(
                           text_match.group(1).parse()?,
                           text_match.group(2).parse()?)
     );
+    b.rule_1_terminal("mm/dd - Ambiguous cases - interpret as US standard",
+                      b.reg(r#"(0?[1-9]|1[0-2])[/\.](0?[1-9]|1[0-2])"#)?,
+                      |text_match| helpers::month_day(
+                          text_match.group(1).parse()?,
+                          text_match.group(2).parse()?)
+    );
+    // End of Written dates in numeric formats
     b.rule_1_terminal("morning",
                       b.reg(r#"morning"#)?,
                       |_| {

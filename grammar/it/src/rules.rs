@@ -965,45 +965,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  time.value().form_time_of_day()?.is_12_clock()
              )
     );
-    // Dates formatted
-    b.rule_1_terminal("dd/-.mm/-.yyyy",
-                      b.reg(r#"(?:il |l' )?(3[01]|[12]\d|0?[1-9])[-/\.](1[0-2]|0?[1-9])[-/.](\d{2,4})"#)?,
+    // Written dates in numeric formats
+    b.rule_1_terminal("yyyy-mm-dd - ISO",
+                      b.reg(r#"(\d{4})[-/](0?[1-9]|1[0-2])[-/](3[01]|[12]\d|0?[1-9])"#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(1).parse()?,
+                          text_match.group(2).parse()?,
+                          text_match.group(3).parse()?)
+    );
+    b.rule_1_terminal("dd/mm/yy or dd/mm/yyyy",
+                      b.reg(r#"(0?[1-9]|[12]\d|3[01])[-\./](0?[1-9]|1[0-2])[-\./](\d{2,4})"#)?,
                       |text_match| helpers::year_month_day(
                           text_match.group(3).parse()?,
                           text_match.group(2).parse()?,
-                          text_match.group(1).parse()?
-                      )
-    );
-    b.rule_1_terminal("yyyy-mm-dd",
-                      b.reg(r#"(?:il |l' )?(\d{2,4})-(1[0-2]|0?[1-9])-(3[01]|[12]\d|0?[1-9])"#)?,
-                      |text_match| helpers::year_month_day(
                           text_match.group(1).parse()?,
-                          text_match.group(2).parse()?,
-                          text_match.group(3).parse()?
                       )
     );
-    b.rule_1_terminal("dd/-mm",
-                      b.reg(r#"(?:il |l' )?(3[01]|[12]\d|0?[1-9])[-/\.](1[0-2]|0?[1-9])"#)?,
+    b.rule_1_terminal("dd/mm",
+                      b.reg(r#"(0?[1-9]|[12]\d|3[01])[-\./](1[0-2]|0?[1-9])"#)?,
                       |text_match| helpers::month_day(
                           text_match.group(2).parse()?,
-                          text_match.group(1).parse()?,
-                      )
+                          text_match.group(1).parse()?)
     );
-    b.rule_1_terminal("dd mm yyyy",
-                      b.reg(r#"(?:il |l' )?(3[01]|[12]\d|0?[1-9]) (1[0-2]|0?[1-9]) (\d{2,4})"#)?,
-                      |text_match| helpers::year_month_day(
-                          text_match.group(3).parse()?,
-                          text_match.group(2).parse()?,
-                          text_match.group(1).parse()?
-                      )
-    );
-    b.rule_1_terminal("dd mm",
-                      b.reg(r#"(?:il |l' )?(3[01]|[12]\d|0?[1-9]) (1[0-2]|0?[1-9])"#)?,
-                      |text_match| helpers::month_day(
-                          text_match.group(2).parse()?,
-                          text_match.group(1).parse()?,
-                      )
-    );
+    // End of Written dates in numeric formats
     // Parts of the day
     b.rule_1_terminal("morning",
                       b.reg(r#"mattin(?:o|a(?:ta)?)"#)?,
