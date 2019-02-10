@@ -196,7 +196,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1_terminal("day (unit-of-duration)",
-                      b.reg(r#"dia?"#)?,
+                      b.reg(r#"dias?"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Day))
     );
     b.rule_1_terminal("week (unit-of-duration)",
@@ -437,7 +437,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //    );
 
     b.rule_2("during <duration>",
-             b.reg(r#"por"#)?,
+             b.reg(r#"durante"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
