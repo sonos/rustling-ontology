@@ -196,7 +196,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(UnitOfDurationValue::new(Grain::Hour))
     );
     b.rule_1_terminal("day (unit-of-duration)",
-                      b.reg(r#"dia?"#)?,
+                      b.reg(r#"dias?"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Day))
     );
     b.rule_1_terminal("week (unit-of-duration)",
@@ -276,6 +276,11 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              b.reg(r#"depois"#)?,
              |duration, _| duration.value().in_present()
+    );
+    b.rule_2("during <duration>",
+             b.reg(r#"por"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
     );
     Ok(())
 }
@@ -435,12 +440,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //                      b.reg(r#""#)?,
 //                      |_| helpers::cycle_nth(Grain::Day, -2)
 //    );
-
-    b.rule_2("during <duration>",
-             b.reg(r#"por"#)?,
-             duration_check!(),
-             |_, duration| Ok(duration.value().clone().prefixed())
-    );
 
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
