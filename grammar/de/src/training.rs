@@ -218,10 +218,10 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2014], [2017]), "nächsten 3 jahren", "kommenden drei jahren", "nächste drei jahre");
     example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13. - 15. Juli", "13ter bis 15ter Juli", "13 bis 15 Juli", "13 - 15 Juli", "13 Juli - 15 Juli");
     example!(v, check_moment_span!(c, [2013, 8, 8], [2013, 8, 13]), "8 Aug - 12 Aug");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 1]), "9:30 - 11:00");
-    example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11, 1]),"am Donnerstag von 9:30 - 11:00", "am Donnerstag zwischen 9:30 und 11:00", "Donnerstag 9:30 - 11:00", "am Donnerstag nach 9:30 aber vor 11:00", "Donnerstag von 9:30 bis 11:00");
-    example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 12]), "Donnerstag Vormittag von 9 bis 11");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 31]), "11:30-13:30", "11:30-13:30", "11:30-13:30", "11:30-13:30", "11:30-13:30", "11:30-13:30", "11:30-13:30");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 0]), "9:30 - 11:00");
+    example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11, 0]),"am Donnerstag von 9:30 - 11:00", "am Donnerstag zwischen 9:30 und 11:00", "Donnerstag 9:30 - 11:00", "am Donnerstag nach 9:30 aber vor 11:00", "Donnerstag von 9:30 bis 11:00");
+    example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "Donnerstag Vormittag von 9 bis 11");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 30]), "11:30-13:30", "11:30-13:30", "11:30-13:30", "11:30-13:30", "11:30-13:30", "11:30-13:30", "11:30-13:30");
     example!(v, check_moment!(c, [2013, 9, 21, 1, 30]), "1:30 am Sa, 21. Sept");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "binnen 2 wochen", "innerhalb von 2 wochen");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14], Direction::Before), "bis 2 Uhr nachmittag");
@@ -284,8 +284,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 11, 7], [2013, 2, 11, 11, 31]), "ab dem frühen vormittag bis nach halb zwölf");
     example!(v, check_moment!(c, [2013, 2, 12, 11, 15]), "um viertel mittag");
     example!(v, check_moment!(c, [2013, 2, 12, 13, 44]), "ein uhr und vierundvierzig minuten");
-    example!(v, check_moment_span!(c, [2013, 2, 11, 1, 9], [2013, 2, 11, 3, 26]), "gestern zwischen ein uhr und neun minuten und drei uhr und fünfundzwanzig minuten");
-    example!(v, check_moment_span!(c, [2013, 2, 13, 00, 45], [2013, 2, 13, 2, 00]), "zwischen dreiviertel eins und ein uhr morgen");
+    example!(v, check_moment_span!(c, [2013, 2, 11, 1, 9], [2013, 2, 11, 3, 25]), "gestern zwischen ein uhr und neun minuten und drei uhr und fünfundzwanzig minuten");
+    example!(v, check_moment_span!(c, [2013, 2, 13, 00, 45], [2013, 2, 13, 1, 00]), "zwischen dreiviertel eins und ein uhr morgen");
     example!(v, check_moment_with_direction!(c, [2013, 2, 14], Direction::Before), "bis Donnerstag");
 
 }

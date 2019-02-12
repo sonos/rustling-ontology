@@ -8,7 +8,7 @@ pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()>
     b.rule_2("<number> per cent",
         number_check!(),
         // FIXME
-        b.reg(r"(?:%|p\.c\.|por ?cien(?:tos?))?")?,
+        b.reg(r#"(?:%|p\.c\.|por ?cien(?:tos?))?"#)?,
         |number, _| Ok(PercentageValue(number.value().value()))
     );
     Ok(())
@@ -555,7 +555,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"ahor(?:it)?a(?: mismo)?|ya|en\s?seguida|cuanto antes|en este preciso (?:istante|momento)"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
-    b.rule_1_terminal("now",
+    b.rule_1_terminal("now / today",
                       b.reg(r#"(?:hoy)|(?:en este momento)"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
@@ -959,29 +959,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  relative_minute.value().0,
                  time.value().form_time_of_day()?.is_12_clock())
     );
-    b.rule_1_terminal("dd[/-.]mm[/-.]yyyy",
-                      b.reg(r#"(3[01]|[12]\d|0?[1-9])[-/.](0?[1-9]|1[0-2])[-/.](\d{2,4})"#)?,
-                      |text_match| helpers::year_month_day(
-                          text_match.group(3).parse()?,
-                          text_match.group(2).parse()?,
-                          text_match.group(1).parse()?
-                      )
-    );
-    b.rule_1_terminal("yyyy-mm-dd",
-                      b.reg(r#"(\d{2,4})-(0?[1-9]|1[0-2])-(3[01]|[12]\d|0?[1-9])"#)?,
+    // Written dates in numeric formats
+    b.rule_1_terminal("yyyy-mm-dd - ISO",
+                      b.reg(r#"(\d{4})[-/](0?[1-9]|1[0-2])[-/](3[01]|[12]\d|0?[1-9])"#)?,
                       |text_match| helpers::year_month_day(
                           text_match.group(1).parse()?,
                           text_match.group(2).parse()?,
-                          text_match.group(3).parse()?
+                          text_match.group(3).parse()?)
+    );
+    b.rule_1_terminal("dd/mm/yy or dd/mm/yyyy",
+                      b.reg(r#"(0?[1-9]|[12]\d|3[01])[-\./](0?[1-9]|1[0-2])[-\./](\d{2,4})"#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(3).parse()?,
+                          text_match.group(2).parse()?,
+                          text_match.group(1).parse()?,
                       )
     );
-    b.rule_1_terminal("dd[/-]mm",
-                      b.reg(r#"(3[01]|[12]\d|0?[1-9])[-/](0?[1-9]|1[0-2])"#)?,
+    b.rule_1_terminal("dd/mm",
+                      b.reg(r#"(0?[1-9]|[12]\d|3[01])[\./](1[0-2]|0?[1-9])"#)?,
                       |text_match| helpers::month_day(
                           text_match.group(2).parse()?,
-                          text_match.group(1).parse()?
-                      )
+                          text_match.group(1).parse()?)
     );
+    // End of Written dates in numeric formats
     b.rule_1_terminal("beginning of day",
                       b.reg(r#"al (?:inicio|empezar) d?el d[iíì]a|a primera hora"#)?,
                       |_| {
@@ -1413,22 +1413,13 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
+    // FIXME: Check double Kelvin removal
     b.rule_2("<temp> Kelvin",
              temperature_check!(),
              b.reg(r#"k(?:elvin)?"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: a.value().value,
-                     unit: Some("kelvin"),
-                     latent: false,
-                 })
-             });
-    b.rule_2("<temp> Kelvin",
-             number_check!(),
-             b.reg(r#"kelvin"#)?,
-             |a, _| {
-                 Ok(TemperatureValue {
-                     value: a.value().value(),
                      unit: Some("kelvin"),
                      latent: false,
                  })

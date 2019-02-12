@@ -739,27 +739,50 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"초"#)?,
              |integer, _| helpers::second(integer.value().value as u32)
     );
-    b.rule_1_terminal("mm/dd/yyyy", //TODO wrong rule name it should be "yyyy/mm/dd"
-                      b.reg(r#"(\d{2,4})[-/](0?[1-9]|1[0-2])[/-](3[01]|[12]\d|0?[1-9])"#)?,
+    // Written dates in numeric formats
+    b.rule_1_terminal("yyyy-mm-dd - ISO",
+                      b.reg(r#"(\d{4})[-/](0?[1-9]|1[0-2])[-/](3[01]|[12]\d|0?[1-9])"#)?,
                       |text_match| helpers::year_month_day(
                           text_match.group(1).parse()?,
                           text_match.group(2).parse()?,
-                          text_match.group(3).parse()?
-                      )
+                          text_match.group(3).parse()?)
     );
-    b.rule_1_terminal("yyyy-mm-dd",
-                      b.reg(r#"(\d{2,4})-(0?[1-9]|1[0-2])-(3[01]|[12]\d|0?[1-9])"#)?,
+    // FIXME: Check if this format should really be supported
+    b.rule_1_terminal("yy/mm/dd",
+                      b.reg(r#"(\d{2})[-/](0?[1-9]|1[0-2])[-/](3[01]|[12]\d|0?[1-9])"#)?,
                       |text_match| helpers::year_month_day(
                           text_match.group(1).parse()?,
                           text_match.group(2).parse()?,
-                          text_match.group(3).parse()?
+                          text_match.group(3).parse()?)
+    );
+    // FIXME: Check if this format should really be supported
+    b.rule_1_terminal("dd/mm/yyyy",
+                      b.reg(r#"(0?[1-9]|[12]\d|3[01])[-\./](0?[1-9]|1[0-2])[-\./](\d{4})"#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(3).parse()?,
+                          text_match.group(2).parse()?,
+                          text_match.group(1).parse()?,
                       )
     );
+    // FIXME: Check if this format should really be supported
+    // Warning:
+    // this pattern matches for days: 3[0-2]|[12]\d|0?[1-9]
+    // but not 0?[1-9]|[12]\d|3[0-2]
     b.rule_1_terminal("mm/dd",
-                      b.reg(r#"(0?[1-9]|1[0-2])/(3[01]|[12]\d|0?[1-9])"#)?,
-                      |text_match| helpers::month_day(text_match.group(1).parse()?, text_match.group(2).parse()?)
+                      b.reg(r#"(0?[1-9]|1[0-2])/(3[0-2]|[12]\d|0?[1-9])"#)?,
+                      |text_match| helpers::month_day(
+                          text_match.group(1).parse()?,
+                          text_match.group(2).parse()?)
     );
-
+    // Something like "1975년 7월 14일" would be abbreviated "1975. 7. 14."
+    b.rule_1_terminal("yyyy. mm. dd.",
+                      b.reg(r#"(\d{4})\. ?(0?[1-9]|1[0-2])\. ?(3[01]|[12]\d|0?[1-9])\."#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(1).parse()?,
+                          text_match.group(2).parse()?,
+                          text_match.group(3).parse()?)
+    );
+    // End of Written dates in numeric formats
     b.rule_1_terminal("early morning",
                       b.reg(r#"이른 아침|조조|아침 일찍"#)?,
                       |_| Ok(helpers::hour(4, false)?

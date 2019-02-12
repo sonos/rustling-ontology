@@ -49,6 +49,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 8, 8]), "8월 8일");
     example!(v, check_moment!(c, [2014, 10]), "2014년 10월");
     example!(v, check_moment!(c, [1974, 10, 31]), "1974/10/31", "74/10/31");
+    example!(v, check_moment!(c, [1975, 7, 14]), "1975. 7. 14.");
     example!(v, check_moment!(c, [2015, 4, 14]), "2015년 4월 14일");
     example!(v, check_moment!(c, [2013, 2, 19]), "다음주 화요일", "다음 화요일");
     example!(v, check_moment!(c, [2014, 3]), "다음 3월");

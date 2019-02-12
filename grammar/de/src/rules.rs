@@ -1260,8 +1260,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"halbe?"#)?,
                       |_| Ok(RelativeMinuteValue(30))
     );
-    b.rule_1("number (as relative minutes)",
-             integer_check_by_range!(1, 59),
+    b.rule_1_terminal("number (as relative minutes for minute=1)",
+             b.reg(r#"eins"#)?,
+             |_| Ok(RelativeMinuteValue(1))
+    );
+    b.rule_1("number (as relative minutes for minute>1)",
+             integer_check_by_range!(2, 59),
              |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
     );
     b.rule_2("number <minutes> (as relative minutes)",
@@ -1320,34 +1324,30 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  -15,
                  time.value().form_time_of_day()?.is_12_clock())
     );
-    b.rule_1_terminal("dd/mm/yyyy",
-                      b.reg(r#"([012]?[1-9]|10|20|30|31)[\./](0?[1-9]|10|11|12)[\./](\d{2,4})"#)?,
+    // Written dates in numeric formats
+    b.rule_1_terminal("yyyy-mm-dd - ISO",
+                      b.reg(r#"(\d{4})[-/](0?[1-9]|1[0-2])[-/](3[01]|[12]\d|0?[1-9])"#)?,
+                      |text_match| helpers::year_month_day(
+                          text_match.group(1).parse()?,
+                          text_match.group(2).parse()?,
+                          text_match.group(3).parse()?)
+    );
+    b.rule_1_terminal("dd/mm/yy or dd/mm/yyyy",
+                      b.reg(r#"(0?[1-9]|[12]\d|3[01])[-\./](0?[1-9]|1[0-2])[-\./](\d{2,4})"#)?,
                       |text_match| helpers::year_month_day(
                           text_match.group(3).parse()?,
                           text_match.group(2).parse()?,
                           text_match.group(1).parse()?,
                       )
     );
-    b.rule_1_terminal("dd-mm-yyyy",
-                      b.reg(r#"([012]?[1-9]|10|20|30|31)-(0?[1-9]|10|11|12)-(\d{2,4})"#)?,
-                      |text_match| helpers::year_month_day(
-                          text_match.group(3).parse()?,
-                          text_match.group(2).parse()?,
-                          text_match.group(1).parse()?,
-                      )
-    );
-    b.rule_1_terminal("mm.dd.",
-                      b.reg(r#"([012]?[1-9]|10|20|30|31)\.(0?[1-9]|10|11|12)\."#)?,
-                      |text_match| helpers::month_day(
-                          text_match.group(2).parse()?,
-                          text_match.group(1).parse()?)
-    );
+    // Warning: this pattern matches for months: (1[0-2]|0?[1-9]) but not this one: (0?[1-9]|1[0-2])
     b.rule_1_terminal("dd/mm",
-                      b.reg(r#"(10|20|30|31|[012]?[1-9])[/\.](10|11|12|0?[1-9])"#)?,
+                      b.reg(r#"(0?[1-9]|[12]\d|3[01])[\./](1[0-2]|0?[1-9])\.?"#)?,
                       |text_match| helpers::month_day(
                           text_match.group(2).parse()?,
                           text_match.group(1).parse()?)
     );
+    // End of Written dates in numeric formats
     b.rule_1_terminal("breakfast (latent)",
                       b.reg(r#"fr[üu]hst[üu]ck(?:szeit|spause|s)?"#)?,
                       |_| Ok(helpers::hour(6, false)?
@@ -1812,14 +1812,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"\-|bis"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
-             |start, _, end| start.value().smart_span_to(end.value(), true)
+             |start, _, end| start.value().smart_span_to(end.value(), false)
     );
     b.rule_4("from <time> to <time>",
              b.reg(r#"vo[nm]|ab|nach"#)?,
              time_check!(|time: &TimeValue| !time.latent),
              b.reg(r#"bis(?: zum?r?)?|auf"#)?,
              time_check!(|time: &TimeValue| !time.latent),
-             |_, start, _, end| start.value().span_to(end.value(), true)
+             |_, start, _, end| start.value().span_to(end.value(), false)
     );
     b.rule_4("from <time-of-day> - <time-of-day> (interval)",
              b.reg(r#"(?:vo[nm]|nach|ab|(?:fr[üu]h|sp[äa]t)estens(?: um| ab)?)"#)?,
@@ -1827,7 +1827,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"(?:(?:noch|aber|jedoch)? vor)|\-|bis"#)?,
              time_check!(|time: &TimeValue| form!(Form::TimeOfDay(_))(time)),
              |_, start, _, end| {
-                start.value().smart_span_to(end.value(), true)
+                start.value().smart_span_to(end.value(), false)
             }
     );
     b.rule_4("between <time-of-day> and <time-of-day> (interval)",
@@ -1835,7 +1835,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| form!(Form::TimeOfDay(_))(time)),
              b.reg(r#"und"#)?,
              time_check!(|time: &TimeValue| form!(Form::TimeOfDay(_))(time)),
-             |_, start, _, end| start.value().smart_span_to(end.value(), true)
+             |_, start, _, end| start.value().smart_span_to(end.value(), false)
     );
     b.rule_2("within <duration>",
              b.reg(r#"binnen|innerhalb(?: von)?"#)?,

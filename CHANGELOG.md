@@ -2,8 +2,15 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Changed
+- Add Portuguese V0
 ### Fixed
-- Crash when attempting to parse wrong month and day
+- Crash when attempting to parse wrong month and day.
+- Fix and adjust date written abbreviations in all languages.
+- [De] Change end of time span setting to get the right intervals.
+- [De] Fix relative minute for value=1.
+- [It] Fix financial rule with Rubles.
+- [Es] Fix percentage pattern and other typos.
 
 ## [0.17.7] - 2019-01-17
 ### Changed
