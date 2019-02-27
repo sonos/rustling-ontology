@@ -1,6 +1,6 @@
 [package]
 name = "rustling-ontology-values"
-version = "0.17.7"
+version = "0.18.0"
 authors = ["Mathieu Poumeyrol <kali@zoy.org>"]
 
 [dependencies]

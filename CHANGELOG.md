@@ -1,9 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.18.0]
 ### Changed
 - Add Portuguese V0
+
 ### Fixed
 - Crash when attempting to parse wrong month and day.
 - Fix and adjust date written abbreviations in all languages.
@@ -20,6 +21,6 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Fuller coverage of Spanish and Italian
 
-[Unreleased]: https://github.com/snipsco/rustling-ontology/compare/0.17.7...HEAD
+[0.18.0]: https://github.com/snipsco/rustling-ontology/compare/0.17.7...0.18.0
 [0.17.7]: https://github.com/snipsco/rustling-ontology/compare/0.17.6...0.17.7
 [0.17.6]: https://github.com/snipsco/rustling-ontology/compare/0.17.5...0.17.6
