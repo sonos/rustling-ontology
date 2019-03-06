@@ -28,7 +28,7 @@ fn main() {
             let matches = rules.apply_all(&*sentence).unwrap();
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-            table.set_titles(row!["ix", "text", "kind", "rule", "childs"]);
+            table.set_titles(row!["ix", "text", "kind", "rule", "children"]);
             for (ix, m) in matches.iter().enumerate().rev() {
                 let mut hilite = String::new();
                 let byte_range = m.root_node.byte_range;

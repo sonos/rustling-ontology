@@ -94,7 +94,7 @@ fn main() {
             let candidates = parser.candidates(&*sentence, &tagger).unwrap();
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-            table.set_titles(row!["ix", "best", "log(p)", "p", "text", "value", "latent", "rule", "childs"]);
+            table.set_titles(row!["ix", "best", "log(p)", "p", "text", "value", "latent", "rule", "children"]);
 
             for (ix, c) in candidates.iter().enumerate().rev() {
                 let mut hilite = String::new();
