@@ -3,7 +3,10 @@ extern crate rustling;
 extern crate rustling_ontology_values;
 extern crate rustling_ontology_moment;
 
-mod rules;
+mod rules_datetime;
+mod rules_duration;
+mod rules_number;
+mod rules_amount;
 mod training;
 
 use rustling_ontology_values::DimensionKind::*;
@@ -12,13 +15,13 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
     let mut b = ::rustling::RuleSetBuilder::new(
                     ::rustling::BoundariesChecker::detailed(),
                     ::rustling::BoundariesChecker::separated_alphanumeric_word());
-    rules::rules_numbers(&mut b)?;
-    rules::rules_time(&mut b)?;
-    rules::rules_cycle(&mut b)?;
-    rules::rules_duration(&mut b)?;
-    rules::rules_temperature(&mut b)?;
-    rules::rules_finance(&mut b)?;
-    rules::rules_percentage(&mut b)?;
+    rules_number::rules_numbers(&mut b)?;
+    rules_amount::rules_temperature(&mut b)?;
+    rules_amount::rules_finance(&mut b)?;
+    rules_amount::rules_percentage(&mut b)?;
+    rules_datetime::rules_time(&mut b)?;
+    rules_datetime::rules_cycle(&mut b)?;
+    rules_duration::rules_duration(&mut b)?;
     Ok(b.build())
 }
 
