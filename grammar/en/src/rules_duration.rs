@@ -202,18 +202,18 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _| a.value().in_present()
     );
 
-    b.rule_3("<duration> after <time>",
+    b.rule_3("<duration> after <datetime>",
              duration_check!(),
              b.reg(r#"after"#)?,
              datetime_check!(),
-             |duration, _, time| duration.value().after(time.value())
+             |duration, _, datetime| duration.value().after(datetime.value())
     );
 
-    b.rule_3("<duration> before <time>",
+    b.rule_3("<duration> before <datetime>",
              duration_check!(),
              b.reg(r#"before"#)?,
              datetime_check!(),
-             |duration, _, time| duration.value().before(time.value())
+             |duration, _, datetime| duration.value().before(datetime.value())
     );
 
     b.rule_2("about <duration>",
