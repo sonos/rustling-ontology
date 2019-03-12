@@ -13,7 +13,7 @@ rustling_value! {
         Ordinal(OrdinalValue),
         Temperature(TemperatureValue),
         MoneyUnit(MoneyUnitValue),
-        Time(TimeValue),
+        Datetime(DatetimeValue),
         Duration(DurationValue),
         Percentage(PercentageValue),
         Cycle(CycleValue),
@@ -29,7 +29,7 @@ rustling_value! {
             &Dimension::Ordinal(_) => false,
             &Dimension::Temperature(ref temp) => temp.latent,
             &Dimension::MoneyUnit(_) => true,
-            &Dimension::Time(ref tv) => tv.latent,
+            &Dimension::Datetime(ref tv) => tv.latent,
             &Dimension::Duration(_) => false,
             &Dimension::Cycle(_) => true,
             &Dimension::UnitOfDuration(_) => true,
@@ -45,7 +45,7 @@ rustling_value! {
             &Dimension::Ordinal(_) => None,
             &Dimension::Temperature(_) => None,
             &Dimension::MoneyUnit(_) => None,
-            &Dimension::Time(ref tv) => Some(Payload(tv.constraint.grain())),
+            &Dimension::Datetime(ref tv) => Some(Payload(tv.constraint.grain())),
             &Dimension::Duration(_) => None,
             &Dimension::Cycle(_) => None,
             &Dimension::UnitOfDuration(_) => None,
@@ -64,7 +64,7 @@ impl Dimension {
             &Dimension::Ordinal(_) => false,
             &Dimension::Temperature(_) => false,
             &Dimension::MoneyUnit(_) => false,
-            &Dimension::Time(ref tv) => tv.is_too_ambiguous(),
+            &Dimension::Datetime(ref tv) => tv.is_too_ambiguous(),
             &Dimension::Duration(_) => false,
             &Dimension::Cycle(_) => true,
             &Dimension::UnitOfDuration(_) => true,
@@ -90,7 +90,7 @@ impl fmt::Display for Dimension {
             &Dimension::Temperature(_) => write!(fmt, "Temperature"),
             &Dimension::AmountOfMoney(_) => write!(fmt, "AmountOfMoney"),
             &Dimension::MoneyUnit(_) => write!(fmt, "MoneyUnit"),
-            &Dimension::Time(_) => write!(fmt, "Time"),
+            &Dimension::Datetime(_) => write!(fmt, "Datetime"),
             &Dimension::Duration(_) => write!(fmt, "Duration"),
             &Dimension::Cycle(_) => write!(fmt, "Cycle"),
             &Dimension::UnitOfDuration(_) => write!(fmt, "UnitOfDuration"),
@@ -490,9 +490,9 @@ pub enum Ambiguity {
     Big,
 }
 
-/// Payload for the time of Dimension
+/// Payload for the datetime of Dimension
 #[derive(Clone)]
-pub struct TimeValue {
+pub struct DatetimeValue {
     pub constraint: RcConstraint<Local>,
     pub form: Form,
     pub direction: Option<BoundedDirection>,
@@ -503,19 +503,19 @@ pub struct TimeValue {
 
 // We need partial eq to make Dimension partial eq happy, but this is only
 // useful for testing.
-impl PartialEq for TimeValue {
-    fn eq(&self, _other: &TimeValue) -> bool {
+impl PartialEq for DatetimeValue {
+    fn eq(&self, _other: &DatetimeValue) -> bool {
         unimplemented!()
     }
 }
 
-impl ::std::fmt::Debug for TimeValue {
+impl ::std::fmt::Debug for DatetimeValue {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
-        write!(fmt, "<TimeValue>")
+        write!(fmt, "<DatetimeValue>")
     }
 }
 
-impl TimeValue {
+impl DatetimeValue {
     pub fn is_coarse_grain_smaller_than(&self, grain: Grain) -> bool {
         (self.constraint.coarse_grain_step() as usize) < (grain as usize)
     }

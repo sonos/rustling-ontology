@@ -87,7 +87,7 @@ impl Check<Dimension> for CheckMoment {
         match self.direction {
             None => {
                 self.context.resolve(&pn.value)
-                    .and_then(|v| TimeOutput::attempt_from(v))
+                    .and_then(|v| DatetimeOutput::attempt_from(v))
                     .map(|v| {
                         let check_value = v.moment == self.interval.start && v.grain == self.interval.grain;
                         let check_precision = v.precision == self.precision;
@@ -97,9 +97,9 @@ impl Check<Dimension> for CheckMoment {
             }
             Some(Direction::After) => {
                 self.context.resolve(&pn.value)
-                    .and_then(|v| TimeIntervalOutput::attempt_from(v))
+                    .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
                     .map(|v| {
-                        if let TimeIntervalOutput::After(m) = v {
+                        if let DatetimeIntervalOutput::After(m) = v {
                             let check_value = m.moment == self.interval.start && m.grain == self.interval.grain;
                             let check_precision = m.precision == self.precision;
                             check_value && check_precision
@@ -111,9 +111,9 @@ impl Check<Dimension> for CheckMoment {
             }
             Some(Direction::Before) => {
                 self.context.resolve(&pn.value)
-                    .and_then(|v| TimeIntervalOutput::attempt_from(v))
+                    .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
                     .map(|v| {
-                        if let TimeIntervalOutput::Before(m) = v {
+                        if let DatetimeIntervalOutput::Before(m) = v {
                             let check_value = m.moment == self.interval.start && m.grain == self.interval.grain;
                             let check_precision = m.precision == self.precision;
                             check_value && check_precision
@@ -147,9 +147,9 @@ pub struct CheckMomentSpan {
 impl Check<Dimension> for CheckMomentSpan {
     fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
         self.context.resolve(&pn.value)
-            .and_then(|v| TimeIntervalOutput::attempt_from(v))
+            .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
             .map(|v| {
-                if let TimeIntervalOutput::Between { start, end, precision, .. } = v {
+                if let DatetimeIntervalOutput::Between { start, end, precision, .. } = v {
                     start == self.interval.start && Some(end) == self.interval.end && precision == self.precision
                 } else {
                     false

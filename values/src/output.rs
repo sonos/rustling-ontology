@@ -7,8 +7,8 @@ pub enum Output {
     Float(FloatOutput),
     Percentage(PercentageOutput),
     Ordinal(OrdinalOutput),
-    Time(TimeOutput),
-    TimeInterval(TimeIntervalOutput),
+    Datetime(DatetimeOutput),
+    DatetimeInterval(DatetimeIntervalOutput),
     AmountOfMoney(AmountOfMoneyOutput),
     Temperature(TemperatureOutput),
     Duration(DurationOutput),
@@ -20,8 +20,8 @@ impl Output {
             &Output::Integer(_) => OutputKind::Number,
             &Output::Float(_) => OutputKind::Number,
             &Output::Ordinal(_) => OutputKind::Ordinal,
-            &Output::Time(_) => OutputKind::Time,
-            &Output::TimeInterval(_) => OutputKind::Time,
+            &Output::Datetime(_) => OutputKind::Datetime,
+            &Output::DatetimeInterval(_) => OutputKind::Datetime,
             &Output::AmountOfMoney(_) => OutputKind::AmountOfMoney,
             &Output::Temperature(_) => OutputKind::Temperature,
             &Output::Duration(_) => OutputKind::Duration,
@@ -35,7 +35,7 @@ enum_kind!(OutputKind,
         Number,
         Ordinal,
         Duration,
-        Time,
+        Datetime,
         AmountOfMoney,
         Temperature,
         Percentage
@@ -47,7 +47,7 @@ impl OutputKind {
         match self {
             &OutputKind::Number => DimensionKind::Number,
             &OutputKind::Ordinal => DimensionKind::Ordinal,
-            &OutputKind::Time => DimensionKind::Time,
+            &OutputKind::Datetime => DimensionKind::Datetime,
             &OutputKind::AmountOfMoney => DimensionKind::AmountOfMoney,
             &OutputKind::Temperature => DimensionKind::Temperature,
             &OutputKind::Duration => DimensionKind::Duration,
@@ -69,7 +69,7 @@ pub struct PercentageOutput(pub f32);
 pub struct OrdinalOutput(pub i64);
 
 #[derive(Clone,Copy,PartialEq,Debug)]
-pub struct TimeOutput {
+pub struct DatetimeOutput {
     pub moment: Moment<Local>, 
     pub grain: Grain, 
     pub precision: Precision,
@@ -77,9 +77,9 @@ pub struct TimeOutput {
 }
 
 #[derive(Clone,Copy,PartialEq,Debug)]
-pub enum TimeIntervalOutput {
-    After(TimeOutput),
-    Before(TimeOutput),
+pub enum DatetimeIntervalOutput {
+    After(DatetimeOutput),
+    Before(DatetimeOutput),
     Between { start: Moment<Local>, end: Moment<Local>, precision: Precision, latent: bool }
 }
 
@@ -107,8 +107,8 @@ variant_converters!(Output, Integer, IntegerOutput);
 variant_converters!(Output, Float, FloatOutput);
 variant_converters!(Output, Percentage, PercentageOutput);
 variant_converters!(Output, Ordinal, OrdinalOutput);
-variant_converters!(Output, Time, TimeOutput);
-variant_converters!(Output, TimeInterval, TimeIntervalOutput);
+variant_converters!(Output, Datetime, DatetimeOutput);
+variant_converters!(Output, DatetimeInterval, DatetimeIntervalOutput);
 variant_converters!(Output, AmountOfMoney, AmountOfMoneyOutput);
 variant_converters!(Output, Temperature, TemperatureOutput);
 variant_converters!(Output, Duration, DurationOutput);

@@ -33,7 +33,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(3.0, Some("฿"), Precision::Exact), "3฿", "3 ฿", "tres bitcoins");
 }
 
-pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12]), "hoje");
 }

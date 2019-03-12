@@ -192,41 +192,41 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
     Ok(())
 }
 
-pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect",
-             time_check!(|time: &TimeValue| !time.latent),
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, b| a.value().intersect(b.value())
     );
     b.rule_3("intersect by \",\"",
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              b.reg(r#","#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_3("intersect by \"의\"",
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              b.reg(r#"의"#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_2("<date>에",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"에|때"#)?,
              |time, _| Ok(time.value().clone())
     );
     b.rule_2("<date>동안",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"동안"#)?,
              |time, _| Ok(time.value().clone().not_latent())
     );
     b.rule_2("<named-day>에", // on Wed, March 23
-             time_check!(form!(Form::DayOfWeek{..})),
+             datetime_check!(form!(Form::DayOfWeek{..})),
              b.reg(r#"에"#)?,
              |time, _| Ok(time.value().clone())
     );
     b.rule_2("<named-month>에", //in September
-             time_check!(form!(Form::Month(_))),
+             datetime_check!(form!(Form::Month(_))),
              b.reg(r#"에"#)?,
              |time, _| Ok(time.value().clone())
     );
@@ -376,7 +376,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month_day(12, 25)
     );
     b.rule_2("absorption of , after named day",
-             time_check!(form!(Form::DayOfWeek{..})),
+             datetime_check!(form!(Form::DayOfWeek{..})),
              b.reg(r#","#)?,
              |dow, _| Ok(dow.value().clone())
     );
@@ -489,7 +489,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::cycle_nth(Grain::Year, -3)
     );
     b.rule_2("start of week",
-             time_check!(form!(Form::Cycle(Grain::Week))),
+             datetime_check!(form!(Form::Cycle(Grain::Week))),
              b.reg(r#"초"#)?,
              |week, _| {
                  let start = week.value().intersect(&helpers::day_of_week(Weekday::Mon)?)?;
@@ -498,7 +498,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("end of week",
-             time_check!(form!(Form::Cycle(Grain::Week))),
+             datetime_check!(form!(Form::Cycle(Grain::Week))),
              b.reg(r#"말"#)?,
              |week, _| {
                  let start = week.value().intersect(&helpers::day_of_week(Weekday::Fri)?)?;
@@ -507,7 +507,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("beginning of year",
-             time_check!(|time: &TimeValue| {
+             datetime_check!(|time: &TimeValue| {
             match time.form {
                 Form::Year(_) | Form::Cycle(Grain::Year) => true,
                 _ => false
@@ -521,7 +521,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("end of year",
-             time_check!(|time: &TimeValue| {
+             datetime_check!(|time: &TimeValue| {
             match time.form {
                 Form::Year(_) | Form::Cycle(Grain::Year) => true,
                 _ => false
@@ -535,7 +535,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("beginning of month",
-             time_check!(|time: &TimeValue| {
+             datetime_check!(|time: &TimeValue| {
             match time.form {
                 Form::Month(_) | Form::Cycle(Grain::Month) => true,
                 _ => false
@@ -549,7 +549,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("end of month",
-             time_check!(|time: &TimeValue| {
+             datetime_check!(|time: &TimeValue| {
             match time.form {
                 Form::Month(_) | Form::Cycle(Grain::Month) => true,
                 _ => false
@@ -564,55 +564,55 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("this <day-of-week>",
              b.reg(r#"이번\s*주?|돌아오는|금주"#)?,
-             time_check!(form!(Form::DayOfWeek{..})),
+             datetime_check!(form!(Form::DayOfWeek{..})),
              |_, time| time.value().the_nth(0)
     );
     b.rule_2("this <time>",
              b.reg(r#"이번|이|금|올|돌아오는"#)?,
-             time_check!(),
+             datetime_check!(),
              |_, time| time.value().the_nth(0)
     );
     b.rule_2("next <time>",
              b.reg(r#"다음|오는"#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |_, time| time.value().the_nth(1)
     );
     b.rule_2("last <time>",
              b.reg(r#"전|저번|지난|거"#)?,
-             time_check!(),
+             datetime_check!(),
              |_, time| time.value().the_nth(-1)
     );
     b.rule_3("<time> 마지막 <day-of-week>",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"마지막"#)?,
-             time_check!(form!(Form::DayOfWeek{..})),
+             datetime_check!(form!(Form::DayOfWeek{..})),
              |a, _, b| b.value().last_of(a.value())
     );
     b.rule_3("<time> 마지막 <cycle>",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"마지막"#)?,
              cycle_check!(),
              |time, _, cycle| cycle.value().last_of(time.value())
     );
     b.rule_3("<time> nth <time> - 3월 첫째 화요일",
-             time_check!(),
+             datetime_check!(),
              ordinal_check!(),
-             time_check!(),
+             datetime_check!(),
              |a, ordinal, b| a.value()
                  .intersect(b.value())?
                  .the_nth(ordinal.value().value - 1)
     );
     b.rule_4("nth <time> - 3월 첫째 화요일",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"의"#)?,
              ordinal_check!(),
-             time_check!(),
+             datetime_check!(),
              |a, _, ordinal, b| a.value()
                  .intersect(b.value())?
                  .the_nth(ordinal.value().value - 1)
     );
     b.rule_3("<time> nth <cycle> - 3월 첫째 화요일",
-             time_check!(),
+             datetime_check!(),
              ordinal_check!(),
              cycle_check!(),
              |time, ordinal, cycle| helpers::cycle_nth_after_not_immediate(
@@ -622,7 +622,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_4("<time> nth of <cycle> - 3월 첫째 화요일",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"의"#)?,
              ordinal_check!(),
              cycle_check!(),
@@ -646,13 +646,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |integer, _| helpers::hour(integer.value().value as u32, true)
     );
     b.rule_2("<time-of-day>에",
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"에"#)?,
              |time, _| Ok(time.value().clone().not_latent())
     );
     b.rule_2("<time-of-day> 정각",
              b.reg(r#"정각"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              |_, time| Ok(time.value().clone().not_latent())
     );
     b.rule_1_terminal("hh:mm",
@@ -674,7 +674,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // From "am|pm <time-of-day>" rules in the original grammar version
     b.rule_2("<time-of-day> am",
              b.reg(r#"오전|아침|새벽"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              |_, tod| {
                  let day_period = helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?;
                  Ok(tod.value().intersect(&day_period)?.form(tod.value().form.clone()))
@@ -683,7 +683,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // From "am|pm <time-of-day>" rules in the original grammar version
     b.rule_2("<time-of-day> pm",
              b.reg(r#"오후|저녁|밤"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              |_, tod| {
                  let day_period = helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?;
                  Ok(tod.value().intersect(&day_period)?.form(tod.value().form.clone()))
@@ -707,7 +707,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |integer, _| Ok(RelativeMinuteValue(integer.value().value as i32))
     );
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
-             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
+             datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              relative_minute_check!(),
              |tod, relative_minutes| helpers::hour_relative_minute(
                  tod.value().form_time_of_day()?.full_hour(),
@@ -716,7 +716,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              )
     );
     b.rule_2("<hour-of-day> <integer>",
-             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
+             datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              integer_check_by_range!(0, 59),
              |tod, integer| helpers::hour_minute(
                  tod.value().form_time_of_day()?.full_hour(),
@@ -725,7 +725,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              )
     );
     b.rule_3("<integer> (hour-of-day) relative minutes 전",
-             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
+             datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              relative_minute_check!(),
              b.reg(r#"전"#)?,
              |tod, relative_minutes, _| helpers::hour_relative_minute(
@@ -899,14 +899,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::Meal))
     );
     b.rule_2("in|during the <part-of-day>",
-             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             datetime_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              b.reg(r#"에|동안|때"#)?,
              |time, _| Ok(time.value().clone().not_latent())
     );
 
     b.rule_2("<time> <part-of-day>",
-             time_check!(),
-             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             datetime_check!(),
+             datetime_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |time, pod| pod.value().intersect(time.value())
     );
 
@@ -937,35 +937,35 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     );
     b.rule_2("<time> approximately",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"경"#)?,
              |time, _| Ok(time.value().clone().precision(Precision::Approximate))
     );
     b.rule_2("<time-of-day> approximately",
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"정도|쯤"#)?,
              |time, _| Ok(time.value().clone().not_latent().precision(Precision::Approximate))
     );
     b.rule_2("about <time-of-day>",
              b.reg(r#"대충|약"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              |_, time| Ok(time.value().clone().not_latent().precision(Precision::Approximate))
     );
     b.rule_2("exactly <time-of-day>",
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"정각"#)?,
              |time, _| Ok(time.value().clone().not_latent().precision(Precision::Approximate))
     );
     b.rule_3("<datetime> - <datetime> (interval)",
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              b.reg(r#"\-|\~"#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
-             time_check!(|time: &TimeValue| if let Form::TimeOfDay(_) = time.form { !time.latent } else { false }),
+             datetime_check!(|time: &TimeValue| if let Form::TimeOfDay(_) = time.form { !time.latent } else { false }),
              b.reg(r#"\-|\~"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              |a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_2("within <duration>",
@@ -983,29 +983,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("by <time> - 까지",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"까지"#)?,
              |time, _| helpers::cycle_nth(Grain::Second, 0)?.span_to(time.value(), false)
     );
     b.rule_2("<time-of-day>이전",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"이?전"#)?,
              |time, _| Ok(time.value().clone().mark_before_start())
     );
     b.rule_2("after <time>",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"지나(?:서|고)|되면|이?후에?|뒤에?"#)?,
              |time, _| Ok(time.value().clone().mark_after_end())
     );
     b.rule_2("since <time>",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"이래로?|이후로"#)?,
              |time, _| Ok(time.value().clone().mark_after_start())
     );
     b.rule_4("from <time> to <time>",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"부터"#)?,
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"까지"#)?,
              |a, _, b, _| a.value().span_to(b.value(), true)
     );
@@ -1030,7 +1030,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_4("<duration> from <time>",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"보다"#)?,
              duration_check!(),
              b.reg(r#"후에|뒤에"#)?,
@@ -1210,13 +1210,13 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a| helpers::cycle_nth(a.value().grain, 1)
     );
     b.rule_3("<time> 마지막 <cycle>",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"다음|오는|차|내"#)?,
              cycle_check!(),
              |time, _, cycle| cycle.value().last_of(time.value())
     );
     b.rule_3("<time> <ordinal> <cycle>",
-             time_check!(),
+             datetime_check!(),
              ordinal_check!(),
              cycle_check!(),
              |time, ordinal, cycle| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, time.value())
@@ -1247,7 +1247,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |integer, _| helpers::cycle_nth_after(Grain::Quarter, integer.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
     );
     b.rule_3("<year> <1..4>quarter",
-             time_check!(),
+             datetime_check!(),
              integer_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |time, integer, _| helpers::cycle_nth_after(Grain::Quarter, integer.value().value - 1, time.value())

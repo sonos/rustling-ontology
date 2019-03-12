@@ -20,19 +20,24 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
     rules_amount::rules_finance(&mut b)?;
     rules_amount::rules_percentage(&mut b)?;
     rules_datetime::rules_time(&mut b)?;
+    rules_datetime::rules_time_period(&mut b)?;
+    rules_datetime::rules_date(&mut b)?;
+    rules_datetime::rules_date_period(&mut b)?;
+    rules_datetime::rules_datetime_complement(&mut b)?;
+    rules_datetime::rules_datetime(&mut b)?;
     rules_datetime::rules_cycle(&mut b)?;
     rules_duration::rules_duration(&mut b)?;
     Ok(b.build())
 }
 
 pub fn dims() -> Vec<rustling_ontology_values::DimensionKind> {
-    return vec![Number, Ordinal, Time, Duration, Temperature, AmountOfMoney, Percentage];
+    return vec![Number, Ordinal, Datetime, Duration, Temperature, AmountOfMoney, Percentage];
 }
 
 pub fn examples() -> Vec<::rustling::train::Example<rustling_ontology_values::Dimension>> {
     let mut v = vec![];
     training::examples_numbers(&mut v);
-    training::examples_time(&mut v);
+    training::examples_datetime(&mut v);
     training::examples_durations(&mut v);
     training::examples_temperature(&mut v);
     training::examples_finance(&mut v);

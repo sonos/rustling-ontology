@@ -28,7 +28,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
     example!(v, check_temperature(32.0, Some("fahrenheit")), "화씨 32도");
 }
 
-pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
+pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 0]), "방금", "지금");
     example!(v, check_moment!(c, [2013, 2, 12]), "오늘");

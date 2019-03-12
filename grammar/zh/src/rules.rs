@@ -88,7 +88,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 }
 
 
-pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("named-day",
                       b.reg(r#"(?:星期|周|(?:礼|禮)拜|週)一"#)?,
                       |_| helpers::day_of_week(Weekday::Mon)
@@ -367,7 +367,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("<time-of-day> o'clock",
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"點|点|時"#)?,
              |a, _| Ok(a.value().clone().not_latent())
     );
@@ -384,7 +384,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_3("relative minutes to|till|before <integer> (hour-of-day)",
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"(?:点|點)?差"#)?,
              relative_minute_check!(),
              |time, _, relative_minute| helpers::hour_relative_minute(
@@ -394,7 +394,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_3("relative minutes after|past  <integer> (hour-of-day)",
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"点|點|过|過"#)?,
              relative_minute_check!(),
              |time, _, relative_minute| helpers::hour_relative_minute(
@@ -416,15 +416,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("this <day-of-week>",
              b.reg(r#"这|這|今(?:个|個)"#)?,
-             time_check!(form!(Form::DayOfWeek{..})),
+             datetime_check!(form!(Form::DayOfWeek{..})),
              |_, a| a.value().the_nth_not_immediate(0)
     );
 
     b.rule_4("nth <time> of <time>",
-             time_check!(),
+             datetime_check!(),
              b.reg(r#"的"#)?,
              ordinal_check!(),
-             time_check!(),
+             datetime_check!(),
              |a, _, ordinal, b| {
                  a.value().intersect(b.value())?.the_nth(ordinal.value().value - 1)
              }
@@ -432,7 +432,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("last <time>",
              b.reg(r#"去|上(?:个|個)?"#)?,
-             time_check!(),
+             datetime_check!(),
              |_, a| {
                  a.value().the_nth(-1)
              }
@@ -454,7 +454,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"那"#)?,
              cycle_check!(),
              b.reg(r#"之?(?:后|後)"#)?,
-             time_check!(),
+             datetime_check!(),
              |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, 1, time.value())
     );
 
@@ -462,7 +462,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"那"#)?,
              cycle_check!(),
              b.reg(r#"之?前"#)?,
-             time_check!(),
+             datetime_check!(),
              |_, cycle, _, time| helpers::cycle_nth_after(cycle.value().grain, -1, time.value())
     );
 
@@ -478,7 +478,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("this|next <day-of-week>",
              b.reg(r#"今(?:个|個)?|明|下(?:个|個)?"#)?,
-             time_check!(form!(Form::DayOfWeek{..})),
+             datetime_check!(form!(Form::DayOfWeek{..})),
              |_, a| {
                  a.value().the_nth_not_immediate(0)
              }
@@ -528,15 +528,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("in|during the <part-of-day>",
-             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             datetime_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              b.reg(r#"点|點"#)?,
              |time, _| Ok(time.value().clone().not_latent())
     );
 
     b.rule_3("intersect by \",\"",
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              b.reg(r#","#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, _, b| a.value().intersect(b.value())
     );
 
@@ -567,29 +567,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("intersect",
-             time_check!(|time: &TimeValue| !time.latent),
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, b| a.value().intersect(b.value())
     );
 
     b.rule_3("nth <time> of <time>",
-             time_check!(),
+             datetime_check!(),
              ordinal_check!(),
-             time_check!(),
+             datetime_check!(),
              |a, ordinal, b| {
                  b.value().intersect(a.value())?.the_nth(ordinal.value().value - 1)
              }
     );
 
     b.rule_2("<time> <part-of-day>",
-             time_check!(),
-             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             datetime_check!(),
+             datetime_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |time, part_of_day| part_of_day.value().intersect(time.value())
     );
 
     b.rule_2("next <time>",
              b.reg(r#"明|下(?:个|個)?"#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |_, a| {
                  a.value().the_nth(0)
              }
@@ -617,14 +617,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("this <time>",
              b.reg(r#"今(?:个|個)?|这个?|這個?"#)?,
-             time_check!(),
+             datetime_check!(),
              |_, a| {
                  a.value().the_nth(0)
              }
     );
 
     b.rule_2("<time-of-day> am|pm",
-             time_check!(form!(Form::TimeOfDay(_))),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"([ap])(?:\s|\.)?m?\.?"#)?,
              |a, text_match| {
                  let day_period = if text_match.group(1) == "a" {
@@ -637,7 +637,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_3("<named-month> <day-of-month> (non ordinal)",
-             time_check!(form!(Form::Month(_))),
+             datetime_check!(form!(Form::Month(_))),
              integer_check_by_range!(1, 31),
              b.reg(r#"号|號|日"#)?,
              |a, integer, _| {
@@ -647,15 +647,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("last <time>",
              b.reg(r#"上"#)?,
-             time_check!(),
+             datetime_check!(),
              |_, a| {
                  a.value().the_nth(-1)
              }
     );
 
     b.rule_2("<part-of-day> <time>",
-             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
-             time_check!(),
+             datetime_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             datetime_check!(),
              |part_of_day, time| part_of_day.value().intersect(time.value())
     );
 
@@ -666,7 +666,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_2("absorption of , after named day",
-             time_check!(form!(Form::DayOfWeek{..})),
+             datetime_check!(form!(Form::DayOfWeek{..})),
              b.reg(r#","#)?,
              |a, _| Ok(a.value().clone())
     );

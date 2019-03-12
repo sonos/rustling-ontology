@@ -116,7 +116,7 @@ impl Form {
 
 impl TimeOfDayForm {
 
-    fn build_time_value(&self, is_12_clock: bool) -> RuleResult<TimeValue> {
+    fn build_time_value(&self, is_12_clock: bool) -> RuleResult<DatetimeValue> {
         match self {
             &TimeOfDayForm::Hour { full_hour, .. } => hour(full_hour, is_12_clock),
             &TimeOfDayForm::HourMinute { full_hour, minute, .. } => hour_minute(full_hour, minute, is_12_clock),
@@ -157,9 +157,9 @@ fn from_addition_resolution(lhs: Option<FromAddition>, rhs: Option<FromAddition>
         (Some(_), Some(_)) => FromAddition::Left, 
     }
 }
-impl TimeValue {
-    pub fn constraint(constraint: RcConstraint<Local>) -> TimeValue {
-        TimeValue {
+impl DatetimeValue {
+    pub fn constraint(constraint: RcConstraint<Local>) -> DatetimeValue {
+        DatetimeValue {
             constraint: constraint,
             form: Form::Empty,
             direction: None,
@@ -169,37 +169,37 @@ impl TimeValue {
         }
     }
 
-    pub fn with_latent(self, latent: bool) -> TimeValue {
+    pub fn with_latent(self, latent: bool) -> DatetimeValue {
         let ambiguity = if latent {
             Ambiguity::Small
         } else {
             Ambiguity::No
         };
-        TimeValue { latent, ambiguity, ..self }
+        DatetimeValue { latent, ambiguity, ..self }
     }
 
-    pub fn latent(self) -> TimeValue {
-        TimeValue { latent: true, ambiguity: Ambiguity::Small, ..self }
+    pub fn latent(self) -> DatetimeValue {
+        DatetimeValue { latent: true, ambiguity: Ambiguity::Small, ..self }
     }
 
-    pub fn not_latent(self) -> TimeValue {
-        TimeValue { latent: false, ambiguity: Ambiguity::No, .. self }
+    pub fn not_latent(self) -> DatetimeValue {
+        DatetimeValue { latent: false, ambiguity: Ambiguity::No, .. self }
     }
 
-    pub fn too_ambiguous(self) -> TimeValue {
-        TimeValue { latent: true, ambiguity: Ambiguity::Big, .. self }
+    pub fn too_ambiguous(self) -> DatetimeValue {
+        DatetimeValue { latent: true, ambiguity: Ambiguity::Big, .. self }
     }
 
     pub fn is_too_ambiguous(&self) -> bool {
         return self.ambiguity == Ambiguity::Big;
     }
 
-    pub fn form(self, form: Form) -> TimeValue {
-        TimeValue { form: form, ..self }
+    pub fn form(self, form: Form) -> DatetimeValue {
+        DatetimeValue { form: form, ..self }
     }
 
-    pub fn direction(self, direction: Option<BoundedDirection>) -> TimeValue {
-        TimeValue {
+    pub fn direction(self, direction: Option<BoundedDirection>) -> DatetimeValue {
+        DatetimeValue {
             direction: direction,
             ..self
         }
@@ -209,84 +209,84 @@ impl TimeValue {
         self.direction.is_some()
     }
 
-    pub fn mark_after_start(self) -> TimeValue {
-        TimeValue {
+    pub fn mark_after_start(self) -> DatetimeValue {
+        DatetimeValue {
             direction: Some(BoundedDirection::after_start()),
             .. self
         }
     }
 
-    pub fn mark_after_end(self) -> TimeValue {
-        TimeValue {
+    pub fn mark_after_end(self) -> DatetimeValue {
+        DatetimeValue {
             direction: Some(BoundedDirection::after_end()),
             .. self
         }
     }
 
-    pub fn mark_after_end_all(self) -> TimeValue {
-        TimeValue {
+    pub fn mark_after_end_all(self) -> DatetimeValue {
+        DatetimeValue {
             direction: Some(BoundedDirection::after_end_all()),
             .. self
         }
     }
 
-    pub fn mark_before_start(self) -> TimeValue {
-        TimeValue {
+    pub fn mark_before_start(self) -> DatetimeValue {
+        DatetimeValue {
             direction: Some(BoundedDirection::before_start()),
             .. self
         }
     }
 
-    pub fn mark_before_end(self) -> TimeValue {
-        TimeValue {
+    pub fn mark_before_end(self) -> DatetimeValue {
+        DatetimeValue {
             direction: Some(BoundedDirection::before_end()),
             .. self
         }
     }
     // End moment for IntervalTime and IntantTime
-    pub fn mark_before_end_all(self) -> TimeValue {
-        TimeValue {
+    pub fn mark_before_end_all(self) -> DatetimeValue {
+        DatetimeValue {
             direction: Some(BoundedDirection::before_end_all()),
             .. self
         }
     }
 
-    pub fn precision(self, precision: Precision) -> TimeValue {
-        TimeValue {
+    pub fn precision(self, precision: Precision) -> DatetimeValue {
+        DatetimeValue {
             precision: precision,
             ..self
         }
     }
 
-    pub fn intersect(&self, other: &TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.intersect(&other.constraint))
+    pub fn intersect(&self, other: &DatetimeValue) -> RuleResult<DatetimeValue> {
+        Ok(DatetimeValue::constraint(self.constraint.intersect(&other.constraint))
                .direction(self.direction.or(other.direction))
                .precision(precision_resolution(self.precision, other.precision)))
     }
 
-    pub fn last_of(&self, other: &TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.last_of(&other.constraint))
+    pub fn last_of(&self, other: &DatetimeValue) -> RuleResult<DatetimeValue> {
+        Ok(DatetimeValue::constraint(self.constraint.last_of(&other.constraint))
                 .precision(precision_resolution(self.precision, other.precision)))
     }
 
-    pub fn the_nth(&self, n: i64) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.take_the_nth(n))
+    pub fn the_nth(&self, n: i64) -> RuleResult<DatetimeValue> {
+        Ok(DatetimeValue::constraint(self.constraint.take_the_nth(n))
                 .precision(self.precision))
     }
 
-    pub fn the_nth_not_immediate(&self, n: i64) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint.take_the_nth_not_immediate(n))
+    pub fn the_nth_not_immediate(&self, n: i64) -> RuleResult<DatetimeValue> {
+        Ok(DatetimeValue::constraint(self.constraint.take_the_nth_not_immediate(n))
                 .precision(self.precision))
     }
 
-    pub fn the_nth_after(&self, n: i64, after_value: &TimeValue) -> RuleResult<TimeValue> {
-        Ok(TimeValue::constraint(self.constraint
+    pub fn the_nth_after(&self, n: i64, after_value: &DatetimeValue) -> RuleResult<DatetimeValue> {
+        Ok(DatetimeValue::constraint(self.constraint
                                      .the_nth(n)
                                      .after_not_immediate(&after_value.constraint))
                                      .precision(precision_resolution(self.precision, after_value.precision)))
     }
 
-    pub fn smart_span_to(&self, to: &TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
+    pub fn smart_span_to(&self, to: &DatetimeValue, is_inclusive: bool) -> RuleResult<DatetimeValue> {
         if self.form.is_time_of_day() && to.form.is_time_of_day() {
             let start_clock = self.form_time_of_day()?;
             let end_clock = to.form_time_of_day()?;
@@ -305,13 +305,13 @@ impl TimeValue {
     }
 
     
-    pub fn span_to(&self, to: &TimeValue, is_inclusive: bool) -> RuleResult<TimeValue> {
+    pub fn span_to(&self, to: &DatetimeValue, is_inclusive: bool) -> RuleResult<DatetimeValue> {
         if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
            is_inclusive {
-            Ok(TimeValue::constraint(self.constraint.span_inclusive_to(&to.constraint))
+            Ok(DatetimeValue::constraint(self.constraint.span_inclusive_to(&to.constraint))
                     .precision(precision_resolution(self.precision, to.precision)))
         } else {
-            Ok(TimeValue::constraint(self.constraint.span_to(&to.constraint))
+            Ok(DatetimeValue::constraint(self.constraint.span_to(&to.constraint))
                     .precision(precision_resolution(self.precision, to.precision)))
         }
     }
@@ -393,60 +393,60 @@ impl<T> MomentToRuleError for MomentResult<T> {
     }
 }
 
-pub fn year(y: i32) -> RuleResult<TimeValue> {
+pub fn year(y: i32) -> RuleResult<DatetimeValue> {
     let y = normalize_year(y)?;
-    Ok(TimeValue::constraint(Year::new(y)).form(Form::Year(y)))
+    Ok(DatetimeValue::constraint(Year::new(y)).form(Form::Year(y)))
 }
 
-pub fn month(m: u32) -> RuleResult<TimeValue> {
+pub fn month(m: u32) -> RuleResult<DatetimeValue> {
     if !(1 <= m && m <= 12) {
         return Err(RuleError::Invalid.into())
     }
-    Ok(TimeValue::constraint(Month::new(m).invalid_if_err()?).form(Form::Month(m)))
+    Ok(DatetimeValue::constraint(Month::new(m).invalid_if_err()?).form(Form::Month(m)))
 }
 
-pub fn day_of_month(dom: u32) -> RuleResult<TimeValue> {
+pub fn day_of_month(dom: u32) -> RuleResult<DatetimeValue> {
     if !(1 <= dom && dom <= 31) {
         return Err(RuleError::Invalid.into())
     }
-    Ok(TimeValue::constraint(DayOfMonth::new(dom).invalid_if_err()?).form(Form::DayOfMonth))
+    Ok(DatetimeValue::constraint(DayOfMonth::new(dom).invalid_if_err()?).form(Form::DayOfMonth))
 }
 
-pub fn day_of_week(weekday: Weekday) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(DayOfWeek::new(weekday)).form(Form::DayOfWeek { not_immediate: true }))
+pub fn day_of_week(weekday: Weekday) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(DayOfWeek::new(weekday)).form(Form::DayOfWeek { not_immediate: true }))
 }
 
-pub fn month_day(m: u32, d: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(MonthDay::new(m, d).invalid_if_err()?).form(Form::MonthDay(Some(MonthDayForm { month: m, day_of_month: d }))))
+pub fn month_day(m: u32, d: u32) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(MonthDay::new(m, d).invalid_if_err()?).form(Form::MonthDay(Some(MonthDayForm { month: m, day_of_month: d }))))
 }
 
-pub fn year_month_day(y: i32, m: u32, d: u32) -> RuleResult<TimeValue> {
+pub fn year_month_day(y: i32, m: u32, d: u32) -> RuleResult<DatetimeValue> {
     let y = normalize_year(y)?;
-    Ok(TimeValue::constraint(YearMonthDay::new(y, m, d).invalid_if_err()?).form(Form::YearMonthDay(Some(YearMonthDayForm { year: y, month: m, day_of_month: d }))))
+    Ok(DatetimeValue::constraint(YearMonthDay::new(y, m, d).invalid_if_err()?).form(Form::YearMonthDay(Some(YearMonthDayForm { year: y, month: m, day_of_month: d }))))
 }
 
-pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
+pub fn hour(h: u32, is_12_clock: bool) -> RuleResult<DatetimeValue> {
     if is_12_clock {
-        Ok(TimeValue::constraint(Hour::clock_12(h).invalid_if_err()?).form(Form::time_of_day_hour(h, is_12_clock)))
+        Ok(DatetimeValue::constraint(Hour::clock_12(h).invalid_if_err()?).form(Form::time_of_day_hour(h, is_12_clock)))
     } else {
-        Ok(TimeValue::constraint(Hour::clock_24(h).invalid_if_err()?).form(Form::time_of_day_hour(h, is_12_clock)))
+        Ok(DatetimeValue::constraint(Hour::clock_24(h).invalid_if_err()?).form(Form::time_of_day_hour(h, is_12_clock)))
     }
 }
 
-pub fn minute(m: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Minute::new(m).invalid_if_err()?))
+pub fn minute(m: u32) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(Minute::new(m).invalid_if_err()?))
 }
 
-pub fn second(s: u32) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Second::new(s).invalid_if_err()?))
+pub fn second(s: u32) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(Second::new(s).invalid_if_err()?))
 }
 
-pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<TimeValue> {
+pub fn hour_minute(h: u32, m: u32, is_12_clock: bool) -> RuleResult<DatetimeValue> {
     if is_12_clock {
-        Ok(TimeValue::constraint(HourMinute::clock_12(h, m).invalid_if_err()?)
+        Ok(DatetimeValue::constraint(HourMinute::clock_12(h, m).invalid_if_err()?)
             .form(Form::time_of_day_hour_minute(h, m, is_12_clock)))
     } else {
-        Ok(TimeValue::constraint(HourMinute::clock_24(h, m).invalid_if_err()?)
+        Ok(DatetimeValue::constraint(HourMinute::clock_24(h, m).invalid_if_err()?)
            .form(Form::time_of_day_hour_minute(h, m, is_12_clock)))
     }
 }
@@ -455,13 +455,13 @@ pub fn hour_minute_second(h: u32,
                                    m: u32,
                                    s: u32,
                                    is_12_clock: bool)
-                                   -> RuleResult<TimeValue> {
+                                   -> RuleResult<DatetimeValue> {
     Ok(hour_minute(h, m, is_12_clock)?
            .intersect(&second(s)?)?
            .form(Form::time_of_day_hour_minute_second(h, m, s, is_12_clock)))
 }
 
-pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<TimeValue> {
+pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<DatetimeValue> {
     if !(h <= 23) {
         Err(format_err!("Invalid hour {:?}", h))?
     }
@@ -484,33 +484,33 @@ pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<Tim
     hour_minute(shifter_hour, normalized_minute, is_12_clock)
 }
 
-pub fn cycle(grain: Grain) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain)).form(Form::Cycle(grain)))
+pub fn cycle(grain: Grain) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(Cycle::rc(grain)).form(Form::Cycle(grain)))
 }
 
-pub fn cycle_nth(grain: Grain, n: i64) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).take_the_nth(n)).form(Form::Cycle(grain)))
+pub fn cycle_nth(grain: Grain, n: i64) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(Cycle::rc(grain).take_the_nth(n)).form(Form::Cycle(grain)))
 }
 
-pub fn cycle_nth_after(grain: Grain, n: i64, after_value: &TimeValue) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).the_nth(n).after(&after_value.constraint)).form(Form::Cycle(grain)))
+pub fn cycle_nth_after(grain: Grain, n: i64, after_value: &DatetimeValue) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(Cycle::rc(grain).the_nth(n).after(&after_value.constraint)).form(Form::Cycle(grain)))
 }
 
 pub fn cycle_nth_after_not_immediate(grain: Grain,
                                      n: i64,
-                                     after_value: &TimeValue)
-                                     -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain)
+                                     after_value: &DatetimeValue)
+                                     -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(Cycle::rc(grain)
                                  .the_nth(n)
                                  .after_not_immediate(&after_value.constraint)).form(Form::Cycle(grain)))
 }
 
-pub fn cycle_n(grain: Grain, n: i64) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).take(n)).form(Form::Cycle(grain)))
+pub fn cycle_n(grain: Grain, n: i64) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(Cycle::rc(grain).take(n)).form(Form::Cycle(grain)))
 }
 
-pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<TimeValue> {
-    Ok(TimeValue::constraint(Cycle::rc(grain).take_not_immediate(n)).form(Form::Cycle(grain)))
+pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<DatetimeValue> {
+    Ok(DatetimeValue::constraint(Cycle::rc(grain).take_not_immediate(n)).form(Form::Cycle(grain)))
 }
 
 pub fn grain_greather_than_day(grain: Grain) -> bool {
@@ -521,12 +521,12 @@ pub fn grain_greather_than_day(grain: Grain) -> bool {
     }
 }
 
-pub fn easter() -> RuleResult<TimeValue> {
+pub fn easter() -> RuleResult<DatetimeValue> {
     fn offset(i: &Interval<Local>, _: &Context<Local>) -> Option<Interval<Local>> {
         let (year, month, day) = computer_easter(i.start.year());
         Some(Interval::ymd(year, month, day))
     }
-    Ok(TimeValue::constraint(Month::new(3).invalid_if_err()?.translate_with(offset)))
+    Ok(DatetimeValue::constraint(Month::new(3).invalid_if_err()?.translate_with(offset)))
 }
 
 pub fn computer_easter(year: i32) -> (i32, u32, u32) {
@@ -549,7 +549,7 @@ pub fn computer_easter(year: i32) -> (i32, u32, u32) {
 }
 
 impl CycleValue {
-    pub fn last_of(&self, base: &TimeValue) -> RuleResult<TimeValue> {
+    pub fn last_of(&self, base: &DatetimeValue) -> RuleResult<DatetimeValue> {
         cycle(self.grain)?.last_of(base)
     }
 }
@@ -564,26 +564,26 @@ impl DurationValue {
         }
     }
 
-    pub fn in_present(&self) -> RuleResult<TimeValue> {
+    pub fn in_present(&self) -> RuleResult<DatetimeValue> {
         self.check_period()?;
-        Ok(TimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(self.period.clone())).precision(self.precision))
+        Ok(DatetimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(self.period.clone())).precision(self.precision))
     }
 
-    pub fn ago(&self) -> RuleResult<TimeValue> {
+    pub fn ago(&self) -> RuleResult<DatetimeValue> {
         self.check_period()?;
-        Ok(TimeValue::constraint(Cycle::rc(Grain::Second)
+        Ok(DatetimeValue::constraint(Cycle::rc(Grain::Second)
                                      .take_the_nth(0)
                                      .shift_by(-self.period.clone())).precision(self.precision))
     }
 
-    pub fn after(&self, time: &TimeValue) -> RuleResult<TimeValue> {
+    pub fn after(&self, datetime: &DatetimeValue) -> RuleResult<DatetimeValue> {
         self.check_period()?;
-        Ok(TimeValue::constraint(time.constraint.shift_by(self.period.clone())).precision(self.precision))
+        Ok(DatetimeValue::constraint(datetime.constraint.shift_by(self.period.clone())).precision(self.precision))
     }
 
-    pub fn before(&self, time: &TimeValue) -> RuleResult<TimeValue> {
+    pub fn before(&self, datetime: &DatetimeValue) -> RuleResult<DatetimeValue> {
         self.check_period()?;
-        Ok(TimeValue::constraint(time.constraint.shift_by(-self.period.clone())).precision(self.precision))
+        Ok(DatetimeValue::constraint(datetime.constraint.shift_by(-self.period.clone())).precision(self.precision))
     }
 }
 impl ops::Add<DurationValue> for DurationValue {

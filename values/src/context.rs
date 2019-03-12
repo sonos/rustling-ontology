@@ -50,13 +50,13 @@ impl ParsingContext<Dimension> for ResolverContext {
     type O = Output;
     fn resolve(&self, dim: &Dimension) -> Option<Output> {
         match dim {
-            &Dimension::Time(ref tv) => {
-                let mut walker = tv.constraint
+            &Dimension::Datetime(ref dtv) => {
+                let mut walker = dtv.constraint
                     .to_walker(&self.ctx.reference, &self.ctx);
                 walker.forward
                     .next()
                     .and_then(|h| {
-                        if tv.form.not_immediate().unwrap_or(false) && h.intersect(self.ctx.reference).is_some() {
+                        if dtv.form.not_immediate().unwrap_or(false) && h.intersect(self.ctx.reference).is_some() {
                             walker.forward.next()
                         } else {
                             Some(h)
@@ -64,41 +64,41 @@ impl ParsingContext<Dimension> for ResolverContext {
                     })
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
-                        if let Some(bounded_direction) = tv.direction {
+                        if let Some(bounded_direction) = dtv.direction {
                             let anchor = match bounded_direction.bound {
                                 Bound::Start => interval.start,
                                 Bound::End { only_interval } if only_interval => interval.end.unwrap_or(interval.start),
                                 Bound::End { .. } => interval.end_moment(),
                             };
                             
-                            let output = TimeOutput {
+                            let output = DatetimeOutput {
                                 moment: anchor,
                                 grain: interval.grain,
-                                precision: tv.precision,
-                                latent: tv.latent,
+                                precision: dtv.precision,
+                                latent: dtv.latent,
                             };
                             
                             match bounded_direction.direction {
-                                Direction::After => Output::TimeInterval(TimeIntervalOutput::After(output)),
-                                Direction::Before => Output::TimeInterval(TimeIntervalOutput::Before(output)),
+                                Direction::After => Output::DatetimeInterval(DatetimeIntervalOutput::After(output)),
+                                Direction::Before => Output::DatetimeInterval(DatetimeIntervalOutput::Before(output)),
                             }
                         } else if let Some(end) = interval.end {
-                            Output::TimeInterval(
-                                    TimeIntervalOutput::Between {
+                            Output::DatetimeInterval(
+                                    DatetimeIntervalOutput::Between {
                                         start: interval.start, 
                                         end: end, 
-                                        precision: tv.precision,
-                                        latent: tv.latent,
+                                        precision: dtv.precision,
+                                        latent: dtv.latent,
                                     }
                                 )
                         } else {
-                            let output = TimeOutput {
+                            let output = DatetimeOutput {
                                     moment: interval.start,
                                     grain: interval.grain,
-                                    precision: tv.precision,
-                                    latent: tv.latent,
+                                    precision: dtv.precision,
+                                    latent: dtv.latent,
                             };
-                            Output::Time(output)
+                            Output::Datetime(output)
                         }
                     })
             }

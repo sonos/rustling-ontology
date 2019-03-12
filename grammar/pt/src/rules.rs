@@ -318,22 +318,22 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     Ok(())
 }
 
-pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect",
-             time_check!(|time: &TimeValue| !time.latent),
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, b| a.value().intersect(b.value())
     );
     b.rule_3("intersect by `de`",
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              b.reg(r#"de"#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_3("two time tokens separated by \",\"",
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              b.reg(r#","#)?,
-             time_check!(|time: &TimeValue| !time.latent),
+             datetime_check!(|time: &TimeValue| !time.latent),
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_1_terminal("named-day",
