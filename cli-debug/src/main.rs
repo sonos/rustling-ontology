@@ -28,7 +28,7 @@ fn main() {
             let matches = rules.apply_all(&*sentence).unwrap();
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-            table.set_titles(row!["ix", "text", "kind", "rule", "children"]);
+            table.set_titles(row!["ix", "text", "Dimension", "Output(OutputValue)", "rule", "children"]);
             for (ix, m) in matches.iter().enumerate().rev() {
                 let mut hilite = String::new();
                 let byte_range = m.root_node.byte_range;
@@ -39,8 +39,11 @@ fn main() {
                 for _ in byte_range.1..sentence.len() {
                     hilite.push('_');
                 }
+                // TODO: Manage to display the XyzValue of a Dimension (e.g. DatetimeValue for
+                // Dimension::Datetime) and its fields (e.g. datetime_type for DatetimeValue)
                 table.add_row(row![ix,
                                    hilite,
+                                   &m.value,
                                    decoder.resolve(&m.value).map(|v| format!("{:?}", v)).unwrap_or("".into()),
                                    rules.resolve_sym(&m.root_node.rule_sym).unwrap_or(""),
                                    m.root_node
