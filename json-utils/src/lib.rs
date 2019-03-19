@@ -124,25 +124,6 @@ impl From<Output> for SlotValue {
                 from: Some(start),
                 to: Some(end),
             }),
-            Output::Date(datetime) => SlotValue::InstantTime( InstantTimeValue {
-                value: datetime.moment,
-                grain: datetime.grain.into(),
-                precision: datetime.precision.into(),
-            }),
-            Output::Time(datetime) => SlotValue::InstantTime( InstantTimeValue {
-                value: datetime.moment,
-                grain: datetime.grain.into(),
-                precision: datetime.precision.into(),
-            }),
-            Output::DatePeriod(DatetimeIntervalOutput::Between { start, end, .. }) => SlotValue::TimeInterval( TimeIntervalValue {
-                from: Some(start),
-                to: Some(end),
-            }),
-            Output::TimePeriod(DatetimeIntervalOutput::Between { start, end, .. }) => SlotValue::TimeInterval( TimeIntervalValue {
-                from: Some(start),
-                to: Some(end),
-            }),
-
             Output::AmountOfMoney(amount) => SlotValue::AmountOfMoney( AmountOfMoneyValue {
                 value: amount.value,
                 precision: amount.precision.into(),
