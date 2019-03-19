@@ -19,11 +19,12 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
     rules_amount::rules_temperature(&mut b)?;
     rules_amount::rules_finance(&mut b)?;
     rules_amount::rules_percentage(&mut b)?;
-    rules_datetime::rules_time(&mut b)?;
-    rules_datetime::rules_time_period(&mut b)?;
-    rules_datetime::rules_date(&mut b)?;
-    rules_datetime::rules_date_period(&mut b)?;
-    rules_datetime::rules_datetime_complement(&mut b)?;
+    rules_datetime::rules_time_instants(&mut b)?;
+    rules_datetime::rules_time_spans(&mut b)?;
+    rules_datetime::rules_date_instants(&mut b)?;
+    rules_datetime::rules_date_spans(&mut b)?;
+    rules_datetime::rules_datetime_combinations_instants(&mut b)?;
+    rules_datetime::rules_datetime_combinations_spans(&mut b)?;
     rules_datetime::rules_datetime(&mut b)?;
     rules_datetime::rules_cycle(&mut b)?;
     rules_duration::rules_duration(&mut b)?;

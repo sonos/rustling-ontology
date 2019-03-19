@@ -7,75 +7,54 @@ use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Weekday, Grain};
 
 
-/** Datetime rules
-  - 4 specified datetime types:
-    - <datetime>
-    - <TimePeriod>
-    - <Date>
-    - <DatePeriod>
-  - 1 underspecified datetime type:
-    - Any other supported datetime pattern is a DatetimeComplement. Mainly, these are combinations
-    of date+time, e.g. "tomorrow at 5pm". Its inherent type is <Datetime>.
-  - Datetime is the inclusion of the 4 types + DatetimeComplement.
-  - All rules matching one of the 4 types have a Datetime counterpart, i.e. a rule for the same
-  match with the type <Datetime> (instead of e.g. <Date>).
-  - When the queried entity type is <Datetime>, the <Datetime> version of the match will be selected.
-  - DatetimeComplement matches can happen only when the queried entity type is <Datetime>.
-*/
-
-
-/** Time Rules */
-pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+/** Time instants - grain inferior to Day */
+pub fn rules_time_instants(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     Ok(())
 
 }
 
 
-/** TimePeriod Rules */
-pub fn rules_time_period(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+/** Time spans - grain inferior to Day */
+pub fn rules_time_spans(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     Ok(())
 
 }
 
 
-/** Date Rules */
-pub fn rules_date(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+/** Date instants - grain Day or larger */
+pub fn rules_date_instants(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     Ok(())
 
 }
 
 
-/** DatePeriod Rules */
-pub fn rules_date_period(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-
-    b.rule_1_terminal("week-end",
-                      b.reg(r#"(?:the )?(?:week(?:\s|-)?end|wkend)"#)?,
-                      |_| {
-                          let friday = helpers::day_of_week(Weekday::Fri)?
-                              .intersect(&helpers::hour(18, false)?)?;
-                          let monday = helpers::day_of_week(Weekday::Mon)?
-                              .intersect(&helpers::hour(0, false)?)?;
-                          Ok(friday.span_to(&monday, false)?.datetime_type(DatetimeType::DatePeriod))
-                      }
-    );
+/** Date spans - grain Day or larger */
+pub fn rules_date_spans(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     Ok(())
 
 }
 
 
-/** Rules for Datetime complement */
-pub fn rules_datetime_complement(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+/** Mixes of Time and Date instants */
+pub fn rules_datetime_combinations_instants(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     Ok(())
 
 }
 
 
-/** Rules repeating the Time, TimePeriod, Date, DatePeriod matches with the Datetime type */
+/** Mixes of Time and Date spans */
+pub fn rules_datetime_combinations_spans(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+
+    Ok(())
+
+}
+
+
 pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     /* DATETIME - COMPLEX RULES */
