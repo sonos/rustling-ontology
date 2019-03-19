@@ -51,6 +51,17 @@ pub fn rules_date(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 /** DatePeriod Rules */
 pub fn rules_date_period(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
+    b.rule_1_terminal("week-end",
+                      b.reg(r#"(?:the )?(?:week(?:\s|-)?end|wkend)"#)?,
+                      |_| {
+                          let friday = helpers::day_of_week(Weekday::Fri)?
+                              .intersect(&helpers::hour(18, false)?)?;
+                          let monday = helpers::day_of_week(Weekday::Mon)?
+                              .intersect(&helpers::hour(0, false)?)?;
+                          Ok(friday.span_to(&monday, false)?.datetime_type(DatetimeType::DatePeriod))
+                      }
+    );
+
     Ok(())
 
 }
@@ -122,6 +133,12 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |_, a| Ok(a.value().clone().not_latent())
     );
+    // DATETIME#59
+    // TODO: output::time
+    b.rule_1_terminal("now",
+                      b.reg(r#"(?:just|right)? ?now|immediately|at this very moment|at the present time"#)?,
+                      |_| helpers::cycle_nth(Grain::Second, 0)
+    );
     // DATETIME#8
     // TODO: output::time
     b.rule_2("for <meal>",
@@ -191,73 +208,73 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::day_of_week(Weekday::Sun)
     );
     // DATETIME#18
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"january|jan\.?"#)?,
                       |_| helpers::month(1)
     );
     // DATETIME#19
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"february|feb\.?"#)?,
                       |_| helpers::month(2)
     );
     // DATETIME#20
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"march|mar\.?"#)?,
                       |_| helpers::month(3)
     );
     // DATETIME#21
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"april|apr\.?"#)?,
                       |_| helpers::month(4)
     );
     // DATETIME#22
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"may"#)?,
                       |_| helpers::month(5)
     );
     // DATETIME#23
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"june|jun\.?"#)?,
                       |_| helpers::month(6)
     );
     // DATETIME#24
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"july|jul\.?"#)?,
                       |_| helpers::month(7)
     );
     // DATETIME#25
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"august|aug\.?"#)?,
                       |_| helpers::month(8)
     );
     // DATETIME#26
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"september|sept?\.?"#)?,
                       |_| helpers::month(9)
     );
     // DATETIME#27
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"october|oct\.?"#)?,
                       |_| helpers::month(10)
     );
     // DATETIME#28
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"november|nov\.?"#)?,
                       |_| helpers::month(11)
     );
     // DATETIME#29
-    // TODO: output::date
+    // TODO: output::date-period
     b.rule_1_terminal("named-month",
                       b.reg(r#"december|dec\.?"#)?,
                       |_| helpers::month(12)
@@ -490,12 +507,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     /* DATETIME - DATE - DEICTICS */
 
-    // DATETIME#59
-    // TODO: output::date
-    b.rule_1_terminal("now",
-                      b.reg(r#"(?:just|right)? ?now|immediately|at this very moment|at the present time"#)?,
-                      |_| helpers::cycle_nth(Grain::Second, 0)
-    );
     // DATETIME#60
     // TODO: output::date
     b.rule_1_terminal("today",
@@ -1478,6 +1489,18 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           friday.span_to(&monday, false)
                       }
     );
+    // TODO: output::date-period
+//    b.rule_1_terminal("week-end",
+//                      b.reg(r#"(?:the )?(?:week(?:\s|-)?end|wkend)"#)?,
+//                      |_| {
+//                          let friday = helpers::day_of_week(Weekday::Fri)?
+//                              .intersect(&helpers::hour(18, false)?)?;
+//                          let monday = helpers::day_of_week(Weekday::Mon)?
+//                              .intersect(&helpers::hour(0, false)?)?;
+//                          friday.span_to(&monday, false)
+//                      }
+//    );
+
     // DATETIME#157
     // TODO: output::date-period + add dedicated form + check use in rules w/ date-period
     b.rule_1_terminal("season",
@@ -1875,8 +1898,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // DATETIME#206
     // TODO: output::date-period
-    b.rule_2(
-        "<ordinal> quarter",
+    b.rule_2("<ordinal> quarter",
         ordinal_check!(),
         cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
         |ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
