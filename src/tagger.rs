@@ -15,16 +15,24 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
     type O = Option<C::O>;
     fn tag(&self, 
             candidates: Vec<(ParsedNode<Dimension>, ParserMatch<Dimension>)>) -> Vec<Candidate<Dimension, Option<C::O>>> {
+        // dont do to_dim, keep outputkinds
         let order = self.order.iter().map(|o| o.to_dim()).collect::<Vec<_>>();
 
         let mut candidates = candidates.into_iter()
+            // inter dim
             .filter_map(|(pn, pm)| {
+                // parser node, parser match
                 if pn.value.is_too_ambiguous() { None }
                 else {
                     order
                         .iter()
                         .rev()
-                        .position(|k| *k == pn.value.kind())
+                        // this kind is a dim kind - instead we want to interpret as outputkind
+                        // lookup dim to see what is the outpukind
+                        // this will also include the too_amb lookup
+                        // in fact we add a new thing, an interpretor (of internal world wrt.
+                        // external world)
+                        .position(|k| *k == pn.value.kind()) // k is a numeric value of choice b/ dimension = pos in array
                         .map(|prio| (pn, pm, prio))
                 }
             })
@@ -39,6 +47,7 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
                     a.2.cmp(&b.2)
                 })
                 .then_with(|| {
+                    // proba intra dim
                     if a.1.value.kind() == b.1.value.kind() {
                         a.1.probalog
                             .partial_cmp(&b.1.probalog)
