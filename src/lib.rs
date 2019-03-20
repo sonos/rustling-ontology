@@ -57,7 +57,7 @@ impl Parser {
                                  order: &[OutputKind])
                                  -> RustlingResult<Vec<ParserMatch<Output>>> {
         let tagger = CandidateTagger {
-            order: order,
+            output_kind_filter: order,
             context: context,
             resolve_all_candidates: false,
         };
@@ -94,7 +94,7 @@ impl Parser {
                                     context: &ResolverContext,
                                     order:  &[OutputKind]) -> RustlingResult<ParsingAnalysis> {
         let tagger = CandidateTagger {
-            order: order,
+            output_kind_filter: order,
             context: context,
             resolve_all_candidates: false,
         };
@@ -168,7 +168,7 @@ mod tests {
         //        let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm";
         let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
         let tagger = CandidateTagger {
-            order: &OutputKind::all(),
+            output_kind_filter: &OutputKind::all(),
             context: &ResolverContext::default(),
             resolve_all_candidates: false,
         };

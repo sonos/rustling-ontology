@@ -5,7 +5,7 @@ use rustling_ontology_values::dimension::{Dimension};
 use rustling_ontology_values::output::OutputKind;
 
 pub struct CandidateTagger<'a, C: ParsingContext<Dimension> + 'a> {
-    pub order: &'a [OutputKind],
+    pub output_kind_filter: &'a [OutputKind],
     pub context: &'a C,
     pub resolve_all_candidates: bool,
 }
@@ -13,31 +13,36 @@ pub struct CandidateTagger<'a, C: ParsingContext<Dimension> + 'a> {
 
 impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for CandidateTagger<'a, C> {
     type O = Option<C::O>;
+
     fn tag(&self, 
             candidates: Vec<(ParsedNode<Dimension>, ParserMatch<Dimension>)>) -> Vec<Candidate<Dimension, Option<C::O>>> {
-        // dont do to_dim, keep outputkinds
-        let order = self.order.iter().map(|o| o.to_dim()).collect::<Vec<_>>();
 
+        // Use OutputKind as filter instead of corresponding Dimensions
+        let output_kind_filter = self.output_kind_filter.iter().collect::<Vec<_>>();
+        eprintln!("OutputKind filter: {:?}", output_kind_filter);
+        eprintln!("Candidates: {:?}", candidates.len());
+        // 1. Priorisation among OutputKinds, based on the filter (presence and order)
         let mut candidates = candidates.into_iter()
-            // inter dim
-            .filter_map(|(pn, pm)| {
-                // parser node, parser match
-                if pn.value.is_too_ambiguous() { None }
+            .filter_map(|(parsed_node, parser_match)| {
+                // value of parser_node is a Dimension
+                if parsed_node.value.is_too_ambiguous() { None }
                 else {
-                    order
+                    output_kind_filter
                         .iter()
                         .rev()
-                        // this kind is a dim kind - instead we want to interpret as outputkind
-                        // lookup dim to see what is the outpukind
-                        // this will also include the too_amb lookup
-                        // in fact we add a new thing, an interpretor (of internal world wrt.
-                        // external world)
-                        .position(|k| *k == pn.value.kind()) // k is a numeric value of choice b/ dimension = pos in array
-                        .map(|prio| (pn, pm, prio))
+                        // Before: Simply check if dim.kind is in filter, if not, discard candidate
+                        // Now: Do a more complex check on the candidate's dimension based on the
+                        // OutputKind to see if it matches the request. Otherwise discard candidate.
+                        // This is a change only for Datetime things.
+                        // position() returns the index of the first item matching the closure
+                        // condition
+                        .position(|output_kind| output_kind.match_dim(parsed_node.value.clone()))
+                        .map(|position| (parsed_node, parser_match, position))
                 }
             })
             .collect::<Vec<_>>();
-
+        // 2. Priorisation intra OutputKind - Use probas from training, and many other things
+        // like match length etc.
         candidates.sort_by(|a, b|{
             a.1.byte_range.len().cmp(&b.1.byte_range.len())
                 .then_with(|| {
@@ -47,7 +52,6 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
                     a.2.cmp(&b.2)
                 })
                 .then_with(|| {
-                    // proba intra dim
                     if a.1.value.kind() == b.1.value.kind() {
                         a.1.probalog
                             .partial_cmp(&b.1.probalog)

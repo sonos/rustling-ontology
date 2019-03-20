@@ -4,6 +4,7 @@ use rustling::*;
 use moment::{RcConstraint, Period, Grain, Local};
 
 /// Union of all possible values parsed by the ontology.
+
 rustling_value! {
     #[doc="Union of all possible values parsed by the ontology."]
     #[derive(Clone,PartialEq,Debug)]
@@ -99,7 +100,7 @@ impl fmt::Display for Dimension {
     }
 }
 
-/// Payload for the ordinal numbers of Dimension
+/// Payload for the ordinal numbers value of Dimension
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct OrdinalValue {
     pub value: i64,
@@ -145,7 +146,7 @@ impl Default for Precision {
     }
 }
 
-/// Payload for the amount of money of Dimension
+/// Payload for the amount of money value of Dimension
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct AmountOfMoneyValue {
     pub value: f32,
@@ -153,7 +154,7 @@ pub struct AmountOfMoneyValue {
     pub unit: Option<&'static str>,
 }
 
-/// Payload for the unit of money of Dimension
+/// Payload for the unit of money value of Dimension
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct MoneyUnitValue {
     pub unit: Option<&'static str>,
@@ -165,7 +166,7 @@ pub enum CombinationDirection {
     Right,
 }
 
-/// Payload for the integral numbers of Dimension
+/// Payload for the integral numbers value of Dimension
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct IntegerValue {
     pub value: i64,
@@ -313,7 +314,7 @@ impl AttemptFrom<Dimension> for FloatValue {
     }
 }
 
-/// Payload for the floating numbers of Dimension
+/// Payload for the floating numbers value of Dimension
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct FloatValue {
     pub value: f32,
@@ -441,7 +442,7 @@ impl NumberValue {
     }
 }
 
-/// Payload for the temperatures of Dimension
+/// Payload for the temperatures value of Dimension
 #[derive(Debug, PartialEq, Clone)]
 pub struct TemperatureValue {
     pub value: f32,
@@ -451,7 +452,7 @@ pub struct TemperatureValue {
     pub latent: bool,
 }
 
-/// Payload for the cycle of Dimension
+/// Payload for the cycle value of Dimension
 #[derive(Debug, PartialEq, Clone)]
 pub struct CycleValue {
     pub is_plural: bool,
@@ -471,7 +472,7 @@ impl CycleValue {
     }
 }
 
-/// Payload for the unit of duration of Dimension
+/// Payload for the unit of duration value of Dimension
 #[derive(Debug, PartialEq, Clone)]
 pub struct UnitOfDurationValue {
     pub grain: Grain,
@@ -490,7 +491,7 @@ pub enum Ambiguity {
     Big,
 }
 
-/// Payload for the datetime of Dimension
+/// Payload for the datetime value of Dimension
 #[derive(Clone)]
 pub struct DatetimeValue {
     pub constraint: RcConstraint<Local>,
@@ -527,7 +528,10 @@ impl DatetimeValue {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Form {
-    Cycle(Grain),
+    // TODO: Change this into a tree structure, more informative and better reflecting relationships
+    // between certain forms
+    // For now just adding values if needed, flatly
+    Cycle(Grain), // e.g. Hour, Day
     Year(i32),
     Month(u32),
     DayOfMonth,

@@ -15,6 +15,7 @@ pub enum Output {
 }
 
 impl Output {
+    // Seems unused
     pub fn kind(&self) -> OutputKind {
         match self {
             &Output::Integer(_) => OutputKind::Number,
@@ -36,6 +37,10 @@ enum_kind!(OutputKind,
         Ordinal,
         Duration,
         Datetime,
+        Date,
+        Time,
+        DatePeriod,
+        TimePeriod,
         AmountOfMoney,
         Temperature,
         Percentage
@@ -43,18 +48,63 @@ enum_kind!(OutputKind,
 );
 
 impl OutputKind {
+
+    pub fn match_dim(&self, dimension: Dimension) -> bool {
+
+        match dimension {
+            Dimension::Datetime(datetime_value) => {
+                if let Some(_) = datetime_value.direction {
+                    match self {
+                        &OutputKind::Date => false,
+                        &OutputKind::Time => false,
+                        // We have a DatePeriod if this is an interval (with direction) and if the
+                        // grain is at least Day
+                        &OutputKind::DatePeriod => datetime_value.is_coarse_grain_greater_than(Grain::Hour),
+                        // We have a TimePeriod if this is an interval (with direction) and if the
+                        // grain is smaller than Day
+                        &OutputKind::TimePeriod => datetime_value.is_coarse_grain_smaller_than(Grain::Day),
+                        &OutputKind::Datetime => true,
+                        _ => false,
+                    }
+                } else {
+                    match self {
+                        // We have a Date if this is not an interval (no direction) and if the grain
+                        // is at least Day
+                        &OutputKind::Date => datetime_value.is_coarse_grain_greater_than(Grain::Hour),
+                        // We have a Time if this is not an interval (no direction) and if the grain
+                        // is smaller than Day
+                        &OutputKind::Time => datetime_value.is_coarse_grain_smaller_than(Grain::Day),
+                        &OutputKind::DatePeriod => false,
+                        &OutputKind::TimePeriod => false,
+                        &OutputKind::Datetime => true,
+                        _ => false,
+                    }
+                }
+            },
+            // temporary
+            _ => true,
+        }
+    }
+
+    // Not used anymore - replaced DimensionKind lookup with OutputKind lookup in tagger
     pub fn to_dim(&self) -> DimensionKind {
         match self {
             &OutputKind::Number => DimensionKind::Number,
             &OutputKind::Ordinal => DimensionKind::Ordinal,
             &OutputKind::Datetime => DimensionKind::Datetime,
+            &OutputKind::Date => DimensionKind::Datetime,
+            &OutputKind::Time => DimensionKind::Datetime,
+            &OutputKind::DatePeriod => DimensionKind::Datetime,
+            &OutputKind::TimePeriod => DimensionKind::Datetime,
             &OutputKind::AmountOfMoney => DimensionKind::AmountOfMoney,
             &OutputKind::Temperature => DimensionKind::Temperature,
             &OutputKind::Duration => DimensionKind::Duration,
             &OutputKind::Percentage => DimensionKind::Percentage,
         }
     }
+
 }
+
 
 #[derive(Clone,Copy,PartialEq,Debug)]
 pub struct IntegerOutput(pub i64);
