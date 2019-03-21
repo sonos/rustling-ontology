@@ -728,8 +728,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // DATETIME#84
     // TODO: same as #83
+    b.rule_1_terminal("year short 00-09",
+              b.reg(r#"0(\d)"#)?,
+             |integer| {
+                 Ok(helpers::year(integer.group(1).parse()?)?.latent())
+             }
+    );
     b.rule_1("year short",
-             integer_check_by_range!(01, 99),
+             integer_check_by_range!(10, 99),
              |integer| {
                  Ok(helpers::year(integer.value().value as i32)?.latent())
              }
