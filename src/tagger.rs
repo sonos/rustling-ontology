@@ -19,12 +19,12 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
 
         // Use OutputKind as filter instead of corresponding Dimensions
         let output_kind_filter = self.output_kind_filter.iter().collect::<Vec<_>>();
-        eprintln!("OutputKind filter: {:?}", output_kind_filter);
         eprintln!("Candidates: {:?}", candidates.len());
+        eprintln!("OutputKind filter: {:?}", output_kind_filter);
         // 1. Priorisation among OutputKinds, based on the filter (presence and order)
         let mut candidates = candidates.into_iter()
             .filter_map(|(parsed_node, parser_match)| {
-                // value of parser_node is a Dimension
+                // value of parsed_node is a Dimension
                 if parsed_node.value.is_too_ambiguous() { None }
                 else {
                     output_kind_filter
@@ -43,6 +43,7 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
             .collect::<Vec<_>>();
         // 2. Priorisation intra OutputKind - Use probas from training, and many other things
         // like match length etc.
+        eprintln!("Candidates: {:?}", candidates.len());
         candidates.sort_by(|a, b|{
             a.1.byte_range.len().cmp(&b.1.byte_range.len())
                 .then_with(|| {

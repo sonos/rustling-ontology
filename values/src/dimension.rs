@@ -570,6 +570,48 @@ impl Form {
             &Form::PartOfWeek => None,
         }
     }
+
+    pub fn date_form(&self) -> Option<bool> {
+        match self {
+            &Form::Cycle(grain) => Some(grain.date_grain()),
+            &Form::Year(_) => Some(true),
+            &Form::Month(_) => Some(true),
+            &Form::MonthDay(_) => Some(true),
+            &Form::YearMonthDay(_) => Some(true),
+            &Form::TimeOfDay(_) => Some(false),
+            &Form::DayOfWeek { .. } => Some(true),
+            &Form::Empty => None,
+            &Form::PartOfDay { .. } => Some(false),
+            &Form::Meal => Some(false),
+            &Form::Celebration => Some(true),
+            &Form::PartOfMonth => Some(true),
+            &Form::PartOfYear => Some(true),
+            &Form::DayOfMonth => Some(true),
+            &Form::PartOfForm(_) => None,
+            &Form::PartOfWeek => Some(true),
+        }
+    }
+
+    pub fn time_form(&self) -> Option<bool> {
+        match self {
+            &Form::Cycle(grain) => Some(grain.time_grain()),
+            &Form::Year(_) => Some(false),
+            &Form::Month(_) => Some(false),
+            &Form::MonthDay(_) => Some(false),
+            &Form::YearMonthDay(_) => Some(false),
+            &Form::TimeOfDay(_) => Some(true),
+            &Form::DayOfWeek { .. } => Some(false),
+            &Form::Empty => None,
+            &Form::PartOfDay { .. } => Some(true),
+            &Form::Meal => Some(true),
+            &Form::Celebration => Some(false),
+            &Form::PartOfMonth => Some(false),
+            &Form::PartOfYear => Some(false),
+            &Form::DayOfMonth => Some(false),
+            &Form::PartOfForm(_) => None,
+            &Form::PartOfWeek => Some(false),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

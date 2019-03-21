@@ -80,6 +80,26 @@ impl Grain {
             &Grain::Second => 1,
         }
     }
+
+    pub fn date_grain(&self) -> bool {
+        match self {
+            &Grain::Year => true,
+            &Grain::Quarter => true,
+            &Grain::Month => true,
+            &Grain::Week => true,
+            &Grain::Day => true,
+            _ => false,
+        }
+    }
+
+    pub fn time_grain(&self) -> bool {
+        match self {
+            &Grain::Hour => true,
+            &Grain::Minute => true,
+            &Grain::Second => true,
+            _ => false,
+        }
+    }
 }
 
 impl Grain {
