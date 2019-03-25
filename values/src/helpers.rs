@@ -309,10 +309,12 @@ impl DatetimeValue {
         if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
            is_inclusive {
             Ok(DatetimeValue::constraint(self.constraint.span_inclusive_to(&to.constraint))
-                    .precision(precision_resolution(self.precision, to.precision)))
+                .form(Form::Span)
+                .precision(precision_resolution(self.precision, to.precision)))
         } else {
             Ok(DatetimeValue::constraint(self.constraint.span_to(&to.constraint))
-                    .precision(precision_resolution(self.precision, to.precision)))
+                .form(Form::Span)
+                .precision(precision_resolution(self.precision, to.precision)))
         }
     }
 
