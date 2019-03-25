@@ -19,11 +19,10 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
 
         // Use OutputKind as filter instead of corresponding Dimensions
         let output_kind_filter = self.output_kind_filter.iter().collect::<Vec<_>>();
-        eprintln!("Candidates: {:?}", candidates.len());
-        eprintln!("OutputKind filter: {:?}", output_kind_filter);
         // 1. Priorisation among OutputKinds, based on the filter (presence and order)
         let mut candidates = candidates.into_iter()
             .filter_map(|(parsed_node, parser_match)| {
+                // eprintln!("parser_match: {:?} @{:?}", parser_match.value, parser_match.char_range);
                 // value of parsed_node is a Dimension
                 if parsed_node.value.is_too_ambiguous() { None }
                 else {
@@ -36,14 +35,15 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
                         // This is a change only for Datetime things.
                         // position() returns the index of the first item matching the closure
                         // condition
-                        .position(|output_kind| output_kind.match_dim(parsed_node.value.clone()))
+                        .position(|output_kind| {
+                            output_kind.match_dim(parsed_node.value.clone())
+                        })
                         .map(|position| (parsed_node, parser_match, position))
                 }
             })
             .collect::<Vec<_>>();
         // 2. Priorisation intra OutputKind - Use probas from training, and many other things
         // like match length etc.
-        eprintln!("Candidates: {:?}", candidates.len());
         candidates.sort_by(|a, b|{
             a.1.byte_range.len().cmp(&b.1.byte_range.len())
                 .then_with(|| {

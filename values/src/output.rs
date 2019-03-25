@@ -37,11 +37,11 @@ enum_kind!(OutputKind,
         Number,
         Ordinal,
         Duration,
-        Datetime,
         Date,
         Time,
         DatePeriod,
         TimePeriod,
+        Datetime,
         AmountOfMoney,
         Temperature,
         Percentage
@@ -53,14 +53,30 @@ impl OutputKind {
     pub fn match_dim(&self, dimension: Dimension) -> bool {
         match dimension {
             Dimension::Datetime(datetime_value) => {
-                eprintln!("DatetimeValue: direction={:?}, form={:?}, grain={:?}", datetime_value.direction, datetime_value.form, datetime_value.constraint.coarse_grain_step());
-                let has_date_form = Some(true) == datetime_value.form.date_form();
-                let has_time_form = Some(true) == datetime_value.form.time_form();
-match self {
-                    &OutputKind::Date => has_date_form,
-                    &OutputKind::Time => Some(true) == has_time_form,
-                    &OutputKind::DatePeriod => false,
-                    &OutputKind::TimePeriod => false,
+                let date_time_grain = (datetime_value.constraint.grain_left().date_grain() &&
+                    datetime_value.constraint.grain_right().time_grain()) ||
+                    (datetime_value.constraint.grain_right().date_grain() &&
+                        datetime_value.constraint.grain_left().time_grain());
+                let has_date_grain = datetime_value.constraint.grain().date_grain() && !date_time_grain;
+                let has_time_grain = datetime_value.constraint.grain().time_grain() && !date_time_grain;
+                let is_span = Some(true) == datetime_value.period_form();
+                // eprintln!("Value:\tdatetime grain={:?}\tgrain={:?}\tdate={:?}\ttime={:?}\tform={:?}\tspan={:?}",
+                          date_time_grain,
+                          datetime_value.constraint.grain(),
+                          has_date_grain,
+                          has_time_grain,
+                          datetime_value.form,
+                          is_span);
+                let date = !is_span && has_date_grain;
+                let time = !is_span && has_time_grain;
+                let date_period = is_span && has_date_grain;
+                let time_period = is_span && has_time_grain;
+                // eprintln!("Kind:\tdate={:?}\ttime={:?}\tdateperiod={:?}\ttimeperiod=t{:?}", date, time, date_period, time_period);
+                match self {
+                    &OutputKind::Date => date,
+                    &OutputKind::Time => time,
+                    &OutputKind::DatePeriod => date_period,
+                    &OutputKind::TimePeriod => time_period,
                     &OutputKind::Datetime => true,
                     _ => false,
                 }
