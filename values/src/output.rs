@@ -60,13 +60,13 @@ impl OutputKind {
                 let has_date_grain = datetime_value.constraint.grain().date_grain() && !date_time_grain;
                 let has_time_grain = datetime_value.constraint.grain().time_grain() && !date_time_grain;
                 let is_span = Some(true) == datetime_value.period_form();
-                // eprintln!("Value:\tdatetime grain={:?}\tgrain={:?}\tdate={:?}\ttime={:?}\tform={:?}\tspan={:?}",
-                          date_time_grain,
-                          datetime_value.constraint.grain(),
-                          has_date_grain,
-                          has_time_grain,
-                          datetime_value.form,
-                          is_span);
+//                eprintln!("Value:\tdatetime grain={:?}\tgrain={:?}\tdate={:?}\ttime={:?}\tform={:?}\tspan={:?}",
+//                          date_time_grain,
+//                          datetime_value.constraint.grain(),
+//                          has_date_grain,
+//                          has_time_grain,
+//                          datetime_value.form,
+//                          is_span);
                 let date = !is_span && has_date_grain;
                 let time = !is_span && has_time_grain;
                 let date_period = is_span && has_date_grain;
