@@ -53,6 +53,9 @@ pub type IntervalWalker<T> = BidirectionalWalker<Interval<T>>;
 
 pub trait IntervalConstraint<T: TimeZone> where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain;
+    fn grain_min(&self) -> Grain;
+    fn grain_left(&self) -> Grain;
+    fn grain_right(&self) -> Grain;
     fn coarse_grain_step(&self) -> Grain;
     fn to_walker(&self, origin: &Interval<T>, _context: &Context<T>) -> IntervalWalker<T>;
 }
@@ -166,6 +169,18 @@ impl<T: TimeZone> IntervalConstraint<T> for Year where <T as TimeZone>::Offset: 
         Grain::Year
     }
 
+    fn grain_min(&self) -> Grain {
+        Grain::Year
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Year
+    }
+
+    fn grain_right(&self) -> Grain {
+        Grain::Year
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         Grain::Year
     }
@@ -213,6 +228,18 @@ impl<T: TimeZone> IntervalConstraint<T> for YearMonthDay where <T as TimeZone>::
         Grain::Day
     }
 
+    fn grain_min(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_right(&self) -> Grain {
+        Grain::Day
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         Grain::Year
     }
@@ -256,6 +283,18 @@ impl MonthDay {
 
 impl<T: TimeZone + 'static> IntervalConstraint<T> for MonthDay where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_min(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_right(&self) -> Grain {
         Grain::Day
     }
 
@@ -325,6 +364,18 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for Month where <T as TimeZone
         Grain::Month
     }
 
+    fn grain_min(&self) -> Grain {
+        Grain::Month
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Month
+    }
+
+    fn grain_right(&self) -> Grain {
+        Grain::Month
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         Grain::Year
     }
@@ -367,6 +418,18 @@ impl DayOfMonth {
 
 impl<T: TimeZone + 'static> IntervalConstraint<T> for DayOfMonth where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_min(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_right(&self) -> Grain {
         Grain::Day
     }
 
@@ -414,6 +477,18 @@ impl DayOfWeek {
 
 impl<T: TimeZone> IntervalConstraint<T> for DayOfWeek where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_min(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Day
+    }
+
+    fn grain_right(&self) -> Grain {
         Grain::Day
     }
 
@@ -478,6 +553,18 @@ impl<T: TimeZone> IntervalConstraint<T> for HourMinute where <T as TimeZone>::Of
         Grain::Minute
     }
 
+    fn grain_min(&self) -> Grain {
+        Grain::Minute
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Minute
+    }
+
+    fn grain_right(&self) -> Grain {
+        Grain::Minute
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         Grain::Day
     }
@@ -539,6 +626,18 @@ impl<T: TimeZone> IntervalConstraint<T> for Hour where <T as TimeZone>::Offset: 
         Grain::Hour
     }
 
+    fn grain_min(&self) -> Grain {
+        Grain::Hour
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Hour
+    }
+
+    fn grain_right(&self) -> Grain {
+        Grain::Hour
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         Grain::Day
     }
@@ -583,6 +682,18 @@ impl<T: TimeZone> IntervalConstraint<T> for Minute where <T as TimeZone>::Offset
         Grain::Minute
     }
 
+    fn grain_min(&self) -> Grain {
+        Grain::Minute
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Minute
+    }
+
+    fn grain_right(&self) -> Grain {
+        Grain::Minute
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         Grain::Hour
     }
@@ -618,6 +729,18 @@ impl Second {
 
 impl<T: TimeZone> IntervalConstraint<T> for Second where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
+        Grain::Second
+    }
+
+    fn grain_min(&self) -> Grain {
+        Grain::Second
+    }
+
+    fn grain_left(&self) -> Grain {
+        Grain::Second
+    }
+
+    fn grain_right(&self) -> Grain {
         Grain::Second
     }
 
@@ -664,6 +787,18 @@ impl<T: TimeZone> IntervalConstraint<T> for Cycle where <T as TimeZone>::Offset:
         self.0
     }
 
+    fn grain_min(&self) -> Grain {
+        self.0
+    }
+
+    fn grain_left(&self) -> Grain {
+        self.0
+    }
+
+    fn grain_right(&self) -> Grain {
+        self.0
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         self.0
     }
@@ -698,6 +833,18 @@ impl<T: TimeZone + 'static> TakeTheNth<T> where <T as TimeZone>::Offset: Copy {
 
 impl<T: TimeZone+'static> IntervalConstraint<T> for TakeTheNth<T> where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
+        self.inner.grain()
+    }
+
+    fn grain_min(&self) -> Grain {
+        self.inner.grain()
+    }
+
+    fn grain_left(&self) -> Grain {
+        self.inner.grain()
+    }
+
+    fn grain_right(&self) -> Grain {
         self.inner.grain()
     }
 
@@ -761,6 +908,18 @@ impl<T: TimeZone + 'static> TakeN<T> where <T as TimeZone>::Offset: Copy {
 
 impl<T: TimeZone + 'static> IntervalConstraint<T> for TakeN<T> where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
+        self.inner.grain()
+    }
+
+    fn grain_min(&self) -> Grain {
+        self.inner.grain()
+    }
+
+    fn grain_left(&self) -> Grain {
+        self.inner.grain()
+    }
+
+    fn grain_right(&self) -> Grain {
         self.inner.grain()
     }
 
@@ -837,6 +996,18 @@ impl<T: TimeZone + 'static> IntervalConstraint<T> for TakeTheNthAfter<T>  where 
         self.after.grain()
     }
 
+    fn grain_min(&self) -> Grain {
+        self.after.grain()
+    }
+
+    fn grain_left(&self) -> Grain {
+        self.after.grain()
+    }
+
+    fn grain_right(&self) -> Grain {
+        self.after.grain()
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         self.after.coarse_grain_step()
     }
@@ -886,6 +1057,18 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for TakeLastOf<T>  where <T as T
         self.base.grain()
     }
 
+    fn grain_min(&self) -> Grain {
+        self.base.grain()
+    }
+
+    fn grain_left(&self) -> Grain {
+        self.base.grain()
+    }
+
+    fn grain_right(&self) -> Grain {
+        self.base.grain()
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         self.base.coarse_grain_step()
     }
@@ -921,6 +1104,18 @@ impl<T: TimeZone+'static> Intersection<T>  where <T as TimeZone>::Offset: Copy {
 impl<T: TimeZone+'static> IntervalConstraint<T> for Intersection<T>  where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
         ::std::cmp::max(self.lhs.grain(), self.rhs.grain())
+    }
+
+    fn grain_min(&self) -> Grain {
+        ::std::cmp::min(self.lhs.grain_min(), self.rhs.grain_min())
+    }
+
+    fn grain_left(&self) -> Grain {
+        self.lhs.grain_min()
+    }
+
+    fn grain_right(&self) -> Grain {
+        self.rhs.grain_min()
     }
 
     fn coarse_grain_step(&self) -> Grain {
@@ -999,6 +1194,18 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for Translate<T>  where <T as Ti
         self.generator.grain()
     }
 
+    fn grain_min(&self) -> Grain {
+        self.generator.grain()
+    }
+
+    fn grain_left(&self) -> Grain {
+        self.generator.grain()
+    }
+
+    fn grain_right(&self) -> Grain {
+        self.generator.grain()
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         self.generator.coarse_grain_step()
     }
@@ -1067,6 +1274,17 @@ impl<T: TimeZone+'static> IntervalConstraint<T> for Span<T>  where <T as TimeZon
         ::std::cmp::max(self.from.grain(), self.to.grain())
     }
 
+    fn grain_min(&self) -> Grain {
+        ::std::cmp::min(self.from.grain_min(), self.to.grain_min())    }
+
+    fn grain_left(&self) -> Grain {
+        self.from.grain()
+    }
+
+    fn grain_right(&self) -> Grain {
+        self.to.grain()
+    }
+
     fn coarse_grain_step(&self) -> Grain {
         self.from.coarse_grain_step()
     }
@@ -1107,6 +1325,18 @@ impl<T: TimeZone+'static> ShiftBy<T>  where <T as TimeZone>::Offset: Copy {
 
 impl<T: TimeZone+'static> IntervalConstraint<T> for ShiftBy<T>  where <T as TimeZone>::Offset: Copy {
     fn grain(&self) -> Grain {
+        self.base.grain()
+    }
+
+    fn grain_min(&self) -> Grain {
+        self.base.grain()
+    }
+
+    fn grain_left(&self) -> Grain {
+        self.base.grain()
+    }
+
+    fn grain_right(&self) -> Grain {
         self.base.grain()
     }
 
