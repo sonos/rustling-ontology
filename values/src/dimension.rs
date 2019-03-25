@@ -512,7 +512,7 @@ impl PartialEq for DatetimeValue {
 
 impl ::std::fmt::Debug for DatetimeValue {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
-        write!(fmt, "<DatetimeValue>")
+        write!(fmt, "<DatetimeValue> form={:?}, grain={:?}, period={:?}", self.form, self.constraint.grain(), self.period_form())
     }
 }
 
@@ -524,6 +524,98 @@ impl DatetimeValue {
     pub fn is_coarse_grain_greater_than(&self, grain: Grain) -> bool {
         (self.constraint.coarse_grain_step() as usize) > (grain as usize)
     }
+
+    pub fn date_form(&self) -> Option<bool> {
+        match self.form {
+            Form::Cycle(grain) => {
+                match grain {
+                    Grain::Year => Some(true),
+                    Grain::Quarter => Some(true),
+                    Grain::Month => Some(true),
+                    Grain::Week => Some(true),
+                    Grain::Day => Some(true),
+                    _ => Some(false),
+                }
+            },
+            Form::Year(_) => Some(true),
+            Form::Month(_) => Some(true),
+            Form::MonthDay(_) => Some(true),
+            Form::YearMonthDay(_) => Some(true),
+            Form::TimeOfDay(_) => Some(false),
+            Form::DayOfWeek { .. } => Some(true),
+            Form::Empty => None,
+            Form::PartOfDay { .. } => Some(false),
+            Form::Meal => Some(false),
+            Form::Celebration => Some(true),
+            Form::PartOfMonth => Some(true),
+            Form::PartOfYear => Some(true),
+            Form::DayOfMonth => Some(true),
+            Form::PartOfForm(_) => None,
+            Form::PartOfWeek => Some(true),
+            Form::Span => None,
+        }
+    }
+
+    pub fn time_form(&self) -> Option<bool> {
+        match self.form {
+            Form::Cycle(grain) => {
+                match grain {
+                    Grain::Hour => Some(true),
+                    Grain::Minute => Some(true),
+                    Grain::Second => Some(true),
+                    _ => Some(false),
+                }
+            },
+            Form::Year(_) => Some(false),
+            Form::Month(_) => Some(false),
+            Form::MonthDay(_) => Some(false),
+            Form::YearMonthDay(_) => Some(false),
+            Form::TimeOfDay(_) => Some(true),
+            Form::DayOfWeek { .. } => Some(false),
+            Form::Empty => None,
+            Form::PartOfDay { .. } => Some(true),
+            Form::Meal => Some(true),
+            Form::Celebration => Some(false),
+            Form::PartOfMonth => Some(false),
+            Form::PartOfYear => Some(false),
+            Form::DayOfMonth => Some(false),
+            Form::PartOfForm(_) => None,
+            Form::PartOfWeek => Some(false),
+            Form::Span => None,
+        }
+    }
+
+    pub fn period_form(&self) -> Option<bool> {
+        match self.form {
+            Form::Cycle(grain) => {
+                match grain {
+                    Grain::Year => Some(true),
+                    Grain::Quarter => Some(true),
+                    Grain::Month => Some(true),
+                    Grain::Week => Some(true),
+                    _ => Some(false),
+
+                }
+            },
+            Form::Year(_) => Some(true),
+            Form::Month(_) => Some(true),
+            Form::MonthDay(_) => Some(false),
+            Form::YearMonthDay(_) => Some(false),
+            Form::TimeOfDay(_) => Some(false),
+            Form::DayOfWeek { .. } => Some(false),
+            Form::Empty => Some(false),
+            Form::PartOfDay { .. } => Some(true),
+            Form::Meal => Some(true),
+            Form::Celebration => Some(false),
+            Form::PartOfMonth => Some(true),
+            Form::PartOfYear => Some(true),
+            Form::DayOfMonth => Some(false),
+            Form::PartOfForm(_) => None,
+            Form::PartOfWeek => Some(true),
+            Form::Span => Some(true),
+        }
+    }
+
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -546,6 +638,7 @@ pub enum Form {
     PartOfForm(PartOfForm),
     Meal,
     Celebration,
+    Span,
     Empty,
 }
 
@@ -568,48 +661,7 @@ impl Form {
             &Form::DayOfMonth => None,
             &Form::PartOfForm(_) => None,
             &Form::PartOfWeek => None,
-        }
-    }
-
-    pub fn date_form(&self) -> Option<bool> {
-        match self {
-            &Form::Cycle(grain) => Some(grain.date_grain()),
-            &Form::Year(_) => Some(true),
-            &Form::Month(_) => Some(true),
-            &Form::MonthDay(_) => Some(true),
-            &Form::YearMonthDay(_) => Some(true),
-            &Form::TimeOfDay(_) => Some(false),
-            &Form::DayOfWeek { .. } => Some(true),
-            &Form::Empty => None,
-            &Form::PartOfDay { .. } => Some(false),
-            &Form::Meal => Some(false),
-            &Form::Celebration => Some(true),
-            &Form::PartOfMonth => Some(true),
-            &Form::PartOfYear => Some(true),
-            &Form::DayOfMonth => Some(true),
-            &Form::PartOfForm(_) => None,
-            &Form::PartOfWeek => Some(true),
-        }
-    }
-
-    pub fn time_form(&self) -> Option<bool> {
-        match self {
-            &Form::Cycle(grain) => Some(grain.time_grain()),
-            &Form::Year(_) => Some(false),
-            &Form::Month(_) => Some(false),
-            &Form::MonthDay(_) => Some(false),
-            &Form::YearMonthDay(_) => Some(false),
-            &Form::TimeOfDay(_) => Some(true),
-            &Form::DayOfWeek { .. } => Some(false),
-            &Form::Empty => None,
-            &Form::PartOfDay { .. } => Some(true),
-            &Form::Meal => Some(true),
-            &Form::Celebration => Some(false),
-            &Form::PartOfMonth => Some(false),
-            &Form::PartOfYear => Some(false),
-            &Form::DayOfMonth => Some(false),
-            &Form::PartOfForm(_) => None,
-            &Form::PartOfWeek => Some(false),
+            &Form::Span => None,
         }
     }
 }
