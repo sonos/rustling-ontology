@@ -59,14 +59,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     /* DATETIME - COMPLEX RULES */
     // DATETIME#1
-    // TODO: split date/time combinations
+    // TODO: split date/time combinations + exclude intersect w/ 1 interval?
     b.rule_2("intersect <datetime>",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |a, b| a.value().intersect(b.value())
     );
     // DATETIME#2
-    // TODO: split date/time combinations
+    // TODO: split date/time combinations + exclude intersect w/ 1 interval?
     b.rule_3("intersect by \"of\", \"from\", \"'s\"",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              b.reg(r#"of|from|for|'s"#)?,
@@ -74,7 +74,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _, b| a.value().intersect(b.value())
     );
     // DATETIME#3
-    // TODO: split date/time combinations
+    // TODO: split date/time combinations + exclude intersect w/ 1 interval?
     b.rule_3("intersect by \",\"",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              b.reg(r#","#)?,
@@ -487,7 +487,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     /* DATETIME - DATE - DEICTICS */
 
     // DATETIME#60
-    // TODO: output::date
+    // TODO: output::date - separate 'at this time'
     b.rule_1_terminal("today",
                       b.reg(r#"todays?|(?:at this time)"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
