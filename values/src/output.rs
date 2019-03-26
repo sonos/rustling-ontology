@@ -50,17 +50,18 @@ enum_kind!(OutputKind,
 
 impl OutputKind {
 
-    pub fn match_dim(&self, dimension: Dimension) -> bool {
+    pub fn type_and_match_dim(&self, dimension: Dimension) -> bool {
         match dimension {
             Dimension::Datetime(datetime_value) => {
+                eprintln!("DatetimeValue: {:?}", datetime_value);
                 let date_time_grain = (datetime_value.constraint.grain_left().date_grain() &&
                     datetime_value.constraint.grain_right().time_grain()) ||
                     (datetime_value.constraint.grain_right().date_grain() &&
                         datetime_value.constraint.grain_left().time_grain());
-                let has_date_grain = datetime_value.constraint.grain().date_grain() && !date_time_grain;
-                let has_time_grain = datetime_value.constraint.grain().time_grain() && !date_time_grain;
+                let has_date_grain = !date_time_grain && datetime_value.constraint.grain_min().date_grain();
+                let has_time_grain = !date_time_grain && datetime_value.constraint.grain_min().time_grain();
                 let is_span = Some(true) == datetime_value.period_form();
-//                eprintln!("Value:\tdatetime grain={:?}\tgrain={:?}\tdate={:?}\ttime={:?}\tform={:?}\tspan={:?}",
+//                eprintln!("Value:\tdatetime-grain={:?}\tgrain={:?}\tdate-grain={:?}\ttime-grain={:?}\tform={:?}\tspan={:?}",
 //                          date_time_grain,
 //                          datetime_value.constraint.grain(),
 //                          has_date_grain,
@@ -71,13 +72,39 @@ impl OutputKind {
                 let time = !is_span && has_time_grain;
                 let date_period = is_span && has_date_grain;
                 let time_period = is_span && has_time_grain;
-                // eprintln!("Kind:\tdate={:?}\ttime={:?}\tdateperiod={:?}\ttimeperiod=t{:?}", date, time, date_period, time_period);
+//                eprintln!("Kind:\tdate={:?}\ttime={:?}\tdateperiod={:?}\ttimeperiod={:?}", date, time, date_period, time_period);
                 match self {
-                    &OutputKind::Date => date,
-                    &OutputKind::Time => time,
-                    &OutputKind::DatePeriod => date_period,
-                    &OutputKind::TimePeriod => time_period,
-                    &OutputKind::Datetime => true,
+                    &OutputKind::Date => {
+                        if date {
+                            datetime_value.datetime_kind(DatetimeKind::Date);
+                            true
+                        } else { false }
+                    },
+                    &OutputKind::Time => {
+                        if time {
+                            datetime_value.datetime_kind(DatetimeKind::Time);
+                            true
+                        } else { false }
+                    },
+                    &OutputKind::DatePeriod => {
+                        if date_period {
+                            datetime_value.datetime_kind(DatetimeKind::DatePeriod);
+                            true
+                        } else { false }
+
+                    },
+                    &OutputKind::TimePeriod => {
+                        if time_period {
+                            datetime_value.datetime_kind(DatetimeKind::TimePeriod);
+                            true
+                        } else { false }
+                    },
+                    // If the dimension is datetime and none of the 4 subtypes, then it's the
+                    // complement subtype, hence Datetime
+                    &OutputKind::Datetime => {
+                        datetime_value.datetime_kind(DatetimeKind::DatetimeComplement);
+                        true
+                    },
                     _ => false,
                 }
             },
@@ -123,10 +150,25 @@ pub struct DatetimeOutput {
     pub grain: Grain, 
     pub precision: Precision,
     pub latent: bool,
+    pub datetime_kind: DatetimeKind,
+}
+
+impl DatetimeOutput {
+
+    pub fn datetime_kind(self, datetime_kind: DatetimeKind) -> DatetimeOutput {
+        DatetimeOutput { datetime_kind: datetime_kind, ..self }
+    }
+
 }
 
 #[derive(Clone,Copy,PartialEq,Debug)]
-pub enum DatetimeIntervalOutput {
+pub struct DatetimeIntervalOutput {
+    pub interval_kind: DatetimeIntervalKind,
+    pub datetime_kind: DatetimeKind,
+}
+
+#[derive(Clone,Copy,PartialEq,Debug)]
+pub enum DatetimeIntervalKind {
     After(DatetimeOutput),
     Before(DatetimeOutput),
     Between { start: Moment<Local>, end: Moment<Local>, precision: Precision, latent: bool }

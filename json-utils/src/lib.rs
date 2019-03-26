@@ -5,7 +5,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
-use rustling_ontology::{Output, dimension, output::DatetimeIntervalOutput};
+use rustling_ontology::{Output, dimension, output::DatetimeIntervalKind};
 use moment::{Moment, Local};
 use ::std::f64;
 
@@ -112,18 +112,22 @@ impl From<Output> for SlotValue {
                 grain: datetime.grain.into(),
                 precision: datetime.precision.into(),
             }),
-            Output::DatetimeInterval(DatetimeIntervalOutput::After(datetime)) => SlotValue::TimeInterval( TimeIntervalValue {
-                from: Some(datetime.moment),
-                to: None,
-            }),
-            Output::DatetimeInterval(DatetimeIntervalOutput::Before(datetime)) => SlotValue::TimeInterval( TimeIntervalValue {
-                from: None,
-                to: Some(datetime.moment),
-            }),
-            Output::DatetimeInterval(DatetimeIntervalOutput::Between { start, end, .. }) => SlotValue::TimeInterval( TimeIntervalValue {
-                from: Some(start),
-                to: Some(end),
-            }),
+            Output::DatetimeInterval(datetime_interval) => {
+                match datetime_interval.interval_kind {
+                    DatetimeIntervalKind::After(datetime) => SlotValue::TimeInterval( TimeIntervalValue {
+                        from: Some(datetime.moment),
+                        to: None,
+                    }),
+                    DatetimeIntervalKind::Before(datetime) => SlotValue::TimeInterval( TimeIntervalValue {
+                        from: None,
+                        to: Some(datetime.moment),
+                    }),
+                    DatetimeIntervalKind::Between { start, end, .. } => SlotValue::TimeInterval(TimeIntervalValue {
+                        from: Some(start),
+                        to: Some(end),
+                    })
+                }
+            },
             Output::AmountOfMoney(amount) => SlotValue::AmountOfMoney( AmountOfMoneyValue {
                 value: amount.value,
                 precision: amount.precision.into(),

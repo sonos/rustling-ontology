@@ -33,10 +33,10 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
                         // Now: Do a more complex check on the candidate's dimension based on the
                         // OutputKind to see if it matches the request. Otherwise discard candidate.
                         // This is a change only for Datetime things.
-                        // position() returns the index of the first item matching the closure
-                        // condition
+                        // This also adds the subtype info on the datetime value, to be propagated
+                        // to the output and clients. Temporary but logic for now.
                         .position(|output_kind| {
-                            output_kind.match_dim(parsed_node.value.clone())
+                            output_kind.type_and_match_dim(parsed_node.value.clone())
                         })
                         .map(|position| (parsed_node, parser_match, position))
                 }

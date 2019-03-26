@@ -166,6 +166,9 @@ impl DatetimeValue {
             precision: Precision::Exact,
             latent: false,
             ambiguity: Ambiguity::No,
+            // Could be filled through rules too, not only in tagger
+            // (but could be overriden before the end of parsing)
+            datetime_kind: DatetimeKind::Empty
         }
     }
 

@@ -491,6 +491,17 @@ pub enum Ambiguity {
     Big,
 }
 
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Copy)]
+pub enum DatetimeKind {
+    Date,
+    Time,
+    DatePeriod,
+    TimePeriod,
+    DatetimeComplement,
+    Datetime,
+    Empty,
+}
+
 /// Payload for the datetime value of Dimension
 #[derive(Clone)]
 pub struct DatetimeValue {
@@ -500,6 +511,7 @@ pub struct DatetimeValue {
     pub precision: Precision,
     pub latent: bool,
     pub ambiguity: Ambiguity,
+    pub datetime_kind: DatetimeKind,
 }
 
 // We need partial eq to make Dimension partial eq happy, but this is only
@@ -512,7 +524,7 @@ impl PartialEq for DatetimeValue {
 
 impl ::std::fmt::Debug for DatetimeValue {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
-        write!(fmt, "<DatetimeValue> form={:?}, grain={:?}, period={:?}", self.form, self.constraint.grain(), self.period_form())
+        write!(fmt, "DatetimeValue(form={:?}, grain={:?}, min-grain={:?})", self.form, self.constraint.grain(), self.constraint.grain_min())
     }
 }
 
@@ -614,6 +626,10 @@ impl DatetimeValue {
             Form::PartOfWeek => Some(true),
             Form::Span => Some(true),
         }
+    }
+
+    pub fn datetime_kind(self, datetime_kind: DatetimeKind) -> DatetimeValue {
+        DatetimeValue { datetime_kind: datetime_kind, ..self }
     }
 
 }

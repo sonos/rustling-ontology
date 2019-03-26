@@ -48,15 +48,16 @@ impl ResolverContext {
 
 impl ParsingContext<Dimension> for ResolverContext {
     type O = Output;
+
     fn resolve(&self, dim: &Dimension) -> Option<Output> {
         match dim {
-            &Dimension::Datetime(ref dtv) => {
-                let mut walker = dtv.constraint
+            &Dimension::Datetime(ref datetime_value) => {
+                let mut walker = datetime_value.constraint
                     .to_walker(&self.ctx.reference, &self.ctx);
                 walker.forward
                     .next()
                     .and_then(|h| {
-                        if dtv.form.not_immediate().unwrap_or(false) && h.intersect(self.ctx.reference).is_some() {
+                        if datetime_value.form.not_immediate().unwrap_or(false) && h.intersect(self.ctx.reference).is_some() {
                             walker.forward.next()
                         } else {
                             Some(h)
@@ -64,41 +65,78 @@ impl ParsingContext<Dimension> for ResolverContext {
                     })
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
-                        if let Some(bounded_direction) = dtv.direction {
+
+                        if let Some(bounded_direction) = datetime_value.direction {
+
+                            let datetime_kind = match datetime_value.datetime_kind {
+                                DatetimeKind::Date |
+                                DatetimeKind::DatePeriod => DatetimeKind::DatePeriod,
+                                DatetimeKind::Time |
+                                DatetimeKind::TimePeriod => DatetimeKind::TimePeriod,
+                                DatetimeKind::DatetimeComplement |
+                                DatetimeKind::Datetime |
+                                DatetimeKind::Empty => DatetimeKind::Datetime,
+                            };
+
                             let anchor = match bounded_direction.bound {
                                 Bound::Start => interval.start,
                                 Bound::End { only_interval } if only_interval => interval.end.unwrap_or(interval.start),
                                 Bound::End { .. } => interval.end_moment(),
                             };
-                            
-                            let output = DatetimeOutput {
+
+                            let datetime_output_value = DatetimeOutput {
                                 moment: anchor,
                                 grain: interval.grain,
-                                precision: dtv.precision,
-                                latent: dtv.latent,
+                                precision: datetime_value.precision,
+                                latent: datetime_value.latent,
+                                datetime_kind: datetime_kind,
                             };
-                            
+
                             match bounded_direction.direction {
-                                Direction::After => Output::DatetimeInterval(DatetimeIntervalOutput::After(output)),
-                                Direction::Before => Output::DatetimeInterval(DatetimeIntervalOutput::Before(output)),
+                                Direction::After => {
+                                    let datetime_interval_output_value = DatetimeIntervalOutput {
+                                        interval_kind: DatetimeIntervalKind::After(datetime_output_value),
+                                        datetime_kind: datetime_kind,
+                                    };
+                                    Output::DatetimeInterval(datetime_interval_output_value)
+                                },
+                                Direction::Before => {
+                                    let datetime_interval_output_value = DatetimeIntervalOutput {
+                                        interval_kind: DatetimeIntervalKind::Before(datetime_output_value),
+                                        datetime_kind: datetime_kind,
+                                    };
+                                    Output::DatetimeInterval(datetime_interval_output_value)
+                                },
                             }
                         } else if let Some(end) = interval.end {
-                            Output::DatetimeInterval(
-                                    DatetimeIntervalOutput::Between {
-                                        start: interval.start, 
-                                        end: end, 
-                                        precision: dtv.precision,
-                                        latent: dtv.latent,
-                                    }
-                                )
+                            let datetime_kind = match datetime_value.datetime_kind {
+                                DatetimeKind::Date |
+                                DatetimeKind::DatePeriod => DatetimeKind::DatePeriod,
+                                DatetimeKind::Time |
+                                DatetimeKind::TimePeriod => DatetimeKind::TimePeriod,
+                                DatetimeKind::DatetimeComplement |
+                                DatetimeKind::Datetime |
+                                DatetimeKind::Empty => DatetimeKind::Datetime,
+                            };
+                            let datetime_interval_output_value = DatetimeIntervalOutput {
+                                interval_kind: DatetimeIntervalKind::Between {
+                                    start: interval.start,
+                                    end: end,
+                                    precision: datetime_value.precision,
+                                    latent: datetime_value.latent,
+                                },
+                                datetime_kind: datetime_kind,
+                            };
+                            Output::DatetimeInterval(datetime_interval_output_value)
                         } else {
-                            let output = DatetimeOutput {
+                            let datetime_output_value = DatetimeOutput {
                                     moment: interval.start,
                                     grain: interval.grain,
-                                    precision: dtv.precision,
-                                    latent: dtv.latent,
+                                    precision: datetime_value.precision,
+                                    latent: datetime_value.latent,
+                                    datetime_kind: datetime_value.datetime_kind,
                             };
-                            Output::Datetime(output)
+                            Output::Datetime(datetime_output_value)
                         }
                     })
             }

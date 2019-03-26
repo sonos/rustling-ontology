@@ -99,7 +99,7 @@ impl Check<Dimension> for CheckMoment {
                 self.context.resolve(&pn.value)
                     .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
                     .map(|v| {
-                        if let DatetimeIntervalOutput::After(m) = v {
+                        if let DatetimeIntervalKind::After(m) = v.interval_kind {
                             let check_value = m.moment == self.interval.start && m.grain == self.interval.grain;
                             let check_precision = m.precision == self.precision;
                             check_value && check_precision
@@ -113,7 +113,7 @@ impl Check<Dimension> for CheckMoment {
                 self.context.resolve(&pn.value)
                     .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
                     .map(|v| {
-                        if let DatetimeIntervalOutput::Before(m) = v {
+                        if let DatetimeIntervalKind::Before(m) = v.interval_kind {
                             let check_value = m.moment == self.interval.start && m.grain == self.interval.grain;
                             let check_precision = m.precision == self.precision;
                             check_value && check_precision
@@ -149,7 +149,7 @@ impl Check<Dimension> for CheckMomentSpan {
         self.context.resolve(&pn.value)
             .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
             .map(|v| {
-                if let DatetimeIntervalOutput::Between { start, end, precision, .. } = v {
+                if let DatetimeIntervalKind::Between { start, end, precision, .. } = v.interval_kind {
                     start == self.interval.start && Some(end) == self.interval.end && precision == self.precision
                 } else {
                     false
