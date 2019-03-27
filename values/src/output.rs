@@ -14,9 +14,9 @@ pub enum Output {
     Temperature(TemperatureOutput),
     Duration(DurationOutput),
 }
-//
+
+// Seems unused - remove?
 //impl Output {
-//    // Seems unused
 //    pub fn kind(&self) -> OutputKind {
 //        match self {
 //            &Output::Integer(_) => OutputKind::Number,
@@ -50,69 +50,6 @@ enum_kind!(OutputKind,
 
 impl OutputKind {
 
-    pub fn type_and_match_dim(&self, dimension: Dimension) -> bool {
-        match dimension {
-            Dimension::Datetime(datetime_value) => {
-                eprintln!("DatetimeValue: {:?}", datetime_value);
-                let date_time_grain = (datetime_value.constraint.grain_left().date_grain() &&
-                    datetime_value.constraint.grain_right().time_grain()) ||
-                    (datetime_value.constraint.grain_right().date_grain() &&
-                        datetime_value.constraint.grain_left().time_grain());
-                let has_date_grain = !date_time_grain && datetime_value.constraint.grain_min().date_grain();
-                let has_time_grain = !date_time_grain && datetime_value.constraint.grain_min().time_grain();
-                let is_span = Some(true) == datetime_value.period_form();
-//                eprintln!("Value:\tdatetime-grain={:?}\tgrain={:?}\tdate-grain={:?}\ttime-grain={:?}\tform={:?}\tspan={:?}",
-//                          date_time_grain,
-//                          datetime_value.constraint.grain(),
-//                          has_date_grain,
-//                          has_time_grain,
-//                          datetime_value.form,
-//                          is_span);
-                let date = !is_span && has_date_grain;
-                let time = !is_span && has_time_grain;
-                let date_period = is_span && has_date_grain;
-                let time_period = is_span && has_time_grain;
-//                eprintln!("Kind:\tdate={:?}\ttime={:?}\tdateperiod={:?}\ttimeperiod={:?}", date, time, date_period, time_period);
-                match self {
-                    &OutputKind::Date => {
-                        if date {
-                            datetime_value.datetime_kind(DatetimeKind::Date);
-                            true
-                        } else { false }
-                    },
-                    &OutputKind::Time => {
-                        if time {
-                            datetime_value.datetime_kind(DatetimeKind::Time);
-                            true
-                        } else { false }
-                    },
-                    &OutputKind::DatePeriod => {
-                        if date_period {
-                            datetime_value.datetime_kind(DatetimeKind::DatePeriod);
-                            true
-                        } else { false }
-
-                    },
-                    &OutputKind::TimePeriod => {
-                        if time_period {
-                            datetime_value.datetime_kind(DatetimeKind::TimePeriod);
-                            true
-                        } else { false }
-                    },
-                    // If the dimension is datetime and none of the 4 subtypes, then it's the
-                    // complement subtype, hence Datetime
-                    &OutputKind::Datetime => {
-                        datetime_value.datetime_kind(DatetimeKind::DatetimeComplement);
-                        true
-                    },
-                    _ => false,
-                }
-            },
-            // temporary
-            _ => self.to_dim() == dimension.kind(),
-        }
-    }
-
     pub fn to_dim(&self) -> DimensionKind {
         match self {
             &OutputKind::Number => DimensionKind::Number,
@@ -126,6 +63,25 @@ impl OutputKind {
             &OutputKind::Temperature => DimensionKind::Temperature,
             &OutputKind::Duration => DimensionKind::Duration,
             &OutputKind::Percentage => DimensionKind::Percentage,
+        }
+    }
+
+    pub fn match_dim(&self, dimension_value: &Dimension) -> bool {
+        match dimension_value {
+            Dimension::Datetime(datetime_value) => {
+                match self {
+                    OutputKind::Date => DatetimeKind::Date == datetime_value.datetime_kind,
+                    OutputKind::Time => DatetimeKind::Time == datetime_value.datetime_kind,
+                    OutputKind::DatePeriod => DatetimeKind::DatePeriod == datetime_value.datetime_kind,
+                    OutputKind::TimePeriod => DatetimeKind::TimePeriod == datetime_value.datetime_kind,
+                    // If the dimension is datetime and none of the 4 subtypes, then it's the
+                    // complement subtype, hence Datetime
+                    // This works if the arm matching hasn't matched something first
+                    OutputKind::Datetime => true,
+                    _ => false,
+                }
+            },
+            _ => self.to_dim() == dimension_value.kind(),
         }
     }
 

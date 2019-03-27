@@ -4,44 +4,56 @@ use rustling_ontology_values::ParsingContext;
 use rustling_ontology_values::dimension::{Dimension};
 use rustling_ontology_values::output::OutputKind;
 
+use mapper;
+
 pub struct CandidateTagger<'a, C: ParsingContext<Dimension> + 'a> {
     pub output_kind_filter: &'a [OutputKind],
     pub context: &'a C,
     pub resolve_all_candidates: bool,
 }
 
-
 impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for CandidateTagger<'a, C> {
     type O = Option<C::O>;
 
-    fn tag(&self, 
-            candidates: Vec<(ParsedNode<Dimension>, ParserMatch<Dimension>)>) -> Vec<Candidate<Dimension, Option<C::O>>> {
+    fn tag(&self,
+           mut candidates: Vec<(ParsedNode<Dimension>, ParserMatch<Dimension>)>)
+        -> Vec<Candidate<Dimension, Option<C::O>>> {
 
-        // Use OutputKind as filter instead of corresponding Dimensions
+        // Use an OutputKind vector as filter
         let output_kind_filter = self.output_kind_filter.iter().collect::<Vec<_>>();
-        // 1. Priorisation among OutputKinds, based on the filter (presence and order)
+
+        // Use the mapper to update the candidate Dimension values, specifically for Datetime
+        // values, which will be tagged with a specific subtype if relevant.
+        // This is necessary to then compare the Dimension values to the OutputKind filter, and to
+        // later propagate the info of Datetime subtype to the Output value.
+        // => parsed_node.value and parser_match.value are a Dimension(dimension_value)
+        for (ref mut parsed_node, ref mut parser_match) in &mut candidates {
+            // [for loop because iterator was failing with a mess of references and values]
+            mapper::map_node(&mut parsed_node.value);
+            mapper::map_node(&mut parser_match.value);
+        }
+
+        // 1. Filtering and priorisation of candidates among OutputKinds, based on the filter:
+        // - presence: candidate is valid if its dimension matches an OutputKind present in the
+        // filter
+        // - order: candidate associated with position of OutputKind in the filter
         let mut candidates = candidates.into_iter()
             .filter_map(|(parsed_node, parser_match)| {
-                // eprintln!("parser_match: {:?} @{:?}", parser_match.value, parser_match.char_range);
-                // value of parsed_node is a Dimension
                 if parsed_node.value.is_too_ambiguous() { None }
                 else {
                     output_kind_filter
                         .iter()
                         .rev()
-                        // Before: Simply check if dim.kind is in filter, if not, discard candidate
-                        // Now: Do a more complex check on the candidate's dimension based on the
-                        // OutputKind to see if it matches the request. Otherwise discard candidate.
-                        // This is a change only for Datetime things.
-                        // This also adds the subtype info on the datetime value, to be propagated
-                        // to the output and clients. Temporary but logic for now.
-                        .position(|output_kind| {
-                            output_kind.type_and_match_dim(parsed_node.value.clone())
+                        // Keep candidates whose Dimension(dimension_value) matches an OutputKind
+                        // from the filter.
+                        .position(|output_kind| output_kind.match_dim(&parsed_node.value))
+                        .map(|position| {
+                            (parsed_node, parser_match, position)
                         })
-                        .map(|position| (parsed_node, parser_match, position))
                 }
             })
             .collect::<Vec<_>>();
+
         // 2. Priorisation intra OutputKind - Use probas from training, and many other things
         // like match length etc.
         candidates.sort_by(|a, b|{
@@ -76,7 +88,6 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
                 let resolved_value = self.context.resolve(&c.1.value);
                 if resolved_value.is_some() {
                     selected_ranges.push(c.1.byte_range);
-                    
                     return Candidate {
                         node: c.0,
                         match_:  ParserMatch { 

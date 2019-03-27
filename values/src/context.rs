@@ -66,58 +66,37 @@ impl ParsingContext<Dimension> for ResolverContext {
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
 
+
                         if let Some(bounded_direction) = datetime_value.direction {
-
-                            let datetime_kind = match datetime_value.datetime_kind {
-                                DatetimeKind::Date |
-                                DatetimeKind::DatePeriod => DatetimeKind::DatePeriod,
-                                DatetimeKind::Time |
-                                DatetimeKind::TimePeriod => DatetimeKind::TimePeriod,
-                                DatetimeKind::DatetimeComplement |
-                                DatetimeKind::Datetime |
-                                DatetimeKind::Empty => DatetimeKind::Datetime,
-                            };
-
                             let anchor = match bounded_direction.bound {
                                 Bound::Start => interval.start,
                                 Bound::End { only_interval } if only_interval => interval.end.unwrap_or(interval.start),
                                 Bound::End { .. } => interval.end_moment(),
                             };
-
                             let datetime_output_value = DatetimeOutput {
                                 moment: anchor,
                                 grain: interval.grain,
                                 precision: datetime_value.precision,
                                 latent: datetime_value.latent,
-                                datetime_kind: datetime_kind,
+                                datetime_kind: datetime_value.datetime_kind_with_span(),
                             };
-
                             match bounded_direction.direction {
                                 Direction::After => {
                                     let datetime_interval_output_value = DatetimeIntervalOutput {
                                         interval_kind: DatetimeIntervalKind::After(datetime_output_value),
-                                        datetime_kind: datetime_kind,
+                                        datetime_kind: datetime_output_value.datetime_kind,
                                     };
                                     Output::DatetimeInterval(datetime_interval_output_value)
                                 },
                                 Direction::Before => {
                                     let datetime_interval_output_value = DatetimeIntervalOutput {
                                         interval_kind: DatetimeIntervalKind::Before(datetime_output_value),
-                                        datetime_kind: datetime_kind,
+                                        datetime_kind: datetime_output_value.datetime_kind,
                                     };
                                     Output::DatetimeInterval(datetime_interval_output_value)
                                 },
                             }
                         } else if let Some(end) = interval.end {
-                            let datetime_kind = match datetime_value.datetime_kind {
-                                DatetimeKind::Date |
-                                DatetimeKind::DatePeriod => DatetimeKind::DatePeriod,
-                                DatetimeKind::Time |
-                                DatetimeKind::TimePeriod => DatetimeKind::TimePeriod,
-                                DatetimeKind::DatetimeComplement |
-                                DatetimeKind::Datetime |
-                                DatetimeKind::Empty => DatetimeKind::Datetime,
-                            };
                             let datetime_interval_output_value = DatetimeIntervalOutput {
                                 interval_kind: DatetimeIntervalKind::Between {
                                     start: interval.start,
@@ -125,7 +104,7 @@ impl ParsingContext<Dimension> for ResolverContext {
                                     precision: datetime_value.precision,
                                     latent: datetime_value.latent,
                                 },
-                                datetime_kind: datetime_kind,
+                                datetime_kind: datetime_value.datetime_kind_with_span(),
                             };
                             Output::DatetimeInterval(datetime_interval_output_value)
                         } else {

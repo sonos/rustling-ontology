@@ -502,6 +502,7 @@ pub enum DatetimeKind {
     Empty,
 }
 
+
 /// Payload for the datetime value of Dimension
 #[derive(Clone)]
 pub struct DatetimeValue {
@@ -524,7 +525,9 @@ impl PartialEq for DatetimeValue {
 
 impl ::std::fmt::Debug for DatetimeValue {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
-        write!(fmt, "DatetimeValue(form={:?}, grain={:?}, min-grain={:?})", self.form, self.constraint.grain(), self.constraint.grain_min())
+        write!(fmt, "DatetimeValue(form={:?}, grain={:?}, min-grain={:?}, kind={:?})",
+               self.form, self.constraint.grain(), self.constraint.grain_min(), self.datetime_kind)
+
     }
 }
 
@@ -628,8 +631,20 @@ impl DatetimeValue {
         }
     }
 
-    pub fn datetime_kind(self, datetime_kind: DatetimeKind) -> DatetimeValue {
-        DatetimeValue { datetime_kind: datetime_kind, ..self }
+    pub fn set_datetime_kind(&mut self, datetime_kind: DatetimeKind) {
+        self.datetime_kind = datetime_kind
+    }
+
+    pub fn datetime_kind_with_span(&self) -> DatetimeKind {
+        match self.datetime_kind {
+            DatetimeKind::Date |
+            DatetimeKind::DatePeriod => DatetimeKind::DatePeriod,
+            DatetimeKind::Time |
+            DatetimeKind::TimePeriod => DatetimeKind::TimePeriod,
+            DatetimeKind::DatetimeComplement |
+            DatetimeKind::Datetime |
+            DatetimeKind::Empty => DatetimeKind::Datetime,
+        }
     }
 
 }
@@ -637,8 +652,8 @@ impl DatetimeValue {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Form {
     // TODO: Change this into a tree structure, more informative and better reflecting relationships
-    // between certain forms
-    // For now just adding values if needed, flatly
+    // between certain forms.
+    // For now just adding values if needed, flatly.
     Cycle(Grain), // e.g. Hour, Day
     Year(i32),
     Month(u32),
