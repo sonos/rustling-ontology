@@ -39,8 +39,6 @@ fn main() {
                 for _ in byte_range.1..sentence.len() {
                     hilite.push('_');
                 }
-                // TODO: Manage to display the XyzValue of a Dimension (e.g. DatetimeValue for
-                // Dimension::Datetime) and its fields (e.g. datetime_type for DatetimeValue)
                 table.add_row(row![ix,
                                    hilite,
                                    &m.value,

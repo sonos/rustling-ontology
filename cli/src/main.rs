@@ -54,7 +54,7 @@ fn main() {
                 parser.parse(&*sentence, &context).unwrap()
             };
             let mut table = Table::new();
-            table.set_titles(row!["ix", "log(p)", "p", "text", "value"]);
+            table.set_titles(row!["ix", "log(p)", "p", "text", "Output(OutputValue)"]);
             for (ix, c) in entities.iter().enumerate().rev() {
                 let mut hilite = String::new();
                 for _ in 0..c.byte_range.0 {
