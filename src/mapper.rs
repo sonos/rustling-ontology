@@ -6,7 +6,7 @@ use rustling_ontology_values::dimension::{Dimension, DatetimeKind};
 // We would prefer not changing the Dimension itself, but for now that's how we carry the mapping
 // info throughout the tagger and context, to be passed to the candidates, and then to the final
 // output.
-pub fn map_node(dimension: &mut Dimension) {
+pub fn map_dimension(dimension: &mut Dimension) {
     match dimension {
         Dimension::Datetime(datetime_value) => {
 

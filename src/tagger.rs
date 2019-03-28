@@ -29,8 +29,8 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
         // => parsed_node.value and parser_match.value are a Dimension(dimension_value)
         for (ref mut parsed_node, ref mut parser_match) in &mut candidates {
             // [for loop because iterator was failing with a mess of references and values]
-            mapper::map_node(&mut parsed_node.value);
-            mapper::map_node(&mut parser_match.value);
+            mapper::map_dimension(&mut parsed_node.value);
+            mapper::map_dimension(&mut parser_match.value);
         }
 
         // 1. Filtering and priorisation of candidates among OutputKinds, based on the filter:
