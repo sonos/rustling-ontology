@@ -754,7 +754,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     // DATETIME#91
-    // TODO: Date rule
+    // TODO: Date rule + allow <day-of-month> as integer form too?
     b.rule_2("<named-day> <day-of-month> (ordinal)",
              datetime_check!(form!(Form::DayOfWeek{..})),
              ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),

@@ -16,23 +16,23 @@ pub fn map_dimension(dimension: &mut Dimension) {
                 datetime_value.constraint.grain_right().time_grain()) ||
                 (datetime_value.constraint.grain_right().date_grain() &&
                     datetime_value.constraint.grain_left().time_grain());
-            let has_date_grain = !date_time_grain && datetime_value.constraint.grain_min().date_grain();
-            let has_time_grain = !date_time_grain && datetime_value.constraint.grain_min().time_grain();
-            let is_span = Some(true) == datetime_value.period_form();
+            let date_grain = !date_time_grain && datetime_value.constraint.grain_min().date_grain();
+            let time_grain = !date_time_grain && datetime_value.constraint.grain_min().time_grain();
+            let period_form = datetime_value.period_form().unwrap_or(false);
 
             // Assign the relevant Datetime subtype (field datetime_kind of the datetime_value)
-            if !is_span && has_date_grain {
+            if !period_form && date_grain {
                 datetime_value.set_datetime_kind(DatetimeKind::Date);
-            } else if !is_span && has_time_grain {
+            } else if !period_form && time_grain {
                 datetime_value.set_datetime_kind(DatetimeKind::Time);
-            } else if is_span && has_date_grain {
+            } else if period_form && date_grain {
                 datetime_value.set_datetime_kind(DatetimeKind::DatePeriod);
-            } else if is_span && has_time_grain {
+            } else if period_form && time_grain {
                 datetime_value.set_datetime_kind(DatetimeKind::TimePeriod);
             } else {
                 // If the dimension is datetime and none of the 4 subtypes, then it's the
                 // complement subtype, hence Datetime
-                datetime_value.set_datetime_kind(DatetimeKind::Datetime)
+                datetime_value.set_datetime_kind(DatetimeKind::Datetime);
             }
         },
         _ => {},
