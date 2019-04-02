@@ -85,31 +85,31 @@ impl Dimension {
                 // the filter or not.
                 // Find the subkind: Figure out the Datetime subtype from the Form, Grain and other
                 // stuff contained in the Dimension::Datetime(datetime_value)
-                let date_time_grain = (datetime_value.constraint.grain_left().date_grain() &&
-                    datetime_value.constraint.grain_right().time_grain()) ||
-                    (datetime_value.constraint.grain_right().date_grain() &&
-                        datetime_value.constraint.grain_left().time_grain());
-                let date_grain = !date_time_grain && datetime_value.constraint.grain_min().date_grain();
-                let time_grain = !date_time_grain && datetime_value.constraint.grain_min().time_grain();
-                let period_form = datetime_value.period_form().unwrap_or(false);
+                let date_time_grain = (datetime_value.constraint.grain_left().is_date_grain() &&
+                    datetime_value.constraint.grain_right().is_time_grain()) ||
+                    (datetime_value.constraint.grain_right().is_date_grain() &&
+                        datetime_value.constraint.grain_left().is_time_grain());
+                let date_grain = !date_time_grain && datetime_value.constraint.grain_min().is_date_grain();
+                let time_grain = !date_time_grain && datetime_value.constraint.grain_min().is_time_grain();
+                let period_form = datetime_value.has_period_form().unwrap_or(false);
 
                 // Assign the relevant Datetime subtype (field datetime_kind of the datetime_value)
                 if (output_kind_filter.is_empty() || output_kind_filter.contains(&&OutputKind::Date)) &&
                     !period_form && date_grain {
-                    datetime_value.set_datetime_kind(DatetimeKind::Date);
+                    datetime_value.datetime_kind = DatetimeKind::Date;
                 } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&&OutputKind::Time)) &&
                     !period_form && time_grain {
-                    datetime_value.set_datetime_kind(DatetimeKind::Time);
+                    datetime_value.datetime_kind = DatetimeKind::Time;
                 } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&&OutputKind::DatePeriod)) &&
                     period_form && date_grain {
-                    datetime_value.set_datetime_kind(DatetimeKind::DatePeriod);
+                    datetime_value.datetime_kind = DatetimeKind::DatePeriod;
                 } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&&OutputKind::TimePeriod)) &&
                     period_form && time_grain {
-                    datetime_value.set_datetime_kind(DatetimeKind::TimePeriod);
+                    datetime_value.datetime_kind = DatetimeKind::TimePeriod;
                 } else {
                     // If the dimension is datetime and none of the 4 subtypes, then it's the
                     // complement subtype, hence Datetime
-                    datetime_value.set_datetime_kind(DatetimeKind::Datetime);
+                    datetime_value.datetime_kind = DatetimeKind::Datetime;
                 }
             },
             // If the dimension is other than Datetime, then no specific mapping is required.
@@ -615,7 +615,7 @@ impl DatetimeValue {
         }
     }
 
-    pub fn time_form(&self) -> Option<bool> {
+    pub fn has_time_form(&self) -> Option<bool> {
         match self.form {
             Form::Cycle(grain) => {
                 match grain {
@@ -644,7 +644,7 @@ impl DatetimeValue {
         }
     }
 
-    pub fn period_form(&self) -> Option<bool> {
+    pub fn has_period_form(&self) -> Option<bool> {
         match self.form {
             Form::Cycle(grain) => {
                 match grain {
@@ -673,10 +673,6 @@ impl DatetimeValue {
             Form::PartOfWeek => Some(true),
             Form::Span => Some(true),
         }
-    }
-
-    pub fn set_datetime_kind(&mut self, datetime_kind: DatetimeKind) {
-        self.datetime_kind = datetime_kind
     }
 
     pub fn datetime_kind_with_span(&self) -> DatetimeKind {

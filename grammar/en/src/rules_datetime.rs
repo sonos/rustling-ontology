@@ -1710,7 +1710,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // TODO: DatePeriod rule - grain bigger than day
     b.rule_2("this <cycle>",
              b.reg(r#"this|current|coming"#)?,
-             cycle_check!(|cycle: &CycleValue| cycle.grain.greater_than_day()),
+             cycle_check!(|cycle: &CycleValue| cycle.grain.is_greater_than_day()),
              |_, a| helpers::cycle_nth(a.value().grain, 0)
     );
     // DATETIME#192
@@ -1726,14 +1726,14 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // TODO: DatePeriod rule - grain bigger than day
     b.rule_2("last <cycle>",
              b.reg(r#"(?:the )?(?:last|past|previous)"#)?,
-             cycle_check!(|cycle: &CycleValue| cycle.grain.greater_than_day()),
+             cycle_check!(|cycle: &CycleValue| cycle.grain.is_greater_than_day()),
              |_, a| helpers::cycle_nth(a.value().grain, -1)
     );
     // DATETIME#194
     // TODO: DatePeriod rule - grain bigger than day
     b.rule_2("next <cycle>",
              b.reg(r#"(?:the )?next|the following"#)?,
-             cycle_check!(|cycle: &CycleValue| cycle.grain.greater_than_day()),
+             cycle_check!(|cycle: &CycleValue| cycle.grain.is_greater_than_day()),
              |_, a| helpers::cycle_nth(a.value().grain, 1)
     );
     // DATETIME#195

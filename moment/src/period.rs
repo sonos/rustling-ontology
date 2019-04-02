@@ -82,14 +82,14 @@ impl Grain {
     }
 
 
-    pub fn greater_than_day(&self) -> bool {
+    pub fn is_greater_than_day(&self) -> bool {
         match self {
             Grain::Week | Grain::Month | Grain::Year | Grain::Quarter => true,
             _ => false,
         }
     }
 
-    pub fn date_grain(&self) -> bool {
+    pub fn is_date_grain(&self) -> bool {
         match self {
             &Grain::Year => true,
             &Grain::Quarter => true,
@@ -102,7 +102,7 @@ impl Grain {
         }
     }
 
-    pub fn time_grain(&self) -> bool {
+    pub fn is_time_grain(&self) -> bool {
         match self {
             &Grain::Year => false,
             &Grain::Quarter => false,
