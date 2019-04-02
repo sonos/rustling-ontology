@@ -518,13 +518,6 @@ pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<DatetimeValue> 
     Ok(DatetimeValue::constraint(Cycle::rc(grain).take_not_immediate(n)).form(Form::Cycle(grain)))
 }
 
-pub fn grain_greather_than_day(grain: Grain) -> bool {
-    if [Grain::Week, Grain::Month, Grain::Year, Grain::Quarter].contains(&grain) {
-        true
-    } else {
-        false
-    }
-}
 
 pub fn easter() -> RuleResult<DatetimeValue> {
     fn offset(i: &Interval<Local>, _: &Context<Local>) -> Option<Interval<Local>> {
