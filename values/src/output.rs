@@ -21,8 +21,26 @@ impl Output {
             &Output::Integer(_) => OutputKind::Number,
             &Output::Float(_) => OutputKind::Number,
             &Output::Ordinal(_) => OutputKind::Ordinal,
-            &Output::Datetime(_) => OutputKind::Datetime,
-            &Output::DatetimeInterval(_) => OutputKind::Datetime,
+            Output::Datetime(datetime_output_value) => {
+                match datetime_output_value.datetime_kind {
+                    // Only Date and Time should occur here
+                    DatetimeKind::Date => OutputKind::Date,
+                    DatetimeKind::Time => OutputKind::Time,
+                    DatetimeKind::DatePeriod => OutputKind::DatePeriod,
+                    DatetimeKind::TimePeriod => OutputKind::TimePeriod,
+                    _ => OutputKind::Datetime
+                }
+            },
+            Output::DatetimeInterval(datetime_interval_output_value) => {
+                match datetime_interval_output_value.datetime_kind {
+                    // Only DatePeriod and TimePeriod should occur here
+                    DatetimeKind::Date => OutputKind::Date,
+                    DatetimeKind::Time => OutputKind::Time,
+                    DatetimeKind::DatePeriod => OutputKind::DatePeriod,
+                    DatetimeKind::TimePeriod => OutputKind::TimePeriod,
+                    _ => OutputKind::Datetime
+                }
+            },
             &Output::AmountOfMoney(_) => OutputKind::AmountOfMoney,
             &Output::Temperature(_) => OutputKind::Temperature,
             &Output::Duration(_) => OutputKind::Duration,
