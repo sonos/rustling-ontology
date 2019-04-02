@@ -15,22 +15,21 @@ pub enum Output {
     Duration(DurationOutput),
 }
 
-// Seems unused - remove?
-//impl Output {
-//    pub fn kind(&self) -> OutputKind {
-//        match self {
-//            &Output::Integer(_) => OutputKind::Number,
-//            &Output::Float(_) => OutputKind::Number,
-//            &Output::Ordinal(_) => OutputKind::Ordinal,
-//            &Output::Datetime(_) => OutputKind::Datetime,
-//            &Output::DatetimeInterval(_) => OutputKind::Datetime,
-//            &Output::AmountOfMoney(_) => OutputKind::AmountOfMoney,
-//            &Output::Temperature(_) => OutputKind::Temperature,
-//            &Output::Duration(_) => OutputKind::Duration,
-//            &Output::Percentage(_) => OutputKind::Percentage,
-//        }
-//    }
-//}
+impl Output {
+    pub fn kind(&self) -> OutputKind {
+        match self {
+            &Output::Integer(_) => OutputKind::Number,
+            &Output::Float(_) => OutputKind::Number,
+            &Output::Ordinal(_) => OutputKind::Ordinal,
+            &Output::Datetime(_) => OutputKind::Datetime,
+            &Output::DatetimeInterval(_) => OutputKind::Datetime,
+            &Output::AmountOfMoney(_) => OutputKind::AmountOfMoney,
+            &Output::Temperature(_) => OutputKind::Temperature,
+            &Output::Duration(_) => OutputKind::Duration,
+            &Output::Percentage(_) => OutputKind::Percentage,
+        }
+    }
+}
 
 enum_kind!(OutputKind,
     [
