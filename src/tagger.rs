@@ -4,8 +4,6 @@ use rustling_ontology_values::ParsingContext;
 use rustling_ontology_values::dimension::{Dimension};
 use rustling_ontology_values::output::OutputKind;
 
-use mapper;
-
 pub struct CandidateTagger<'a, C: ParsingContext<Dimension> + 'a> {
     pub output_kind_filter: &'a [OutputKind],
     pub context: &'a C,
@@ -22,16 +20,15 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
         // Use an OutputKind vector as filter
         let output_kind_filter = self.output_kind_filter.iter().collect::<Vec<_>>();
 
-        // Use the mapper to update the candidate Dimension values, specifically for Datetime
+        // Update the candidate Dimension values, specifically for Datetime
         // values, which will be tagged with a specific subtype or with Datetime.
         // This is necessary to filter candidates acc. to the OutputKind filter, and to
         // later propagate the info of Datetime subtype to the Output value.
         // => parsed_node.value and parser_match.value are a Dimension(dimension_value)
 
         for (ref mut parsed_node, ref mut parser_match) in &mut candidates {
-            // [for loop because iterator was failing with a mess of references and values]
-            mapper::map_dimension(&output_kind_filter, &mut parsed_node.value);
-            mapper::map_dimension(&output_kind_filter, &mut parser_match.value);
+            parsed_node.value.adapt_to_filter(&output_kind_filter);
+            parser_match.value.adapt_to_filter(&output_kind_filter);
         }
 
         // 1. Filtering and priorisation of candidates among OutputKinds, based on the filter:

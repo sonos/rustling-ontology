@@ -3,6 +3,7 @@ extern crate failure;
 #[macro_use]
 extern crate rustling;
 extern crate rustling_ontology_moment as moment;
+
 extern crate regex;
 
 
@@ -19,4 +20,5 @@ pub mod context;
 pub use dimension::Dimension;
 pub use dimension::DimensionKind;
 pub use output::Output;
+pub use output::OutputKind;
 pub use context::{ResolverContext, ParsingContext, IdentityContext};
