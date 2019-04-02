@@ -23,14 +23,15 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
         let output_kind_filter = self.output_kind_filter.iter().collect::<Vec<_>>();
 
         // Use the mapper to update the candidate Dimension values, specifically for Datetime
-        // values, which will be tagged with a specific subtype if relevant.
-        // This is necessary to then compare the Dimension values to the OutputKind filter, and to
+        // values, which will be tagged with a specific subtype or with Datetime.
+        // This is necessary to filter candidates acc. to the OutputKind filter, and to
         // later propagate the info of Datetime subtype to the Output value.
         // => parsed_node.value and parser_match.value are a Dimension(dimension_value)
+
         for (ref mut parsed_node, ref mut parser_match) in &mut candidates {
             // [for loop because iterator was failing with a mess of references and values]
-            mapper::map_dimension(&mut parsed_node.value);
-            mapper::map_dimension(&mut parser_match.value);
+            mapper::map_dimension(&output_kind_filter, &mut parsed_node.value);
+            mapper::map_dimension(&output_kind_filter, &mut parser_match.value);
         }
 
         // 1. Filtering and priorisation of candidates among OutputKinds, based on the filter:
@@ -47,9 +48,7 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
                         // Keep candidates whose Dimension(dimension_value) matches an OutputKind
                         // from the filter.
                         .position(|output_kind| output_kind.match_dim(&parsed_node.value))
-                        .map(|position| {
-                            (parsed_node, parser_match, position)
-                        })
+                        .map(|position| (parsed_node, parser_match, position))
                 }
             })
             .collect::<Vec<_>>();
