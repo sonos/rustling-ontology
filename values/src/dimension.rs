@@ -94,16 +94,16 @@ impl Dimension {
                 let period_form = datetime_value.has_period_form().unwrap_or(false);
 
                 // Assign the relevant Datetime subtype (field datetime_kind of the datetime_value)
-                if (output_kind_filter.is_empty() || output_kind_filter.contains(&&OutputKind::Date)) &&
+                if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::Date)) &&
                     !period_form && date_grain {
                     datetime_value.datetime_kind = DatetimeKind::Date;
-                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&&OutputKind::Time)) &&
+                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::Time)) &&
                     !period_form && time_grain {
                     datetime_value.datetime_kind = DatetimeKind::Time;
-                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&&OutputKind::DatePeriod)) &&
+                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::DatePeriod)) &&
                     period_form && date_grain {
                     datetime_value.datetime_kind = DatetimeKind::DatePeriod;
-                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&&OutputKind::TimePeriod)) &&
+                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::TimePeriod)) &&
                     period_form && time_grain {
                     datetime_value.datetime_kind = DatetimeKind::TimePeriod;
                 } else {
