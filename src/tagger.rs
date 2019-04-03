@@ -17,8 +17,7 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
            mut candidates: Vec<(ParsedNode<Dimension>, ParserMatch<Dimension>)>)
         -> Vec<Candidate<Dimension, Option<C::O>>> {
 
-        // Use an OutputKind vector as filter
-        let output_kind_filter = self.output_kind_filter.iter().collect::<Vec<_>>();
+        // The filter is an OutputKind vector
 
         // Update the candidate Dimension values, specifically for Datetime
         // values, which will be tagged with a specific subtype or with Datetime.
@@ -27,8 +26,8 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
         // => parsed_node.value and parser_match.value are a Dimension(dimension_value)
 
         for (ref mut parsed_node, ref mut parser_match) in &mut candidates {
-            parsed_node.value.adapt_to_filter(&output_kind_filter);
-            parser_match.value.adapt_to_filter(&output_kind_filter);
+            parsed_node.value.adapt_to_filter(self.output_kind_filter);
+            parser_match.value.adapt_to_filter(self.output_kind_filter);
         }
 
         // 1. Filtering and priorisation of candidates among OutputKinds, based on the filter:
@@ -39,7 +38,7 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
             .filter_map(|(parsed_node, parser_match)| {
                 if parsed_node.value.is_too_ambiguous() { None }
                 else {
-                    output_kind_filter
+                    self.output_kind_filter
                         .iter()
                         .rev()
                         // Keep candidates whose Dimension(dimension_value) matches an OutputKind

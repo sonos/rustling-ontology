@@ -74,7 +74,7 @@ impl Dimension {
         }
     }
 
-    pub fn adapt_to_filter(&mut self, output_kind_filter: &Vec<&OutputKind>) {
+    pub fn adapt_to_filter(&mut self, output_kind_filter: &[OutputKind]) {
 
         match self {
 
