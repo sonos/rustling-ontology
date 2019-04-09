@@ -29,6 +29,7 @@ fn main() {
             (@arg path: -p --path +takes_value "Path to utterances file")
         )
         (@subcommand test =>
+             (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
              (@arg input: -i --input +takes_value "Path to utterances file")
              (@arg output: -o --output +takes_value "Path to test output file")
         )
@@ -171,6 +172,13 @@ fn main() {
         ("test", Some(matches)) => {
             let input_path = matches.value_of("input").unwrap();
             let output_path = matches.value_of("output").unwrap();
+            let kinds = matches
+                .values_of("kinds")
+                .map(|values| {
+                    values
+                        .map(|s| OutputKind::from_str(s).unwrap())
+                        .collect::<Vec<_>>()
+                });
             let utterances: Vec<Utterance> = {
               let file = ::std::fs::File::open(input_path).map_err(|e| format!("Could not open input file at path: {}, with error {}", input_path, e)).unwrap();;
               serde_json::from_reader(&file).unwrap()
@@ -182,7 +190,11 @@ fn main() {
                 .map(|utterance| {
                   if utterance.keep() {
                       let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
-                      let entities = parser.parse(utterance.phrase.to_lowercase().as_str(), &context).unwrap();
+                      let entities = if let Some(ref kinds) = kinds {
+                          parser.parse_with_kind_order(utterance.phrase.to_lowercase().as_str(), &context, &kinds).unwrap()
+                      } else {
+                          parser.parse(utterance.phrase.to_lowercase().as_str(), &context).unwrap()
+                      };
                       let assertion = if entities.len() == 1 {
                          let entity = entities.first();
                          match (entity, utterance.value) {
