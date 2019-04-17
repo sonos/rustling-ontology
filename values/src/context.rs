@@ -66,7 +66,6 @@ impl ParsingContext<Dimension> for ResolverContext {
                     .or_else(|| walker.backward.next())
                     .map(|interval| {
 
-
                         if let Some(bounded_direction) = datetime_value.direction {
                             let anchor = match bounded_direction.bound {
                                 Bound::Start => interval.start,
@@ -78,7 +77,7 @@ impl ParsingContext<Dimension> for ResolverContext {
                                 grain: interval.grain,
                                 precision: datetime_value.precision,
                                 latent: datetime_value.latent,
-                                datetime_kind: datetime_value.datetime_kind_with_span(),
+                                datetime_kind: datetime_value.datetime_kind,
                             };
                             match bounded_direction.direction {
                                 Direction::After => {
@@ -97,6 +96,9 @@ impl ParsingContext<Dimension> for ResolverContext {
                                 },
                             }
                         } else if let Some(end) = interval.end {
+                            if datetime_value.datetime_kind == DatetimeKind::Date || datetime_value.datetime_kind == DatetimeKind::Time {
+                                eprintln!("Warning: {:?} kind with an interval - {:?}", datetime_value.datetime_kind, interval);
+                            }
                             let datetime_interval_output_value = DatetimeIntervalOutput {
                                 interval_kind: DatetimeIntervalKind::Between {
                                     start: interval.start,
@@ -104,7 +106,7 @@ impl ParsingContext<Dimension> for ResolverContext {
                                     precision: datetime_value.precision,
                                     latent: datetime_value.latent,
                                 },
-                                datetime_kind: datetime_value.datetime_kind_with_span(),
+                                datetime_kind: datetime_value.datetime_kind,
                             };
                             Output::DatetimeInterval(datetime_interval_output_value)
                         } else {

@@ -91,7 +91,9 @@ impl Dimension {
                         datetime_value.constraint.grain_left().is_time_grain());
                 let date_grain = !date_time_grain && datetime_value.constraint.grain_min().is_date_grain();
                 let time_grain = !date_time_grain && datetime_value.constraint.grain_min().is_time_grain();
-                let period_form = datetime_value.has_period_form().unwrap_or(false);
+                let mut has_direction = false;
+                if let Some(_bounded_direction) = datetime_value.direction { has_direction = true };
+                let period_form = datetime_value.has_period_form().unwrap_or(false) || has_direction;
 
                 // Assign the relevant Datetime subtype (field datetime_kind of the datetime_value)
                 if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::Date)) &&
@@ -647,14 +649,13 @@ impl DatetimeValue {
     pub fn has_period_form(&self) -> Option<bool> {
         match self.form {
             Form::Cycle(grain) => {
-                match grain {
-                    Grain::Year => Some(true),
-                    Grain::Quarter => Some(true),
-                    Grain::Month => Some(true),
-                    Grain::Week => Some(true),
-                    _ => Some(false),
-
-                }
+              match grain {
+                  Grain::Year => Some(true),
+                  Grain::Quarter => Some(true),
+                  Grain::Month => Some(true),
+                  Grain::Week => Some(true),
+                  _ => Some(false),
+              }
             },
             Form::Year(_) => Some(true),
             Form::Month(_) => Some(true),
