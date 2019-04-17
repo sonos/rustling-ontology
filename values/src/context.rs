@@ -2,6 +2,7 @@ use output::*;
 use dimension::*;
 use rustling::Value;
 use moment::*;
+use log::warn;
 
 pub trait ParsingContext<V: Value> {
     type O;
@@ -97,7 +98,7 @@ impl ParsingContext<Dimension> for ResolverContext {
                             }
                         } else if let Some(end) = interval.end {
                             if datetime_value.datetime_kind == DatetimeKind::Date || datetime_value.datetime_kind == DatetimeKind::Time {
-                                eprintln!("Warning: {:?} kind with an interval - {:?}", datetime_value.datetime_kind, interval);
+                                warn!("{:?} kind with an interval - {:?}", datetime_value.datetime_kind, interval);
                             }
                             let datetime_interval_output_value = DatetimeIntervalOutput {
                                 interval_kind: DatetimeIntervalKind::Between {
