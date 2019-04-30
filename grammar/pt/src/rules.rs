@@ -44,7 +44,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("USD",
-        b.reg(r#"d[oó]lar(?:es)? americanos?"#)?,
+        b.reg(r#"d[oó]lar(?:es)? americanos?|d[oó]lar(?:es)? estadunidenses?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("USD") })
     );
     b.rule_1_terminal("CAD",
@@ -60,7 +60,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("GBP",
-        b.reg(r#"libras? inglesas?"#)?,
+        b.reg(r#"libras? inglesas?|libras? britânicas?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("JPY",
@@ -75,10 +75,10 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"wons?|₩"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
-//    b.rule_1_terminal("RMB|CNH|CNY",
-//                      b.reg(r#""#)?,
-//                      |_| Ok(MoneyUnitValue { unit: Some("CNY") })
-//    );
+    b.rule_1_terminal("RMB|CNH|CNY",
+                      b.reg(r#"yuans?|renminbis?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("CNY") })
+    );
     b.rule_1_terminal("INR",
                       b.reg(r#"r[uú]pias?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("INR") })
