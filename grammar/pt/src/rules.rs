@@ -71,6 +71,10 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"¥"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("¥") })
     );
+    b.rule_1_terminal("₽",
+                          b.reg(r#"₽"#)?,
+                          |_| Ok(MoneyUnitValue { unit: Some("₽") })
+    );
     b.rule_1_terminal("KRW",
                       b.reg(r#"wons?|₩"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("KRW") })
@@ -83,10 +87,10 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"r[uú]pias?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
-//    b.rule_1_terminal("HKD",
-//                      b.reg(r#""#)?,
-//                      |_| Ok(MoneyUnitValue { unit: Some("HKD") })
-//    );
+    b.rule_1_terminal("HKD",
+                      b.reg(r#"dólares? de Hong Kong"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("HKD") })
+    );
     b.rule_1_terminal("CHF",
                       b.reg(r#"francos? suíços?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("CHF") })
