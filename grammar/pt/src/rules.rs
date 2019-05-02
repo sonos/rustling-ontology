@@ -708,8 +708,8 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
-    b.rule_1_terminal("ordinals (primero..10)",
-                      b.reg(r#"(primer|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non|d[eéè]cim)(?:[oa]s?)?"#)?,
+    b.rule_1_terminal("ordinals (primero..9)",
+                      b.reg(r#"(primer|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non)(?:[oa]s?)?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "primer" => 1,
@@ -723,13 +723,49 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "septim" => 7,
                               "oitav" => 8,
                               "noven" => 9,
-                              "décim" => 10,
-                              "dècim" => 10,
-                              "decim" => 10,
                               _ => return Err(RuleError::Invalid.into())
                           };
                           Ok(OrdinalValue::new(value))
                       }
+    );
+    b.rule_1_terminal("ordinals (10..90)",
+                          b.reg(r#"(d[eéè]cim|vig[eéè]sim|trig[eéè]sim|quadrag[eéè]sim|quinquag[eéè]sim|sexag[eéè]septuag[eéè]sim|setuag[eéè]sim|octog[eéè]sim|nonag[eéè]sim)(?:[oa]s?)?"#)?,
+                          |text_match| {
+                              let value = match text_match.group(1).as_ref() {
+                                  "décim" => 10,
+                                  "dècim" => 10,
+                                  "decim" => 10,
+                                  "vigécim" => 20,
+                                  "vigècim" => 20,
+                                  "vigecim" => 20,
+                                  "trigésim" => 30,
+                                  "trigèsim" => 30,
+                                  "trigesim" => 30,
+                                  "quadragésim" => 40,
+                                  "quadragèsim" => 40,
+                                  "quadragesim" => 40,
+                                  "quinquagésim" => 50,
+                                  "quinquagesim" => 50,
+                                  "quinquagèsim" => 50,
+                                  "sexagésim" => 60,
+                                  "sexagèsim" => 60,
+                                  "sexagesim" => 60,
+                                  "septuagésim" => 70,
+                                  "septuagèsim" => 70,
+                                  "septuagesim" => 70,
+                                  "setuagèsim" => 70,
+                                  "setuagesim" => 70,
+                                  "setuagésim" => 70,
+                                  "octingentésim" => 80,
+                                  "octingentèsim" => 80,
+                                  "octingentesim" => 80,
+                                  "nonagésim" => 90,
+                                  "nonagèsim" => 90,
+                                  "nonagesim" => 90,
+                                  _ => return Err(RuleError::Invalid.into())
+                              };
+                              Ok(OrdinalValue::new(value))
+                          }
     );
     b.rule_1_terminal("ordinal (digits)",
                       b.reg(r#"0*(\d+)[ºªoa]"#)?,
