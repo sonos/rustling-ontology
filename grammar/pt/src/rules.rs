@@ -570,7 +570,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| helpers::compose_numbers(&a.value(), &b.value())
     );
     b.rule_1_terminal("number (0..19)",
-                      b.reg(r#"(cero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|quinze|dez[ea]sseis|dezessete|dezoito|dezanove|dezenove)"#)?,
+                      b.reg(r#"(cero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|quinze)"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "cero" => 0,
@@ -595,17 +595,44 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "quatorze" => 14,
                               "catorze" => 14,
                               "quinze" => 15,
+                              _ => return Err(RuleError::Invalid.into()),
+                          };
+                          IntegerValue::new(value)
+                      }
+    );
+    b.rule_1_terminal("number (0..19)",
+                      b.reg(r#"(dezesseis|dezasseis|dezessete|dezoito|dezenove|dezanove)"#)?,
+                      |text_match| {
+                          let value = match text_match.group(1).as_ref() {
                               "dezesseis" => 16,
                               "dezasseis" => 16,
                               "dezessete" => 17,
                               "dezoito" => 18,
                               "dezenove" => 19,
+                              "dezanove" => 19,
                               _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new(value)
                       }
     );
 
+    b.rule_1_terminal("number (20..90)",
+             b.reg(r#"(vinte|trinte|quarenta|cinquenta|sessenta|setenta|oitenta|noventa)"#)?,
+             |text_match| {
+                 let value = match text_match.group(1).as_ref() {
+                     "vinte" => 20,
+                     "trinta" => 30,
+                     "quarenta" => 40,
+                     "cinquenta" => 50,
+                     "sessenta" => 60,
+                     "setenta" => 70,
+                     "oitenta" => 80,
+                     "noventa" => 90,
+                     _ => return Err(RuleError::Invalid.into()),
+                 };
+                 IntegerValue::new(value)
+             }
+    );
 
     b.rule_1_terminal("integer (numeric)",
                       b.reg(r#"(\d{1,18})"#)?,
