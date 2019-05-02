@@ -40,7 +40,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("£") })
     );
     b.rule_1_terminal("GBP",
-                      b.reg(r#"gbp|libras? esterlinas?"#)?,
+                      b.reg(r#"gbp|libras? esterlinas?|libras? inglesas?|libras? britânicas?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("USD",
@@ -59,12 +59,8 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"฿|bitcoins?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
-    b.rule_1_terminal("GBP",
-        b.reg(r#"libras? inglesas?|libras? britânicas?"#)?,
-        |_| Ok(MoneyUnitValue { unit: Some("GBP") })
-    );
     b.rule_1_terminal("JPY",
-                      b.reg(r#"jpy|[yi]en(?:es)?(?: japoneses?)?"#)?,
+                      b.reg(r#"jpy|[yi]en(?:es)?(?: japoneses?)?|ienes?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("JPY") })
     );
     b.rule_1_terminal("¥",
@@ -76,7 +72,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           |_| Ok(MoneyUnitValue { unit: Some("₽") })
     );
     b.rule_1_terminal("KRW",
-                      b.reg(r#"wons?|₩"#)?,
+                      b.reg(r#"₩|wons? (?:sul[- ])?coreanos?|wons?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
     b.rule_1_terminal("RMB|CNH|CNY",
@@ -87,30 +83,48 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"r[uú]pias?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
+    b.rule_1_terminal("INR",
+                          b.reg(r#"r[uú]pias? indianas?"#)?,
+                          |_| Ok(MoneyUnitValue { unit: Some("INR") })
+        );
     b.rule_1_terminal("HKD",
-                      b.reg(r#"dólares? de Hong Kong"#)?,
+                      b.reg(r#"d[oó]lar(?:es) de hong kong"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("HKD") })
     );
     b.rule_1_terminal("CHF",
                       b.reg(r#"francos? suíços?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("CHF") })
     );
-//    b.rule_1_terminal("KR",
-//                      b.reg(r#""#)?,
-//                      |_| Ok(MoneyUnitValue { unit: Some("KR") })
-//    );
-//    b.rule_1_terminal("DKK",
-//                      b.reg(r#""#)?,
-//                      |_| Ok(MoneyUnitValue { unit: Some("DKK") })
-//    );
-//    b.rule_1_terminal("NOK",
-//                      b.reg(r#""#)?,
-//                      |_| Ok(MoneyUnitValue { unit: Some("NOK") })
-//    );
-//    b.rule_1_terminal("SEK",
-//                      b.reg(r#""#)?,
-//                      |_| Ok(MoneyUnitValue { unit: Some("SEK") })
-//    );
+    b.rule_1_terminal("KR",
+                      b.reg(r#"kr|coroas?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("KR") })
+    );
+    b.rule_1_terminal("DKK",
+                      b.reg(r#"dkk|coroas? dinamarquesas?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("DKK") })
+    );
+    b.rule_1_terminal("NOK",
+                      b.reg(r#"nok|coroas? norueguesas?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("NOK") })
+    );
+    b.rule_1_terminal("SEK",
+                      b.reg(r#"sek|coroas? suecas?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("SEK") })
+    );
+
+    b.rule_1_terminal("RUB",
+                      b.reg(r#"rub"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("RUB") })
+    );
+    b.rule_1_terminal("RUB",
+                      b.reg(r#"rublos?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("RUB") })
+    );
+    b.rule_1_terminal("RUB",
+                      b.reg(r#"rublos? russos?"#)?,
+                      |_| Ok(MoneyUnitValue { unit: Some("RUB") })
+    );
+
     b.rule_1_terminal("cent",
                       b.reg(r#"centavos?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("cent") })
@@ -555,8 +569,8 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value())
     );
-    b.rule_1_terminal("number (0..10)",
-                      b.reg(r#"(cero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|sete|oito|nove|dez)"#)?,
+    b.rule_1_terminal("number (0..19)",
+                      b.reg(r#"(cero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|quinze|dez[ea]sseis|dezessete|dezoito|dezanove|dezenove)"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "cero" => 0,
@@ -575,6 +589,17 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "oito" => 8,
                               "nove" => 9,
                               "dez" => 10,
+                              "onze" => 11,
+                              "doze" => 12,
+                              "treze" => 13,
+                              "quatorze" => 14,
+                              "catorze" => 14,
+                              "quinze" => 15,
+                              "dezesseis" => 16,
+                              "dezasseis" => 16,
+                              "dezessete" => 17,
+                              "dezoito" => 18,
+                              "dezenove" => 19,
                               _ => return Err(RuleError::Invalid.into()),
                           };
                           IntegerValue::new(value)
