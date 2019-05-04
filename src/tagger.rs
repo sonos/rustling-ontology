@@ -4,6 +4,8 @@ use rustling_ontology_values::ParsingContext;
 use rustling_ontology_values::dimension::{Dimension};
 use rustling_ontology_values::output::OutputKind;
 
+use mapper;
+
 pub struct CandidateTagger<'a, C: ParsingContext<Dimension> + 'a> {
     pub output_kind_filter: &'a [OutputKind],
     pub context: &'a C,
@@ -26,8 +28,8 @@ impl<'a, C: ParsingContext<Dimension>> MaxElementTagger<Dimension> for Candidate
         // => parsed_node.value and parser_match.value are a Dimension(dimension_value)
 
         for (ref mut parsed_node, ref mut parser_match) in &mut candidates {
-            parsed_node.value.adapt_to_filter(self.output_kind_filter);
-            parser_match.value.adapt_to_filter(self.output_kind_filter);
+            mapper::map_dimension(&mut parsed_node.value, self.output_kind_filter);
+            mapper::map_dimension(&mut parser_match.value, self.output_kind_filter);
         }
 
         // 1. Filtering and priorisation of candidates among OutputKinds, based on the filter:

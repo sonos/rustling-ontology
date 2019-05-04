@@ -40,6 +40,7 @@ pub use rustling_ontology_moment::Grain;
 
 mod parser;
 mod tagger;
+mod mapper;
 
 pub use tagger::CandidateTagger;
 
