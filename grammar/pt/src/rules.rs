@@ -641,6 +641,69 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
 
+    // hundreds_fem = ["duzentas", "trezentas", "quatrocentas", "quinhentas", "seiscentas", "setecentas", "oitocentas", "novecentas"]"""
+
+    b.rule_1_terminal("cem",
+                      b.reg(r#"cem"#)?,
+                      |text_match| {
+                          let value = match text_match.group(0).as_ref() {
+                              "cem" => 100,
+                              _ => return Err(RuleError::Invalid.into()),
+                          };
+                          IntegerValue::new(value)
+                      }
+    );
+    b.rule_1_terminal("number (100..900)",
+             b.reg(r#"(cent|duzent|trezent|quatrocent|quinhent|seiscent|setecent|oitocent|novecent)(?:[oa]s)"#)?,
+             |text_match| {
+                 let value = match text_match.group(1).as_ref() {
+                     "cent" => 100,
+                     "duzent" => 200,
+                     "trezent" => 300,
+                     "quatrocent" => 400,
+                     "quinhent" => 500,
+                     "seiscent" => 600,
+                     "setecent" => 700,
+                     "oitocent" => 800,
+                     "novecent" => 900,
+                     _ => return Err(RuleError::Invalid.into()),
+                 };
+                 IntegerValue::new(value)
+             }
+    );
+
+    b.rule_3("numbers (100...999)",
+                 integer_check_by_range!(100, 900, |integer: &IntegerValue| integer.value % 100 == 0),
+                 b.reg(r#"e"#)?,
+                 integer_check_by_range!(1, 99),
+                 |a, _, b| IntegerValue::new(a.value().value + b.value().value)
+    );
+
+
+    b.rule_1_terminal("thousand",
+                      b.reg(r#"mil"#)?,
+                      |text_match| {
+                          let value = match text_match.group(0).as_ref() {
+                              "mil" => 1000,
+                              _ => return Err(RuleError::Invalid.into()),
+                          };
+                          IntegerValue::new(value)
+                      }
+    );
+
+    b.rule_2("numbers (1000...999000)",
+                 integer_check_by_range!(1, 999),
+                 integer_check!(|integer: &IntegerValue| integer.value == 1000),
+                 |a, b| IntegerValue::new(a.value().value * b.value().value)
+    );
+
+    b.rule_3("numbers (1000...999999)",
+                 integer_check_by_range!(1000, 999000),
+                 b.reg(r#"e"#)?,
+                 integer_check_by_range!(1, 999),
+                 |a, _, b| IntegerValue::new(a.value().value + b.value().value)
+    );
+
     b.rule_1_terminal("integer (numeric)",
                       b.reg(r#"(\d{1,18})"#)?,
                       |text_match| IntegerValue::new(text_match.group(0).parse()?));
@@ -715,6 +778,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
+
     b.rule_1_terminal("ordinals (primero..9)",
                       b.reg(r#"(primer|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non)(?:[oa]s?)?"#)?,
                       |text_match| {
@@ -862,8 +926,24 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
 
+    b.rule_2("ordinal number milésim.",
+        integer_check_by_range!(1, 999),
+        ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000),
+        |a, b| {
+            Ok(OrdinalValue::new(a.value().value * b.value().value))
+        }
+    );
+
     b.rule_2("ordinal milésim. number",
         ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000),
+        ordinal_check_by_range!(1, 999),
+        |a, b| {
+            Ok(OrdinalValue::new(a.value().value + b.value().value))
+        }
+    );
+
+    b.rule_2("ordinal milésim. number",
+        ordinal_check_by_range!(1000,999000),
         ordinal_check_by_range!(1, 999),
         |a, b| {
             Ok(OrdinalValue::new(a.value().value + b.value().value))
@@ -883,6 +963,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
 
+    b.rule_2("ordinal milionésim. number",
+        ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000000),
+        ordinal_check_by_range!(1, 999999),
+        |a, b| {
+            Ok(OrdinalValue::new(a.value().value + b.value().value))
+        }
+    );
+
     b.rule_1_terminal("ordinal bilionésim",
                       b.reg(r#"(bilion[eéè]sim)(?:[oa]s?)?"#)?,
                       |text_match| {
@@ -894,6 +982,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           };
                           Ok(OrdinalValue::new(value))
                       }
+    );
+
+    b.rule_2("ordinal bilionésim. number",
+        ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000000000),
+        ordinal_check_by_range!(1, 999999999),
+        |a, b| {
+            Ok(OrdinalValue::new(a.value().value + b.value().value))
+        }
     );
 
     b.rule_1_terminal("ordinal (digits)",
