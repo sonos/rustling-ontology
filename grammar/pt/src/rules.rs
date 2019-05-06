@@ -617,7 +617,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1_terminal("number (20..90)",
-             b.reg(r#"(vinte|trinte|quarenta|cinquenta|sessenta|setenta|oitenta|noventa)"#)?,
+             b.reg(r#"(vinte|trinta|quarenta|cinquenta|sessenta|setenta|oitenta|noventa)"#)?,
              |text_match| {
                  let value = match text_match.group(1).as_ref() {
                      "vinte" => 20,
@@ -632,6 +632,13 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  };
                  IntegerValue::new(value)
              }
+    );
+
+    b.rule_3("numbers (21...99)",
+                 integer_check_by_range!(20, 90, |integer: &IntegerValue| integer.value % 10 == 0),
+                 b.reg(r#"e"#)?,
+                 integer_check_by_range!(1, 9),
+                 |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
 
     b.rule_1_terminal("integer (numeric)",
@@ -718,26 +725,26 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "quart" => 4,
                               "quint" => 5,
                               "sext" => 6,
-                              "séptim" => 7,
-                              "sèptim" => 7,
-                              "septim" => 7,
+                              "sétim" => 7,
+                              "sètim" => 7,
+                              "setim" => 7,
                               "oitav" => 8,
-                              "noven" => 9,
+                              "non" => 9,
                               _ => return Err(RuleError::Invalid.into())
                           };
                           Ok(OrdinalValue::new(value))
                       }
     );
     b.rule_1_terminal("ordinals (10..90)",
-                          b.reg(r#"(d[eéè]cim|vig[eéè]sim|trig[eéè]sim|quadrag[eéè]sim|quinquag[eéè]sim|sexag[eéè]septuag[eéè]sim|setuag[eéè]sim|octog[eéè]sim|nonag[eéè]sim)(?:[oa]s?)?"#)?,
+                          b.reg(r#"(d[eéè]cim|vig[eéè]sim|trig[eéè]sim|quadrag[eéè]sim|quinquag[eéè]sim|sexag[eéè]sim|septuag[eéè]sim|setuag[eéè]sim|octog[eéè]sim|nonag[eéè]sim)(?:[oa]s?)?"#)?,
                           |text_match| {
                               let value = match text_match.group(1).as_ref() {
                                   "décim" => 10,
                                   "dècim" => 10,
                                   "decim" => 10,
-                                  "vigécim" => 20,
-                                  "vigècim" => 20,
-                                  "vigecim" => 20,
+                                  "vigésim" => 20,
+                                  "vigèsim" => 20,
+                                  "vigesim" => 20,
                                   "trigésim" => 30,
                                   "trigèsim" => 30,
                                   "trigesim" => 30,
@@ -756,9 +763,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                                   "setuagèsim" => 70,
                                   "setuagesim" => 70,
                                   "setuagésim" => 70,
-                                  "octingentésim" => 80,
-                                  "octingentèsim" => 80,
-                                  "octingentesim" => 80,
+                                  "octogésim" => 80,
+                                  "octogèsim" => 80,
+                                  "octogesim" => 80,
                                   "nonagésim" => 90,
                                   "nonagèsim" => 90,
                                   "nonagesim" => 90,
@@ -767,6 +774,62 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               Ok(OrdinalValue::new(value))
                           }
     );
+
+    b.rule_1_terminal("ordinals (100..900)",
+                              b.reg(r#"(cent[eéè]sim|ducent[eéè]sim|trecent[eéè]sim|tricent[eéè]sim|quadrigent[eéè]sim|quingent[eéè]sim|sexcent[eéè]sim|seiscent[eéè]sim|setingent[eéè]sim|septigent[eéè]sim|septingent[eéè]sim|octingent[eéè]sim|octigent[eéè]sim|nongent[eéè]sim|noningent[eéè]sim)(?:[oa]s?)?"#)?,
+                              |text_match| {
+                                  let value = match text_match.group(1).as_ref() {
+                                      "centésim" => 100,
+                                      "centèsim" => 100,
+                                      "centesim" => 100,
+                                      "ducentésim" => 200,
+                                      "ducentèsim" => 200,
+                                      "ducentesim" => 200,
+                                      "trecentésim" => 300,
+                                      "trecentèsim" => 300,
+                                      "trecentesim" => 300,
+                                      "tricentésim" => 300,
+                                      "tricentèsim" => 300,
+                                      "tricentesim" => 300,
+                                      "quadrigentésim" => 400,
+                                      "quadrigentèsim" => 400,
+                                      "quadrigentesim" => 400,
+                                      "quingentésim" => 500,
+                                      "quingentesim" => 500,
+                                      "quingentèsim" => 500,
+                                      "sexcentésim" => 600,
+                                      "sexcentèsim" => 600,
+                                      "sexcentesim" => 600,
+                                      "seiscentésim" => 600,
+                                      "seiscentèsim" => 600,
+                                      "seiscentesim" => 600,
+                                      "setingentésim" => 700,
+                                      "setingentèsim" => 700,
+                                      "setingentesim" => 700,
+                                      "septingentèsim" => 700,
+                                      "septingentesim" => 700,
+                                      "septingentésim" => 700,
+                                      "septigentésim" => 700,
+                                      "septigentèsim" => 700,
+                                      "septigentesim" => 700,
+                                      "octingentésim" => 800,
+                                      "octingentèsim" => 800,
+                                      "octingentesim" => 800,
+                                      "octigentèsim" => 800,
+                                      "octigentésim" => 800,
+                                      "octigentesim" => 800,
+                                      "nongentésim" => 900,
+                                      "nongentèsim" => 900,
+                                      "nongentesim" => 900,
+                                      "noningentésim" => 900,
+                                      "noningentèsim" => 900,
+                                      "noningentesim" => 900,
+                                      _ => return Err(RuleError::Invalid.into())
+                                  };
+                                  Ok(OrdinalValue::new(value))
+                              }
+    );
+
     b.rule_1_terminal("ordinal (digits)",
                       b.reg(r#"0*(\d+)[ºªoa]"#)?,
                       |text_match| {
