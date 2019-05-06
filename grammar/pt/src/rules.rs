@@ -775,8 +775,16 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           }
     );
 
+    b.rule_2("ordinals (11..99)",
+        ordinal_check_by_range!(10, 90),
+        ordinal_check_by_range!(1, 9),
+        |a, b| {
+            Ok(OrdinalValue::new(a.value().value + b.value().value))
+        }
+    );
+
     b.rule_1_terminal("ordinals (100..900)",
-                              b.reg(r#"(cent[eéè]sim|ducent[eéè]sim|trecent[eéè]sim|tricent[eéè]sim|quadrigent[eéè]sim|quingent[eéè]sim|sexcent[eéè]sim|seiscent[eéè]sim|setingent[eéè]sim|septigent[eéè]sim|septingent[eéè]sim|octingent[eéè]sim|octigent[eéè]sim|nongent[eéè]sim|noningent[eéè]sim)(?:[oa]s?)?"#)?,
+                              b.reg(r#"(cent[eéè]sim|ducent[eéè]sim|trecent[eéè]sim|tricent[eéè]sim|quadrin?gent[eéè]sim|quingent[eéè]sim|sexcent[eéè]sim|seiscent[eéè]sim|setingent[eéè]sim|septigent[eéè]sim|septingent[eéè]sim|octingent[eéè]sim|octigent[eéè]sim|nongent[eéè]sim|noningent[eéè]sim)(?:[oa]s?)?"#)?,
                               |text_match| {
                                   let value = match text_match.group(1).as_ref() {
                                       "centésim" => 100,
@@ -794,6 +802,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                                       "quadrigentésim" => 400,
                                       "quadrigentèsim" => 400,
                                       "quadrigentesim" => 400,
+                                      "quadringentésim" => 400,
+                                      "quadringentèsim" => 400,
+                                      "quadringentesim" => 400,
                                       "quingentésim" => 500,
                                       "quingentesim" => 500,
                                       "quingentèsim" => 500,
@@ -828,6 +839,61 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                                   };
                                   Ok(OrdinalValue::new(value))
                               }
+    );
+
+    b.rule_2("ordinals (101..999)",
+        ordinal_check_by_range!(100, 900),
+        ordinal_check_by_range!(1, 99),
+        |a, b| {
+            Ok(OrdinalValue::new(a.value().value + b.value().value))
+        }
+    );
+
+    b.rule_1_terminal("ordinal milésim",
+                      b.reg(r#"(mil[eéè]sim)(?:[oa]s?)?"#)?,
+                      |text_match| {
+                          let value = match text_match.group(1).as_ref() {
+                              "milésim" => 1000,
+                              "milèsim" => 1000,
+                              "milesim" => 1000,
+                              _ => return Err(RuleError::Invalid.into())
+                          };
+                          Ok(OrdinalValue::new(value))
+                      }
+    );
+
+    b.rule_2("ordinal milésim. number",
+        ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000),
+        ordinal_check_by_range!(1, 999),
+        |a, b| {
+            Ok(OrdinalValue::new(a.value().value + b.value().value))
+        }
+    );
+
+    b.rule_1_terminal("ordinal milionésim",
+                      b.reg(r#"(milion[eéè]sim)(?:[oa]s?)?"#)?,
+                      |text_match| {
+                          let value = match text_match.group(1).as_ref() {
+                              "milionésim" => 1000000,
+                              "milionèsim" => 1000000,
+                              "milionesim" => 1000000,
+                              _ => return Err(RuleError::Invalid.into())
+                          };
+                          Ok(OrdinalValue::new(value))
+                      }
+    );
+
+    b.rule_1_terminal("ordinal bilionésim",
+                      b.reg(r#"(bilion[eéè]sim)(?:[oa]s?)?"#)?,
+                      |text_match| {
+                          let value = match text_match.group(1).as_ref() {
+                              "bilionésim" => 1000000000,
+                              "bilionèsim" => 1000000000,
+                              "bilionesim" => 1000000000,
+                              _ => return Err(RuleError::Invalid.into())
+                          };
+                          Ok(OrdinalValue::new(value))
+                      }
     );
 
     b.rule_1_terminal("ordinal (digits)",
