@@ -641,8 +641,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  |a, _, b| IntegerValue::new(a.value().value + b.value().value)
     );
 
-    // hundreds_fem = ["duzentas", "trezentas", "quatrocentas", "quinhentas", "seiscentas", "setecentas", "oitocentas", "novecentas"]"""
-
     b.rule_1_terminal("cem",
                       b.reg(r#"cem"#)?,
                       |text_match| {
@@ -676,32 +674,36 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  integer_check_by_range!(100, 900, |integer: &IntegerValue| integer.value % 100 == 0),
                  b.reg(r#"e"#)?,
                  integer_check_by_range!(1, 99),
-                 |a, _, b| IntegerValue::new(a.value().value + b.value().value)
+                 |a, _, c| IntegerValue::new(a.value().value + c.value().value)
     );
-
 
     b.rule_1_terminal("thousand",
-                      b.reg(r#"mil"#)?,
-                      |text_match| {
-                          let value = match text_match.group(0).as_ref() {
-                              "mil" => 1000,
-                              _ => return Err(RuleError::Invalid.into()),
-                          };
-                          IntegerValue::new(value)
-                      }
+        b.reg(r#"mil"#)?,
+        |_| IntegerValue::new_with_grain(1000, 3)
     );
 
-    b.rule_2("numbers (1000...999000)",
-                 integer_check_by_range!(1, 999),
-                 integer_check!(|integer: &IntegerValue| integer.value == 1000),
-                 |a, b| IntegerValue::new(a.value().value * b.value().value)
-    );
+///    b.rule_2("numbers (1000...999000)",
+///                 integer_check_by_range!(1, 999),
+///                 integer_check!(|integer: &IntegerValue| integer.value == 1000),
+///                 |a, b| IntegerValue::new(a.value().value * b.value().value)
+///    );
+///
+    b.rule_2("number thousands",
+        integer_check_by_range!(1, 999),
+        b.reg(r#"mil"#)?,
+        |a, _| {
+            Ok(IntegerValue {
+                   value: a.value().value * 1000,
+                   grain: Some(3),
+                   ..IntegerValue::default()
+               })
+    });
 
     b.rule_3("numbers (1000...999999)",
                  integer_check_by_range!(1000, 999000),
                  b.reg(r#"e"#)?,
                  integer_check_by_range!(1, 999),
-                 |a, _, b| IntegerValue::new(a.value().value + b.value().value)
+                 |a, _, c| IntegerValue::new(a.value().value + c.value().value)
     );
 
     b.rule_1_terminal("integer (numeric)",
