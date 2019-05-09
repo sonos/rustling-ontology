@@ -569,8 +569,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value())
     );
-    b.rule_1_terminal("number (0..19)",
-                      b.reg(r#"(cero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|sete|oito|nove|dez|onze|doze|treze|quatorze|catorze|quinze)"#)?,
+
+    b.rule_1_terminal("numbers (0..9)",
+                      b.reg(r#"(cero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|meia|sete|oito|nove)"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "cero" => 0,
@@ -585,9 +586,20 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "cinco" => 5,
                               "seis" => 6,
                               "séis" => 6,
+                              "meia" => 6,
                               "sete" => 7,
                               "oito" => 8,
                               "nove" => 9,
+                              _ => return Err(RuleError::Invalid.into()),
+                          };
+                          IntegerValue::new(value)
+                      }
+    );
+
+    b.rule_1_terminal("numbers (10..19)",
+                      b.reg(r#"(dezesseis|dezasseis|dezessete|dezoito|dezenove|dezanove|dez|onze|doze|treze|quatorze|catorze|quinze)"#)?,
+                      |text_match| {
+                          let value = match text_match.group(1).as_ref() {
                               "dez" => 10,
                               "onze" => 11,
                               "doze" => 12,
@@ -595,15 +607,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "quatorze" => 14,
                               "catorze" => 14,
                               "quinze" => 15,
-                              _ => return Err(RuleError::Invalid.into()),
-                          };
-                          IntegerValue::new(value)
-                      }
-    );
-    b.rule_1_terminal("number (0..19)",
-                      b.reg(r#"(dezesseis|dezasseis|dezessete|dezoito|dezenove|dezanove)"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
                               "dezesseis" => 16,
                               "dezasseis" => 16,
                               "dezessete" => 17,
@@ -616,29 +619,29 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
 
-    b.rule_1_terminal("number (20..90)",
-             b.reg(r#"(vinte|trinta|quarenta|cinquenta|sessenta|setenta|oitenta|noventa)"#)?,
-             |text_match| {
-                 let value = match text_match.group(1).as_ref() {
-                     "vinte" => 20,
-                     "trinta" => 30,
-                     "quarenta" => 40,
-                     "cinquenta" => 50,
-                     "sessenta" => 60,
-                     "setenta" => 70,
-                     "oitenta" => 80,
-                     "noventa" => 90,
-                     _ => return Err(RuleError::Invalid.into()),
-                 };
-                 IntegerValue::new(value)
-             }
-    );
+    b.rule_1_terminal("numbers (20..90)",
+                 b.reg(r#"(vinte|trinta|quarenta|cinquenta|sessenta|setenta|oitenta|noventa)"#)?,
+                 |text_match| {
+                     let value = match text_match.group(1).as_ref() {
+                         "vinte" => 20,
+                         "trinta" => 30,
+                         "quarenta" => 40,
+                         "cinquenta" => 50,
+                         "sessenta" => 60,
+                         "setenta" => 70,
+                         "oitenta" => 80,
+                         "noventa" => 90,
+                         _ => return Err(RuleError::Invalid.into()),
+                     };
+                     IntegerValue::new(value)
+                 }
+        );
 
     b.rule_3("numbers (21...99)",
                  integer_check_by_range!(20, 90, |integer: &IntegerValue| integer.value % 10 == 0),
                  b.reg(r#"e"#)?,
                  integer_check_by_range!(1, 9),
-                 |a, _, b| IntegerValue::new(a.value().value + b.value().value)
+                 |x, _, y| IntegerValue::new(x.value().value + y.value().value)
     );
 
     b.rule_1_terminal("cem",
@@ -651,11 +654,18 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           IntegerValue::new(value)
                       }
     );
-    b.rule_1_terminal("number (100..900)",
-             b.reg(r#"(cent|duzent|trezent|quatrocent|quinhent|seiscent|setecent|oitocent|novecent)(?:[oa]s)"#)?,
+
+    b.rule_3("numbers (101...199)",
+                 b.reg(r#"cento"#)?,
+                 b.reg(r#"e"#)?,
+                 integer_check_by_range!(1, 99),
+                 |_, _, y| IntegerValue::new(100 + y.value().value)
+    );
+
+    b.rule_1_terminal("numbers (200..900)",
+             b.reg(r#"(duzent|trezent|quatrocent|quinhent|seiscent|setecent|oitocent|novecent)(?:[oa]s)"#)?,
              |text_match| {
                  let value = match text_match.group(1).as_ref() {
-                     "cent" => 100,
                      "duzent" => 200,
                      "trezent" => 300,
                      "quatrocent" => 400,
@@ -670,11 +680,11 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
 
-    b.rule_3("numbers (100...999)",
-                 integer_check_by_range!(100, 900, |integer: &IntegerValue| integer.value % 100 == 0),
+    b.rule_3("numbers (200...999)",
+                 integer_check_by_range!(200, 900, |integer: &IntegerValue| integer.value % 100 == 0),
                  b.reg(r#"e"#)?,
                  integer_check_by_range!(1, 99),
-                 |a, _, c| IntegerValue::new(a.value().value + c.value().value)
+                 |x, _, y| IntegerValue::new(x.value().value + y.value().value)
     );
 
     b.rule_1_terminal("thousand",
@@ -682,13 +692,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| IntegerValue::new_with_grain(1000, 3)
     );
 
-///    b.rule_2("numbers (1000...999000)",
-///                 integer_check_by_range!(1, 999),
-///                 integer_check!(|integer: &IntegerValue| integer.value == 1000),
-///                 |a, b| IntegerValue::new(a.value().value * b.value().value)
-///    );
-///
-    b.rule_2("number thousands",
+    b.rule_2("thousands",
         integer_check_by_range!(1, 999),
         b.reg(r#"mil"#)?,
         |a, _| {
