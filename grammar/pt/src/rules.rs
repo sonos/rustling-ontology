@@ -698,17 +698,50 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _| {
             Ok(IntegerValue {
                    value: a.value().value * 1000,
-                   grain: Some(3),
                    ..IntegerValue::default()
                })
     });
 
-    b.rule_3("numbers (1000...999999)",
+    b.rule_3("numbers (1000...999,999)",
                  integer_check_by_range!(1000, 999000),
-                 b.reg(r#"e"#)?,
+                 b.reg(r#"e?"#)?,
                  integer_check_by_range!(1, 999),
                  |a, _, c| IntegerValue::new(a.value().value + c.value().value)
     );
+
+    b.rule_2("one million",
+        integer_check! (|integer: &IntegerValue| integer.value == 1),
+        b.reg(r#"milhão"#)?,
+        |_,_| IntegerValue::new_with_grain(1000000, 6)
+    );
+
+    b.rule_2("millions",
+        integer_check_by_range!(2, 999),
+        b.reg(r#"milhões"#)?,
+        |a, _| {
+            Ok(IntegerValue {
+                   value: a.value().value * 1000000,
+                   grain: Some(6),
+                   ..IntegerValue::default()
+               })
+    });
+
+    b.rule_2("one billion",
+        integer_check! (|integer: &IntegerValue| integer.value == 1),
+        b.reg(r#"bilhão"#)?,
+        |_,_| IntegerValue::new_with_grain(1000000, 9)
+    );
+
+    b.rule_2("billions",
+        integer_check_by_range!(2, 999),
+        b.reg(r#"bilhões"#)?,
+        |a, _| {
+            Ok(IntegerValue {
+                   value: a.value().value * 1000000000,
+                   grain: Some(9),
+                   ..IntegerValue::default()
+               })
+    });
 
     b.rule_1_terminal("integer (numeric)",
                       b.reg(r#"(\d{1,18})"#)?,
