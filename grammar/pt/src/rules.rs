@@ -952,7 +952,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
 
-    b.rule_1_terminal("ordinal milésim",
+    b.rule_1_terminal("ordinal thousand",
                       b.reg(r#"(mil[eéè]sim)(?:[oa]s?)?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
@@ -961,11 +961,11 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "milesim" => 1000,
                               _ => return Err(RuleError::Invalid.into())
                           };
-                          Ok(OrdinalValue::new(value))
+                          Ok(OrdinalValue::new_with_grain(value,3))
                       }
     );
 
-    b.rule_2("ordinal number milésim.",
+    b.rule_2("ordinal thousands",
         integer_check_by_range!(1, 999),
         ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000),
         |a, b| {
@@ -973,59 +973,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
 
-    b.rule_2("ordinal milésim. number",
-        ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000),
-        ordinal_check_by_range!(1, 999),
-        |a, b| {
-            Ok(OrdinalValue::new(a.value().value + b.value().value))
-        }
-    );
-
-    b.rule_2("ordinal milésim. number",
+    b.rule_2("ordinal thousands + number",
         ordinal_check_by_range!(1000,999000),
         ordinal_check_by_range!(1, 999),
-        |a, b| {
-            Ok(OrdinalValue::new(a.value().value + b.value().value))
-        }
-    );
-
-    b.rule_1_terminal("ordinal milionésim",
-                      b.reg(r#"(milion[eéè]sim)(?:[oa]s?)?"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
-                              "milionésim" => 1000000,
-                              "milionèsim" => 1000000,
-                              "milionesim" => 1000000,
-                              _ => return Err(RuleError::Invalid.into())
-                          };
-                          Ok(OrdinalValue::new(value))
-                      }
-    );
-
-    b.rule_2("ordinal milionésim. number",
-        ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000000),
-        ordinal_check_by_range!(1, 999999),
-        |a, b| {
-            Ok(OrdinalValue::new(a.value().value + b.value().value))
-        }
-    );
-
-    b.rule_1_terminal("ordinal bilionésim",
-                      b.reg(r#"(bilion[eéè]sim)(?:[oa]s?)?"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
-                              "bilionésim" => 1000000000,
-                              "bilionèsim" => 1000000000,
-                              "bilionesim" => 1000000000,
-                              _ => return Err(RuleError::Invalid.into())
-                          };
-                          Ok(OrdinalValue::new(value))
-                      }
-    );
-
-    b.rule_2("ordinal bilionésim. number",
-        ordinal_check! (|ordinal: &OrdinalValue| ordinal.value == 1000000000),
-        ordinal_check_by_range!(1, 999999999),
         |a, b| {
             Ok(OrdinalValue::new(a.value().value + b.value().value))
         }
