@@ -27,6 +27,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
              number_check!(),
              |a, b| helpers::compose_money_number(&a.value(), &b.value()));
+
     b.rule_1_terminal("$",
         b.reg(r#"\$|d[oó]lar(?:es)?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("$") })
@@ -161,7 +162,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
     b.rule_2("about <amount-of-money>",
-             b.reg(r#"cerca de"#)?,
+             b.reg(r#"aproximadamente|cerca de|por cerca de|por volta de|em torno de"#)?,
              amount_of_money_check!(),
              |_, a| {
                  Ok(AmountOfMoneyValue {
@@ -169,17 +170,17 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..a.value().clone()
                  })
              });
-//    b.rule_2("<amount-of-money> about",
-//             amount_of_money_check!(),
-//             b.reg(r#""#)?,
-//             |a, _| {
-//                 Ok(AmountOfMoneyValue {
-//                     precision: Approximate,
-//                     ..a.value().clone()
-//                 })
-//             });
+    b.rule_2("<amount-of-money> about",
+             amount_of_money_check!(),
+             b.reg(r#"aproximadamente"#)?,
+             |a, _| {
+                 Ok(AmountOfMoneyValue {
+                     precision: Approximate,
+                     ..a.value().clone()
+                 })
+             });
     b.rule_2("exactly <amount-of-money>",
-             b.reg(r#"exatamente"#)?,
+             b.reg(r#"exatamente|precisamente"#)?,
              amount_of_money_check!(),
              |_, a| {
                  Ok(AmountOfMoneyValue {
@@ -187,16 +188,16 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..a.value().clone()
                  })
              });
-//    b.rule_2("<amount-of-money> exactly",
-//             amount_of_money_check!(),
-//             b.reg(r#""#)?,
-//             |a, _| {
-//                 Ok(AmountOfMoneyValue {
-//                     precision: Exact,
-//                     ..a.value().clone()
-//                 })
-//             }
-//    );
+    b.rule_2("<amount-of-money> exactly",
+             amount_of_money_check!(),
+             b.reg(r#"exatamente|precisamente"#)?,
+             |a, _| {
+                 Ok(AmountOfMoneyValue {
+                     precision: Exact,
+                     ..a.value().clone()
+                 })
+             }
+    );
     Ok(())
 }
 
@@ -296,9 +297,29 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |duration, _| duration.value().in_present()
     );
     b.rule_2("during <duration>",
-             b.reg(r#"por"#)?,
+             b.reg(r#"por|durante"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
+    );
+    b.rule_2("approx <duration>",
+             b.reg(r#"aproximadamente|cerca de|por cerca de|por volta de|em torno de"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("approx <duration>",
+             duration_check!(),
+             b.reg(r#"aproximadamente"#)?,
+             |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("precisely <duration>",
+             b.reg(r#"exactamente|precisamente"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
+    );
+    b.rule_2("precisely <duration>",
+             duration_check!(),
+             b.reg(r#"exactamente|precisamente"#)?,
+             |duration , _| Ok(duration.value().clone().precision(Precision::Exact))
     );
     Ok(())
 }
@@ -332,6 +353,10 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"anos?"#)?,
                       |_| CycleValue::new(Grain::Year)
     );
+    b.rule_1_terminal("trimester (cycle)",
+                          b.reg(r#"trimestres?"#)?,
+                          |_| CycleValue::new(Grain::Year)
+        );
 
     Ok(())
 }
@@ -564,10 +589,18 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
 }
 
 pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("intersect",
+
+    b.rule_2("intersect numbers",
              number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
              number_check!(),
              |a, b| helpers::compose_numbers(&a.value(), &b.value())
+    );
+
+    b.rule_3("intersect numbers",
+             number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
+             b.reg(r#"e"#)?,
+             number_check!(),
+             |a, _,b| helpers::compose_numbers(&a.value(), &b.value())
     );
 
     b.rule_1_terminal("numbers (0..9)",
@@ -646,20 +679,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_1_terminal("cem",
                       b.reg(r#"cem"#)?,
-                      |text_match| {
-                          let value = match text_match.group(0).as_ref() {
-                              "cem" => 100,
-                              _ => return Err(RuleError::Invalid.into()),
-                          };
-                          IntegerValue::new(value)
-                      }
+                      |_| IntegerValue::new_with_grain(100,2)
     );
 
     b.rule_3("numbers (101...199)",
                  b.reg(r#"cento"#)?,
                  b.reg(r#"e"#)?,
                  integer_check_by_range!(1, 99),
-                 |_, _, y| IntegerValue::new(100 + y.value().value)
+                 |_, _, y| IntegerValue::new_with_grain(100 + y.value().value, 2)
     );
 
     b.rule_1_terminal("numbers (200..900)",
@@ -676,15 +703,8 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      "novecent" => 900,
                      _ => return Err(RuleError::Invalid.into()),
                  };
-                 IntegerValue::new(value)
+                 IntegerValue::new_with_grain(value,2)
              }
-    );
-
-    b.rule_3("numbers (200...999)",
-                 integer_check_by_range!(200, 900, |integer: &IntegerValue| integer.value % 100 == 0),
-                 b.reg(r#"e"#)?,
-                 integer_check_by_range!(1, 99),
-                 |x, _, y| IntegerValue::new(x.value().value + y.value().value)
     );
 
     b.rule_1_terminal("thousand",
@@ -698,16 +718,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |a, _| {
             Ok(IntegerValue {
                    value: a.value().value * 1000,
+                   grain: Some(3),
                    ..IntegerValue::default()
                })
     });
-
-    b.rule_3("numbers (1000...999,999)",
-                 integer_check_by_range!(1000, 999000),
-                 b.reg(r#"e?"#)?,
-                 integer_check_by_range!(1, 999),
-                 |a, _, c| IntegerValue::new(a.value().value + c.value().value)
-    );
 
     b.rule_2("one million",
         integer_check! (|integer: &IntegerValue| integer.value == 1),
@@ -729,7 +743,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("one billion",
         integer_check! (|integer: &IntegerValue| integer.value == 1),
         b.reg(r#"bilhão"#)?,
-        |_,_| IntegerValue::new_with_grain(1000000, 9)
+        |_,_| IntegerValue::new_with_grain(1000000000, 9)
     );
 
     b.rule_2("billions",
@@ -742,6 +756,25 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                    ..IntegerValue::default()
                })
     });
+
+//    b.rule_3("numbers (1,000,000...999,999,999)",
+//                 integer_check_by_range!(1000000, 999000000),
+//                 b.reg(r#"e?"#)?,
+//                 integer_check_by_range!(1, 999999),
+//                 |a, _, c| IntegerValue::new_with_grain(a.value().value + c.value().value,3)
+//    );
+//    b.rule_3("numbers (1,000...999,999)",
+//                 integer_check_by_range!(1000, 999000),
+//                 b.reg(r#"e?"#)?,
+//                 integer_check_by_range!(1, 999),
+//                 |a, _, c| IntegerValue::new_with_grain(a.value().value + c.value().value,3)
+//    );
+//    b.rule_3("numbers (200...999)",
+//                integer_check_by_range!(200, 900, |integer: &IntegerValue| integer.value % 100 == 0),
+//                 b.reg(r#"e"#)?,
+//                 integer_check_by_range!(1, 99),
+//                 |x, _, y| IntegerValue::new_with_grain(x.value().value + y.value().value,2)
+//    );
 
     b.rule_1_terminal("integer (numeric)",
                       b.reg(r#"(\d{1,18})"#)?,
