@@ -356,8 +356,33 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("trimester (cycle)",
                           b.reg(r#"trimestres?"#)?,
                           |_| CycleValue::new(Grain::Year)
-        );
-
+    );
+    b.rule_2("next <cycle> ",
+             b.reg(r#"próxim[oa]s?"#)?,
+             cycle_check!(),
+             |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_2("<cycle> next",
+             cycle_check!(),
+             b.reg(r#"que vem"#)?,
+             |cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_2("last <cycle> ",
+             b.reg(r#"hà"#)?,
+             cycle_check!(),
+             |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    b.rule_2("<cycle> last",
+             cycle_check!(),
+             b.reg(r#"atr[aá]s"#)?,
+             |cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    b.rule_3("in <cycle>",
+             b.reg(r#"daqui a|dentro de"#)?,
+             integer_check_by_range!(2, 9999),
+             cycle_check!(),
+             |_, integer, cycle| helpers::cycle_nth(cycle.value().grain, integer.value().value)
+    );
     Ok(())
 }
 
