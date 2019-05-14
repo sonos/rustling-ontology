@@ -230,6 +230,10 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"anos?"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
+    b.rule_1_terminal("trimester (unit-of-duration)",
+                      b.reg(r#"trimestres?"#)?,
+                      |_| Ok(UnitOfDurationValue::new(Grain::Quarter))
+    );
     b.rule_1_terminal("quarter of an hour",
                       b.reg(r#"quarto de hora"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
@@ -250,7 +254,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_3("<integer> <unit-of-duration> and a half",
              integer_check_by_range!(0),
              unit_of_duration_check!(),
-             b.reg(r#"e meia"#)?,
+             b.reg(r#"e mei[ao]"#)?,
              |integer, uod, _| {
                  let half_period: Period = uod.value().grain.half_period().map(|a| a.into()).ok_or_else(|| RuleError::Invalid)?;
                  Ok(DurationValue::new(half_period + PeriodComp::new(uod.value().grain, integer.value().value)))
@@ -323,6 +327,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     Ok(())
 }
+
 
 pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("second (cycle)",
@@ -801,6 +806,14 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //                 |x, _, y| IntegerValue::new_with_grain(x.value().value + y.value().value,2)
 //    );
 
+    b.rule_1_terminal("some",
+                      b.reg(r#"algumas|alguns"#)?,
+                      |_| IntegerValue::new_with_grain(3, 1)
+    );
+    b.rule_1_terminal("several",
+                      b.reg(r#"v[àa]rios"#)?,
+                      |_| IntegerValue::new_with_grain(4, 1)
+    );
     b.rule_1_terminal("integer (numeric)",
                       b.reg(r#"(\d{1,18})"#)?,
                       |text_match| IntegerValue::new(text_match.group(0).parse()?));
