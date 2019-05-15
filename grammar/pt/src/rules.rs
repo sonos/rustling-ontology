@@ -526,7 +526,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // DateTime
     b.rule_2("this <datetime>",
-             b.reg(r#"este"#)?,
+             b.reg(r#"est[ea]"#)?,
              time_check!(),
              |_, time| time.value().the_nth(0)
     );
@@ -535,6 +535,85 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"durante|em|para"#)?,
              time_check!(form!(Form::Month(_))),
              |_, a| Ok(a.value().clone())
+    );
+    // Date-period
+    b.rule_2("beginning <named-month>(interval)",
+             b.reg(r#"o? (começo|início) de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, month| {
+                 let start = month.value().intersect(&helpers::day_of_month(1)?)?;
+                 let end = month.value().intersect(&helpers::day_of_month(5)?)?;
+                 start.span_to(&end, true)
+             }
+    );
+    // Date-period
+    b.rule_1_terminal("end of month",
+                      b.reg(r#"o fim do mês"#)?,
+                      |_| {
+                          let month = helpers::cycle_nth(Grain::Month, 1)?;
+                        Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
+                            .span_to(&month, false)?
+                            .latent()
+                            .form(Form::PartOfMonth))
+                    }
+    );
+    // Date-period
+    b.rule_2("end <named-month>(interval)",
+             b.reg(r#"o fim de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, month| {
+                 let start = month.value().intersect(&helpers::day_of_month(25)?)?;
+                 let end = helpers::cycle(Grain::Day)?.last_of(month.value())?;
+                 start.span_to(&end, true)
+             }
+    );
+    // Date period
+    b.rule_2("next <named-month>",
+             b.reg(r#"o próximo mês de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, time| time.value().the_nth_not_immediate(0)
+    );
+    // Date period
+    b.rule_2("for next <named-month>",
+             b.reg(r#"(para|durante) o próximo mês de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, time| time.value().the_nth_not_immediate(0)
+    );
+    // Date period
+    b.rule_2("last <named-month>",
+             b.reg(r#"o último mês de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, time| time.value().the_nth(-1)
+    );
+    // Date period
+    b.rule_2("for last <named-month>",
+             b.reg(r#"(para|durante) o último mês de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, time| time.value().the_nth(-1)
+    );
+    // Date
+    b.rule_2("next <named-day>",
+             b.reg(r#"no próximo"#)?,
+             time_check!(form!(Form::DayOfWeek{..})),
+             |_, time| time.value().the_nth_not_immediate(0)
+    );
+    // Date
+    b.rule_2("for next <named-day>",
+             b.reg(r#"(para|nest[ea]) no próximo"#)?,
+             time_check!(form!(Form::DayOfWeek{..})),
+             |_, time| time.value().the_nth_not_immediate(0)
+    );
+    // Date
+    b.rule_2("last <named-day>",
+             b.reg(r#"na última"#)?,
+             time_check!(form!(Form::DayOfWeek{..})),
+             |_, time| time.value().the_nth(-1)
+    );
+    // Date
+    b.rule_2("for last <named-day>",
+             b.reg(r#"(para|nest[ea]) na última"#)?,
+             time_check!(form!(Form::DayOfWeek{..})),
+             |_, time| time.value().the_nth(-1)
     );
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
