@@ -615,6 +615,91 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::DayOfWeek{..})),
              |_, time| time.value().the_nth(-1)
     );
+    // Date-Period
+    b.rule_1("year",
+             integer_check_by_range!(1000, 2100),
+             |integer| {
+                 helpers::year(integer.value().value as i32)
+             }
+    );
+    // Date-Period
+    b.rule_1("year (latent)",
+             integer_check_by_range!(-1000, 999),
+             |integer| {
+                 Ok(helpers::year(integer.value().value as i32)?.latent())
+             }
+    );
+    // Date-Period
+    b.rule_1("year (latent)",
+             integer_check_by_range!(2101, 2200),
+             |integer| {
+                 Ok(helpers::year(integer.value().value as i32)?.latent())
+             }
+    );
+    // Date-Period
+    b.rule_2("in year",
+             b.reg(r#"n?o ano( de)?"#)?,
+             integer_check_by_range!(1000, 2100),
+             |_, integer| helpers::year(integer.value().value as i32)
+    );
+    // Date-Period
+    b.rule_2("in year",
+             b.reg(r#"em"#)?,
+             integer_check_by_range!(1000, 2100),
+             |_, integer| helpers::year(integer.value().value as i32)
+    );
+    // Date-Period
+    b.rule_2("in year",
+             b.reg(r#"(para|durante) o ano( de)?"#)?,
+             integer_check_by_range!(1000, 2100),
+             |_, integer| helpers::year(integer.value().value as i32)
+    );
+    // Date
+    b.rule_2("<day-of-month> ordinal",
+             b.reg(r#"o"#)?,
+             ordinal_check_by_range!(1, 31),
+             |_, integer| Ok(helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date
+    b.rule_3("<day-of-week> day <day-of-month>",
+             time_check!(form!(Form::DayOfWeek{..})),
+             b.reg(r#"dia"#)?,
+             integer_check_by_range!(1, 31),
+             |dow, _, integer| dow.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date
+    b.rule_3("<day-of-month> de <named-month>",
+             integer_check_by_range!(1, 31),
+             b.reg(r#"de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date domingo dia trinta e um de dezembro
+    b.rule_4("<day-of-week> <day-of-month>(ordinal) de <named-month>",
+             time_check!(form!(Form::DayOfWeek{..})),
+             ordinal_check_by_range!(1, 31),
+             b.reg(r#"de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date
+    b.rule_4("<day-of-week> <day-of-month>(integer) de <named-month>",
+             time_check!(form!(Form::DayOfWeek{..})),
+             integer_check_by_range!(1, 31),
+             b.reg(r#"de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date
+    b.rule_5("<day-of-week> dia <day-of-month>(integer) de <named-month>",
+             time_check!(form!(Form::DayOfWeek{..})),
+             b.reg(r#"dia"#)?,
+             integer_check_by_range!(1, 31),
+             b.reg(r#"de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, _, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
                       |text_match| {
