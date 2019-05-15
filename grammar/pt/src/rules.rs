@@ -490,30 +490,52 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("now",
-                      b.reg(r#"agora"#)?,
+                      b.reg(r#"agora|neste momento"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
+    // Date
     b.rule_1_terminal("today",
                       b.reg(r#"hoje"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
+    // Date
     b.rule_1_terminal("tomorrow",
                       b.reg(r#"amanh[aã]"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 1)
     );
+    // Date
     b.rule_1_terminal("yesterday",
                       b.reg(r#"ontem"#)?,
                       |_| helpers::cycle_nth(Grain::Day, -1)
     );
-//    b.rule_1_terminal("the day after tomorrow",
-//                      b.reg(r#""#)?,
-//                      |_| helpers::cycle_nth(Grain::Day, 2)
-//    );
-//    b.rule_1_terminal("the day before yesterday",
-//                      b.reg(r#""#)?,
-//                      |_| helpers::cycle_nth(Grain::Day, -2)
-//    );
-
+    // Date
+    b.rule_1_terminal("the day after tomorrow",
+                      b.reg(r#"o dia depois de amanhã"#)?,
+                      |_| helpers::cycle_nth(Grain::Day, 2)
+    );
+    // Date
+    b.rule_1_terminal("the day before yesterday",
+                      b.reg(r#"anteontem"#)?,
+                      |_| helpers::cycle_nth(Grain::Day, -2)
+    );
+    // Date
+    b.rule_2("this <day-of-week>", //assumed to be in the future
+             b.reg(r#"est[ea]"#)?,
+             time_check!(form!(Form::DayOfWeek{..})),
+             |_, time| time.value().the_nth_not_immediate(0)
+    );
+    // DateTime
+    b.rule_2("this <datetime>",
+             b.reg(r#"este"#)?,
+             time_check!(),
+             |_, time| time.value().the_nth(0)
+    );
+    // Date-period
+    b.rule_2("in <named-month>",
+             b.reg(r#"durante|em|para"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, a| Ok(a.value().clone())
+    );
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
                       |text_match| {
