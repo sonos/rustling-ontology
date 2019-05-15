@@ -793,6 +793,35 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |a, b| a.value().intersect(b.value())
     );
+    b.rule_1_terminal("half (relative minutes)",
+                      b.reg(r#"meia"#)?,
+                      |_| Ok(RelativeMinuteValue(30))
+    );
+    b.rule_1("number (as relative minutes)",
+             integer_check_by_range!(1, 59),
+             |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
+    );
+    b.rule_2("<integer> minutes (as relative minutes)",
+             integer_check_by_range!(1, 59),
+             b.reg(r#"minutos?"#)?,
+             |integer, _| Ok(RelativeMinuteValue(integer.value().value as i32))
+    );
+    // Time (ambiguity with Duration) ex: seis horas e vinte minutos
+    b.rule_3("<hour-of-day> and <relative minutes>",
+             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
+             b.reg(r#"e"#)?,
+             relative_minute_check!(),
+             |time, _, relative_minute| helpers::hour_relative_minute(
+                 time.value().form_time_of_day()?.full_hour(),
+                 relative_minute.value().0,
+                 time.value().form_time_of_day()?.is_12_clock())
+    );
+    // Time
+    b.rule_2("at <time-of-day>",
+             b.reg(r#"às?|para"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, tod| Ok(tod.value().clone().not_latent())
+    );
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
                       |text_match| {
