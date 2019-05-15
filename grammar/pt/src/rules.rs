@@ -699,7 +699,100 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::Month(_))),
              |_, _, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
-
+    // Time
+    b.rule_1_terminal("noon",
+                      b.reg(r#"meio-dia"#)?,
+                      |_| helpers::hour(12, false)
+    );
+    // Time
+    b.rule_1_terminal("midnight",
+                      b.reg(r#"meia-noite"#)?,
+                      |_| helpers::hour(0, false)
+    );
+    b.rule_1("time-of-day (latent) (1 to 23)",
+             integer_check_by_range!(1, 23),
+             |integer| {
+                 Ok(helpers::hour(integer.value().value as u32, integer.value().value <= 12)?.latent())
+             }
+    );
+    b.rule_1("time-of-day (latent) (0)",
+             integer_check_by_range!(0, 0),
+             |_| Ok(helpers::hour(0, false)?.latent())
+    );
+    b.rule_1("time-of-day (latent) (half)",
+            number_check!(|number: &NumberValue| {
+                let hour = (number.value() - 0.5) as u32;
+                hour as f32 == (number.value() - 0.5) && hour >= 1 && hour <= 23
+            }),
+             |number| {
+                let hour = number.value().value() as u32;
+                Ok(helpers::hour_minute(hour, 30, hour <= 12)?.latent())
+             }
+    );
+    b.rule_1("time-of-day (latent) (quarter)",
+            number_check!(|number: &NumberValue| {
+                let hour = (number.value() - 0.25) as u32;
+                hour as f32 == (number.value() - 0.25) && hour >= 1 && hour <= 23
+            }),
+             |number| {
+                let hour = number.value().value() as u32;
+                Ok(helpers::hour_minute(hour, 15, hour <= 12)?.latent())
+             }
+    );
+    // Time
+    b.rule_2("<time-of-day> hour",
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"horas?"#)?,
+             |time, _| Ok(time.value().clone().not_latent())
+    );
+    // Time
+    b.rule_2("<time-of-day> am|pm",
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"([ap])\.?m\.?"#)?,
+             |a, text_match| {
+                 let day_period = if text_match.group(1) == "a" {
+                     helpers::hour(0, false)?.span_to(&helpers::hour(12, false)?, false)?
+                 } else {
+                     helpers::hour(12, false)?.span_to(&helpers::hour(0, false)?, false)?
+                 };
+                 Ok(a.value().intersect(&day_period)?.form(a.value().form.clone()))
+             }
+    );
+    // Time period
+    b.rule_1_terminal("morning",
+                      b.reg(r#"manh[aã]"#)?,
+                      |_| Ok(helpers::hour(4, false)?.span_to(&helpers::hour(12, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Morning))
+                          .latent())
+    );
+    // Time period
+    b.rule_1_terminal("afternoon",
+                      b.reg(r#"tarde"#)?,
+                      |_| Ok(helpers::hour(12, false)?.span_to(&helpers::hour(19, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Afternoon))
+                          .latent())
+    );
+    // Time period
+    b.rule_1_terminal("evening",
+                      b.reg(r#"noite"#)?,
+                      |_| Ok(helpers::hour(18, false)?.span_to(&helpers::hour(0, false)?, false)?
+                          .form(Form::PartOfDay(PartOfDayForm::Evening))
+                          .latent())
+    );
+    // Time period
+    b.rule_2("this <part-of-day>",
+             b.reg(r#"esta|d[ea]"#)?,
+             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             |_, pod| Ok(helpers::cycle_nth(Grain::Day, 0)?
+                 .intersect(pod.value())?
+                 .form(pod.value().form.clone()))
+    );
+    // Time
+    b.rule_2("<time-of-day> <part-of-day>",
+             time_check!(excluding_form!(Form::PartOfDay(_))),
+             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             |a, b| a.value().intersect(b.value())
+    );
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
                       |text_match| {
