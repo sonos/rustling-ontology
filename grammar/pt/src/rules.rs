@@ -1039,7 +1039,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_2("from <time-of-day>",
-             b.reg(r#"do início do"#)?,
+             b.reg(r#"do início do|desde as?"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
              |_, time| Ok(time.value().clone().mark_after_start())
     );
@@ -1047,6 +1047,18 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("after <date-time>",
              b.reg(r#"(a partir|depois)( desta| das?| de)"#)?,
              time_check!(),
+             |_, time| Ok(time.value().clone().mark_after_start())
+    );
+    // Time period
+    b.rule_2("from <date-time>",
+             b.reg(r#"desde as?"#)?,
+             time_check!(),
+             |_, time| Ok(time.value().clone().mark_after_start())
+    );
+    // Time period
+    b.rule_2("from <time-of-day>",
+             b.reg(r#"desde as?"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
              |_, time| Ok(time.value().clone().mark_after_start())
     );
     // Time period
