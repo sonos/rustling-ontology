@@ -903,7 +903,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_2("this <part-of-day>",
-             b.reg(r#"esta|d[ea]"#)?,
+             b.reg(r#"d?esta|d[ea]"#)?,
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |_, pod| Ok(helpers::cycle_nth(Grain::Day, 0)?
                  .intersect(pod.value())?
@@ -914,6 +914,27 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(excluding_form!(Form::PartOfDay(_))),
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |a, b| a.value().intersect(b.value())
+    );
+    // Time period
+    b.rule_3("<part-of-day> de <time>",
+            time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+            b.reg(r#"esta|d[ea]"#)?,
+            time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+            |part_of_day, _, time| time.value().intersect(part_of_day.value())
+    );
+    // Time period
+    b.rule_3("<time> à <part-of-day>",
+            time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+            b.reg(r#"à"#)?,
+            time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+            |time, _, part_of_day| time.value().intersect(part_of_day.value())
+    );
+    // Time period
+    b.rule_3("<time-of-day> de <time>",
+            time_check!(excluding_form!(Form::PartOfDay(_))),
+            b.reg(r#"esta|d[ea]"#)?,
+            time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+            |part_of_day, _, time| time.value().intersect(part_of_day.value())
     );
     b.rule_1_terminal("half (relative minutes)",
                       b.reg(r#"meia"#)?,
@@ -946,7 +967,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of day",
-                      b.reg(r#"(no )?começo do dia"#)?,
+                      b.reg(r#"(?:no )?(começo|início) do dia"#)?,
                       |_| {
                           Ok(helpers::hour(6, false)?
                               .span_to(&helpers::hour(10, false)?, false)?
@@ -954,9 +975,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               .form(Form::PartOfDay(PartOfDayForm::Morning)))
                       }
     );
-     // Time period
+    // Time period
+    b.rule_1_terminal("beginning of day",
+                      b.reg(r#"(?:no )?início do dia"#)?,
+                      |_| {
+                          Ok(helpers::hour(6, false)?
+                              .span_to(&helpers::hour(10, false)?, false)?
+                              .latent()
+                              .form(Form::PartOfDay(PartOfDayForm::Morning)))
+                      }
+    );
+    // Time period
     b.rule_1_terminal("middle of day",
-                      b.reg(r#"(no )?meio do dia"#)?,
+                      b.reg(r#"(?:no )?meio do dia"#)?,
+                      |_| {
+                          Ok(helpers::hour(11, false)?
+                              .span_to(&helpers::hour(16, false)?, false)?
+                              .latent()
+                              .form(Form::PartOfDay(PartOfDayForm::None)))
+                      }
+    );
+    // Time period
+    b.rule_1_terminal("middle of day",
+                      b.reg(r#"metade do dia"#)?,
                       |_| {
                           Ok(helpers::hour(11, false)?
                               .span_to(&helpers::hour(16, false)?, false)?
@@ -991,10 +1032,50 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     // Time period
+    b.rule_2("from <time-of-day>",
+             b.reg(r#"a partir( das?| de| desta)"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, time| Ok(time.value().clone().mark_after_start())
+    );
+    // Time period
+    b.rule_2("from <time-of-day>",
+             b.reg(r#"do início do"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, time| Ok(time.value().clone().mark_after_start())
+    );
+    // Time period
+    b.rule_2("after <date-time>",
+             b.reg(r#"(a partir|depois)( desta| das?| de)"#)?,
+             time_check!(),
+             |_, time| Ok(time.value().clone().mark_after_start())
+    );
+    // Time period
+    b.rule_3("from <time-of-day> on",
+             b.reg(r#"do|de|das"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"em diante"#)?,
+             |_, time, _| Ok(time.value().clone().mark_after_start())
+    );
+    // Time period
+    b.rule_3("from <part-of-day> on",
+             b.reg(r#"do|de|das"#)?,
+             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             b.reg(r#"em diante"#)?,
+             |_, pod, _| Ok(pod.value().clone().mark_after_start())
+    );
+    // Time period
     b.rule_4("from <date-time> to <date-time> (interval)",
-             b.reg(r#"das"#)?,
+             b.reg(r#"do|de|das"#)?,
              time_check!(),
              b.reg(r#"às"#)?,
+             time_check!(),
+             |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    // Time period
+    b.rule_4("from <date-time> to <date-time> (interval)",
+             b.reg(r#"a partir (d[ae]|das|desta)"#)?,
+             time_check!(),
+             b.reg(r#"para as"#)?,
              time_check!(),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
@@ -1004,6 +1085,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, time| Ok(time.value().clone().mark_before_end())
     );
+
     // Time
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
