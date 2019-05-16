@@ -59,7 +59,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("<integer> more <unit-of-duration>",
              integer_check_by_range!(0),
-             b.reg(r#"more|less"#)?,
+             b.reg(r#"more"#)?,
              unit_of_duration_check!(),
              |integer, _, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
     );
@@ -131,17 +131,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              unit_of_duration_check!(),
              |_, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, 1).into()))
     );
-    b.rule_2("in <duration>",
-             b.reg(r#"in"#)?,
-             duration_check!(),
-             |_, duration| duration.value().in_present()
-    );
-    b.rule_3("in <duration>",
-             b.reg(r#"in"#)?,
-             duration_check!(),
-             b.reg(r#"(?:' )? times?"#)?,
-             |_, duration, _| duration.value().in_present()
-    );
     b.rule_2("for <duration>",
              b.reg(r#"for"#)?,
              duration_check!(),
@@ -171,49 +160,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(|duration: &DurationValue| !duration.suffixed),
              duration_check!(|duration: &DurationValue| !duration.prefixed),
              |a, b| Ok(a.value() + b.value())
-    );
-
-    b.rule_2("<duration> from now", // "10 minutes from now"
-             duration_check!(),
-             b.reg(r#"from (?:today|now)"#)?,
-             |a, _| a.value().in_present()
-    );
-
-    b.rule_3("for <duration> from now", // "for 10 minutes from now"
-             b.reg(r#"for"#)?,
-             duration_check!(),
-             b.reg(r#"from (?:today|now)"#)?,
-             |_, duration, _| {
-                 let start = helpers::cycle_nth(Grain::Second, 0)?;
-                 let end = duration.value().in_present()?;
-                 start.span_to(&end, false)
-             }
-    );
-
-    b.rule_2("<duration> ago",
-             duration_check!(),
-             b.reg(r#"ago"#)?,
-             |a, _| a.value().ago()
-    );
-
-    b.rule_2("<duration> hence",
-             duration_check!(),
-             b.reg(r#"hence"#)?,
-             |a, _| a.value().in_present()
-    );
-
-    b.rule_3("<duration> after <datetime>",
-             duration_check!(),
-             b.reg(r#"after"#)?,
-             datetime_check!(),
-             |duration, _, datetime| duration.value().after(datetime.value())
-    );
-
-    b.rule_3("<duration> before <datetime>",
-             duration_check!(),
-             b.reg(r#"before"#)?,
-             datetime_check!(),
-             |duration, _, datetime| duration.value().before(datetime.value())
     );
 
     b.rule_2("about <duration>",

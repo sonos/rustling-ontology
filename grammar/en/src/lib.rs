@@ -4,6 +4,7 @@ extern crate rustling_ontology_values;
 extern crate rustling_ontology_moment;
 
 mod rules_datetime;
+mod rules_celebrations;
 mod rules_duration;
 mod rules_number;
 mod rules_amount;
@@ -19,8 +20,11 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
     rules_amount::rules_temperature(&mut b)?;
     rules_amount::rules_finance(&mut b)?;
     rules_amount::rules_percentage(&mut b)?;
-    rules_datetime::rules_datetime(&mut b)?;
     rules_datetime::rules_cycle(&mut b)?;
+    rules_datetime::rules_datetime(&mut b)?;
+    rules_datetime::rules_datetime_with_duration(&mut b)?;
+    rules_datetime::rules_datetime_with_nth_cycle(&mut b)?;
+    rules_celebrations::rules_celebration(&mut b)?;
     rules_duration::rules_duration(&mut b)?;
     Ok(b.build())
 }

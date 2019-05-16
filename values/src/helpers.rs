@@ -201,6 +201,10 @@ impl DatetimeValue {
         DatetimeValue { form: form, ..self }
     }
 
+    pub fn datetime_kind(self, datetime_kind: DatetimeKind) -> DatetimeValue {
+        DatetimeValue { datetime_kind: datetime_kind, ..self }
+    }
+
     pub fn direction(self, direction: Option<BoundedDirection>) -> DatetimeValue {
         DatetimeValue {
             direction: direction,
@@ -309,8 +313,8 @@ impl DatetimeValue {
 
     
     pub fn span_to(&self, to: &DatetimeValue, is_inclusive: bool) -> RuleResult<DatetimeValue> {
-        if (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) ||
-           is_inclusive {
+        if is_inclusive ||
+            (self.constraint.grain() == Grain::Day && to.constraint.grain() == Grain::Day) {
             Ok(DatetimeValue::constraint(self.constraint.span_inclusive_to(&to.constraint))
                 .form(Form::Span)
                 .precision(precision_resolution(self.precision, to.precision)))
@@ -564,14 +568,42 @@ impl DurationValue {
 
     pub fn in_present(&self) -> RuleResult<DatetimeValue> {
         self.check_period()?;
-        Ok(DatetimeValue::constraint(Cycle::rc(Grain::Second).take_the_nth(0).shift_by(self.period.clone())).precision(self.precision))
+        let grain = self.get_grain();
+        let datetime_kind = match grain.is_date_grain() {
+            true => DatetimeKind::Date,
+            false => DatetimeKind::Time,
+        };
+        Ok(DatetimeValue::constraint(Cycle::rc(Grain::Second)
+            .take_the_nth(0)
+            .shift_by(self.period.clone())).precision(self.precision)
+            .datetime_kind(datetime_kind))
+    }
+
+    pub fn in_present_day(&self) -> RuleResult<DatetimeValue> {
+        self.check_period()?;
+        let grain = self.get_grain();
+        let datetime_kind = match grain.is_date_grain() {
+            true => DatetimeKind::Date,
+            false => DatetimeKind::Time,
+        };
+        Ok(DatetimeValue::constraint(Cycle::rc(Grain::Day)
+            .take_the_nth(0)
+            .shift_by(self.period.clone())).precision(self.precision)
+            .datetime_kind(datetime_kind))
     }
 
     pub fn ago(&self) -> RuleResult<DatetimeValue> {
         self.check_period()?;
+        let grain = self.get_grain();
+        let datetime_kind = match grain.is_date_grain() {
+            true => DatetimeKind::Date,
+            false => DatetimeKind::Time,
+        };
         Ok(DatetimeValue::constraint(Cycle::rc(Grain::Second)
-                                     .take_the_nth(0)
-                                     .shift_by(-self.period.clone())).precision(self.precision))
+            .take_the_nth(0)
+            .shift_by(-self.period.clone()))
+            .precision(self.precision)
+            .datetime_kind(datetime_kind))
     }
 
     pub fn after(&self, datetime: &DatetimeValue) -> RuleResult<DatetimeValue> {
