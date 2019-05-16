@@ -498,11 +498,10 @@ pub enum DatetimeKind {
     Time,
     DatePeriod,
     TimePeriod,
-    DatetimeComplement,
+    DatetimeComplement { date_and_time: bool, today: bool },
     Datetime,
     Empty,
 }
-
 
 /// Payload for the datetime value of Dimension
 #[derive(Clone)]
@@ -541,76 +540,14 @@ impl DatetimeValue {
         (self.constraint.coarse_grain_step() as usize) > (grain as usize)
     }
 
-    pub fn date_form(&self) -> Option<bool> {
-        match self.form {
-            Form::Cycle(grain) => {
-                match grain {
-                    Grain::Year => Some(true),
-                    Grain::Quarter => Some(true),
-                    Grain::Month => Some(true),
-                    Grain::Week => Some(true),
-                    Grain::Day => Some(true),
-                    _ => Some(false),
-                }
-            },
-            Form::Year(_) => Some(true),
-            Form::Month(_) => Some(true),
-            Form::MonthDay(_) => Some(true),
-            Form::YearMonthDay(_) => Some(true),
-            Form::TimeOfDay(_) => Some(false),
-            Form::DayOfWeek { .. } => Some(true),
-            Form::Empty => None,
-            Form::PartOfDay { .. } => Some(false),
-            Form::Meal => Some(false),
-            Form::Celebration => Some(true),
-            Form::PartOfMonth => Some(true),
-            Form::PartOfYear => Some(true),
-            Form::DayOfMonth => Some(true),
-            Form::PartOfForm(_) => None,
-            Form::PartOfWeek => Some(true),
-            Form::Span => None,
-        }
-    }
-
-    pub fn has_time_form(&self) -> Option<bool> {
-        match self.form {
-            Form::Cycle(grain) => {
-                match grain {
-                    Grain::Hour => Some(true),
-                    Grain::Minute => Some(true),
-                    Grain::Second => Some(true),
-                    _ => Some(false),
-                }
-            },
-            Form::Year(_) => Some(false),
-            Form::Month(_) => Some(false),
-            Form::MonthDay(_) => Some(false),
-            Form::YearMonthDay(_) => Some(false),
-            Form::TimeOfDay(_) => Some(true),
-            Form::DayOfWeek { .. } => Some(false),
-            Form::Empty => None,
-            Form::PartOfDay { .. } => Some(true),
-            Form::Meal => Some(true),
-            Form::Celebration => Some(false),
-            Form::PartOfMonth => Some(false),
-            Form::PartOfYear => Some(false),
-            Form::DayOfMonth => Some(false),
-            Form::PartOfForm(_) => None,
-            Form::PartOfWeek => Some(false),
-            Form::Span => None,
-        }
-    }
-
     pub fn has_period_form(&self) -> Option<bool> {
         match self.form {
             Form::Cycle(grain) => {
-              match grain {
-                  Grain::Year => Some(true),
-                  Grain::Quarter => Some(true),
-                  Grain::Month => Some(true),
-                  Grain::Week => Some(true),
-                  _ => Some(false),
-              }
+                match grain {
+                    Grain::Day => Some(false),
+                    Grain::Second => Some(false),
+                    _ => Some(true),
+                }
             },
             Form::Year(_) => Some(true),
             Form::Month(_) => Some(true),
@@ -624,6 +561,7 @@ impl DatetimeValue {
             Form::Celebration => Some(false),
             Form::PartOfMonth => Some(true),
             Form::PartOfYear => Some(true),
+            Form::Season => Some(true),
             Form::DayOfMonth => Some(false),
             Form::PartOfForm(_) => None,
             Form::PartOfWeek => Some(true),
@@ -631,15 +569,20 @@ impl DatetimeValue {
         }
     }
 
-    pub fn datetime_kind_with_span(&self) -> DatetimeKind {
+    pub fn has_period_grain(&self) -> Option<bool> {
+        match self.constraint.grain() {
+            Grain::Week => Some(true),
+            Grain::Month => Some(true),
+            Grain::Quarter => Some(true),
+            Grain::Year => Some(true),
+            _ => Some(false),
+        }
+    }
+
+    pub fn is_today_date_and_time(&self) -> bool {
         match self.datetime_kind {
-            DatetimeKind::Date |
-            DatetimeKind::DatePeriod => DatetimeKind::DatePeriod,
-            DatetimeKind::Time |
-            DatetimeKind::TimePeriod => DatetimeKind::TimePeriod,
-            DatetimeKind::DatetimeComplement |
-            DatetimeKind::Datetime |
-            DatetimeKind::Empty => DatetimeKind::Datetime,
+            DatetimeKind::DatetimeComplement { date_and_time, today } => date_and_time && today,
+            _ => false
         }
     }
 
@@ -662,6 +605,7 @@ pub enum Form {
     PartOfWeek,
     PartOfMonth,
     PartOfYear,
+    Season,
     PartOfForm(PartOfForm),
     Meal,
     Celebration,
@@ -685,6 +629,7 @@ impl Form {
             &Form::Celebration => None,
             &Form::PartOfMonth => None,
             &Form::PartOfYear => None,
+            &Form::Season => None,
             &Form::DayOfMonth => None,
             &Form::PartOfForm(_) => None,
             &Form::PartOfWeek => None,
@@ -880,6 +825,10 @@ impl DurationValue {
 
     pub fn precision(self, precision: Precision) -> DurationValue {
         DurationValue { precision: precision, ..self }
+    }
+
+    pub fn get_grain(&self) -> Grain {
+        self.period.finer_grain().unwrap_or(Grain::Second)
     }
 
     pub fn from_addition(self, from_addition: FromAddition) -> DurationValue {
