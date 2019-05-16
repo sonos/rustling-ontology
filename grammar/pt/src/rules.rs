@@ -887,7 +887,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("lunch",
-                      b.reg(r#"(no |para a hora do)?almoço"#)?,
+                      b.reg(r#"almoço"#)?,
+                      |_| Ok(helpers::hour(12, false)?
+                          .span_to(&helpers::hour(14, false)?, false)?
+                          .latent()
+                          .form(Form::Meal))
+    );
+    // Time period
+    b.rule_1_terminal("lunch",
+                      b.reg(r#"a hora doalmoço"#)?,
                       |_| Ok(helpers::hour(12, false)?
                           .span_to(&helpers::hour(14, false)?, false)?
                           .latent()
@@ -983,16 +991,20 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     // Time period
-    b.rule_4("from <time-of-day> to <time-of-day> (interval)",
+    b.rule_4("from <date-time> to <date-time> (interval)",
              b.reg(r#"das"#)?,
              time_check!(),
              b.reg(r#"às"#)?,
              time_check!(),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
-
-
-
+    // Time period
+    b.rule_2("before <datetime>",
+             b.reg(r#"antes d[ao]s?"#)?,
+             time_check!(),
+             |_, time| Ok(time.value().clone().mark_before_end())
+    );
+    // Time
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
                       |text_match| {
@@ -1001,6 +1013,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           helpers::hour_minute(hour, minute, hour < 12)
                       }
     );
+    // Time
     b.rule_1_terminal("hh:mm:ss",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)[:.]([0-5]\d)"#)?,
                       |text_match| helpers::hour_minute_second(
@@ -1010,6 +1023,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           true
                       )
     );
+    // Date
     b.rule_1_terminal("dd[/-.]mm[/-.]yyyy",
                       b.reg(r#"(3[01]|[12]\d|0?[1-9])[-/.](0?[1-9]|1[0-2])[-/.](\d{2,4})"#)?,
                       |text_match| helpers::year_month_day(
@@ -1018,6 +1032,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           text_match.group(1).parse()?
                       )
     );
+    // Date
     b.rule_1_terminal("yyyy-mm-dd",
                       b.reg(r#"(\d{2,4})-(0?[1-9]|1[0-2])-(3[01]|[12]\d|0?[1-9])"#)?,
                       |text_match| helpers::year_month_day(
@@ -1026,6 +1041,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           text_match.group(3).parse()?
                       )
     );
+    // Date
     b.rule_1_terminal("dd[/-]mm",
                       b.reg(r#"(3[01]|[12]\d|0?[1-9])[-/](0?[1-9]|1[0-2])"#)?,
                       |text_match| helpers::month_day(
