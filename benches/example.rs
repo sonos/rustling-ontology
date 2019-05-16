@@ -54,6 +54,7 @@ fn file_path(file_name: &str) -> path::PathBuf {
 
 fn parsing_tagger<'a>(kinds: &'a [OutputKind], context: &'a IdentityContext<Dimension>) -> CandidateTagger<'a, IdentityContext<Dimension>> {
     CandidateTagger {
+        input: "input",
         output_kind_filter: kinds,
         context: context,
         resolve_all_candidates: false,

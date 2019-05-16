@@ -58,6 +58,7 @@ impl Parser {
                                  order: &[OutputKind])
                                  -> RustlingResult<Vec<ParserMatch<Output>>> {
         let tagger = CandidateTagger {
+            input: input,
             output_kind_filter: order,
             context: context,
             resolve_all_candidates: false,
@@ -91,10 +92,12 @@ impl Parser {
     }
 
     pub fn analyse_with_kind_order(&self,
+                                    input: &str,
                                     examples: Vec<&str>,
                                     context: &ResolverContext,
                                     order:  &[OutputKind]) -> RustlingResult<ParsingAnalysis> {
         let tagger = CandidateTagger {
+            input: input,
             output_kind_filter: order,
             context: context,
             resolve_all_candidates: false,
@@ -102,9 +105,9 @@ impl Parser {
         self.0.analyse(examples, &tagger)
     }
 
-    pub fn analyse(&self, examples: Vec<&str>, context: &ResolverContext) -> RustlingResult<ParsingAnalysis> {
+    pub fn analyse(&self, input: &str, examples: Vec<&str>, context: &ResolverContext) -> RustlingResult<ParsingAnalysis> {
         let all_kind = OutputKind::all();
-        self.analyse_with_kind_order(examples, &context, &all_kind)
+        self.analyse_with_kind_order(input, examples, &context, &all_kind)
     }
 
     pub fn num_rules(&self) -> usize {

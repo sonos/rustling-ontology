@@ -7,6 +7,7 @@ use rustling_ontology_values::output::OutputKind;
 use mapper;
 
 pub struct CandidateTagger<'a, C: ParsingContext<Dimension> + 'a> {
+    pub input: &'a str,
     pub output_kind_filter: &'a [OutputKind],
     pub context: &'a C,
     pub resolve_all_candidates: bool,

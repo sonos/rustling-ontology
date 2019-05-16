@@ -53,14 +53,16 @@ mod tests {
 
     #[test]
     fn test_twenty() {
+        let input = "twenty";
         let parser = build_raw_parser(Lang::EN).unwrap();
         let tagger = CandidateTagger {
+            input: input,
             output_kind_filter: &[OutputKind::Number],
             context: &IdentityContext::new(),
             resolve_all_candidates: false,
         };
         let result = parser
-            .parse("twenty", &tagger)
+            .parse(input, &tagger)
             .unwrap();
         // TODO: check why `parsing_tree_height` and `parsing_tree_num_nodes` equal 2 instead of 1
         assert_eq!(ParserMatch {
@@ -77,14 +79,16 @@ mod tests {
 
     #[test]
     fn test_21() {
+        let input = "twenty-one";
         let parser = build_raw_parser(Lang::EN).unwrap();
         let tagger = CandidateTagger {
+            input: input,
             output_kind_filter: &[OutputKind::Number],
             context: &IdentityContext::new(),
             resolve_all_candidates: false,
         };
         let result = parser
-            .parse("twenty-one", &tagger)
+            .parse(input, &tagger)
             .unwrap();
         assert_eq!(21,
                    IntegerValue::attempt_from(result[0].value.clone().unwrap())
@@ -94,13 +98,15 @@ mod tests {
 
     #[test]
     fn test_2_1000() {
+        let input = "twenty-one thousands";
         let tagger = CandidateTagger {
+            input: input,
             output_kind_filter: &[OutputKind::Number],
             context: &IdentityContext::new(),
             resolve_all_candidates: false,
         };
         let parser = build_raw_parser(Lang::EN).unwrap();
-        let result = parser.parse("twenty-one thousands", &tagger).unwrap();
+        let result = parser.parse(input, &tagger).unwrap();
         assert_eq!(21000,
                    IntegerValue::attempt_from(result[0].value.clone().unwrap())
                        .unwrap()
@@ -109,13 +115,15 @@ mod tests {
 
     #[test]
     fn test_foobar() {
+        let input = "foobar twenty thousands";
         let parser = build_raw_parser(Lang::EN).unwrap();
         let tagger = CandidateTagger {
+            input: input,
             output_kind_filter: &[OutputKind::Number],
             context: &IdentityContext::new(),
             resolve_all_candidates: false,
         };
-        let result = parser.parse("foobar twenty thousands", &tagger).unwrap();
+        let result = parser.parse(input, &tagger).unwrap();
         assert_eq!(20000,
                    IntegerValue::attempt_from(result[0].value.clone().unwrap())
                        .unwrap()
