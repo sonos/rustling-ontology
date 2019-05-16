@@ -827,7 +827,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of morning",
-                      b.reg(r#"(para )?o começo da manhã"#)?,
+                      b.reg(r#"(para )?o começo da manh[aã]"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .latent()
@@ -835,7 +835,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("end of morning",
-                      b.reg(r#"(para |n)?o fim da manhã"#)?,
+                      b.reg(r#"(para |n)?o fim da manh[aã]"#)?,
                       |_| Ok(helpers::hour(10, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .latent()
@@ -956,7 +956,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               .form(Form::PartOfDay(PartOfDayForm::None)))
                       }
     );
-     // Time period
+    // Time period
     b.rule_1_terminal("end of day",
                       b.reg(r#"(para )?o fim do dia"#)?,
                       |_| {
@@ -965,6 +965,30 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               .latent()
                               .form(Form::PartOfDay(PartOfDayForm::Evening)))
                       }
+    );
+    // Time period
+    b.rule_4("between <datetime> and <datetime> (interval)",
+             b.reg(r#"entre"#)?,
+             time_check!(),
+             b.reg(r#"e"#)?,
+             time_check!(),
+             |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    // Time period
+    b.rule_4("from <time-of-day> to <time-of-day> (interval)",
+             b.reg(r#"das"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"às"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    // Time period
+    b.rule_4("from <time-of-day> to <time-of-day> (interval)",
+             b.reg(r#"das"#)?,
+             time_check!(),
+             b.reg(r#"às"#)?,
+             time_check!(),
+             |_, a, _, b| a.value().span_to(b.value(), false)
     );
 
 
