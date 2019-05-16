@@ -45,7 +45,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a| Ok(a.value().clone().not_latent())
     );
     // TODO: add restrictions on datetime form
-    b.rule_2("for <date>",
+    b.rule_2("for <datetime>",
              b.reg(r#"(?:for|at|on)"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |_, a| Ok(a.value().clone().not_latent())
@@ -63,7 +63,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("in|for <year>",
              b.reg(r#"in|for"#)?,
-             datetime_check!(form!(Form::Year(_))),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::Year(_))(datetime) && !datetime.latent),
              |_, a| Ok(a.value().clone().not_latent())
     );
 
@@ -866,7 +866,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |_, datetime| Ok(datetime.value().clone().latent())
     );
-    b.rule_2("in|for|during the <part-of-day>",
+    b.rule_2("in|for≤|during the <part-of-day>",
              b.reg(r#"(?:in|for|during)(?: the)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |_, datetime| Ok(datetime.value().clone().not_latent())
@@ -1362,14 +1362,14 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
     );
     // TODO: resolution is not correct for times, i.e. rounds at grain
     b.rule_3("last n <cycle>",
-             b.reg(r#"(?:the |these )?(?:last|past)"#)?,
+             b.reg(r#"(?:for |in )?(?:the |these )?(?:last|past)"#)?,
              integer_check_by_range!(1, 9999),
              cycle_check!(),
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
     // TODO: same as previous
     b.rule_3("next n <cycle>",
-             b.reg(r#"(?:the |these )?next"#)?,
+             b.reg(r#"(?:for |in )?(?:the |these )?next"#)?,
              integer_check_by_range!(1, 9999),
              cycle_check!(),
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
