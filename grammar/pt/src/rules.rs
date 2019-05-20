@@ -761,12 +761,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     // Time
     b.rule_1_terminal("noon",
-                      b.reg(r#"meio-dia"#)?,
+                      b.reg(r#"(?:o )?meio[- ]dia"#)?,
                       |_| helpers::hour(12, false)
     );
     // Time
     b.rule_1_terminal("midnight",
-                      b.reg(r#"meia-noite"#)?,
+                      b.reg(r#"(?:a )?meia[- ]noite"#)?,
                       |_| helpers::hour(0, false)
     );
     b.rule_1("time-of-day (latent) (1 to 23)",
@@ -827,7 +827,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of morning",
-                      b.reg(r#"(para )?o começo da manh[aã]"#)?,
+                      b.reg(r#"(?:para |n)?o começo da manh[aã]"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .latent()
@@ -835,7 +835,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("end of morning",
-                      b.reg(r#"(para |n)?o fim da manh[aã]"#)?,
+                      b.reg(r#"(?:para |no )fim da manh[aã]"#)?,
+                      |_| Ok(helpers::hour(10, false)?
+                          .span_to(&helpers::hour(12, false)?, false)?
+                          .latent()
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)))
+    );
+    // Time period
+    b.rule_1_terminal("end of morning",
+                      b.reg(r#"o fim da manh[aã]"#)?,
                       |_| Ok(helpers::hour(10, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .latent()
@@ -850,7 +858,27 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("middle afternoon",
-                      b.reg(r#"(para|n)? o meio da tarde"#)?,
+                      b.reg(r#"(?:para |n)?o meio da tarde"#)?,
+                      |_| {
+                          Ok(helpers::hour(15, false)?
+                              .span_to(&helpers::hour(17, false)?, false)?
+                              .latent()
+                              .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
+                      }
+    );
+    // Time period
+    b.rule_1_terminal("end of afternoon",
+                      b.reg(r#"(?:para |no )fim da tarde"#)?,
+                      |_| {
+                          Ok(helpers::hour(15, false)?
+                              .span_to(&helpers::hour(17, false)?, false)?
+                              .latent()
+                              .form(Form::PartOfDay(PartOfDayForm::Afternoon)))
+                      }
+    );
+    // Time period
+    b.rule_1_terminal("end of afternoon",
+                      b.reg(r#"o fim da tarde"#)?,
                       |_| {
                           Ok(helpers::hour(15, false)?
                               .span_to(&helpers::hour(17, false)?, false)?
@@ -867,7 +895,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of evening",
-                      b.reg(r#"(para o|no)? começo da noite"#)?,
+                      b.reg(r#"(?:para |n)?o começo da noite"#)?,
                       |_| {
                           Ok(helpers::hour(18, false)?
                               .span_to(&helpers::hour(21, false)?, false)?
@@ -877,7 +905,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("end of evening",
-                      b.reg(r#"(no|para o) fim da noite"#)?,
+                      b.reg(r#"(?:para |n)?o fim da noite"#)?,
                       |_| {
                           Ok(helpers::hour(21, false)?
                               .span_to(&helpers::hour(0, false)?, false)?
@@ -918,7 +946,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Time period
     b.rule_3("<part-of-day> de <time>",
             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
-            b.reg(r#"esta|d[ea]"#)?,
+            b.reg(r#"d?esta|d[ea]"#)?,
             time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
             |part_of_day, _, time| time.value().intersect(part_of_day.value())
     );
@@ -932,7 +960,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Time period
     b.rule_3("<time-of-day> de <time>",
             time_check!(excluding_form!(Form::PartOfDay(_))),
-            b.reg(r#"esta|d[ea]"#)?,
+            b.reg(r#"d?esta|d[ea]"#)?,
             time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
             |part_of_day, _, time| time.value().intersect(part_of_day.value())
     );
@@ -967,7 +995,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of day",
-                      b.reg(r#"(?:no )?(começo|início) do dia"#)?,
+                      b.reg(r#"(?:n?o )?(começo|início) do dia"#)?,
                       |_| {
                           Ok(helpers::hour(6, false)?
                               .span_to(&helpers::hour(10, false)?, false)?
@@ -977,7 +1005,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of day",
-                      b.reg(r#"(?:no )?início do dia"#)?,
+                      b.reg(r#"(?:n?o )?início do dia"#)?,
                       |_| {
                           Ok(helpers::hour(6, false)?
                               .span_to(&helpers::hour(10, false)?, false)?
@@ -987,7 +1015,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("middle of day",
-                      b.reg(r#"(?:no )?meio do dia"#)?,
+                      b.reg(r#"(?:n?o )?meio do dia"#)?,
                       |_| {
                           Ok(helpers::hour(11, false)?
                               .span_to(&helpers::hour(16, false)?, false)?
@@ -1007,7 +1035,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("end of day",
-                      b.reg(r#"(para )?o fim do dia"#)?,
+                      b.reg(r#"(?:para |n)?o fim do dia"#)?,
                       |_| {
                           Ok(helpers::hour(17, false)?
                               .span_to(&helpers::hour(21, false)?, false)?
@@ -1017,10 +1045,34 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_4("between <datetime> and <datetime> (interval)",
-             b.reg(r#"entre"#)?,
+             b.reg(r#"entre(?: as?)?"#)?,
              time_check!(),
-             b.reg(r#"e"#)?,
+             b.reg(r#"e|e a"#)?,
              time_check!(),
+             |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    // Time period
+    b.rule_4("between <datetime> and <datetime> (interval)",
+             b.reg(r#"entre(?: as?)?"#)?,
+             time_check!(),
+             b.reg(r#"e as"#)?,
+             time_check!(),
+             |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    // Time period
+    b.rule_4("between <time-of-day> e as <time-of-day> (interval)",
+             b.reg(r#"entre(?: as?)?"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"e( a)?"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+    // Time period
+    b.rule_4("between <time-of-day> e as <time-of-day> (interval)",
+             b.reg(r#"entre(?: as?)?"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"e as"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     // Time period
@@ -1028,7 +1080,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"das"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"às"#)?,
-             time_check!(form!(Form::TimeOfDay(_))),
+             time_check!(),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     // Time period
@@ -1097,7 +1149,24 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, time| Ok(time.value().clone().mark_before_end())
     );
-
+    // Time period
+    b.rule_2("before <datetime>",
+             b.reg(r#"àté(?: as?| o| de)?"#)?,
+             time_check!(),
+             |_, time| Ok(time.value().clone().mark_before_end())
+    );
+    // Time period
+    b.rule_2("before <part-of-day>",
+             b.reg(r#"àté as|àté o|àté de|àté"#)?,
+             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             |_, pod| Ok(pod.value().clone().mark_before_end())
+    );
+    // Time period
+    b.rule_2("before <part-of-day>",
+             b.reg(r#"àté"#)?,
+             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+             |_, pod| Ok(pod.value().clone().mark_before_end())
+    );
     // Time
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h\.]([0-5]\d)"#)?,
