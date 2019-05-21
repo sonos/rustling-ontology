@@ -34,8 +34,8 @@ enum_kind!(OutputKind,
     [
         Number,
         Ordinal,
-        Duration,
         Time,
+        Duration,
         AmountOfMoney,
         Temperature,
         Percentage
