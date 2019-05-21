@@ -494,6 +494,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
     // Date
+    b.rule_1_terminal("Christmas",
+                      b.reg(r#"natal"#)?,
+                      |_| helpers::month_day(12, 25)
+    );
+    // Date
     b.rule_1_terminal("today",
                       b.reg(r#"hoje"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
@@ -526,14 +531,18 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // DateTime
     b.rule_2("this <datetime>",
-             b.reg(r#"est[ea]"#)?,
+             b.reg(r#"est[ea]|próximo"#)?,
              time_check!(),
              |_, time| time.value().the_nth(0)
     );
-    // Date-period
-    b.rule_2("in <named-month>",
-             b.reg(r#"durante|em|para"#)?,
-             time_check!(form!(Form::Month(_))),
+    b.rule_2("in <datetime>",
+             b.reg(r#"durante|em|para|n[oa]"#)?,
+             time_check!(),
+             |_, a| Ok(a.value().clone())
+    );
+    b.rule_2("in <part-of-day>",
+             b.reg(r#"pela"#)?,
+             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |_, a| Ok(a.value().clone())
     );
     // Date-period
@@ -1211,6 +1220,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           text_match.group(2).parse()?,
                           text_match.group(1).parse()?
                       )
+    );
+    // Date time complement
+    b.rule_3("<time> <part-of-day>",
+            time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+            b.reg(r#"à|de"#)?,
+            time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+            |time, _, part_of_day| time.value().intersect(part_of_day.value())
     );
     Ok(())
 }
