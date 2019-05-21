@@ -536,7 +536,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, time| time.value().the_nth(0)
     );
     b.rule_2("in <datetime>",
-             b.reg(r#"durante|em|para|n[oa]"#)?,
+             b.reg(r#"durante|em|para(?: o)?|n[oa]"#)?,
              time_check!(),
              |_, a| Ok(a.value().clone())
     );
@@ -544,6 +544,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"pela"#)?,
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |_, a| Ok(a.value().clone())
+    );
+    b.rule_2("last <time>",
+             b.reg(r#"hà"#)?,
+             time_check!(),
+             |_, a| {
+                 a.value().the_nth(-1)
+             }
     );
     // Date-period
     b.rule_2("beginning <named-month>(interval)",
@@ -1224,6 +1231,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Date time complement
     b.rule_3("<time> <part-of-day>",
             time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time) && excluding_form!(Form::Month(_))(time)),
+            b.reg(r#"à|de"#)?,
+            time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
+            |time, _, part_of_day| time.value().intersect(part_of_day.value())
+    );
+    // Date time complement
+    b.rule_3("<datetime> <part-of-day>",
+            time_check!(),
             b.reg(r#"à|de"#)?,
             time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
             |time, _, part_of_day| time.value().intersect(part_of_day.value())
