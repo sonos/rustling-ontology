@@ -1144,6 +1144,13 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, pod, _| Ok(pod.value().clone().mark_after_start())
     );
     // Time period
+    b.rule_3("from <datetime> on",
+             b.reg(r#"do|de|das"#)?,
+             time_check!(),
+             b.reg(r#"em diante"#)?,
+             |_, pod, _| Ok(pod.value().clone().mark_after_start())
+    );
+    // Time period
     b.rule_4("from <date-time> to <date-time> (interval)",
              b.reg(r#"do|de|das"#)?,
              time_check!(),
@@ -1295,8 +1302,18 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
              });
     b.rule_2("<latent temp> below zero",
              temperature_check!(),
-             b.reg(r#"abaixo de cero"#)?,
+             b.reg(r#"abaixo de zero"#)?,
              |a, _| {
+                 Ok(TemperatureValue {
+                     value: -1.0 * a.value().value,
+                     latent: false,
+                     ..*a.value()
+                 })
+             });
+    b.rule_2("<latent temp> below zero",
+             b.reg(r#"menos"#)?,
+             temperature_check!(),
+             |_, a| {
                  Ok(TemperatureValue {
                      value: -1.0 * a.value().value,
                      latent: false,
@@ -1322,10 +1339,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1_terminal("numbers (0..9)",
-                      b.reg(r#"(cero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|meia|sete|oito|nove)"#)?,
+                      b.reg(r#"(zero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|meia|sete|oito|nove)"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
-                              "cero" => 0,
+                              "zero" => 0,
                               "um" => 1,
                               "uma" => 1,
                               "dois" => 2,
