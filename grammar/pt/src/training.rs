@@ -8,7 +8,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_percentage(0.3), "0,3%", "cero vírgula tres porcento", "cero virgula tres porcento");
+    example!(v, check_percentage(0.3), "0,3%", "zero vírgula tres porcento", "zero virgula tres porcento");
     example!(v, check_percentage(5.0), "5%", "cinco porcento");
     example!(v, check_percentage(355.0), "355 %", "355 por cento", "355 porcento");
 }
@@ -18,7 +18,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
     example!(v, check_temperature(32.0, Some("celsius")), "32°C", "32° C", "32° c", "32°c", "32 °c");
     example!(v, check_temperature(-27.0, Some("degree")), "-27 graus");
     example!(v, check_temperature(-27.0, Some("celsius")), "-27 graus celsius", "menos 27 graus centigrados", "-27C", "-27°C", "-27° C", "-27°c", "-27° c", "- 27 c");
-    example!(v, check_temperature(-5.0, Some("fahrenheit")), "menos cinco graus fahrenheit", "cinco graus fahrenheit abaixo de cero", "-5 °F", "-5°F", "-5°f", "-5° f", "- 5°f");
+    example!(v, check_temperature(-5.0, Some("fahrenheit")), "menos cinco graus fahrenheit", "cinco graus fahrenheit abaixo de zero", "-5 °F", "-5°F", "-5°f", "-5° f", "- 5°f");
     example!(v, check_temperature(168.0, Some("fahrenheit")), "168 graus fahrenheit", "168° F", "168 F", "168f");
     example!(v, check_temperature(10.0, Some("kelvin")), "dez kelvin", "10°K", "10° K", "10 °K", "10°k", "dez graus kelvin");
 }

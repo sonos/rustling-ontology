@@ -534,7 +534,7 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
              });
     b.rule_2("<latent temp> below zero",
              temperature_check!(),
-             b.reg(r#"abaixo de cero"#)?,
+             b.reg(r#"abaixo de zero"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: -1.0 * a.value().value,
@@ -552,10 +552,10 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| helpers::compose_numbers(&a.value(), &b.value())
     );
     b.rule_1_terminal("number (0..10)",
-                      b.reg(r#"(cero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|sete|oito|nove|dez)"#)?,
+                      b.reg(r#"(zero|uma?|dois|duas|tr[eéê]s|quatro|cinco|s[eé]is|sete|oito|nove|dez)"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
-                              "cero" => 0,
+                              "zero" => 0,
                               "um" => 1,
                               "uma" => 1,
                               "dois" => 2,
@@ -652,11 +652,11 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
-    b.rule_1_terminal("ordinals (primero..10)",
-                      b.reg(r#"(primer|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non|d[eéè]cim)(?:[oa]s?)?"#)?,
+    b.rule_1_terminal("ordinals (primeiro..10)",
+                      b.reg(r#"(primeir|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non|d[eéè]cim)(?:[oa]s?)?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
-                              "primer" => 1,
+                              "primeir" => 1,
                               "segund" => 2,
                               "terceir" => 3,
                               "quart" => 4,
