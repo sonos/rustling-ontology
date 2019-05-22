@@ -84,7 +84,7 @@ mod tests {
             resolve_all_candidates: false,
         };
         let result = parser
-            .parse(twenty-one, &tagger)
+            .parse("twenty-one", &tagger)
             .unwrap();
         assert_eq!(21,
                    IntegerValue::attempt_from(result[0].value.clone().unwrap())
