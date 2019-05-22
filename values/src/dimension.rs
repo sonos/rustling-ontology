@@ -540,43 +540,49 @@ impl DatetimeValue {
         (self.constraint.coarse_grain_step() as usize) > (grain as usize)
     }
 
-    pub fn has_period_form(&self) -> Option<bool> {
+    pub fn has_period_form(&self) -> bool {
         match self.form {
             Form::Cycle(grain) => {
                 match grain {
-                    Grain::Day => Some(false),
-                    Grain::Second => Some(false),
-                    _ => Some(true),
+                    Grain::Day => false,
+                    Grain::Second => false,
+                    _ => true,
                 }
             },
-            Form::Year(_) => Some(true),
-            Form::Month(_) => Some(true),
-            Form::MonthDay(_) => Some(false),
-            Form::YearMonthDay(_) => Some(false),
-            Form::TimeOfDay(_) => Some(false),
-            Form::DayOfWeek { .. } => Some(false),
-            Form::Empty => Some(false),
-            Form::PartOfDay { .. } => Some(true),
-            Form::Meal => Some(true),
-            Form::Celebration => Some(false),
-            Form::PartOfMonth => Some(true),
-            Form::PartOfYear => Some(true),
-            Form::Season => Some(true),
-            Form::DayOfMonth => Some(false),
-            Form::PartOfForm(_) => None,
-            Form::PartOfWeek => Some(true),
-            Form::Span => Some(true),
+            Form::Year(_) => true,
+            Form::Month(_) => true,
+            Form::MonthDay(_) => false,
+            Form::YearMonthDay(_) => false,
+            Form::TimeOfDay(_) => false,
+            Form::DayOfWeek { .. } => false,
+            Form::Empty => false,
+            Form::PartOfDay { .. } => true,
+            Form::Meal => true,
+            Form::Celebration => false,
+            Form::PartOfMonth => true,
+            Form::PartOfYear => true,
+            Form::Season => true,
+            Form::DayOfMonth => false,
+            Form::PartOfForm(_) => true,
+            Form::PartOfWeek => true,
+            Form::Span => true,
         }
     }
 
-    pub fn has_period_grain(&self) -> Option<bool> {
+    pub fn has_period_grain(&self) -> bool {
         match self.constraint.grain() {
-            Grain::Week => Some(true),
-            Grain::Month => Some(true),
-            Grain::Quarter => Some(true),
-            Grain::Year => Some(true),
-            _ => Some(false),
+            Grain::Week => true,
+            Grain::Month => true,
+            Grain::Quarter => true,
+            Grain::Year => true,
+            _ => false,
         }
+    }
+
+    pub fn is_period(&self) -> bool {
+        self.direction.is_some() ||
+            self.has_period_form() ||
+            self.has_period_grain()
     }
 
     pub fn is_today_date_and_time(&self) -> bool {
