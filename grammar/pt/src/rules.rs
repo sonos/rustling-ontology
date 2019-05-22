@@ -190,7 +190,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              });
     b.rule_2("<amount-of-money> exactly",
              amount_of_money_check!(),
-             b.reg(r#"exatamente|precisamente|exatos"#)?,
+             b.reg(r#"exatamente|precisamente|exatos?"#)?,
              |a, _| {
                  Ok(AmountOfMoneyValue {
                      precision: Exact,
@@ -235,7 +235,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(UnitOfDurationValue::new(Grain::Quarter))
     );
     b.rule_1_terminal("quarter of an hour",
-                      b.reg(r#"quarto de hora"#)?,
+                      b.reg(r#"(?:um )?quarto de hora"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
     );
     b.rule_1_terminal("half an hour",
@@ -310,9 +310,9 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
     );
-    b.rule_2("approx <duration>",
+    b.rule_2("<duration> approx",
              duration_check!(),
-             b.reg(r#"aproximadamente"#)?,
+             b.reg(r#"aproximadamente|mais ou? menos"#)?,
              |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
     );
     b.rule_2("precisely <duration>",
@@ -379,7 +379,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<cycle> last",
              cycle_check!(),
-             b.reg(r#"atr[aá]s"#)?,
+             b.reg(r#"atr[aá]s|antes"#)?,
              |cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
     );
     b.rule_3("in <cycle>",
@@ -387,6 +387,11 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(2, 9999),
              cycle_check!(),
              |_, integer, cycle| helpers::cycle_nth(cycle.value().grain, integer.value().value)
+    );
+    b.rule_2("in <cycle>",
+             b.reg(r#"daqui a|dentro de"#)?,
+             cycle_check!(),
+             |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
     );
     Ok(())
 }
@@ -486,7 +491,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month(12)
     );
     b.rule_1_terminal("right now",
-                      b.reg(r#"agora mesmo"#)?,
+                      b.reg(r#"agora mesmo|neste exato momento"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("now",
@@ -535,6 +540,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, time| time.value().the_nth(0)
     );
+    // Date period
+    b.rule_2("this <datetime>",
+             b.reg(r#"(?:o )?mês de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, time| Ok(time.value().clone())
+    );
+
+
     b.rule_2("in <datetime>",
              b.reg(r#"durante|em|para(?: o)?|n[oa]"#)?,
              time_check!(),
@@ -554,7 +567,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date-period
     b.rule_2("beginning <named-month>(interval)",
-             b.reg(r#"o? (começo|início) de"#)?,
+             b.reg(r#"(?:n)?o? (começo|início) d[eo]"#)?,
              time_check!(form!(Form::Month(_))),
              |_, month| {
                  let start = month.value().intersect(&helpers::day_of_month(1)?)?;
@@ -1443,13 +1456,13 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1_terminal("thousand",
-        b.reg(r#"mil"#)?,
+        b.reg(r#"mil|k"#)?,
         |_| IntegerValue::new_with_grain(1000, 3)
     );
 
     b.rule_2("thousands",
         integer_check_by_range!(1, 999),
-        b.reg(r#"mil"#)?,
+        b.reg(r#"mil|k"#)?,
         |a, _| {
             Ok(IntegerValue {
                    value: a.value().value * 1000,
