@@ -88,7 +88,6 @@ fn main() {
             let context = ResolverContext::default();
             
             let tagger = CandidateTagger {
-                input: &sentence,
                 output_kind_filter: &kinds,
                 context: &context,
                 resolve_all_candidates: true,

@@ -58,7 +58,6 @@ impl Parser {
                                  order: &[OutputKind])
                                  -> RustlingResult<Vec<ParserMatch<Output>>> {
         let tagger = CandidateTagger {
-            input: input,
             output_kind_filter: order,
             context: context,
             resolve_all_candidates: false,
@@ -92,12 +91,10 @@ impl Parser {
     }
 
     pub fn analyse_with_kind_order(&self,
-                                    input: &str,
                                     examples: Vec<&str>,
                                     context: &ResolverContext,
                                     order:  &[OutputKind]) -> RustlingResult<ParsingAnalysis> {
         let tagger = CandidateTagger {
-            input: input,
             output_kind_filter: order,
             context: context,
             resolve_all_candidates: false,
@@ -105,9 +102,9 @@ impl Parser {
         self.0.analyse(examples, &tagger)
     }
 
-    pub fn analyse(&self, input: &str, examples: Vec<&str>, context: &ResolverContext) -> RustlingResult<ParsingAnalysis> {
+    pub fn analyse(&self, examples: Vec<&str>, context: &ResolverContext) -> RustlingResult<ParsingAnalysis> {
         let all_kind = OutputKind::all();
-        self.analyse_with_kind_order(input, examples, &context, &all_kind)
+        self.analyse_with_kind_order(examples, &context, &all_kind)
     }
 
     pub fn num_rules(&self) -> usize {
@@ -172,7 +169,6 @@ mod tests {
         //        let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm";
         let sent = "I want a return train ticket from Bordeaux to Strasbourg, friday the 12th of May, 10:32 am to wednesday the 7th of june, 6:22 pm".to_lowercase();
         let tagger = CandidateTagger {
-            input: &sent,
             output_kind_filter: &OutputKind::all(),
             context: &ResolverContext::default(),
             resolve_all_candidates: false,
