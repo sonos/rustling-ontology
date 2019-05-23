@@ -1405,6 +1405,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| helpers::compose_numbers(&a.value(), &b.value())
     );
 
+
     b.rule_3("intersect numbers",
              number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
              b.reg(r#"e"#)?,
@@ -1667,6 +1668,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
+
 
     b.rule_1_terminal("ordinals (primeiro..9)",
                       b.reg(r#"(primeir|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non)(?:[oa]s?)?"#)?,
