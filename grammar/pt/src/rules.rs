@@ -588,7 +588,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date-period
     b.rule_1_terminal("end of this month",
-                      b.reg(r#"o fim do mês"#)?,
+                      b.reg(r#"n?o (fim|final) do mês"#)?,
                       |_| {
                           let month = helpers::cycle_nth(Grain::Month, 1)?;
                         Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
@@ -714,16 +714,31 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |dow, _, integer| dow.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
     // Date
-    b.rule_3("<day-of-month> de <named-month>",
+    b.rule_3("<day-of-month>(integer) de <named-month>",
              integer_check_by_range!(1, 31),
              b.reg(r#"de"#)?,
              time_check!(form!(Form::Month(_))),
              |integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
     // Date
-    b.rule_4("dia <day-of-month> de <named-month>",
+    b.rule_3("<day-of-month>(ordinal) de <named-month>",
+             ordinal_check_by_range!(1, 31),
+             b.reg(r#"de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date
+    b.rule_4("dia <day-of-month>(integer) de <named-month>",
              b.reg(r#"dia"#)?,
              integer_check_by_range!(1, 31),
+             b.reg(r#"de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date
+    b.rule_4("dia <day-of-month>(ordinal) de <named-month>",
+             b.reg(r#"dia"#)?,
+             ordinal_check_by_range!(1, 31),
              b.reg(r#"de"#)?,
              time_check!(form!(Form::Month(_))),
              |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
@@ -1106,15 +1121,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("between <datetime> and <datetime> (interval)",
              b.reg(r#"entre(?: as?| o)?"#)?,
              time_check!(),
-             b.reg(r#"e|e as"#)?,
+             b.reg(r#"e(?: as?| a?o)?"#)?,
              time_check!(),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     // Time period
     b.rule_4("between <datetime> and <datetime> (interval)",
-             b.reg(r#"entre(?: as?| o)?"#)?,
+             b.reg(r#"entre(?: as?| a?o)?"#)?,
              time_check!(),
-             b.reg(r#"e as?"#)?,
+             b.reg(r#"e"#)?,
              time_check!(),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
@@ -1122,7 +1137,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("between <time-of-day> e as <time-of-day> (interval)",
              b.reg(r#"entre(?: as?| o)?"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"e( a)?"#)?,
+             b.reg(r#"e(?: a)?"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
@@ -1205,7 +1220,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("from <date-time> to <date-time> (interval)",
              b.reg(r#"do|de|das"#)?,
              time_check!(),
-             b.reg(r#"às"#)?,
+             b.reg(r#"às|ao?"#)?,
              time_check!(),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
@@ -1653,11 +1668,11 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              });
 
-    b.rule_1_terminal("ordinals (primero..9)",
-                      b.reg(r#"(primer|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non)(?:[oa]s?)?"#)?,
+    b.rule_1_terminal("ordinals (primeiro..9)",
+                      b.reg(r#"(primeir|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non)(?:[oa]s?)?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
-                              "primer" => 1,
+                              "primeir" => 1,
                               "segund" => 2,
                               "terceir" => 3,
                               "quart" => 4,

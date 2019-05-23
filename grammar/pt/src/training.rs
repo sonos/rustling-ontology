@@ -24,7 +24,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(31256721), "trinta e um milhões duzentos e cinquenta e seis mil setecentos e vinte e um");
     example!(v, check_integer(33), "33", "trinta e três");
     example!(v, check_integer(100000), "100.000", "100000", "100K", "100k", "cem mil");
-    // TODO: support K for 1000 and M for 1000000 ?
+    // TODO: Check if want/need support for K = 1000 and M = 1000000 ?
     //example!(v, check_integer(3000000), "3M", "3000000", "3.000.000", "três milhões");
     //example!(v, check_integer(1200000), "1.200.000", "1200000", "1,2M", "um milhão e duzentos mil");
     //example!(v, check_integer(-1200000), "- 1.200.000", "-1200000", "menos 1200000", "-1,2M", "menos um milhão e duzentos mil");
@@ -90,6 +90,20 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
+
+    // Explicit intervals
+    // FIXME: confusion time/date etc. - 2 cases after below do work
+    // fix_example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]),  "13 julho - 15 julho",  "de 13 a 15 de julho",  "do dia 13 ao dia 15 de julho",  "de sábado dia 13 a domingo dia 15 de julho",  "de sábado dia 13 até domingo dia 15 de julho",  "do dia 13 a domingo dia 15");
+
+    // TODO : Resolution error (second date bad resolution)
+    // example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13-15 julho", "entre dia 13 e dia 15 de julho");
+    // FIXME:
+    // fix_example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 11]), "do dia 1 ao dia 10 de julho", "de segunda dia primeiro a quarta-feira dia 10 de julho");
+    // TODO Resolution eror : 06/18 -> 06/19
+    //example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 18]), "do dia 13 ao dia 18", "entre dia 13 e dia 18");
+    // fix_example!(v, check_moment_span!(c, [2023, 2, 1], [2023, 4, 1]), "entre fevereiro e março de dois mil e vinte e três", "entre o mês de fevereiro e o mês de março de dois mil e vinte e três");
+    // TODO: Resolution error : "primeiro de julho" -> 06/01 but "de 10 de junho a primeiro de julho" -> 06/02
+    // example!(v, check_moment_span!(c, [2013, 6, 10], [2013, 7, 2]), "de 10 de junho a primeiro de julho", "entre o dia dez de junho e dia primeiro de julho", "entre o dia 10 de junho e o dia primeiro de julho", "de 10 de junho a 1º de julho");
 
     // example!(v, check_moment_span!(c, [2017,4,6], [2017,6,9]), "do dia seis de abril ao dia oito de junho de dois mil e dezessete", "de seis de abril ao dia oito de junho de dois mil e dezessete");
     // FIXME
