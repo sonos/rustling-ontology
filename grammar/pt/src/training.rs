@@ -90,7 +90,20 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
-    example!(v, check_moment!(c, [2013, 2, 12]), "hoje");
+
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 30]), "das 11h30 à 1h30", "das 11 e meia à uma e meia");
+    example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "às 13:30 de sábado dia 21 de setembro", "às 13h30 de sábado dia 21 de setembro");
+    example!(v, check_moment_span!(c, [2013, 3, 25], [2013, 4, 1]), "no final de março", "no fim do mês de março");
+    example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 6]), "no começo de abril", "no início do mês de abril");
+    // TODO: first half of april, second half of april
+    // example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 15]), "a primeira quinzena de abril", "na primeira quinzena do mês de abril");
+    // example!(v, check_moment_span!(c, [2013, 4, 15], [2013, 5, 01]), "a segunda quinzena de abril", "na segunda quinzena do mês de abril");
+    // fix_example!(v, check_moment_span!(c, [2013, 12, 10], [2013, 12, 20]),  "meados de dezembro", "em meados de dezembro", "na metade do mês de dezembro");
+    example!(v, check_moment!(c, [2013, 3]), "março", "em março", "durante o mês de março", "o mês de março");
+    // example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "dentro de quinze minutos");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 0, 0]), "dentro de meia hora", "dentro de trinta minutos");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 15, 0]), "dentro de quarenta e cinco minutos");
+    example!(v, check_moment!(c, [2016, 12, 15]), "15.12.2016", "15.12.16", "15/12/2016");
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
@@ -101,7 +114,7 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_duration!([1]), "durante um ano", "por um ano");
     example!(v, check_duration!([0, 0, 0, 0, 0, 1, 3]), "durante um minuto e três segundos", "um minuto e três segundos");
     //example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "cerca de uma hora e meia", "uma hora e meia mais ou menos", "uma hora e meia aproximadamente", "por volta de 1h30");
-    // TODO: Ask Drica mas o menos, mas o menos
+    // TODO: Ask Drica mas o menos // mas ou menos (and before / after possible?)
     example!(v, check_duration!([0, 0, 0, 0, 0, 15], Precision::Approximate), "durante um quarto de hora mais o menos", "aproximadamente durante um quarto de hora");
     example!(v, check_duration!([0, 0, 0, 0, 1]), "durante uma hora", "por uma hora");
     example!(v, check_duration!([0, 0, 2]), "durante 2 semanas", "por duas semanas");
