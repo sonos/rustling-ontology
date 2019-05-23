@@ -2,7 +2,6 @@ use std::{fmt, result};
 
 use rustling::*;
 use moment::{RcConstraint, Period, Grain, Local};
-use output::OutputKind;
 
 /// Union of all possible values parsed by the ontology.
 
@@ -74,50 +73,6 @@ impl Dimension {
         }
     }
 
-    pub fn adapt_to_filter(&mut self, output_kind_filter: &[OutputKind]) {
-
-        match self {
-
-            Dimension::Datetime(datetime_value) => {
-                // If Datetime IS NOT in the OutputKind filter, then SOME specific subtyping is required.
-                // Technically if the client filter is None, then the filter will contain all possible
-                // output kinds. This case is equivalent to check if the subkind in question is
-                // the filter or not.
-                // Find the subkind: Figure out the Datetime subtype from the Form, Grain and other
-                // stuff contained in the Dimension::Datetime(datetime_value)
-                let date_time_grain = (datetime_value.constraint.grain_left().is_date_grain() &&
-                    datetime_value.constraint.grain_right().is_time_grain()) ||
-                    (datetime_value.constraint.grain_right().is_date_grain() &&
-                        datetime_value.constraint.grain_left().is_time_grain());
-                let date_grain = !date_time_grain && datetime_value.constraint.grain_min().is_date_grain();
-                let time_grain = !date_time_grain && datetime_value.constraint.grain_min().is_time_grain();
-                let mut has_direction = false;
-                if let Some(_bounded_direction) = datetime_value.direction { has_direction = true };
-                let period_form = datetime_value.has_period_form().unwrap_or(false) || has_direction;
-
-                // Assign the relevant Datetime subtype (field datetime_kind of the datetime_value)
-                if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::Date)) &&
-                    !period_form && date_grain {
-                    datetime_value.datetime_kind = DatetimeKind::Date;
-                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::Time)) &&
-                    !period_form && time_grain {
-                    datetime_value.datetime_kind = DatetimeKind::Time;
-                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::DatePeriod)) &&
-                    period_form && date_grain {
-                    datetime_value.datetime_kind = DatetimeKind::DatePeriod;
-                } else if (output_kind_filter.is_empty() || output_kind_filter.contains(&OutputKind::TimePeriod)) &&
-                    period_form && time_grain {
-                    datetime_value.datetime_kind = DatetimeKind::TimePeriod;
-                } else {
-                    // If the dimension is datetime and none of the 4 subtypes, then it's the
-                    // complement subtype, hence Datetime
-                    datetime_value.datetime_kind = DatetimeKind::Datetime;
-                }
-            },
-            // If the dimension is other than Datetime, then no specific mapping is required.
-            _ => {},
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
@@ -543,11 +498,10 @@ pub enum DatetimeKind {
     Time,
     DatePeriod,
     TimePeriod,
-    DatetimeComplement,
+    DatetimeComplement { date_and_time: bool, today: bool },
     Datetime,
     Empty,
 }
-
 
 /// Payload for the datetime value of Dimension
 #[derive(Clone)]
@@ -586,105 +540,55 @@ impl DatetimeValue {
         (self.constraint.coarse_grain_step() as usize) > (grain as usize)
     }
 
-    pub fn date_form(&self) -> Option<bool> {
+    pub fn has_period_form(&self) -> bool {
         match self.form {
             Form::Cycle(grain) => {
                 match grain {
-                    Grain::Year => Some(true),
-                    Grain::Quarter => Some(true),
-                    Grain::Month => Some(true),
-                    Grain::Week => Some(true),
-                    Grain::Day => Some(true),
-                    _ => Some(false),
+                    Grain::Day => false,
+                    Grain::Second => false,
+                    _ => true,
                 }
             },
-            Form::Year(_) => Some(true),
-            Form::Month(_) => Some(true),
-            Form::MonthDay(_) => Some(true),
-            Form::YearMonthDay(_) => Some(true),
-            Form::TimeOfDay(_) => Some(false),
-            Form::DayOfWeek { .. } => Some(true),
-            Form::Empty => None,
-            Form::PartOfDay { .. } => Some(false),
-            Form::Meal => Some(false),
-            Form::Celebration => Some(true),
-            Form::PartOfMonth => Some(true),
-            Form::PartOfYear => Some(true),
-            Form::DayOfMonth => Some(true),
-            Form::PartOfForm(_) => None,
-            Form::PartOfWeek => Some(true),
-            Form::Span => None,
+            Form::Year(_) => true,
+            Form::Month(_) => true,
+            Form::MonthDay(_) => false,
+            Form::YearMonthDay(_) => false,
+            Form::TimeOfDay(_) => false,
+            Form::DayOfWeek { .. } => false,
+            Form::Empty => false,
+            Form::PartOfDay { .. } => true,
+            Form::Meal => true,
+            Form::Celebration => false,
+            Form::PartOfMonth => true,
+            Form::PartOfYear => true,
+            Form::Season => true,
+            Form::DayOfMonth => false,
+            Form::PartOfForm(_) => true,
+            Form::PartOfWeek => true,
+            Form::Span => true,
         }
     }
 
-    pub fn has_time_form(&self) -> Option<bool> {
-        match self.form {
-            Form::Cycle(grain) => {
-                match grain {
-                    Grain::Hour => Some(true),
-                    Grain::Minute => Some(true),
-                    Grain::Second => Some(true),
-                    _ => Some(false),
-                }
-            },
-            Form::Year(_) => Some(false),
-            Form::Month(_) => Some(false),
-            Form::MonthDay(_) => Some(false),
-            Form::YearMonthDay(_) => Some(false),
-            Form::TimeOfDay(_) => Some(true),
-            Form::DayOfWeek { .. } => Some(false),
-            Form::Empty => None,
-            Form::PartOfDay { .. } => Some(true),
-            Form::Meal => Some(true),
-            Form::Celebration => Some(false),
-            Form::PartOfMonth => Some(false),
-            Form::PartOfYear => Some(false),
-            Form::DayOfMonth => Some(false),
-            Form::PartOfForm(_) => None,
-            Form::PartOfWeek => Some(false),
-            Form::Span => None,
+    pub fn has_period_grain(&self) -> bool {
+        match self.constraint.grain() {
+            Grain::Week => true,
+            Grain::Month => true,
+            Grain::Quarter => true,
+            Grain::Year => true,
+            _ => false,
         }
     }
 
-    pub fn has_period_form(&self) -> Option<bool> {
-        match self.form {
-            Form::Cycle(grain) => {
-              match grain {
-                  Grain::Year => Some(true),
-                  Grain::Quarter => Some(true),
-                  Grain::Month => Some(true),
-                  Grain::Week => Some(true),
-                  _ => Some(false),
-              }
-            },
-            Form::Year(_) => Some(true),
-            Form::Month(_) => Some(true),
-            Form::MonthDay(_) => Some(false),
-            Form::YearMonthDay(_) => Some(false),
-            Form::TimeOfDay(_) => Some(false),
-            Form::DayOfWeek { .. } => Some(false),
-            Form::Empty => Some(false),
-            Form::PartOfDay { .. } => Some(true),
-            Form::Meal => Some(true),
-            Form::Celebration => Some(false),
-            Form::PartOfMonth => Some(true),
-            Form::PartOfYear => Some(true),
-            Form::DayOfMonth => Some(false),
-            Form::PartOfForm(_) => None,
-            Form::PartOfWeek => Some(true),
-            Form::Span => Some(true),
-        }
+    pub fn is_period(&self) -> bool {
+        self.direction.is_some() ||
+            self.has_period_form() ||
+            self.has_period_grain()
     }
 
-    pub fn datetime_kind_with_span(&self) -> DatetimeKind {
+    pub fn is_today_date_and_time(&self) -> bool {
         match self.datetime_kind {
-            DatetimeKind::Date |
-            DatetimeKind::DatePeriod => DatetimeKind::DatePeriod,
-            DatetimeKind::Time |
-            DatetimeKind::TimePeriod => DatetimeKind::TimePeriod,
-            DatetimeKind::DatetimeComplement |
-            DatetimeKind::Datetime |
-            DatetimeKind::Empty => DatetimeKind::Datetime,
+            DatetimeKind::DatetimeComplement { date_and_time, today } => date_and_time && today,
+            _ => false
         }
     }
 
@@ -707,6 +611,7 @@ pub enum Form {
     PartOfWeek,
     PartOfMonth,
     PartOfYear,
+    Season,
     PartOfForm(PartOfForm),
     Meal,
     Celebration,
@@ -730,6 +635,7 @@ impl Form {
             &Form::Celebration => None,
             &Form::PartOfMonth => None,
             &Form::PartOfYear => None,
+            &Form::Season => None,
             &Form::DayOfMonth => None,
             &Form::PartOfForm(_) => None,
             &Form::PartOfWeek => None,
@@ -925,6 +831,10 @@ impl DurationValue {
 
     pub fn precision(self, precision: Precision) -> DurationValue {
         DurationValue { precision: precision, ..self }
+    }
+
+    pub fn get_grain(&self) -> Grain {
+        self.period.finer_grain().unwrap_or(Grain::Second)
     }
 
     pub fn from_addition(self, from_addition: FromAddition) -> DurationValue {

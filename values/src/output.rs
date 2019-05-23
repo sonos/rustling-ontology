@@ -53,12 +53,12 @@ enum_kind!(OutputKind,
     [
         Number,
         Ordinal,
-        Duration,
         Date,
         Time,
         DatePeriod,
         TimePeriod,
         Datetime,
+        Duration,
         AmountOfMoney,
         Temperature,
         Percentage
