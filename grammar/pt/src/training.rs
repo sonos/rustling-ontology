@@ -91,6 +91,168 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
 
+    // Days
+    //example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "agora", "agora mesmo", "neste exato momento");
+    example!(v, check_moment!(c, [2013, 2, 12]), "hoje", "neste momento");
+    //example!(v, check_moment!(c, [2013, 2, 11]), "ontem", "no dia anterior", "na véspera", "um dia antes");
+    //example!(v, check_moment!(c, [2013, 2, 10]), "antes de ontem", "anteontem");
+    //example!(v, check_moment!(c, [2013, 2, 13]), "amanhã", "no dia seguinte", "um dia depois", "no dia depois");
+
+    // TODO: depois de amanha / after(tomorow)
+    //example!(v, check_moment!(c, [2013, 2, 14]), "depois de amanhã");
+    //example!(v, check_moment!(c, [2013, 2, 18]), "segunda-feira", "segunda", "esta segunda", "seg.", "2ª", "2ª feira");
+    example!(v, check_moment!(c, [2013, 2, 18]), "segunda-feira 18 de fevereiro", "na segunda-feira dia 18 de fevereiro", "na segunda-feira dia dezoito de fevereiro", "na segunda dezoito de fevereiro");
+    //example!(v, check_moment!(c, [2013, 2, 19]), "terça-feira", "terça", "3ª feira", "ter.", "esta terça");
+    example!(v, check_moment!(c, [2013, 2, 13]), "quarta-feira 13 de fevereiro", "na 4ª feira dia 13 de fevereiro", "na quarta dia treze de fevereiro", "na 4ª dia treze de fevereiro");
+    //example!(v, check_moment!(c, [2013, 2, 14]), "quinta-feira", "dois dias depois", "dois dias mais tarde", "quinta", "5ª feira");
+    //example!(v, check_moment!(c, [2013, 2, 15]), "sexta-feira", "sexta", "6ª feira");
+    //example!(v, check_moment!(c, [2013, 2, 16]), "sábado", "no sábado", "sáb.");
+    //example!(v, check_moment!(c, [2013, 2, 17]), "domingo", "no domingo", "dom.");
+
+    example!(v, check_moment!(c, [2013, 3, 1]), "dia primeiro de março", "no dia primeiro de março", "1º de março", "6ª feira dia primeiro de março", "na sexta-feira dia primeiro de março");
+    example!(v, check_moment!(c, [2013, 3, 1]), "no dia primeiro de março de 2013", "no dia 1 de março de 2013", "em 1º de março de 2013", "em 1 de março do ano de 2013", "1/3/2013", "01/03/2013", "01/03/13", "01-03-2013");
+    example!(v, check_moment!(c, [2013, 3, 2]), "no dia 2 de março", "2 de março", "dois de março", "em 2/3", "no 02/03");
+    example!(v, check_moment!(c, [2013, 3, 2]), "no dia 2", "dia 2");
+    example!(v, check_moment!(c, [2013, 3, 3]), "no dia 3 de março", "dia três de março", "3 de março", "no 3/3", "em 03/03");
+    example!(v, check_moment!(c, [2013, 4, 5]), "no dia 5 de abril", "5 de abril", "dia 5 de abril");
+    example!(v, check_moment!(c, [2015, 3, 3]), "no dia 3 de março de 2015", "em 3 de março de 2015", "3 de março de 2015", "3/3/2015", "03/03/2015", "03/03/15", "3-3-2015");
+    example!(v, check_moment!(c, [2013, 2, 15]), "no dia 15 de fevereiro", "15 de fevereiro", "quinze de fevereiro");
+    //example!(v, check_moment!(c, [2013, 2, 15]), "15/02/2013", "15/02/13", "15 fev. 2013", "15 fev 2013", "15 de fevereiro de 2013", "quinze de fevereiro de 2013");
+    example!(v, check_moment!(c, [2013, 2, 16]), "no dia 16", "dia dezesseis");
+    example!(v, check_moment!(c, [2013, 2, 17]), "17 de fevereiro", "no dia 17 de fevereiro", "17/2", "17/02", "no 17/02");
+    //example!(v, check_moment!(c, [2013, 2, 13]), "quarta-feira dia 13", "quarta dia 13", "4ª f. dia 13", "quarta-feira dia treze");
+    example!(v, check_moment!(c, [2014, 2, 20]), "20/02/2014", "20/2/2014", "20/02/14", "20.02.2014", "20.02.14", "20-02-2014", "20-2-2014", "20-02-14");
+    example!(v, check_moment!(c, [2013, 10, 31]), "31 de outubro", "no 31 de outubro");
+    example!(v, check_moment!(c, [2014, 2, 20]), "20/02/2014", "20/2/2014", "20/02/14", "20.02.2014", "20.02.14", "20-02-2014", "20-2-2014", "20-02-14");
+    example!(v, check_moment!(c, [1974, 10, 31]), "31/10/1974", "31/10/74");
+    // when today is Tuesday, "segunda que vem" is a week from now
+    //example!(v, check_moment!(c, [2013, 2, 18]), "na próxima segunda", "segunda que vem", "na segunda-feira da semana que vem", "2ª feira da semana que vem");
+
+    //example!(v, check_moment!(c, [2013, 2, 19]), "na terça-feira que vem", "na próxima terça", "na 3ª feira que vem", "na terça da semana que vem", "na terça da próxima semana");
+    //example!(v, check_moment!(c, [2013, 2, 13]), "na quarta-feira que vem", "na próxima quarta", "na 4ª feira da próxima semana");
+    //example!(v, check_moment!(c, [2013, 2, 20]),"na quarta-feira da semana que vem", "na quarta-feira da próxima semana", "4ª feira da próxima semana");
+    //example!(v, check_moment!(c, [2013, 2, 11]), "segunda-feira desta semana", "na segunda desta semana", "nesta segunda");
+    //example!(v, check_moment!(c, [2013, 2, 12]), "terça-feira desta semana", "na terça desta semana", "na 3ª feira desta semana");
+    //example!(v, check_moment!(c, [2013, 2, 13]), "quarta-feira desta semana", "quarta desta semana", "4ª feira desta semana");
+    // resolution: date period
+    //example!(v, check_moment!(c, [2013, 2, 11], Grain::Week), "esta semana");
+    //example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "a semana passada", "a última semana");
+    example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "a próxima semana", "a semana que vem");
+    //example!(v, check_moment!(c, [2013, 1]), "o mês passado", "o último mês");
+    example!(v, check_moment!(c, [2013, 3]), "o mês que vem", "o próximo mês");
+    //example!(v, check_moment!(c, [2012]), "o ano passado", "o último ano");
+    example!(v, check_moment!(c, [2013]), "este ano");
+    example!(v, check_moment!(c, [2014]), "o ano que vem", "o próximo ano");
+
+    //example!(v, check_moment!(c, [2013, 2, 10]), "o domingo passado", "o domingo da semana passada", "o último domingo");
+    //example!(v, check_moment!(c, [2013, 10, 3]), "o terceiro dia de outubro", "o 3º dia de outubro", "dia três de outubro", "dia 3 de outubro");
+    //example!(v, check_moment!(c, [2014, 10, 6], Grain::Week), "primeira semana de outubro de 2014", "a primeira semana de outubro de 2014");
+    //example!(v, check_moment!(c, [2013, 10, 7], Grain::Week), "a semana do dia 7 de outubro", "a semana de sete de outubro");
+    // fix_example!(v, check_moment!(c, [2015, 10, 31]), "último dia de outubro de 2015", "o último dia de outubro de 2015");
+    // fix_example!(v, check_moment!(c, [2014, 9, 22], Grain::Week), "última semana de setembro de 2014", "a última semana de setembro de 2014", "a última semana do mês de setembro de 2014", "a última semana de setembro do ano de 2014");
+
+    // Day times
+    example!(v, check_moment!(c, [2013, 2, 12, 15]), "às quinze horas", "às três da tarde");
+    // Ambiguity Duration // Time
+    //example!(v, check_moment!(c, [2013, 2, 12, 15, 0]), "15:00", "15h");
+    // Ambiguity Duration // Time
+    //example!(v, check_moment!(c, [2013, 2, 13, 00]), "meia-noite", "zero hora");
+    //example!(v, check_moment!(c, [2013, 2, 12, 12]), "meio-dia", "hoje ao meio-dia", "às doze horas");
+    // TODO: PROBLEM 12 horas
+    //example!(v, check_moment!(c, [2013, 2, 12, 12, 15]), "ao meio-dia e quinze", "às doze horas e quinze minutos");
+    //example!(v, check_moment!(c, [2013, 2, 12, 11, 55]), "cinco para o meio-dia", "às onze e cinquenta e cinco", "às onze horas e cinquenta e cinco minutos");
+    //example!(v, check_moment!(c, [2013, 2, 12, 12, 30]), "ao meio-dia e meia", "às doze horas e trinta minutos", "às doze e trinta");
+
+    example!(v, check_moment!(c, [2013, 2, 13, 00, 03]), "à zero hora e três minutos");
+    //example!(v, check_moment!(c, [2013, 2, 13, 00, 03]), "hoje à meia-noite e três");
+    //example!(v, check_moment!(c, [2013, 2, 12, 15, 15]), "às quinze e quinze", "às quinze horas e quinze minutos", "às três e quinze da tarde", "15:15", "15h15");
+    example!(v, check_moment!(c, [2013, 2, 13, 15, 15]), "amanhã às três e quinze da tarde");
+    //example!(v, check_moment!(c, [2013, 2, 12, 15, 30]), "às quinze e trinta", "às quinze horas e trinta minutos", "às três e meia da tarde", "15:30", "15h30");
+    // ?
+    //example!(v, check_moment!(c, [2013, 2, 12, 11, 45]), "às quinze para o meio-dia", "11:45", "às onze horas e quarenta e cinco minutos", "hoje às 11h45");
+
+    // Day + day time
+    example!(v, check_moment!(c, [2013, 3, 2, 5, 0]), "2 de março às 5:00");
+    example!(v, check_moment!(c, [2013, 3, 2, 5]), "2 de março às 5h", "no dia 2 de março às 5h", "em 02/03 às 5h da manhã", "em 02/03 às 5h da manhã");
+    // TODO: Approximation
+    //example!(v, check_moment!(c, [2013, 3, 2, 5]), "2 de março lá pelas 5h", "no dia 2 de março por volta das 5h da manhã", "2 de março lá pelas cinco horas mais ou menos");
+    example!(v, check_moment!(c, [2013, 3, 2, 5]), "no dia 2 às cinco", "dia dois às cinco horas", "no dia dois às cinco da manhã", "no dia 02 às cinco horas da manhã", "no dia 02 às cinco horas da madrugada");
+    example!(v, check_moment!(c, [2013, 2, 16, 6]), "no dia 16 às 6 da manhã","no dia 16 às 6 da madrugada");
+    example!(v, check_moment!(c, [2013, 2, 16, 18]), "dia 16 às 18h", "no sábado dia 16 às 6 da tarde");
+    example!(v, check_moment!(c, [2013, 2, 13, 11]), "amanhã às 11 horas", "amanhã às onze horas", "amanhã às onze");
+    // TODO: Ambiguity ? "depois de amanhã às 11h" -> After((tomorrow, 11h) or -> (the day after tomorrow , 11h) + Is Grain OK ?
+    //example!(v, check_moment!(c, [2013, 2, 14, 11, 0]), "quinta-feira às 11h", "depois de amanhã às 11h");
+    // Warning! 'alle ore 11' and '11:00' don't have same grain
+    example!(v, check_moment!(c, [2013, 2, 14, 11, 0]), "o dia depois de amanhã às 11:00");
+
+    // Just a problem with the grain 11h Grain Hour or Minutes
+    example!(v, check_moment!(c, [2013, 2, 15, 12]), "na sexta-feira às 12h", "sexta-feira ao meio-dia", "ao meio-dia da sexta-feira");
+    example!(v, check_moment!(c, [2013, 2, 15, 16]), "sexta-feira dia quinze às dezesseis horas", "na sexta-feira dia quinze às dezesseis horas", "na sexta-feira dia 15 às 16h", "na sexta dia quinze às quatro da tarde");
+    example!(v, check_moment!(c, [2013, 2, 15, 16, 0]), "sexta-feira dia 15 às 16h00");
+    //example!(v, check_moment!(c, [2013, 2, 13, 11, 0]), "quarta-feira às 11h", "quarta-feira às 11 da manhã");
+
+    // In + duration / duration + ago≤
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 1]), "dentro de um segundo", "em um segundo");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 31, 0]), "dentro de um minuto", "em um minuto");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 32, 0]), "dentro de 2 minutos", "em 2 minutos");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 30, 0]), "dentro de 60 minutos", "em 60 minutos");
+    example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "dentro de uma hora", "em uma hora");
+    example!(v, check_moment!(c, [2013, 2, 13, 4, 30]), "dentro de 24 horas", "dentro de vinte e quatro horas");
+    example!(v, check_moment!(c, [2013, 2, 13]), "dentro de um dia", "em um dia", "dentro de um dia");
+    example!(v, check_moment!(c, [2013, 2, 19]), "dentro de sete dias", "em sete dias");
+    example!(v, check_moment!(c, [2013, 2, 19]), "dentro de uma semana");
+    example!(v, check_moment!(c, [2013, 4, 12]), "dentro de dois meses", "em dois meses");
+    example!(v, check_moment!(c, [2014, 2]), "dentro de um ano", "em um ano");
+    example!(v, check_moment!(c, [2013, 2, 12, 2, 30]), "faz duas horas", "há duas horas");
+    example!(v, check_moment!(c, [2013, 1, 22]), "faz três semanas", "há três semanas");
+    example!(v, check_moment!(c, [2012, 11, 12]), "há três meses", "faz três meses");
+    example!(v, check_moment!(c, [2011, 2]), "faz dois anos", "há dois anos");
+
+    // Seasons
+    example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "este verão");
+    example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "este inverno");
+
+    // Holidays
+    // TODO
+    // holiday_example!(v, check_moment!(c, [2013, 12, 25]), "Natal", "dia de natal");
+    // holiday_example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "véspera de natal", "a noite de natal");
+    // "il primo gennaio & co. works already"
+    // holiday_example!(v, check_moment!(c, [2014, 1, 1]), "primeiro dia do ano", "ano novo", "primeiro de janeiro", "no dia primeiro de janeiro", "no primeiro dia de janeiro");
+    // holiday_example!(v, check_moment!(c, [2013, 11, 1]), "todos os santos", "no dia de todos os santos", "dia de finados", "dia de todos os santos");
+    // "il primo maggio & co. works already"
+    // holiday_example!(v, check_moment!(c, [2013, 05, 1]), "dia do trabalho", "dia do trabalhador");
+
+    // Part of day (morning, afternoon...)
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "esta tarde", "pela tarde", "hoje pela tarde");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 15], [2013, 2, 12, 17]), "meio da tarde", "em plena tarde", "no meio da tarde");
+    //example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "logo de manhã", "no início da manhã", "logo no início da manhã", "primeiras horas da manhã");
+    // TODO: IMPORTANT: às doze horas
+    //example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "no meio do dia", "ao meio-dia", "às doze horas");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "no final da manhã", "nas últimas horas da manhã");
+    // TODO: ? Before lunch, after wordk, etc
+    //example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "depois de comer", "depois da hora de comer");
+    //example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "antes de comer");
+    //example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "durante a refeição", "na hora da refeição" );
+    //example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "depois do trabalho", "ao sair do trabalho");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 15]), "no começo da tarde", "logo à tarde", "no início da tarde");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 15], [2013, 2, 12, 17]), "no final da tarde", "nas últimas horas da tarde", "no fim da tarde");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 6], [2013, 2, 12, 10]), "no início do dia", "no começo do dia");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "na metade do dia", "no meio do dia");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "no final do dia", "ao fim do dia", "ao acabar o dia");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "esta noite", "de noite");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 12, 21]), "no início da noite", "logo à noite");
+    // TODO: Ask Drica: tarde a part-of-day (and logo)
+    example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 00]), "tarde da noite", "no final da noite", "no fim da noite");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 4], [2013, 2, 18, 12]), "segunda-feira de manhã", "na segunda pela manhã");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 12], [2013, 2, 18, 19]), "segunda de tarde", "segunda-feira pela tarde");
+    // FIXME
+    // fix_example!(v, check_moment_span!(c, [2013, 2, 18, 17], [2013, 2, 18, 19]), "segunda-feira no final da tarde", "no fim da tarde de segunda", "no fim da tarde de segunda-feira");
+
+    example!(v, check_moment_span!(c, [2013, 2, 15, 4], [2013, 2, 15, 12]), "dia quinze de fevereiro pela manhã", "no dia quinze de fevereiro pela manhã");
+    example!(v, check_moment!(c, [2013, 2, 12, 20]), "hoje às oito da noite", "8 da noite", "às oito da noite");
+    // TODO: IMPORTANT:
+    //example!(v, check_moment!(c, [2013, 2, 13, 3]), "3 da manhã", "às três da manhã");
+
     // Part of the week/month
     example!(v, check_moment_span!(c, [2013, 2, 13, 18], [2013, 2, 14, 00]), "amanhã de noite", "na quarta-feira de noite", "na noite de quarta-feira");
     example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 00]), "ontem à noite");
