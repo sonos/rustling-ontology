@@ -246,6 +246,16 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"tr[eê]s quartos de hora"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
     );
+    b.rule_3("<number> h <number>",
+             integer_check_by_range!(0),
+             b.reg(r#"h(?:oras?)?"#)?,
+             integer_check_by_range!(0,59),
+             |hour, _, minute| {
+                 let hour_period = Period::from(PeriodComp::new(Grain::Hour, hour.value().clone().value));
+                 let minute_period = Period::from(PeriodComp::new(Grain::Minute, minute.value().clone().value));
+                 Ok(DurationValue::new(hour_period + minute_period))
+             }
+    );
     b.rule_2("<integer> <unit-of-duration>",
              integer_check_by_range!(0),
              unit_of_duration_check!(),
@@ -352,7 +362,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| CycleValue::new(Grain::Day)
     );
     b.rule_1_terminal("week (cycle)",
-                      b.reg(r#"semanas?"#)?,
+                      b.reg(r#"(?:a )?semanas?"#)?,
                       |_| CycleValue::new(Grain::Week)
     );
     b.rule_1_terminal("month (cycle)",
@@ -547,7 +557,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // DateTime
     b.rule_2("this <datetime>",
-             b.reg(r#"est[ea]|próximo"#)?,
+             b.reg(r#"est[ea]|no próximo"#)?,
              time_check!(),
              |_, time| time.value().the_nth(0)
     );
@@ -557,8 +567,6 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::Month(_))),
              |_, time| Ok(time.value().clone())
     );
-
-
     b.rule_2("in <datetime>",
              b.reg(r#"durante|em|para(?: o)?|n[oa]"#)?,
              time_check!(),
@@ -575,6 +583,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a| {
                  a.value().the_nth(-1)
              }
+    );
+    b.rule_2("month 'preposition' <named-month>",
+             b.reg(r#"mês de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, a| Ok(a.value().clone())
     );
     // Date-period
     b.rule_2("beginning <named-month>(interval)",
@@ -619,6 +632,21 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::Month(_))),
              |_, time| time.value().the_nth_not_immediate(0)
     );
+    // Date period
+//    b.rule_4("next n <cycle>",
+//            b.reg(r#"os próximos"#)?,
+//            integer_check_by_range!(2, 9999),
+//            cycle_check!(),
+//            |_, integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+//    );
+    // Date period
+//    b.rule_4("n <cycle> next",
+//            b.reg(r#"os"#)?,
+//            integer_check_by_range!(2, 9999),
+//            b.reg(r#"próximos"#)?,
+//            cycle_check!(),
+//            |_, integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+//    );
     // Date period
     b.rule_2("last <named-month>",
              b.reg(r#"o último mês de"#)?,
@@ -770,25 +798,31 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date period
     b.rule_1_terminal("beginning of week",
-                      b.reg(r#"o início da semana"#)?,
+                      b.reg(r#"n?o (início|começo) (da|desta) semana"#)?,
                       |_| helpers::day_of_week(Weekday::Mon)
                           ?.span_to(&helpers::day_of_week(Weekday::Tue)?, false)
     );
     // Date period
     b.rule_1_terminal("middle of week",
-                      b.reg(r#"o meio da semana"#)?,
+                      b.reg(r#"n?[oa] (meio|metade) da semana"#)?,
                       |_| helpers::day_of_week(Weekday::Wed)
                           ?.span_to(&helpers::day_of_week(Weekday::Thu)?, false)
     );
     // Date period
     b.rule_1_terminal("end of week (not weekend)",
-                      b.reg(r#"o fim da semana"#)?,
+                      b.reg(r#"(fim|final) d[ae] semana"#)?,
+                      |_| helpers::day_of_week(Weekday::Thu)
+                          ?.span_to(&helpers::day_of_week(Weekday::Sun)?, false)
+    );
+    // Date period
+    b.rule_1_terminal("end of week (not weekend)",
+                      b.reg(r#"n?o (fim|final) d[ae] semana"#)?,
                       |_| helpers::day_of_week(Weekday::Thu)
                           ?.span_to(&helpers::day_of_week(Weekday::Sun)?, false)
     );
     // Date period
     b.rule_1_terminal("during the week",
-                      b.reg(r#"(para|durante )?esta semana"#)?,
+                      b.reg(r#"(para|durante )?(esta|a) semana"#)?,
                       |_| helpers::day_of_week(Weekday::Mon)
                           ?.span_to(&helpers::day_of_week(Weekday::Fri)?, false)
     );
@@ -802,6 +836,29 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               .intersect(&helpers::hour(0, false)?)?;
                           friday.span_to(&monday, false)
                       }
+    );
+    b.rule_2("dernier week-end de <time>",
+             b.reg(r#"(?:o )?último (fim|final) de semana(?: de| do)?"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, time| {
+                 let week_day_start = helpers::day_of_week(Weekday::Fri)?.intersect(&helpers::hour(18, false)?)?;
+                 let week_day_end = helpers::day_of_week(Weekday::Mon)?.intersect(&helpers::hour(0, false)?)?;
+                 let week_day = week_day_start.span_to(&week_day_end, false)?;
+                 week_day.last_of(time.value())
+             }
+    );
+    b.rule_4("<ordinal> week-end of <time>",
+             b.reg(r#"(?:o )?"#)?,
+             ordinal_check!(),
+             b.reg(r#"(fim|final) de semana(?: de| do)?"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, ordinal, _, time| {
+                 let week_day_start = helpers::day_of_week(Weekday::Fri)?.intersect(&helpers::hour(18, false)?)?;
+                 let week_day_end = helpers::day_of_week(Weekday::Mon)?.intersect(&helpers::hour(0, false)?)?;
+                 let week_day = week_day_start.span_to(&week_day_end, false)?;
+                 let week_ends_of_time = time.value().intersect(&week_day)?;
+                 week_ends_of_time.the_nth(ordinal.value().value - 1)
+             }
     );
     // Date period
     b.rule_1_terminal("season",
@@ -1159,7 +1216,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_4("from <time-of-day> to <time-of-day> (interval)",
-             b.reg(r#"do"#)?,
+             b.reg(r#"d[oe]"#)?,
              time_check!(),
              b.reg(r#"às?"#)?,
              time_check!(),
