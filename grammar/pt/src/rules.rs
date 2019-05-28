@@ -400,13 +400,13 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<cycle> next",
              cycle_check!(),
-             b.reg(r#"que vem"#)?,
+             b.reg(r#"que vem|siguinte|depois"#)?,
              |cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
     );
     b.rule_3("<cycle> next",
-             b.reg(r#"o|a"#)?,
+             b.reg(r#"n?o|n?a"#)?,
              cycle_check!(),
-             b.reg(r#"que vem"#)?,
+             b.reg(r#"que vem|siguinte|depois"#)?,
              |_, cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
     );
     b.rule_2("last <cycle> ",
@@ -421,8 +421,28 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<cycle> last",
              cycle_check!(),
-             b.reg(r#"atr[aá]s|antes|passado"#)?,
+             b.reg(r#"atr[aá]s|antes|passad[oa]"#)?,
              |cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    b.rule_3("o <cycle> last",
+             b.reg(r#"o|a"#)?,
+             cycle_check!(),
+             b.reg(r#"atr[aá]s|antes|passad[oa]"#)?,
+             |_, cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    // Date or Time interval
+    b.rule_3("n next <cycle>",
+            b.reg(r#"[ao]s próxim[ao]s"#)?,
+            integer_check_by_range!(2, 9999),
+            cycle_check!(),
+            |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+    b.rule_4("o n next <cycle>",
+             b.reg(r#"[oa]s"#)?,
+             integer_check_by_range!(2, 9999),
+             b.reg(r#"próxim[ao]s"#)?,
+             cycle_check!(),
+             |_, integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
 //    b.rule_3("in <cycle>",
 //             b.reg(r#"daqui a|dentro de"#)?,
@@ -477,11 +497,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::day_of_week(Weekday::Fri)
     );
     b.rule_1_terminal("named-day",
-                      b.reg(r#"s[aá]bado"#)?,
+                      b.reg(r#"s[aá]bado|s[aá]b."#)?,
                       |_| helpers::day_of_week(Weekday::Sat)
     );
     b.rule_1_terminal("named-day",
-                      b.reg(r#"domingo"#)?,
+                      b.reg(r#"domingo|dom."#)?,
                       |_| helpers::day_of_week(Weekday::Sun)
     );
     b.rule_1_terminal("named-month",
@@ -533,17 +553,42 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month(12)
     );
     b.rule_1_terminal("right now",
-                      b.reg(r#"agora mesmo|neste exato momento"#)?,
+                      b.reg(r#"neste(?: exato)? momento"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("now",
-                      b.reg(r#"agora|neste momento"#)?,
-                      |_| helpers::cycle_nth(Grain::Day, 0)
+                      b.reg(r#"agora(?: mesmo)?"#)?,
+                      |_| helpers::cycle_nth(Grain::Second, 0)
     );
     // Date
     b.rule_1_terminal("Christmas",
                       b.reg(r#"(?:dia de )?natal"#)?,
                       |_| helpers::month_day(12, 25)
+    );
+    // Date
+    b.rule_1_terminal("New year's eve",
+        b.reg(r#"ano novo|primeiro dia do ano"#)?,
+        |_| Ok(helpers::month_day(1, 1)?.form(Form::Celebration))
+    );
+    // Date
+    b.rule_1_terminal("Christmas",
+        b.reg(r#"véspera de natal|a noite de natal"#)?,
+        |_| {
+            let start = helpers::month_day(12, 24)?.intersect(&helpers::hour(18, false)?)?;
+            let end = helpers::month_day(12, 25)?.intersect(&helpers::hour(0, false)?)?;
+            Ok(start.span_to(&end, false)?
+                 .form(Form::Celebration))
+        }
+    );
+    // Date
+    b.rule_1_terminal("All saint's day",
+        b.reg(r#"(?:(?:no )?dia de )?(?:todos os santos|finados)"#)?,
+        |_| Ok(helpers::month_day(11, 1)?.form(Form::Celebration))
+    );
+    // Date
+    b.rule_1_terminal("1st of May",
+        b.reg(r#"dia do trabalho|dia do trabalhador"#)?,
+        |_| Ok(helpers::month_day(5, 1)?.form(Form::Celebration))
     );
     // Date
     b.rule_1_terminal("today",
@@ -562,7 +607,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date
     b.rule_1_terminal("the day after tomorrow",
-                      b.reg(r#"o dia depois de amanhã"#)?,
+                      b.reg(r#"(?:o )?dia depois de amanhã"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 2)
     );
     // Date
@@ -599,7 +644,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, a| Ok(a.value().clone())
     );
-    b.rule_2("in <part-of-day>",
+    b.rule_2("in approximately <part-of-day> (approximation)",
              b.reg(r#"pela"#)?,
              time_check!(|time: &TimeValue| form!(Form::PartOfDay(_))(time) || form!(Form::Meal)(time)),
              |_, a| Ok(a.value().clone())
@@ -716,9 +761,15 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date
     b.rule_2("next <named-day>",
-             b.reg(r#"no próximo"#)?,
+             b.reg(r#"n[oa] próxim[oa]"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
              |_, time| time.value().the_nth_not_immediate(0)
+    );
+    // Date
+    b.rule_2("<named-day> next",
+             time_check!(form!(Form::DayOfWeek{..})),
+             b.reg(r#"(?:da semana )?que vem"#)?,
+             |time, _| time.value().the_nth_not_immediate(0)
     );
     // Date
     b.rule_2("for next <named-day>",
@@ -806,9 +857,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Date
     b.rule_3("<day-of-month>(ordinal) de <named-month>",
              ordinal_check_by_range!(1, 31),
-             b.reg(r#"de"#)?,
+             b.reg(r#"(?:dia )?de"#)?,
              time_check!(form!(Form::Month(_))),
              |integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date
+    b.rule_4("o <day-of-month>(ordinal) de <named-month>",
+             b.reg(r#"o"#)?,
+             ordinal_check_by_range!(1, 31),
+             b.reg(r#"(?:dia )?de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
     // Date
     b.rule_4("dia <day-of-month>(integer) de <named-month>",
@@ -1260,6 +1319,41 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"às?|para"#)?,
              time_check!(form!(Form::TimeOfDay(_))),
              |_, tod| Ok(tod.value().clone().not_latent())
+    );
+    // Time
+    b.rule_2("around <time-of-day>",
+             b.reg(r#"lá (?:pelas?|pelo)|por volta d(?:e|as)"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, a| Ok(a.value().clone().not_latent())
+    );
+    // Time
+    b.rule_2("<time-of-day> approx",
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"mais ou menos"#)?,
+             |a, _| Ok(a.value().clone().not_latent())
+    );
+    // Time
+    b.rule_4("<integer> (as relative minutes) para o <hour-of-day>",
+             b.reg(r#"às|aos"#)?,
+             relative_minute_check!(),
+             b.reg(r#"para (?:o|as)"#)?,
+             time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(time)),
+             |_, minutes, _, time| helpers::hour_relative_minute(
+                 time.value().form_time_of_day()?.full_hour(),
+                 -1 * minutes.value().0,
+                 time.value().form_time_of_day()?.is_12_clock()
+             )
+    );
+    // Time
+    b.rule_3("<integer> (as relative minutes) para o <hour-of-day>",
+             relative_minute_check!(),
+             b.reg(r#"para (?:o|as)"#)?,
+             time_check!(|time: &TimeValue| !time.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(time)),
+             |minutes, _, time| helpers::hour_relative_minute(
+                 time.value().form_time_of_day()?.full_hour(),
+                 -1 * minutes.value().0,
+                 time.value().form_time_of_day()?.is_12_clock()
+             )
     );
     // Time period
     b.rule_1_terminal("beginning of day",
