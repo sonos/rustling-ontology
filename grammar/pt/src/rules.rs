@@ -446,7 +446,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("intersect by `de`",
              time_check!(|time: &TimeValue| !time.latent),
-             b.reg(r#"de"#)?,
+             b.reg(r#"d[eo]"#)?,
              time_check!(|time: &TimeValue| !time.latent),
              |a, _, b| a.value().intersect(b.value())
     );
@@ -542,7 +542,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date
     b.rule_1_terminal("Christmas",
-                      b.reg(r#"natal"#)?,
+                      b.reg(r#"(?:dia de )?natal"#)?,
                       |_| helpers::month_day(12, 25)
     );
     // Date
@@ -643,6 +643,34 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(form!(Form::Month(_))),
              |_, month| {
                  let start = month.value().intersect(&helpers::day_of_month(25)?)?;
+                 let end = helpers::cycle(Grain::Day)?.last_of(month.value())?;
+                 start.span_to(&end, true)
+             }
+    );
+    // Date period
+    b.rule_2("middle of <named-month>",
+             b.reg(r#"(?:em )?meados de|na metade(?: do mês )?de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, month| {
+                 let start = month.value().intersect(&helpers::day_of_month(10)?)?;
+                 let end = month.value().intersect(&helpers::day_of_month(19)?)?;
+                 start.span_to(&end, true)
+             }
+    );
+    b.rule_2("fist half of <named-month>(interval)",
+             b.reg(r#"n?a primeira quinzena(?: do mês)? de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, month| {
+                 let start = month.value().intersect(&helpers::day_of_month(1)?)?;
+                 let end = month.value().intersect(&helpers::day_of_month(14)?)?;
+                 start.span_to(&end, true)
+             }
+    );
+    b.rule_2("second half of <named-month>(interval)",
+             b.reg(r#"n?a segunda quinzena(?: do mês)? de"#)?,
+             time_check!(form!(Form::Month(_))),
+             |_, month| {
+                 let start = month.value().intersect(&helpers::day_of_month(15)?)?;
                  let end = helpers::cycle(Grain::Day)?.last_of(month.value())?;
                  start.span_to(&end, true)
              }
@@ -985,7 +1013,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of morning",
-                      b.reg(r#"(?:para |n?o )?(começo|início) da manh[aã]"#)?,
+                      b.reg(r#"(?:para |(?:logo )?n?o )?(começo|início) da manh[aã]"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .latent()
@@ -1296,17 +1324,17 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Time period
     b.rule_4("between <datetime> and <datetime> (interval)",
              b.reg(r#"entre(?: as?| o)?"#)?,
-             time_check!(),
+             time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time)),
              b.reg(r#"e(?: as?| a?o)?"#)?,
-             time_check!(),
+             time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time)),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     // Time period
     b.rule_4("between <datetime> and <datetime> (interval)",
              b.reg(r#"entre(?: as?| a?o)?"#)?,
-             time_check!(),
+             time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time)),
              b.reg(r#"e"#)?,
-             time_check!(),
+             time_check!(|time: &TimeValue| excluding_form!(Form::Year(_))(time)),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     // Time period
@@ -1396,7 +1424,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("from <date-time> to <date-time> (interval)",
              b.reg(r#"do|de|das"#)?,
              time_check!(),
-             b.reg(r#"às|ao?"#)?,
+             b.reg(r#"[àa]s?|ao?|[aà]té"#)?,
              time_check!(),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );

@@ -158,12 +158,13 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     // Ambiguity Duration // Time
     //example!(v, check_moment!(c, [2013, 2, 13, 00]), "meia-noite", "zero hora");
     //example!(v, check_moment!(c, [2013, 2, 12, 12]), "meio-dia", "hoje ao meio-dia", "às doze horas");
-    // TODO: PROBLEM 12 horas
-    //example!(v, check_moment!(c, [2013, 2, 12, 12, 15]), "ao meio-dia e quinze", "às doze horas e quinze minutos");
+    // FIXME: PROBLEM 12 horas
+    example!(v, check_moment!(c, [2013, 2, 12, 12, 15]), "ao meio-dia e quinze", "às doze horas e quinze minutos");
     //example!(v, check_moment!(c, [2013, 2, 12, 11, 55]), "cinco para o meio-dia", "às onze e cinquenta e cinco", "às onze horas e cinquenta e cinco minutos");
-    //example!(v, check_moment!(c, [2013, 2, 12, 12, 30]), "ao meio-dia e meia", "às doze horas e trinta minutos", "às doze e trinta");
+    example!(v, check_moment!(c, [2013, 2, 12, 12, 30]), "ao meio-dia e meia", "às doze horas e trinta minutos", "às doze e trinta");
 
     example!(v, check_moment!(c, [2013, 2, 13, 00, 03]), "à zero hora e três minutos");
+    // Is today at midnight 13/12 or 12/12 ?
     //example!(v, check_moment!(c, [2013, 2, 13, 00, 03]), "hoje à meia-noite e três");
     //example!(v, check_moment!(c, [2013, 2, 12, 15, 15]), "às quinze e quinze", "às quinze horas e quinze minutos", "às três e quinze da tarde", "15:15", "15h15");
     example!(v, check_moment!(c, [2013, 2, 13, 15, 15]), "amanhã às três e quinze da tarde");
@@ -214,22 +215,20 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     // Holidays
     // TODO
-    // holiday_example!(v, check_moment!(c, [2013, 12, 25]), "Natal", "dia de natal");
+    example!(v, check_moment!(c, [2013, 12, 25]), "Natal", "dia de natal");
     // holiday_example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "véspera de natal", "a noite de natal");
-    // "il primo gennaio & co. works already"
     // holiday_example!(v, check_moment!(c, [2014, 1, 1]), "primeiro dia do ano", "ano novo", "primeiro de janeiro", "no dia primeiro de janeiro", "no primeiro dia de janeiro");
     // holiday_example!(v, check_moment!(c, [2013, 11, 1]), "todos os santos", "no dia de todos os santos", "dia de finados", "dia de todos os santos");
-    // "il primo maggio & co. works already"
     // holiday_example!(v, check_moment!(c, [2013, 05, 1]), "dia do trabalho", "dia do trabalhador");
 
     // Part of day (morning, afternoon...)
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "esta tarde", "pela tarde", "hoje pela tarde");
     example!(v, check_moment_span!(c, [2013, 2, 12, 15], [2013, 2, 12, 17]), "meio da tarde", "em plena tarde", "no meio da tarde");
-    //example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "logo de manhã", "no início da manhã", "logo no início da manhã", "primeiras horas da manhã");
-    // TODO: IMPORTANT: às doze horas
-    //example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "no meio do dia", "ao meio-dia", "às doze horas");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4], [2013, 2, 12, 9]), "logo de manhã", "no início da manhã", "logo no início da manhã", "primeiras horas da manhã");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 11], [2013, 2, 12, 16]), "no meio do dia");
+    example!(v, check_moment!(c, [2013, 2, 12, 12]), "ao meio-dia", "às doze horas");
     example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "no final da manhã", "nas últimas horas da manhã");
-    // TODO: ? Before lunch, after wordk, etc
+    // TODO: ?? Before lunch, after wordk, etc
     //example!(v, check_moment_span!(c, [2013, 2, 12, 13], [2013, 2, 12, 17]), "depois de comer", "depois da hora de comer");
     //example!(v, check_moment_span!(c, [2013, 2, 12, 10], [2013, 2, 12, 12]), "antes de comer");
     //example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "durante a refeição", "na hora da refeição" );
@@ -245,8 +244,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 00]), "tarde da noite", "no final da noite", "no fim da noite");
     example!(v, check_moment_span!(c, [2013, 2, 18, 4], [2013, 2, 18, 12]), "segunda-feira de manhã", "na segunda pela manhã");
     example!(v, check_moment_span!(c, [2013, 2, 18, 12], [2013, 2, 18, 19]), "segunda de tarde", "segunda-feira pela tarde");
-    // FIXME
-    // fix_example!(v, check_moment_span!(c, [2013, 2, 18, 17], [2013, 2, 18, 19]), "segunda-feira no final da tarde", "no fim da tarde de segunda", "no fim da tarde de segunda-feira");
+    example!(v, check_moment_span!(c, [2013, 2, 18, 15], [2013, 2, 18, 17]), "segunda-feira no final da tarde", "no fim da tarde de segunda", "no fim da tarde de segunda-feira");
 
     example!(v, check_moment_span!(c, [2013, 2, 15, 4], [2013, 2, 15, 12]), "dia quinze de fevereiro pela manhã", "no dia quinze de fevereiro pela manhã");
     example!(v, check_moment!(c, [2013, 2, 12, 20]), "hoje às oito da noite", "8 da noite", "às oito da noite");
@@ -268,7 +266,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 9, 27, 18], [2013, 9, 30, 00]), "o último fim de semana de setembro");
 
 
-    // Intervals involving cycles TODO: Ask Drica
+    // Intervals involving cycles
+    // TODO: Ask Drica
     //example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "2 últimos segundos", "os dois últimos segundos");
     //example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "os próximos 3 segundos", "os 3 próximos segundos");
     //example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "os 2 últimos minutos", "últimos dois minutos");
@@ -286,36 +285,38 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_moment_span!(c, [2014], [2017]), "os próximos 3 anos", "os três próximos anos");
 
     // Explicit intervals
-    // FIXME: confusion time/date etc. - 2 cases after below do work
+    // FIXME:
     // fix_example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]),  "13 julho - 15 julho",  "de 13 a 15 de julho",  "do dia 13 ao dia 15 de julho",  "de sábado dia 13 a domingo dia 15 de julho",  "de sábado dia 13 até domingo dia 15 de julho",  "do dia 13 a domingo dia 15");
 
-    // TODO : Resolution error (second date bad resolution)
+    // FIXME: Resolution error (second date bad resolution) + "13-15 julho" not supported
     // example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13-15 julho", "entre dia 13 e dia 15 de julho");
-    // FIXME:
-    // fix_example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 11]), "do dia 1 ao dia 10 de julho", "de segunda dia primeiro a quarta-feira dia 10 de julho");
-    // TODO Resolution eror : 06/18 -> 06/19
+    // FIXME: Resolution issue 10 --> 11 , + "de segunda dia primeiro a quarta-feira dia 10 de julho" not parsed
+    // fix_example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 10]), "do dia 1 ao dia 10 de julho", "de segunda dia primeiro a quarta-feira dia 10 de julho");
+    // FIXME: Resolution eror : 06/18 -> 06/19
     //example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 18]), "do dia 13 ao dia 18", "entre dia 13 e dia 18");
-    // fix_example!(v, check_moment_span!(c, [2023, 2, 1], [2023, 4, 1]), "entre fevereiro e março de dois mil e vinte e três", "entre o mês de fevereiro e o mês de março de dois mil e vinte e três");
-    // TODO: Resolution error : "primeiro de julho" -> 06/01 but "de 10 de junho a primeiro de julho" -> 06/02
+    example!(v, check_moment_span!(c, [2023, 2, 1], [2023, 3, 1]), "entre fevereiro e março de dois mil e vinte e três", "entre o mês de fevereiro e o mês de março de dois mil e vinte e três");
+    // FIXME: Resolution error : "primeiro de julho" -> 06/01 but "de 10 de junho a primeiro de julho" -> 06/02
     // example!(v, check_moment_span!(c, [2013, 6, 10], [2013, 7, 2]), "de 10 de junho a primeiro de julho", "entre o dia dez de junho e dia primeiro de julho", "entre o dia 10 de junho e o dia primeiro de julho", "de 10 de junho a 1º de julho");
-
+    // FIXME: Resolution error: start: 2017-04-06T00:00:00+02:00, end: 2017-06-09T00:00:00+02:00, 8 --> 9
     // example!(v, check_moment_span!(c, [2017,4,6], [2017,6,9]), "do dia seis de abril ao dia oito de junho de dois mil e dezessete", "de seis de abril ao dia oito de junho de dois mil e dezessete");
-    // FIXME
+    // TODO: OK, but abbreviation "5ª f." not supported, "09:30 - 11:00" as interval not supported
     // fix_example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11]), "09:30 - 11:00 na quinta-feira", "das 9h30 às 11h na quinta-feira", "das 9 e meia às 11 de quinta-feira", "na quinta-feira das 9h30 às 11h", "quinta-feira entre 9 e meia e 11", "quinta das 9h30 às 11h", "5ª f. entre as 09:30 e as 11:00");
     example!(v, check_moment_with_direction!(c, [2013, 3, 8], Direction::After), "a partir do dia 08", "desde o dia 8 de março", "do dia 8 de março em diante");
-
     example!(v, check_moment_with_direction!(c, [2013, 2, 14, 9, 30], Direction::After), "a partir das 09h30 de quinta-feira", "quinta pela manhã das 9 e meia em diante");
-    // TODO: after <time> do <date>
-    //example!(v, check_moment_with_direction!(c, [2013, 11, 1, 16], Direction::After), "depois das 16h do dia um de novembro", "depois das 4 da tarde do dia um de novembro", "no dia um de novembro depois das 16 horas");
+    example!(v, check_moment_with_direction!(c, [2013, 11, 1, 16], Direction::After), "depois das 16h do dia um de novembro", "depois das 4 da tarde do dia um de novembro", "no dia um de novembro depois das 16 horas");
     example!(v, check_moment_with_direction!(c, [2013, 11, 1], Direction::After), "depois do dia um de novembro");
 
-    // FIXME: OK but resolved as interval
-    // fix_example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16], Direction::Before), "antes das 16h", "até as 16:00", "até as 4 da tarde");
-    // FIXME: OK but resolution issue tomorrow after 6 o``lock is an interval with an end, not After(tomorrox at 6)
+    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16], Direction::Before), "antes das 16h", "até as 4 da tarde");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16, 0], Direction::Before), "até as 16:00");
+    // FIXME: Same as below (Interval(..-..) expetected but got Before(..))
     // example!(v, check_moment_span!(c, [2013, 2, 13, 0], [2013, 2, 13, 6]), "amanhã até as seis horas", "amanhã antes das 6h", "até as 6 horas amanhã");
-    // todo_example!(v, check_moment_with_direction!(c, [2013, 2, 20, 10], Direction::After), "no dia 20 a partir das 10h", "no dia 20 a partir das 10 horas", "desde as dez horas no dia vinte");
+    // FIXME: Same as below (Interval(..-..) expetected but got After(..))
+    // todo_example!(v, check_moment_with_direction!(c, [2013, 2, 20, 10], Direction::After), "13/02/20 18:00", "no dia 20 a partir das 10 horas", "desde as dez horas no dia vinte");
     example!(v, check_moment_with_direction!(c, [2013, 2, 15, 12], Direction::After), "na sexta-feira a partir do meio-dia", "na sexta-feira do meio-dia em diante", "desde sexta-feira ao meio-dia");
-    // todo_example!(v, check_moment_span!(c, [2013, 2, 20], [2013, 2, 20, 18]), "no dia 20 até as 18h");
+    // FIXME: Resolved as: Before(13/02/20 18:00), but what is expected is: Interval(13/02/20 00:00 - 13/02/20 18:00)
+    //example!(v, check_moment_span!(c, [2013, 2, 20], [2013, 2, 20, 18]), "no dia 20 até as 18h");
+    // TODO: Do not support 14-20 (dash as time period) and set. (abbreviation of month)
+    // FIXME: "14" ---> 2014/01/01 (bad resolution) and 20 de setembro 2014 --> OK
     //example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14-20 set. 2014", "de 14 a 20 de setembro 2014");
 
     example!(v, check_moment!(c, [2013, 2, 26]), "dentro de 2 semanas", "em duas semanas");
@@ -324,16 +325,15 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 7]), "das 5 às 7", "entre 5 e 7 horas", "de 5 à sete horas");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "quinta-feira das 9 às 11", "na quinta-feira entre as 9 e as 11");
 
-    // TODO : IMPORTANT : "entre as doze e as cartorze horas" (bad resolution: doze)
+    // FIXME: "entre as doze e as cartorze horas" (bad resolution: doze)
     //example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "do meio-dia às 14h", "entre o meio-dia e as duas da tarde", "entre as doze e as cartorze horas");
     example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 30]), "das 11h30 à 1h30", "das 11 e meia à uma e meia");
     example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "às 13:30 de sábado dia 21 de setembro", "às 13h30 de sábado dia 21 de setembro");
     example!(v, check_moment_span!(c, [2013, 3, 25], [2013, 4, 1]), "no final de março", "no fim do mês de março");
     example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 6]), "no começo de abril", "no início do mês de abril");
-    // TODO: first half of april, second half of april
-    // example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 15]), "a primeira quinzena de abril", "na primeira quinzena do mês de abril");
-    // example!(v, check_moment_span!(c, [2013, 4, 15], [2013, 5, 01]), "a segunda quinzena de abril", "na segunda quinzena do mês de abril");
-    // fix_example!(v, check_moment_span!(c, [2013, 12, 10], [2013, 12, 20]),  "meados de dezembro", "em meados de dezembro", "na metade do mês de dezembro");
+    example!(v, check_moment_span!(c, [2013, 4, 1], [2013, 4, 15]), "a primeira quinzena de abril", "na primeira quinzena do mês de abril");
+    example!(v, check_moment_span!(c, [2013, 4, 15], [2013, 5, 01]), "a segunda quinzena de abril", "na segunda quinzena do mês de abril");
+    example!(v, check_moment_span!(c, [2013, 12, 10], [2013, 12, 20]),  "meados de dezembro", "em meados de dezembro", "na metade do mês de dezembro");
     example!(v, check_moment!(c, [2013, 3]), "março", "em março", "durante o mês de março", "o mês de março");
     example!(v, check_moment!(c, [2013, 2, 12, 4, 45, 0]), "dentro de quinze minutos");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 0, 0]), "dentro de meia hora", "dentro de trinta minutos");
@@ -343,13 +343,12 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_duration!([0, 0, 0, 0, 2]), "durante duas horas", "por duas horas");
-    // TODO: "todo o dia"
-    /// example!(v, check_duration!([0, 0, 0, 1]), "durante um dia", "por um dia", "todo o dia");
+    // TODO: todo a dia
+    // example!(v, check_duration!([0, 0, 0, 1]), "durante um dia", "por um dia", "todo o dia");
     example!(v, check_duration!([0, 1, 0]), "durante um mês", "por um mês");
     example!(v, check_duration!([1]), "durante um ano", "por um ano");
     example!(v, check_duration!([0, 0, 0, 0, 0, 1, 3]), "durante um minuto e três segundos", "um minuto e três segundos");
     example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "cerca de uma hora e meia", "uma hora e meia mais ou menos", "uma hora e meia aproximadamente", "por volta de 1h30");
-    // TODO: Ask Drica "mas o menos" // "mas ou menos" (and before / after possible?)
     example!(v, check_duration!([0, 0, 0, 0, 0, 15], Precision::Approximate), "durante um quarto de hora mais o menos", "aproximadamente durante um quarto de hora");
     example!(v, check_duration!([0, 0, 0, 0, 1]), "durante uma hora", "por uma hora");
     example!(v, check_duration!([0, 0, 2]), "durante 2 semanas", "por duas semanas");
