@@ -99,7 +99,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_moment!(c, [2013, 2, 13]), "amanhã", "no dia seguinte", "um dia depois", "no dia depois");
 
     // TODO: depois de amanha / after(tomorow)
-    //example!(v, check_moment!(c, [2013, 2, 14]), "depois de amanhã");
+    example!(v, check_moment!(c, [2013, 2, 14]), "depois de amanhã");
     // same type of ambiguity as below
     //example!(v, check_moment!(c, [2013, 2, 18]), "segunda-feira", "segunda", "esta segunda", "seg.", "2ª", "2ª feira");
     example!(v, check_moment!(c, [2013, 2, 18]), "segunda-feira 18 de fevereiro", "na segunda-feira dia 18 de fevereiro", "na segunda-feira dia dezoito de fevereiro", "na segunda dezoito de fevereiro");
@@ -140,7 +140,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_moment!(c, [2013, 2, 11]), "segunda-feira desta semana", "na segunda desta semana", "nesta segunda");
     //example!(v, check_moment!(c, [2013, 2, 12]), "terça-feira desta semana", "na terça desta semana", "na 3ª feira desta semana");
     //example!(v, check_moment!(c, [2013, 2, 13]), "quarta-feira desta semana", "quarta desta semana", "4ª feira desta semana");
-    // resolution: date period
+    // resolution: date period Interval instead of Grain week
     //example!(v, check_moment!(c, [2013, 2, 11], Grain::Week), "esta semana");
     example!(v, check_moment!(c, [2013, 2, 4], Grain::Week), "a semana passada", "a última semana");
     example!(v, check_moment!(c, [2013, 2, 18], Grain::Week), "a próxima semana", "a semana que vem");
@@ -150,7 +150,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013]), "este ano");
     example!(v, check_moment!(c, [2014]), "o ano que vem", "o próximo ano");
 
-    //example!(v, check_moment!(c, [2013, 2, 10]), "o domingo passado", "o domingo da semana passada", "o último domingo");
+    example!(v, check_moment!(c, [2013, 2, 10]), "o domingo passado", "o domingo da semana passada", "o último domingo");
     example!(v, check_moment!(c, [2013, 10, 3]), "o terceiro dia de outubro", "o 3º dia de outubro", "o 3º dia de outubro", "dia 3 de outubro");
     //example!(v, check_moment!(c, [2014, 10, 6], Grain::Week), "primeira semana de outubro de 2014", "a primeira semana de outubro de 2014");
     //example!(v, check_moment!(c, [2013, 10, 7], Grain::Week), "a semana do dia 7 de outubro", "a semana de sete de outubro");
@@ -185,8 +185,8 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 16, 6]), "no dia 16 às 6 da manhã","no dia 16 às 6 da madrugada");
     example!(v, check_moment!(c, [2013, 2, 16, 18]), "dia 16 às 18h", "no sábado dia 16 às 6 da tarde");
     example!(v, check_moment!(c, [2013, 2, 13, 11]), "amanhã às 11 horas", "amanhã às onze horas", "amanhã às onze");
-    // TODO: Ambiguity ? "depois de amanhã às 11h" -> After((tomorrow, 11h) or -> (the day after tomorrow , 11h) + Is Grain OK ?
-    //example!(v, check_moment!(c, [2013, 2, 14, 11]), "quinta-feira às 11h", "depois de amanhã às 11h");
+    // Ambiguity ? "depois de amanhã às 11h" -> After((tomorrow, 11h) or -> (the day after tomorrow , 11h) + Is Grain OK ?
+    example!(v, check_moment!(c, [2013, 2, 14, 11]), "quinta-feira às 11h", "depois de amanhã às 11h");
     // Warning! Grain
     example!(v, check_moment!(c, [2013, 2, 14, 11, 0]), "o dia depois de amanhã às 11:00");
     example!(v, check_moment!(c, [2013, 2, 15, 12]), "na sexta-feira às 12h", "sexta-feira ao meio-dia", "ao meio-dia da sexta-feira");
@@ -241,7 +241,6 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 17], [2013, 2, 12, 21]), "no final do dia", "ao fim do dia", "ao acabar o dia");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "esta noite", "de noite");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 12, 21]), "no início da noite", "logo à noite");
-    // TODO: Ask Drica: tarde a part-of-day (and logo)
     example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 00]), "tarde da noite", "no final da noite", "no fim da noite");
     example!(v, check_moment_span!(c, [2013, 2, 18, 4], [2013, 2, 18, 12]), "segunda-feira de manhã", "na segunda pela manhã");
     example!(v, check_moment_span!(c, [2013, 2, 18, 12], [2013, 2, 18, 19]), "segunda de tarde", "segunda-feira pela tarde");
@@ -249,13 +248,12 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     example!(v, check_moment_span!(c, [2013, 2, 15, 4], [2013, 2, 15, 12]), "dia quinze de fevereiro pela manhã", "no dia quinze de fevereiro pela manhã");
     example!(v, check_moment!(c, [2013, 2, 12, 20]), "hoje às oito da noite", "8 da noite", "às oito da noite");
-    // TODO: IMPORTANT:
-    //example!(v, check_moment!(c, [2013, 2, 13, 3]), "3 da manhã", "às três da manhã");
+    example!(v, check_moment!(c, [2013, 2, 13, 3]), "3 da manhã", "às três da manhã");
 
     // Part of the week/month
     example!(v, check_moment_span!(c, [2013, 2, 13, 18], [2013, 2, 14, 00]), "amanhã de noite", "na quarta-feira de noite", "na noite de quarta-feira");
     example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 00]), "ontem à noite");
-    // Ambiguity: end of week // week-end
+    // Ambiguity: end of the week =/= week-end
     //example!(v, check_moment_span!(c, [2013, 2, 15, 18], [2013, 2, 18, 00]), "este fim de semana", "este final de semana", "no próximo final de semana");
     example!(v, check_moment_span!(c, [2013, 2, 11], [2013, 2, 13]), "no começo da semana", "no início desta semana");
     example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 15]), "no meio da semana", "na metade da semana");
@@ -267,14 +265,12 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 9, 27, 18], [2013, 9, 30, 00]), "o último fim de semana de setembro");
 
     // Intervals involving cycles
-    //example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "2 últimos segundos", "os dois últimos segundos");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "2 últimos segundos", "os dois últimos segundos");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "os próximos 3 segundos", "os 3 próximos segundos");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "os 2 últimos minutos", "últimos dois minutos");
-    // FIXME: this is confused b/ time and interval
-    // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 31], [2013, 2, 12, 4, 34]), "nos próximos três minutos", "durante os próximos três minutos");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 31], [2013, 2, 12, 4, 34]), "nos próximos três minutos", "durante os próximos três minutos");
     example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 8]), "as 3 próximas horas");
-    // FIXME: same as above
-    // fix_example!(v, check_moment_span!(c, [2013, 2, 10], [2013, 2, 12]), "últimos dois dias");
+    example!(v, check_moment_span!(c, [2013, 2, 10], [2013, 2, 12]), "últimos dois dias");
     example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "próximos 3 dias", "os próximos 3 dias");
     example!(v, check_moment_span!(c, [2013, 1, 28], [2013, 2, 11]), "últimas 2 semanas", "as duas últimas semanas");
     example!(v, check_moment_span!(c, [2013, 2, 18], [2013, 3, 11]), "as próximas três semanas", "as três próximas semanas");
@@ -320,7 +316,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     example!(v, check_moment!(c, [2013, 2, 26]), "dentro de 2 semanas", "em duas semanas");
     example!(v, check_moment!(c, [2013, 5, 12]), "dentro de 3 meses", "em três meses");
-    example!(v, check_moment!(c, [2013, 2, 27]),"em 15 dias","nos próximos quinze dias","dentro de 15 dias");
+    example!(v, check_moment!(c, [2013, 2, 27]),"em 15 dias","dentro de 15 dias");
     example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 7]), "das 5 às 7", "entre 5 e 7 horas", "de 5 à sete horas");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "quinta-feira das 9 às 11", "na quinta-feira entre as 9 e as 11");
 
@@ -342,7 +338,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_duration!([0, 0, 0, 0, 2]), "durante duas horas", "por duas horas");
-    // TODO: todo a dia
+    // TODO: support "todo a dia"?
     // example!(v, check_duration!([0, 0, 0, 1]), "durante um dia", "por um dia", "todo o dia");
     example!(v, check_duration!([0, 1, 0]), "durante um mês", "por um mês");
     example!(v, check_duration!([1]), "durante um ano", "por um ano");
