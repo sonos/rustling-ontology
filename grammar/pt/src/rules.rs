@@ -432,17 +432,41 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date or Time interval
     b.rule_3("n next <cycle>",
-            b.reg(r#"[ao]s próxim[ao]s"#)?,
+            b.reg(r#"(?:[ao]s )?próxim[ao]s"#)?,
             integer_check_by_range!(2, 9999),
             cycle_check!(),
             |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
+    // Date period
     b.rule_4("o n next <cycle>",
              b.reg(r#"[oa]s"#)?,
              integer_check_by_range!(2, 9999),
              b.reg(r#"próxim[ao]s"#)?,
              cycle_check!(),
              |_, integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+    // Date period
+    b.rule_4("os n last <cycle>",
+            b.reg(r#"[ao]s"#)?,
+            integer_check_by_range!(2, 9999),
+            cycle_check!(),
+            b.reg(r#"anteriores"#)?,
+            |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    // Date period
+    b.rule_3("os n last <cycle>",
+            b.reg(r#"(?:[ao]s )?últim[ao]s"#)?,
+            integer_check_by_range!(2, 9999),
+            cycle_check!(),
+            |_, integer,cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    // Date period
+    b.rule_4("o n last <cycle>",
+             b.reg(r#"[oa]s"#)?,
+             integer_check_by_range!(2, 9999),
+             b.reg(r#"últim[ao]s"#)?,
+             cycle_check!(),
+             |_, integer, _, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
 //    b.rule_3("in <cycle>",
 //             b.reg(r#"daqui a|dentro de"#)?,

@@ -266,29 +266,22 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 9, 13, 18], [2013, 9, 16, 00]), "o segundo final de semana de setembro");
     example!(v, check_moment_span!(c, [2013, 9, 27, 18], [2013, 9, 30, 00]), "o último fim de semana de setembro");
 
-
-
-
     // Intervals involving cycles
-    // TODO: Ask Drica
     //example!(v, check_moment_span!(c, [2013, 2, 12, 4, 29, 58], [2013, 2, 12, 4, 30, 00]), "2 últimos segundos", "os dois últimos segundos");
-    //example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "os próximos 3 segundos", "os 3 próximos segundos");
-    //example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "os 2 últimos minutos", "últimos dois minutos");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 01], [2013, 2, 12, 4, 30, 04]), "os próximos 3 segundos", "os 3 próximos segundos");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 28], [2013, 2, 12, 4, 30]), "os 2 últimos minutos", "últimos dois minutos");
     // FIXME: this is confused b/ time and interval
     // fix_example!(v, check_moment_span!(c, [2013, 2, 12, 4, 31], [2013, 2, 12, 4, 34]), "nos próximos três minutos", "durante os próximos três minutos");
-    //example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 8]), "as 3 próximas horas");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 8]), "as 3 próximas horas");
     // FIXME: same as above
     // fix_example!(v, check_moment_span!(c, [2013, 2, 10], [2013, 2, 12]), "últimos dois dias");
-    //example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "próximos 3 dias", "os próximos 3 dias");
-    //example!(v, check_moment_span!(c, [2013, 1, 28], [2013, 2, 11]), "últimas 2 semanas", "as duas últimas semanas");
-    //example!(v, check_moment_span!(c, [2013, 2, 18], [2013, 3, 11]), "as próximas três semanas", "as três próximas semanas");
-    //example!(v, check_moment_span!(c, [2012, 12], [2013, 02]), "últimos dois meses", "os últimos dois meses");
-    //example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "os três próximos meses");
-    //example!(v, check_moment_span!(c, [2011], [2013]), "os últimos 2 anos", "os dois anos anteriores");
+    example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 16]), "próximos 3 dias", "os próximos 3 dias");
+    example!(v, check_moment_span!(c, [2013, 1, 28], [2013, 2, 11]), "últimas 2 semanas", "as duas últimas semanas");
+    example!(v, check_moment_span!(c, [2013, 2, 18], [2013, 3, 11]), "as próximas três semanas", "as três próximas semanas");
+    example!(v, check_moment_span!(c, [2012, 12], [2013, 02]), "últimos dois meses", "os últimos dois meses");
+    example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "os três próximos meses");
+    example!(v, check_moment_span!(c, [2011], [2013]), "os últimos 2 anos", "os dois anos anteriores");
     example!(v, check_moment_span!(c, [2014], [2017]), "os próximos 3 anos", "os três próximos anos");
-
-
-
 
     // Explicit intervals
     // FIXME:
@@ -314,9 +307,9 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16], Direction::Before), "antes das 16h", "até as 4 da tarde");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16, 0], Direction::Before), "até as 16:00");
-    // FIXME: Same as below (Interval(..-..) expetected but got Before(..))
+    // FIXME: Same as below (Interval(..-..) expected but got Before(..))
     // example!(v, check_moment_span!(c, [2013, 2, 13, 0], [2013, 2, 13, 6]), "amanhã até as seis horas", "amanhã antes das 6h", "até as 6 horas amanhã");
-    // FIXME: Same as below (Interval(..-..) expetected but got After(..))
+    // FIXME: Same as below (Interval(..-..) expected but got After(..))
     // todo_example!(v, check_moment_with_direction!(c, [2013, 2, 20, 10], Direction::After), "13/02/20 18:00", "no dia 20 a partir das 10 horas", "desde as dez horas no dia vinte");
     example!(v, check_moment_with_direction!(c, [2013, 2, 15, 12], Direction::After), "na sexta-feira a partir do meio-dia", "na sexta-feira do meio-dia em diante", "desde sexta-feira ao meio-dia");
     // FIXME: Resolved as: Before(13/02/20 18:00), but what is expected is: Interval(13/02/20 00:00 - 13/02/20 18:00)
