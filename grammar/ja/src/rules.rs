@@ -222,12 +222,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
 
-     b.rule_2("cardinal number with quantifier",
-            integer_check_by_range!(0),
-            b.reg(ja_quantifier_regex())?,
-            |integer, _| Ok(integer.value().clone())
-    );
-
     b.rule_3("ordinal number",
             integer_check_by_range!(0),
             b.reg(ja_quantifier_regex())?,
