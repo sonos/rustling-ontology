@@ -232,11 +232,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         unit_of_duration_check!(),
         |integer, _, unit| Ok(DurationValue::new(PeriodComp::new(unit.value().grain, integer.value().value).into()))
     );
-    b.rule_3("<number> h <number>",
+    b.rule_4("<number> h <number>",
              integer_check_by_range!(0),
              b.reg(r#"h(?:eures?)?"#)?,
              integer_check_by_range!(0,59),
-             |hour, _, minute| {
+             b.reg(r#"m(?:inutes?)?"#)?,
+             |hour, _, minute, _| {
                  let hour_period = Period::from(PeriodComp::new(Grain::Hour, hour.value().clone().value));
                  let minute_period = Period::from(PeriodComp::new(Grain::Minute, minute.value().clone().value));
                  Ok(DurationValue::new(hour_period + minute_period))
@@ -913,6 +914,20 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             helpers::hour_minute(hour, minute, hour < 12)
         }
     );
+    b.rule_3_terminal("hh(:|h)mm - hh(:|h)mm (time-of-day interval)",
+                      b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h]([0-5]\d)"#)?,
+                      b.reg(r#" ?\- ?"#)?,
+                      b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h]([0-5]\d)"#)?,
+                      |a, _, b| {
+                          let hour_start: u32 = a.group(1).parse()?;
+                          let minute_start: u32 = a.group(2).parse()?;
+                          let hour_end: u32 = b.group(1).parse()?;
+                          let minute_end: u32 = b.group(2).parse()?;
+                          let start = helpers::hour_minute(hour_start, minute_start, hour_start < 12)?;
+                          let end = helpers::hour_minute(hour_end, minute_end, hour_end < 12)?;
+                          start.smart_span_to(&end, false)
+                      }
+    );
     b.rule_1_terminal("hh:mm:ss",
         b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:.]([0-5]\d)[:.]([0-5]\d)"#)?,
         |text_match| helpers::hour_minute_second(
@@ -1516,14 +1531,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(_))(datetime)),
-             b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
+             b.reg(r#" \- |[aà]|au|jusqu'(?:au|[aà])"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(_))(datetime)),
              |a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_4("de <time-of-day> - <time-of-day> (interval)",
              b.reg(r#"(?:midi )?de"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"\-|[aà]|au|jusqu'(?:au|[aà])"#)?,
+             b.reg(r#"[aà]|au|jusqu'(?:au|[aà])"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
@@ -1626,8 +1641,8 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
-    b.rule_2("<latent temp> en dessous de zero",
-             temperature_check!(),
+    b.rule_2("<temp> en dessous de zero",
+             temperature_check!(|temp: &TemperatureValue| !temp.latent),
              b.reg(r#"en dessous de (?:0|z[ée]ro)"#)?,
              |a, _| {
                  Ok(TemperatureValue {

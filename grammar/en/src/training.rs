@@ -129,7 +129,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 4, 32, 0]), "in 2 minutes", "in 2 more minutes", "2 minutes from now");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 30, 0]), "in 60 minutes");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 0, 0]), "in half an hour", "in 1/2h", "in 1/2 h", "in 1/2 hour");
-    example!(v, check_moment!(c, [2013, 2, 12, 7, 0, 0]), "in 2.5 hours", "in 2 and an half hours");
+    example!(v, check_moment!(c, [2013, 2, 12, 7, 0, 0]), "in 2.5 hours", "in 2 and a half hours");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 30]), "in one hour", "in 1h");
     example!(v, check_moment!(c, [2013, 2, 12, 6, 30]), "in a couple hours", "in a couple of hours");
     example!(v, check_moment!(c, [2013, 2, 12, 7, 30]), "in a few hours", "in few hours");
