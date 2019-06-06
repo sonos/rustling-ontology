@@ -590,7 +590,8 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::month(8)
     );
     b.rule_1_terminal("named-month",
-        b.reg(r#"septembre|sept?\.?"#)?,
+//        b.reg(r#"septembre|sept?\.?"#)?, // "sept" with no dot forbidden (confusion with nb "sept" in "à trois heures trente sept")
+        b.reg(r#"septembre|sept\.|sep\.?"#)?,
         |_| helpers::month(9)
     );
     b.rule_1_terminal("named-month",
