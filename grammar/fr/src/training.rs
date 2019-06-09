@@ -48,8 +48,8 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
-    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "maintenant", "tout de suite");
-    example!(v, check_moment!(c, [2013, 2, 12]), "aujourd'hui", "ce jour", "dans la journée", "en ce moment");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "maintenant", "tout de suite", "en ce moment");
+    example!(v, check_moment!(c, [2013, 2, 12]), "aujourd'hui", "ce jour", "dans la journée");
     example!(v, check_moment!(c, [2013, 2, 11]), "hier", "le jour d'avant", "le jour précédent", "la veille");
     example!(v, check_moment!(c, [2013, 2, 10]), "avant-hier");
     example!(v, check_moment!(c, [2013, 2, 13]), "demain", "jour suivant", "le jour d'après", "le lendemain", "un jour après");
@@ -65,16 +65,19 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 3, 1]), "le 1er mars", "premier mars", "le 1 mars", "vendredi 1er mars");
     example!(v, check_moment!(c, [2013, 3, 1]), "le premier mars 2013", "1/3/2013", "2013-03-01");
     example!(v, check_moment!(c, [2013, 3, 2]), "le 2 mars", "2 mars", "le 2/3");
-    example!(v, check_moment!(c, [2013, 3, 2, 5]), "le 2 mars à 5h", "2 mars à 5h", "le 2/3 à 5h", "le 2 mars à 5h du matin", "le 2 mars vers 5h", "2 mars vers 5h", "2 mars à environ 5h", "2 mars aux alentours de 5h", "2 mars autour de 5h", "le 2/3 vers 5h");
+    example!(v, check_moment!(c, [2013, 3, 2, 5]), "le 2 mars à 5h", "2 mars à 5h", "le 2/3 à 5h", "le 2 mars à 5h du matin");
+    example!(v, check_moment_with_precision!(c, [2013, 3, 2, 5], Precision::Approximate), "le 2 mars vers 5h", "2 mars vers 5h", "2 mars à environ 5h", "2 mars aux alentours de 5h", "2 mars autour de 5h", "le 2/3 vers 5h");
     example!(v, check_moment!(c, [2013, 3, 2]), "le 2");
-    example!(v, check_moment!(c, [2013, 3, 2, 5]), "le 2 à 5h", "le 2 vers 5h", "le 2 à 5h du mat");
+    example!(v, check_moment!(c, [2013, 3, 2, 5]), "le 2 à 5h", "le 2 à 5h du mat");
+    example!(v, check_moment_with_precision!(c, [2013, 3, 2, 5], Precision::Approximate), "le 2 vers 5h");
     example!(v, check_moment!(c, [2013, 3, 3]), "le 3 mars", "3 mars", "le 3/3");
     example!(v, check_moment!(c, [2013, 4, 5]), "le 5 avril", "5 avril");
     example!(v, check_moment!(c, [2015, 3, 3]), "le 3 mars 2015", "3 mars 2015", "3/3/2015", "2015-3-3", "2015-03-03");
     example!(v, check_moment!(c, [2013, 2, 15]), "le 15 février", "15 février");
     example!(v, check_moment!(c, [2013, 2, 15]), "15/02/2013", "15 fev 2013");
     example!(v, check_moment!(c, [2013, 2, 16]), "le 16");
-    example!(v, check_moment!(c, [2013, 2, 16, 18]), "le 16 à 18h", "le 16 vers 18h", "le 16 plutôt vers 18h", "le 16 à 6h du soir", "le 16 vers 6h du soir", "le 16 vers 6h dans la soirée", "samedi 16 à 18h");
+    example!(v, check_moment!(c, [2013, 2, 16, 18]), "le 16 à 18h", "le 16 à 6h du soir", "samedi 16 à 18h");
+    example!(v, check_moment_with_precision!(c, [2013, 2, 16, 18], Precision::Approximate), "le 16 vers 18h", "le 16 plutôt vers 18h", "le 16 vers 6h du soir", "le 16 vers 6h dans la soirée");
     example!(v, check_moment!(c, [2013, 2, 17]), "17 février", "le 17 février", "17/2", "17/02", "le 17/02", "17 02", "17 2", "le 17 02", "le 17 2");
     example!(v, check_moment!(c, [2013, 2, 13]), "mercredi 13"); //when today is Tuesday 12, "mercredi 13" should be tomorrow
     example!(v, check_moment!(c, [2014, 2, 20]), "20/02/2014", "20/2/2014", "20/02/14", "le 20/02/14", "le 20/2/14", "20 02 2014", "20 02 14", "20 2 2014", "20 2 14", "le 20 02 2014", "le 20 02 14", "le 20 2 2014", "le 20 2 14");
@@ -115,7 +118,8 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2015, 10, 31]), "dernier jour d'octobre 2015", "le dernier jour d'octobre 2015");
     example!(v, check_moment!(c, [2014, 9, 22], Grain::Week), "dernière semaine de septembre 2014", "la dernière semaine de septembre 2014");
     //Hours
-    example!(v, check_moment!(c, [2013, 2, 12, 15]), "à quinze heures", "à 15 heures", "à 3 heures cet après-midi", "15h", "15H", "vers 15 heures", "à environ 15 heures");
+    example!(v, check_moment!(c, [2013, 2, 12, 15]), "à quinze heures", "à 15 heures", "à 3 heures cet après-midi", "15h", "15H");
+    example!(v, check_moment_with_precision!(c, [2013, 2, 12, 15], Precision::Approximate), "vers 15 heures", "à environ 15 heures");
     example!(v, check_moment!(c, [2013, 2, 12, 15, 0]), "15:00", "15h00", "15H00");
     example!(v, check_moment!(c, [2013, 2, 13, 00]), "minuit");
     example!(v, check_moment!(c, [2013, 2, 12, 12]), "midi", "aujourd'hui à midi");
@@ -224,11 +228,11 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_with_direction!(c, [2013, 2, 20, 10], Direction::After), "le 20 à partir de 10h");
     example!(v, check_moment_with_direction!(c, [2013, 2, 15, 12], Direction::After), "vendredi à partir de midi");
     example!(v, check_moment_span!(c, [2013, 2, 20], [2013, 2, 20, 18]), "le 20 jusqu'à 18h");
-    example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 sept. 2014");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "d'ici 2 semaines");
+    example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 sept. 2014", "14 - 20 sep 2014"); // but not "14 - 20 sept 2014"
+    example!(v, check_moment_span!(c, [2013, 2, 12], [2013, 2, 27]), "d'ici 2 semaines");
     //15j != 2 semaines
-    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 5, 12]), "d'ici 3 mois");
-    example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 27]), "dans les 15 jours");
+    example!(v, check_moment_span!(c, [2013, 2, 12], [2013, 5, 13]), "d'ici 3 mois");
+    example!(v, check_moment_span!(c, [2013, 2, 12], [2013, 2, 28]), "dans les 15 jours");
     example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 7]), "de 5 à 7");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "jeudi de 9h à 11h");
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "entre midi et 2");
