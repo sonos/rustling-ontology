@@ -151,6 +151,14 @@ impl Period {
             .and_then(|(g, _)| Grain::from_usize(g))
     }
 
+    pub fn coarser_grain(&self) -> Option<Grain> {
+        use enum_primitive::FromPrimitive;
+        self.0
+            .iter()
+            .min_by_key(|&(g, _)| g)
+            .and_then(|(g, _)| Grain::from_usize(g))
+    }
+
     pub fn comps(&self) -> Vec<PeriodComp> {
         use enum_primitive::FromPrimitive;
         self.0.iter()
