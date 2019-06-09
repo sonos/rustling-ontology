@@ -144,29 +144,5 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
-    b.rule_2("il y a <duration>",
-             b.reg(r#"il y a"#)?,
-             duration_check!(),
-             |_, duration| duration.value().ago()
-    );
-    b.rule_2("depuis <duration>",
-        b.reg(r#"depuis|[cç]a fait"#)?,
-        duration_check!(),
-        |_, duration| {
-            duration.value().ago()?
-                .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
-    });
-    b.rule_3("<duration> apres <datetime>",
-             duration_check!(),
-             b.reg(r#"apr[eè]s"#)?,
-             datetime_check!(),
-             |duration, _, datetime| duration.value().after(datetime.value())
-    );
-    b.rule_3("<duration> avant <datetime>",
-             duration_check!(),
-             b.reg(r#"avant"#)?,
-             datetime_check!(),
-             |duration, _, datetime| duration.value().before(datetime.value())
-    );
     Ok(())
 }
