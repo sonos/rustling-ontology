@@ -3,26 +3,11 @@ use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Weekday, Grain};
 
-
-<<<<<<< HEAD
 /* DATETIME - CYCLE DEFINITIONS */
 pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("seconde (cycle)",
         b.reg(r#"secondes?"#)?,
         |_| CycleValue::new(Grain::Second)
-=======
-pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("intersect",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
-             |a, b| a.value().intersect(b.value())
-    );
-    b.rule_3("intersect by 'de' or ','",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
-             b.reg(r#"de|,"#)?,
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
-             |a, _, b| a.value().intersect(b.value())
->>>>>>> Add preposition 'au' in rule 'goûter'.
     );
     b.rule_1_terminal("minute (cycle)",
         b.reg(r#"minutes?"#)?,
