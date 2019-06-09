@@ -403,6 +403,7 @@ impl<T> MomentToRuleError for MomentResult<T> {
 }
 
 pub fn year(y: i32) -> RuleResult<DatetimeValue> {
+    // year between 0 and 99 will be normalized after 1950, e.g. 45 => 2045, 60 => 1960, 99 => 1999
     let y = normalize_year(y)?;
     Ok(DatetimeValue::constraint(Year::new(y)).form(Form::Year(y)))
 }
@@ -522,13 +523,19 @@ pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<DatetimeValue> 
     Ok(DatetimeValue::constraint(Cycle::rc(grain).take_not_immediate(n)).form(Form::Cycle(grain)))
 }
 
+pub fn weekend() -> RuleResult<DatetimeValue> {
+    let friday = day_of_week(Weekday::Fri)?.intersect(&hour(18, false)?)?;
+    let monday = day_of_week(Weekday::Mon)?.intersect(&hour(0, false)?)?;
+    Ok(friday.span_to(&monday, false)?.datetime_kind(DatetimeKind::DatePeriod))
+}
 
 pub fn easter() -> RuleResult<DatetimeValue> {
     fn offset(i: &Interval<Local>, _: &Context<Local>) -> Option<Interval<Local>> {
         let (year, month, day) = computer_easter(i.start.year());
         Some(Interval::ymd(year, month, day))
     }
-    Ok(DatetimeValue::constraint(Month::new(3).invalid_if_err()?.translate_with(offset)))
+    Ok(DatetimeValue::constraint(Month::new(3).invalid_if_err()?.translate_with(offset))
+        .datetime_kind(DatetimeKind::Date)) // otherwise grain is Month; not the cleanest but does the job
 }
 
 pub fn computer_easter(year: i32) -> (i32, u32, u32) {
@@ -569,10 +576,7 @@ impl DurationValue {
     pub fn in_present(&self) -> RuleResult<DatetimeValue> {
         self.check_period()?;
         let grain = self.get_grain();
-        let datetime_kind = match grain.is_date_grain() {
-            true => DatetimeKind::Date,
-            false => DatetimeKind::Time,
-        };
+        let datetime_kind = if grain.is_date_grain() { DatetimeKind::Date } else { DatetimeKind::Time };
         Ok(DatetimeValue::constraint(Cycle::rc(Grain::Second)
             .take_the_nth(0)
             .shift_by(self.period.clone())).precision(self.precision)
@@ -582,10 +586,7 @@ impl DurationValue {
     pub fn in_present_day(&self) -> RuleResult<DatetimeValue> {
         self.check_period()?;
         let grain = self.get_grain();
-        let datetime_kind = match grain.is_date_grain() {
-            true => DatetimeKind::Date,
-            false => DatetimeKind::Time,
-        };
+        let datetime_kind = if grain.is_date_grain() { DatetimeKind::Date } else { DatetimeKind::Time };
         Ok(DatetimeValue::constraint(Cycle::rc(Grain::Day)
             .take_the_nth(0)
             .shift_by(self.period.clone())).precision(self.precision)
