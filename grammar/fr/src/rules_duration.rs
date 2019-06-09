@@ -139,3 +139,4 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     Ok(())
 }
+

@@ -16,6 +16,7 @@ pub fn rules_celebration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
             Ok(start.span_to(&end, false)?
                  .form(Form::Celebration))
         }
+
     );
     b.rule_1_terminal("saint sylvestre",
                       b.reg(r#"(?:l[ea] )?(?:saint[- ]sylvestre|r[eé]veillon)"#)?,
