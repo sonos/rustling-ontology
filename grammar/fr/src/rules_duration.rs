@@ -104,16 +104,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(0),
              |duration, integer| helpers::compose_duration_with_integer(duration.value(), integer.value())
     );
-    b.rule_2("dans <duration>",
-             b.reg(r#"dans"#)?,
-             duration_check!(),
-             |_, duration| duration.value().in_present()
-    );
-    b.rule_2("<duration> plus tard",
-        duration_check!(),
-        b.reg(r"plus tard")?,
-        |duration, _| duration.value().in_present()
-    );
     b.rule_2("environ <duration>",
              b.reg(r#"environ|approximativement|à peu près|presque"#)?,
              duration_check!(),
@@ -134,6 +124,9 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"exactement|précisément|pile"#)?,
              |duration, _| Ok(duration.value().clone().precision(Precision::Exact))
     );
+    // Ambiguous w/ time-of-day w/ "pour"
+    // Duration has less priority than Datetime types, therefore duration will be output only
+    // if the output kind filter is set for Duration
     b.rule_2("pendant <duration>",
              b.reg(r#"pendant|durant|pour"#)?,
              duration_check!(),
