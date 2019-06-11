@@ -1184,6 +1184,12 @@ pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> Rustli
              duration_check!(),
              |_, duration| duration.value().in_present()
     );
+    b.rule_3("in <duration> from now",
+             b.reg(r#"in"#)?,
+             duration_check!(),
+             b.reg(r#"from now"#)?,
+             |_, duration, _| duration.value().in_present()
+    );
     b.rule_3("in <duration>",
              b.reg(r#"in"#)?,
              duration_check!(),
