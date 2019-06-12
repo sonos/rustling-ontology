@@ -33,7 +33,6 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_float(0.5), "0,5", "0,50", "zero vírgula cinco", "zero vírgula cinquenta");
     example!(v, check_float(32.75), "32,75", "trinta e dois vírgula setenta e cinco");
     example!(v, check_float(10.08), "10,08", "dez vírgula zero oito");
-    // TODO: Check if want/need support for ordinal special character/overscript
     example!(v, check_ordinal(1), "1o", "1a", "primeiro", "primeira", "1º", "1ª");
     example!(v, check_ordinal(3), "3o", "3a", "3º", "3ª", "terceiro", "terceira");
     example!(v, check_ordinal(2), "segundo", "2º", "2o");
@@ -57,10 +56,9 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    // TODO: Ask Drica for US$800
+    // Problem with $ at the begginning: US$800, $10
     //example!(v, check_finance(800.0, Some("$"), Precision::Exact), "US$800", "$800", "oitocentos dólares");
     example!(v, check_finance(10.0, Some("$"), Precision::Approximate), "uns dez dólares", "dez dólares mais ou menos");
-    // TODO: Ask Drica for US$10
     //example!(v, check_finance(10.0, Some("USD"), Precision::Approximate), "uns dez dólares americanos", "US$10 mais ou menos", "quase $10", "uns 10 USD");
     example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "três dólares australianos");
     example!(v, check_finance(3.5, Some("AUD"), Precision::Exact), "3,5 dólares australianos", "três dólares australianos e cinquenta centavos");
