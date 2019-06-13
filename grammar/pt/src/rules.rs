@@ -504,12 +504,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(|time: &TimeValue| !time.latent),
              |a, b| a.value().intersect(b.value())
     );
-    b.rule_3("intersect by `de`",
-             time_check!(|time: &TimeValue| !time.latent),
-             b.reg(r#"d[eo]"#)?,
-             time_check!(|time: &TimeValue| !time.latent),
-             |a, _, b| a.value().intersect(b.value())
-    );
+
+//    b.rule_3("intersect by `de`",
+//             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+//             b.reg(r#"d[eo]"#)?,
+//             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+//             |a, _, b| a.value().intersect(b.value())
+//    );
+
     b.rule_3("two time tokens separated by \",\"",
              time_check!(|time: &TimeValue| !time.latent),
              b.reg(r#","#)?,
@@ -517,23 +519,23 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_1_terminal("named-day",
-                      b.reg(r#"(segunda|2ª)(?:[- ]feira)?"#)?,
+                      b.reg(r#"(segunda|2ª)(?:[- ]feira| f.)?"#)?,
                       |_| helpers::day_of_week(Weekday::Mon)
     );
     b.rule_1_terminal("named-day",
-                      b.reg(r#"(ter[cç]a|3ª)(?:[- ]feira)?"#)?,
+                      b.reg(r#"(ter[cç]a|3ª)(?:[- ]feira| f.)?"#)?,
                       |_| helpers::day_of_week(Weekday::Tue)
     );
     b.rule_1_terminal("named-day",
-                      b.reg(r#"(quarta|4ª)(?:[- ]feira)?"#)?,
+                      b.reg(r#"(quarta|4ª)(?:[- ]feira| f.)?"#)?,
                       |_| helpers::day_of_week(Weekday::Wed)
     );
     b.rule_1_terminal("named-day",
-                      b.reg(r#"(quinta|5ª)(?:[- ]feira)?"#)?,
+                      b.reg(r#"(quinta|5ª)(?:[- ]feira| f.)?"#)?,
                       |_| helpers::day_of_week(Weekday::Thu)
     );
     b.rule_1_terminal("named-day",
-                      b.reg(r#"(sexta|6ª)(?:[- ]feira)?"#)?,
+                      b.reg(r#"(sexta|6ª)(?:[- ]feira| f.)?"#)?,
                       |_| helpers::day_of_week(Weekday::Fri)
     );
     b.rule_1_terminal("named-day",
@@ -662,14 +664,14 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date
     b.rule_2("this <day-of-week>", //assumed to be in the future
-             b.reg(r#"est[ea]"#)?,
-             time_check!(form!(Form::DayOfWeek{..})),
+             b.reg(r#"n?est[ea]"#)?,
+             datetime_check!(form!(Form::DayOfWeek{..})),
              |_, time| time.value().the_nth_not_immediate(0)
     );
     // DateTime IS IT NECESSARY ?
     b.rule_2("this <datetime>",
-             b.reg(r#"est[ea]|(?:n?[oa])? próxim[oa]"#)?,
-             time_check!(),
+             b.reg(r#"n?est[ea]|(?:n?[oa])? próxim[oa]"#)?,
+             datetime_check!(),
              |_, time| time.value().the_nth(0)
     );
     // Date period
@@ -685,7 +687,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date period
     b.rule_2("this <cycle>",
-             b.reg(r#"est[ea]"#)?,
+             b.reg(r#"d?est[ea]"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
@@ -817,6 +819,12 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |time, _| time.value().the_nth_not_immediate(0)
     );
     // Date
+    b.rule_2("<named-day> next",
+             datetime_check!(form!(Form::DayOfWeek{..})),
+             b.reg(r#"da próxima semana"#)?,
+             |time, _| time.value().the_nth_not_immediate(0)
+    );
+    // Date
     b.rule_2("for next <named-day>",
              b.reg(r#"(?:para |n)?o próximo"#)?,
              time_check!(form!(Form::DayOfWeek{..})),
@@ -899,6 +907,16 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1000, 2100),
              |_, integer| helpers::year(integer.value().value as i32)
     );
+
+    b.rule_3("<datetime> de <year>",
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             b.reg(r#"d[eo]"#)?,
+             datetime_check!(form!(Form::Year(_))),
+             |a, _, b| a.value().intersect(b.value())
+    );
+
+
+
     // Date-Period
 //    b.rule_2("in year",
 //             b.reg(r#"em"#)?,
@@ -946,15 +964,23 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date
     b.rule_4("o <day-of-month>(ordinal) de <named-month>",
-             b.reg(r#"o"#)?,
+             b.reg(r#"(?:d|n)?o"#)?,
              ordinal_check_by_range!(1, 31),
              b.reg(r#"(?:dia )?de"#)?,
              time_check!(form!(Form::Month(_))),
              |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
     );
     // Date
+    b.rule_4("o <day-of-month>(integer) de <named-month>",
+             b.reg(r#"(?:d|n)?o"#)?,
+             integer_check_by_range!(1, 31),
+             b.reg(r#"(?:dia )?de"#)?,
+             datetime_check!(form!(Form::Month(_))),
+             |_, integer, _, month| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+    );
+    // Date
     b.rule_4("dia <day-of-month>(integer) de <named-month>",
-             b.reg(r#"dia"#)?,
+             b.reg(r#"(?:(?:d|n)?o )?dia"#)?,
              integer_check_by_range!(1, 31),
              b.reg(r#"de"#)?,
              time_check!(form!(Form::Month(_))),
@@ -962,7 +988,7 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date
     b.rule_4("dia <day-of-month>(ordinal) de <named-month>",
-             b.reg(r#"dia"#)?,
+             b.reg(r#"(?:(?:d|n)?o )?dia"#)?,
              ordinal_check_by_range!(1, 31),
              b.reg(r#"de"#)?,
              time_check!(form!(Form::Month(_))),
@@ -1623,6 +1649,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              time_check!(),
              |_, time| Ok(time.value().clone().mark_after_start())
     );
+    b.rule_2("after <date-time>",
+             b.reg(r#"depois"#)?,
+             datetime_check!(),
+             |_, time| Ok(time.value().clone().mark_after_start())
+    );
     // Time period
     b.rule_2("from <date-time>",
              b.reg(r#"desde(?: as?)?"#)?,
@@ -1651,27 +1682,41 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_3("from <datetime> on",
-             b.reg(r#"do|de|das"#)?,
-             time_check!(),
+             b.reg(r#"(?:do|de|das)(?: dia)?"#)?,
+             datetime_check!(),
              b.reg(r#"em diante"#)?,
              |_, pod, _| Ok(pod.value().clone().mark_after_start())
     );
     // Time period
-    b.rule_4("from <date-time> to <date-time> (interval)",
+//    b.rule_4("from <date-time> to <date-time> (interval)",
+//             b.reg(r#"do|de|das"#)?,
+//             datetime_check!(),
+//             b.reg(r#"[àa]s?|ao?|[aà]té"#)?,
+//             datetime_check!(),
+//             |_, a, _, b| a.value().span_to(b.value(), false)
+//    );
+    // Date period
+    b.rule_6("from dd to dd <month>(interval)",
              b.reg(r#"do|de|das"#)?,
-             time_check!(),
+             integer_check_by_range!(1, 31),
              b.reg(r#"[àa]s?|ao?|[aà]té"#)?,
-             time_check!(),
-             |_, a, _, b| a.value().span_to(b.value(), false)
+             integer_check_by_range!(1, 31),
+             b.reg(r#"de"#)?,
+             datetime_check!(form!(Form::Month(_))),
+             |_, a, _, b, _,month| {
+                 let start = month.value().intersect(&helpers::day_of_month(a.value().value as u32)?)?;
+                 let end = month.value().intersect(&helpers::day_of_month(b.value().value as u32)?)?;
+                 start.span_to(&end, true)
+             }
     );
     // Time period
-    b.rule_4("from <date-time> to <date-time> (interval)",
-             b.reg(r#"a partir (d[ae]|das|desta)"#)?,
-             time_check!(),
-             b.reg(r#"para as"#)?,
-             time_check!(),
-             |_, a, _, b| a.value().span_to(b.value(), false)
-    );
+//    b.rule_4("from <date-time> to <date-time> (interval)",
+//             b.reg(r#"a partir (d[ae]|das|desta)"#)?,
+//             datetime_check!(),
+//             b.reg(r#"para as"#)?,
+//             datetime_check!(),
+//             |_, a, _, b| a.value().span_to(b.value(), false)
+//    );
     // Time period
     b.rule_2("before <datetime>",
              b.reg(r#"antes d[ao]s?"#)?,
