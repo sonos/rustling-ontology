@@ -5,25 +5,25 @@ use rustling_ontology_values::ResolverContext;
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "零", "0", "０", "〇");
-    example!(v, check_integer(1), "一", "一尾", "一把");
-    example!(v, check_integer(2), "二", "二名", "二羽");
-    example!(v, check_integer(3), "三", "三話", "三人", "三画");
-    example!(v, check_integer(4), "四", "四面", "四冊");
-    example!(v, check_integer(5), "五", "五問", "五曲");
-    example!(v, check_integer(6), "六", "六拍子", "六種");
-    example!(v, check_integer(7), "七", "七段", "七種類");
-    example!(v, check_integer(8), "八", "八門", "八カ国");
-    example!(v, check_integer(9), "九", "九倍", "九ヶ国");
-    example!(v, check_integer(10), "十", "十畳", "十クラス");
-    example!(v, check_integer(11), "十一", "十一膳", "十一丁");
-    example!(v, check_integer(14), "十四", "十四ページ", "十四口");
-    example!(v, check_integer(20), "二十", "二十例", "二十束");
-    example!(v, check_integer(30), "三十", "三十字", "三十機");
-    example!(v, check_integer(33), "三十三", "三十三文", "三十三行");
-    example!(v, check_integer(90), "九十", "九十行", "九十通", "九十通り");
-    example!(v, check_integer(340), "三百四十", "三百四十語", "三百四十戸");
-    example!(v, check_integer(1096), "千九十六", "千九十六台", "千九十六切れ");
-    example!(v, check_integer(40020), "四万二十", "四万二十坪", "四万二十つ", "四万二十カ国", "四万二十字", "四万二十拍子");
+    example!(v, check_integer(1), "一");
+    example!(v, check_integer(2), "二");
+    example!(v, check_integer(3), "三");
+    example!(v, check_integer(4), "四");
+    example!(v, check_integer(5), "五");
+    example!(v, check_integer(6), "六");
+    example!(v, check_integer(7), "七");
+    example!(v, check_integer(8), "八");
+    example!(v, check_integer(9), "九");
+    example!(v, check_integer(10), "十");
+    example!(v, check_integer(11), "十一");
+    example!(v, check_integer(14), "十四");
+    example!(v, check_integer(20), "二十");
+    example!(v, check_integer(30), "三十");
+    example!(v, check_integer(33), "三十三");
+    example!(v, check_integer(90), "九十");
+    example!(v, check_integer(340), "三百四十");
+    example!(v, check_integer(1096), "千九十六");
+    example!(v, check_integer(40020), "四万二十");
 
     example!(v, check_float(0.8), "0.8", "0点８", "零点八", "〇点８", "〇.８");
 
@@ -98,7 +98,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 10]), "一昨日", "二千十三年二月十日", "前の日曜日", "先週の日曜日");
     example!(v, check_moment!(c, [2013, 2, 11]), "昨日", "前の日", "前日");
-    example!(v, check_moment!(c, [2013, 2, 13]), "明日", "次の日", "二千十三年二月十三日", "今週の水曜日", "バレンタインデーの前の日"); 
+    example!(v, check_moment!(c, [2013, 2, 13]), "明日", "次の日", "二千十三年二月十三日", "今週の水曜日", "バレンタインデーの前の日");
     example!(v, check_moment!(c, [2013, 2, 20]), "次の水曜日");
     example!(v, check_moment!(c, [2013, 2, 14]), "二千十三年二月十四日", "バレンタインデーの日", "今週の木曜日");
     example!(v, check_moment!(c, [2013, 2, 14]), "次の木曜日");
