@@ -288,9 +288,24 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |duration, _| duration.value().in_present()
     );
     b.rule_2("environ <duration>",
-             b.reg(r#"environ"#)?,
+             b.reg(r#"environ|approximativement|à peu près|presque"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("<duration> environ",
+             duration_check!(),
+             b.reg(r#"environ|approximativement|à peu près"#)?,
+             |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("exactement <duration> ",
+             b.reg(r#"exactement|précisément"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
+    );
+    b.rule_2("<duration> exactement",
+             duration_check!(),
+             b.reg(r#"exactement|précisément|pile"#)?,
+             |duration, _| Ok(duration.value().clone().precision(Precision::Exact))
     );
     b.rule_2("pendant <duration>",
              b.reg(r#"pendant|durant|pour(?: une dur[eé]e? d['e])?"#)?,
@@ -900,6 +915,11 @@ pub fn rules_time(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<time-of-day> heures",
              time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              b.reg(r#"h\.?(?:eure)?s?"#)?,
+             |a, _| Ok(a.value().clone().not_latent())
+    );
+    b.rule_2("<time-of-day> (heures) pile",
+             time_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
+             b.reg(r#"pile"#)?,
              |a, _| Ok(a.value().clone().not_latent())
     );
     b.rule_2("à|vers <time-of-day>",
