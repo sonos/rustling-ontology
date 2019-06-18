@@ -312,17 +312,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |duration, _| Ok(duration.value().clone().precision(Precision::Exact))
     );
     b.rule_2("pendant <duration>",
-             b.reg(r#"pendant|durant|pour(?: une dur[eé]e? d['e])?"#)?,
+             b.reg(r#"pendant|durant|pour"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
     b.rule_2("une durée de <duration>",
-             b.reg(r#"une durée d(?:e|'une?)?"#)?,
-             duration_check!(),
-             |_, duration| Ok(duration.value().clone().prefixed())
-    );
-    b.rule_2("une durée de <duration>",
-             b.reg(r#"une durée d['e]"#)?,
+             b.reg(r#"une dur[ée]e d['e]"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
