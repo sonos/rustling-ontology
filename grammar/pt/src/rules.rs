@@ -41,94 +41,84 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| Ok(MoneyUnitValue { unit: Some("£") })
     );
     b.rule_1_terminal("GBP",
-                      b.reg(r#"gbp|libras? esterlinas?|libras? inglesas?|libras? britânicas?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("GBP") })
+        b.reg(r#"gbp|libras?(?: esterlinas?| inglesas?| brit[âa]nicas)"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("GBP") })
     );
     b.rule_1_terminal("USD",
-        b.reg(r#"d[oó]lar(?:es)? americanos?|d[oó]lar(?:es)? estadunidenses?|us[d\$]"#)?,
+        b.reg(r#"d[oó]lar(?:es)?(?: americanos?| estadunidenses?)|us[d\$]"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("USD") })
     );
     b.rule_1_terminal("CAD",
-                      b.reg(r#"d[oó]lar(?:es)? canadenses?|cad"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("CAD") })
+        b.reg(r#"d[oó]lar(?:es)? canadenses?|cad"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CAD") })
     );
     b.rule_1_terminal("AUD",
-                      b.reg(r#"d[oó]lar(?:es)? australianos?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("AUD") })
+        b.reg(r#"d[oó]lar(?:es)? australianos?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("AUD") })
     );
     b.rule_1_terminal("Bitcoin",
         b.reg(r#"฿|bitcoins?|btc|xbt"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("JPY",
-                      b.reg(r#"jpy|[yi]en(?:es?)?(?: japoneses?)?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("JPY") })
+        b.reg(r#"jpy|[yi]en(?:es?)?(?: japoneses?)?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("JPY") })
     );
     b.rule_1_terminal("¥",
-                      b.reg(r#"¥"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("¥") })
+        b.reg(r#"¥"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("¥") })
     );
     b.rule_1_terminal("₽",
-                          b.reg(r#"₽"#)?,
-                          |_| Ok(MoneyUnitValue { unit: Some("₽") })
+        b.reg(r#"₽"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("₽") })
     );
     b.rule_1_terminal("KRW",
-                      b.reg(r#"krw|₩|won(?:e?s)? (?:sul[- ])?coreanos?|won(?:e?s)?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("KRW") })
+        b.reg(r#"krw|₩|won(?:e?s)?(?: (?:sul[- ])?coreanos?)?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("KRW") })
     );
     b.rule_1_terminal("RMB|CNH|CNY",
-                      b.reg(r#"yuan(?:e?s)?(?: chineses?)?|renminbis?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("CNY") })
+        b.reg(r#"yuan(?:e?s)?(?: chineses?)?|renminbis?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CNY") })
     );
     b.rule_1_terminal("INR",
-                      b.reg(r#"r[uú]pias?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("INR") })
+        b.reg(r#"r[uú]pias?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_1_terminal("INR",
-                          b.reg(r#"r[uú]pias? indianas?"#)?,
-                          |_| Ok(MoneyUnitValue { unit: Some("INR") })
+        b.reg(r#"r[uú]pias? indianas?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("INR") })
         );
     b.rule_1_terminal("HKD",
-                      b.reg(r#"d[oó]lar(?:es)? de hong kong"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("HKD") })
+        b.reg(r#"d[oó]lar(?:es)? de hong kong"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("HKD") })
     );
     b.rule_1_terminal("CHF",
-                      b.reg(r#"francos? su[íi]ços?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("CHF") })
+        b.reg(r#"francos? su[íi]ços?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("CHF") })
     );
     b.rule_1_terminal("KR",
-                      b.reg(r#"kr|coroas?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("KR") })
+        b.reg(r#"kr|coroas?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("KR") })
     );
     b.rule_1_terminal("DKK",
-                      b.reg(r#"dkk|coroas? dinamarquesas?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("DKK") })
+        b.reg(r#"dkk|coroas? dinamarquesas?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("DKK") })
     );
     b.rule_1_terminal("NOK",
-                      b.reg(r#"nok|coroas? norueguesas?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("NOK") })
+        b.reg(r#"nok|coroas? norueguesas?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("NOK") })
     );
     b.rule_1_terminal("SEK",
-                      b.reg(r#"sek|coroas? suecas?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("SEK") })
-    );
-
-    b.rule_1_terminal("RUB",
-                      b.reg(r#"rub"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("RUB") })
+        b.reg(r#"sek|coroas? suecas?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("SEK") })
     );
     b.rule_1_terminal("RUB",
-                      b.reg(r#"rublos?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("RUB") })
+        b.reg(r#"rublos?(?: russos?)?|rub"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("RUB") })
     );
-    b.rule_1_terminal("RUB",
-                      b.reg(r#"rublos? russos?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("RUB") })
-    );
-
     b.rule_1_terminal("cent",
-                      b.reg(r#"centavos?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("cent") })
+        b.reg(r#"centavos?"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("cent") })
     );
     b.rule_2("<amount> <unit>",
              number_check!(),
@@ -239,7 +229,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
     );
     b.rule_1_terminal("half an hour",
-                      b.reg(r#"meia hora"#)?,
+                      b.reg(r#"(?:uma )?meia hora"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(30).into()))
     );
     b.rule_1_terminal("three-quarters of an hour",
@@ -279,6 +269,27 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //                 Ok(DurationValue::new(half_period + PeriodComp::new(uod.value().grain, integer.value().value)))
 //             }
 //    );
+    b.rule_3("<duration> and <duration>",
+             duration_check!(|duration: &DurationValue| !duration.suffixed),
+             b.reg(r#"e"#)?,
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
+             |a, _, b| Ok(a.value() + b.value())
+    );
+    b.rule_2("<duration> <duration>",
+             duration_check!(|duration: &DurationValue| !duration.suffixed),
+             duration_check!(|duration: &DurationValue| !duration.prefixed),
+             |a, b| Ok(a.value() + b.value())
+    );
+    b.rule_2("duration of <duration>",
+             b.reg(r#"uma duração de"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
+    );
+    b.rule_2("during <duration>",
+             b.reg(r#"por|durante"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
+    );
     // FUTUR
     b.rule_2("in <duration> (future moment)",
              b.reg(r#"em|daqui a|dentro de"#)?,
@@ -298,31 +309,10 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |duration, _| duration.value().ago()
     );
     // PAST
-    b.rule_2("<duration> ago",
+    b.rule_2("ago <duration>",
              b.reg(r#"há|faz"#)?,
              duration_check!(),
              |_, duration| duration.value().ago()
-    );
-    b.rule_3("<duration> y <duration>",
-             duration_check!(|duration: &DurationValue| !duration.suffixed),
-             b.reg(r#"e"#)?,
-             duration_check!(|duration: &DurationValue| !duration.prefixed),
-             |a, _, b| Ok(a.value() + b.value())
-    );
-    b.rule_2("<duration> <duration>",
-             duration_check!(|duration: &DurationValue| !duration.suffixed),
-             duration_check!(|duration: &DurationValue| !duration.prefixed),
-             |a, b| Ok(a.value() + b.value())
-    );
-    b.rule_2("<duration> <integer>",
-             duration_check!(|duration: &DurationValue| !duration.prefixed),
-             integer_check_by_range!(0),
-             |duration, integer| helpers::compose_duration_with_integer(duration.value(), integer.value())
-    );
-    b.rule_2("during <duration>",
-             b.reg(r#"por|durante"#)?,
-             duration_check!(),
-             |_, duration| Ok(duration.value().clone().prefixed())
     );
     b.rule_2("approx <duration>",
              b.reg(r#"aproximadamente|cerca de|por cerca de|por volta de|em torno de"#)?,
@@ -339,7 +329,7 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
     );
-    b.rule_2("precisely <duration>",
+    b.rule_2("<duration> precisely",
              duration_check!(),
              b.reg(r#"exactamente|precisamente"#)?,
              |duration , _| Ok(duration.value().clone().precision(Precision::Exact))
