@@ -209,6 +209,10 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"an(?:n[ée]e?)?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
+    b.rule_1_terminal("trimestre (unit-of-duration)",
+        b.reg(r#"trimestres?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Quarter))
+    );
     b.rule_1_terminal("un quart heure",
         b.reg(r#"(1/4\s?h(?:eure)?|(?:un|1) quart d'heure)"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
@@ -312,6 +316,16 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
+    b.rule_2("une durée de <duration>",
+             b.reg(r#"une durée d(?:e|'une?)?"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
+    );
+    b.rule_2("une durée de <duration>",
+             b.reg(r#"une durée d['e]"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
+    );
     b.rule_2("il y a <duration>",
              b.reg(r#"il y a"#)?,
              duration_check!(),
@@ -367,6 +381,10 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("année (cycle)",
              b.reg(r#"an(?:n[ée]e?)?s?"#)?,
              |_| CycleValue::new(Grain::Year)
+    );
+    b.rule_1_terminal("trimestre (cycle)",
+             b.reg(r#"trimestres?"#)?,
+             |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_2("ce|dans le <cycle>",
              b.reg(r#"(?:cet?t?e?s?)|(?:dans l[ae']? ?)"#)?,
