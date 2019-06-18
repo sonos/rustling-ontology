@@ -111,11 +111,19 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("SEK",
         b.reg(r#"sek|coroas? suecas?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("SEK") })
+<<<<<<< HEAD
     );
     b.rule_1_terminal("RUB",
         b.reg(r#"rublos?(?: russos?)?|rub"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("RUB") })
     );
+=======
+    );
+    b.rule_1_terminal("RUB",
+        b.reg(r#"rublos?(?: russos?)?|rub"#)?,
+        |_| Ok(MoneyUnitValue { unit: Some("RUB") })
+    );
+>>>>>>> Cleaning rules duration and amount of money.
     b.rule_1_terminal("cent",
         b.reg(r#"centavos?"#)?,
         |_| Ok(MoneyUnitValue { unit: Some("cent") })
@@ -1383,11 +1391,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Time period
     b.rule_4("between <time-of-day> e as <time-of-day> (interval)",
              b.reg(r#"entre(?: as?| o)?"#)?,
-<<<<<<< HEAD
              datetime_check!(form!(Form::TimeOfDay(_))),
-=======
-             time_check!(form!(Form::TimeOfDay(_))),
->>>>>>> cherry pick b064994afcdbd343f1a615f51a4b4f6633eeedda.
              b.reg(r#"e as"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().span_to(b.value(), false)
