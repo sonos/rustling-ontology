@@ -1,9 +1,19 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.18.1]
+### Fixed
+- [Es] Various fixes
+- [Ja] Remove quantifiers in Japanese cardinals
+- [Fr] Fixed some interval rules and switched Duration/Datetime priority
+- [En] Fixed typos in training examples
+
+### Added
+- [Pt] Improved all entities
+
 ## [0.18.0]
 ### Changed
-- Add Portuguese V0
+- [Pt] Add Portuguese V0
 
 ### Fixed
 - Crash when attempting to parse wrong month and day.
@@ -21,6 +31,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Fuller coverage of Spanish and Italian
 
+[0.18.1]: https://github.com/snipsco/rustling-ontology/compare/0.18.0...0.18.1
 [0.18.0]: https://github.com/snipsco/rustling-ontology/compare/0.17.7...0.18.0
 [0.17.7]: https://github.com/snipsco/rustling-ontology/compare/0.17.6...0.17.7
 [0.17.6]: https://github.com/snipsco/rustling-ontology/compare/0.17.5...0.17.6
