@@ -254,6 +254,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 11], [2013, 2, 13]), "no começo da semana", "no início desta semana");
     example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 15]), "no meio da semana", "na metade da semana");
     example!(v, check_moment_span!(c, [2013, 2, 14], [2013, 2, 18]), "no final da semana", "no fim de semana");
+
     // got grain Week instead of interval
     //example!(v, check_moment_span!(c, [2013, 2, 11], [2013, 2, 16]), "durante a semana");
     example!(v, check_moment_span!(c, [2013, 2, 19], [2013, 3, 01]), "no final do mês", "no final do mês");

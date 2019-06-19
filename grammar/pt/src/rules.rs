@@ -617,12 +617,12 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Date period
     b.rule_2("this <cycle>",
-             b.reg(r#"d?est[ea]"#)?,
+             b.reg(r#"d?est[ea]|a"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
     b.rule_2("in <datetime>",
-             b.reg(r#"durante|em|para(?: [oa])?|n[oa]"#)?,
+             b.reg(r#"ao|durante|em|para(?: [oa])?|n?[oa]s?"#)?,
              datetime_check!(),
              |_, a| Ok(a.value().clone())
     );
@@ -935,17 +935,12 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time
     b.rule_1_terminal("noon",
-                      b.reg(r#"(?:a?o )?meio[- ]dia"#)?,
-                      |_| helpers::hour(12, false)
-    );
-    // Time
-    b.rule_1_terminal("noon",
                       b.reg(r#"meio[- ]dia"#)?,
                       |_| helpers::hour(12, false)
     );
     // Time
     b.rule_1_terminal("midnight",
-                      b.reg(r#"(?:a )?meia[- ]noite"#)?,
+                      b.reg(r#"meia[- ]noite"#)?,
                       |_| helpers::hour(0, false)
     );
     b.rule_1("time-of-day (latent) (1 to 23)",
@@ -1006,7 +1001,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of morning",
-                      b.reg(r#"(?:para |(?:logo )?n?o )?(começo|início) da manh[aã]"#)?,
+                      b.reg(r#"(começo|início) da manh[aã]"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .latent()
@@ -1014,7 +1009,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_1_terminal("beginning of morning",
-                      b.reg(r#"(?:para |n?o )?logo (à|de) manh[aã]"#)?,
+                      b.reg(r#"logo (à|de|no início da) manh[aã]"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(9, false)?, false)?
                           .latent()
