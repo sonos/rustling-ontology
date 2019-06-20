@@ -159,8 +159,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_moment!(c, [2013, 2, 12, 15, 0]), "15:00", "15h");
     // Ambiguity Duration // Time
     //example!(v, check_moment!(c, [2013, 2, 13, 00]), "meia-noite", "zero hora");
-    // FIXME: PROBLEM 12 horas
-    //example!(v, check_moment!(c, [2013, 2, 12, 12]), "meio-dia", "hoje ao meio-dia", "às doze horas");
+    example!(v, check_moment!(c, [2013, 2, 12, 12]), "meio-dia", "hoje ao meio-dia", "às doze horas");
     example!(v, check_moment!(c, [2013, 2, 12, 12, 15]), "ao meio-dia e quinze", "às doze horas e quinze minutos");
     example!(v, check_moment!(c, [2013, 2, 12, 11, 55]), "cinco para o meio-dia", "às onze e cinquenta e cinco", "às onze horas e cinquenta e cinco minutos");
     example!(v, check_moment!(c, [2013, 2, 12, 12, 30]), "ao meio-dia e meia", "às doze horas e trinta minutos", "às doze e trinta");
