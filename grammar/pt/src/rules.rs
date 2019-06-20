@@ -1383,7 +1383,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Time period
     b.rule_4("between <time-of-day> e as <time-of-day> (interval)",
              b.reg(r#"entre(?: as?| o)?"#)?,
+<<<<<<< HEAD
              datetime_check!(form!(Form::TimeOfDay(_))),
+=======
+             time_check!(form!(Form::TimeOfDay(_))),
+>>>>>>> cherry pick b064994afcdbd343f1a615f51a4b4f6633eeedda.
              b.reg(r#"e as"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().span_to(b.value(), false)
