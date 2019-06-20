@@ -224,7 +224,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_with_direction!(c, [2013, 2, 20, 10], Direction::After), "le 20 à partir de 10h");
     example!(v, check_moment_with_direction!(c, [2013, 2, 15, 12], Direction::After), "vendredi à partir de midi");
     example!(v, check_moment_span!(c, [2013, 2, 20], [2013, 2, 20, 18]), "le 20 jusqu'à 18h");
-    example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 sept. 2014");
+    example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 sept. 2014", "14 - 20 sep 2014"); // but not "14 - 20 sept 2014"
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "d'ici 2 semaines");
     //15j != 2 semaines
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 5, 12]), "d'ici 3 mois");
