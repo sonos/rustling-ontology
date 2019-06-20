@@ -428,6 +428,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a| Ok(a.value().clone().not_latent())
     );
+    b.rule_2("à <time-of-day>",
+             b.reg(r#"[aà]|pour"#)?,
+             datetime_check!(form!(Form::PartOfDay(_))),
+             |_, a| Ok(a.value().clone().not_latent())
+    );
     b.rule_2("vers <time-of-day>",
              b.reg(r#"(?:plut[ôo]t )?(?:vers|autour de|[aà] environ|aux alentours de)"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
@@ -652,7 +657,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_1_terminal("milieu de journée",
-                      b.reg(r#"milieu de (?:la )?journ[ée]e"#)?,
+                      b.reg(r#"(?:milieu de (?:la )?|(?:(?:[àa] )?la )?mi[ -])journ[ée]e"#)?,
                       |_| {
                           Ok(helpers::hour(11, false)?
                               .span_to(&helpers::hour(16, false)?, false)?
@@ -825,6 +830,54 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("season",
                       b.reg(r#"(?:ce )?printemps"#)?,
                       |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
+    );
+    b.rule_1_terminal("début de l'été",
+                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(7, 15)?, false)
+    );
+    b.rule_1_terminal("milieu de l'été",
+                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(7, 15)?.span_to(&helpers::month_day(8, 15)?, false)
+    );
+    b.rule_1_terminal("fin de l'été",
+                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(8, 15)?.span_to(&helpers::month_day(9, 21)?, false)
+    );
+    b.rule_1_terminal("début de l'automne",
+                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(9, 21)?.span_to(&helpers::month_day(10, 15)?, false)
+    );
+    b.rule_1_terminal("milieu de l'automne",
+                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(10, 15)?.span_to(&helpers::month_day(11, 15)?, false)
+    );
+    b.rule_1_terminal("fin de l'automne",
+                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(11, 15)?.span_to(&helpers::month_day(12, 21)?, false)
+    );
+    b.rule_1_terminal("début de l'hiver",
+                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(1, 15)?, false)
+    );
+    b.rule_1_terminal("milieu de l'hiver",
+                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(1, 15)?.span_to(&helpers::month_day(2, 15)?, false)
+    );
+    b.rule_1_terminal("fin de l'hiver",
+                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(2, 15)?.span_to(&helpers::month_day(3, 21)?, false)
+    );
+    b.rule_1_terminal("début du printemps",
+                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(3, 21)?.span_to(&helpers::month_day(4, 15)?, false)
+    );
+    b.rule_1_terminal("milieu du printemps",
+                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(4, 15)?.span_to(&helpers::month_day(5, 15)?, false)
+    );
+    b.rule_1_terminal("fin du printemps",
+                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(5, 15)?.span_to(&helpers::month_day(6, 21)?, false)
     );
     b.rule_2("le <datetime>",
              b.reg(r#"l[ea]"#)?,
@@ -1072,6 +1125,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |_, datetime| Ok(datetime.value().clone().mark_before_start())
     );
+    b.rule_2("avant <part-of-day>",
+             b.reg(r#"(?:n[ ']importe quand )?(avant|jusqu'(?:au|[aà]|en))"#)?,
+             datetime_check!(form!(Form::PartOfDay(_))),
+             |_, datetime| Ok(datetime.value().clone().mark_before_start())
+    );
     b.rule_2("après <datetime>",
              b.reg(r#"apr[eè]s"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
@@ -1083,7 +1141,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
     b.rule_2("à partir de <part-of-day>",
-             b.reg(r#"[aà] partir d['eu](?:l[ 'a])?"#)?,
+             b.reg(r#"[aà] partir d['eu](?:l[ 'a])?|après"#)?,
              datetime_check!(form!(Form::PartOfDay(_))),
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
