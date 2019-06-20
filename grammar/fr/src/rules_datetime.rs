@@ -1313,6 +1313,54 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           start.span_to(&end, true)
                       }
     );
+    b.rule_1_terminal("début de l'été",
+                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(7, 15)?, false)
+    );
+    b.rule_1_terminal("milieu de l'été",
+                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(7, 15)?.span_to(&helpers::month_day(8, 15)?, false)
+    );
+    b.rule_1_terminal("fin de l'été",
+                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(8, 15)?.span_to(&helpers::month_day(9, 21)?, false)
+    );
+    b.rule_1_terminal("début de l'automne",
+                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(9, 21)?.span_to(&helpers::month_day(10, 15)?, false)
+    );
+    b.rule_1_terminal("milieu de l'automne",
+                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(10, 15)?.span_to(&helpers::month_day(11, 15)?, false)
+    );
+    b.rule_1_terminal("fin de l'automne",
+                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(11, 15)?.span_to(&helpers::month_day(12, 21)?, false)
+    );
+    b.rule_1_terminal("début de l'hiver",
+                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(1, 15)?, false)
+    );
+    b.rule_1_terminal("milieu de l'hiver",
+                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(1, 15)?.span_to(&helpers::month_day(2, 15)?, false)
+    );
+    b.rule_1_terminal("fin de l'hiver",
+                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(2, 15)?.span_to(&helpers::month_day(3, 21)?, false)
+    );
+    b.rule_1_terminal("début du printemps",
+                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(3, 21)?.span_to(&helpers::month_day(4, 15)?, false)
+    );
+    b.rule_1_terminal("milieu du printemps",
+                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(4, 15)?.span_to(&helpers::month_day(5, 15)?, false)
+    );
+    b.rule_1_terminal("fin du printemps",
+                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      |_| helpers::month_day(5, 15)?.span_to(&helpers::month_day(6, 21)?, false)
+    );
     b.rule_2("le <datetime>",
              //b.reg(r#"l[ea]"#)?,
              b.reg(r#"l[ea]|en|au|à|pour"#)?,
@@ -1618,7 +1666,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
     b.rule_2("à partir de <part-of-day>",
-             b.reg(r#"[aà] partir d['eu](?:l[ 'a])?"#)?,
+             b.reg(r#"[aà] partir d['eu](?:l[ 'a])?|après"#)?,
              datetime_check!(form!(Form::PartOfDay(_))),
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
