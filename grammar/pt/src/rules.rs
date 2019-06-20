@@ -1595,6 +1595,16 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Time period
     b.rule_4("between <datetime> and <datetime> (interval)",
+             b.reg(r#"entre(?: as?| o)?"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"e(?: as?| a?o)?"#)?,
+             time_check!(form!(Form::TimeOfDay(_))),
+             |_, a, _, b| a.value().span_to(b.value(), false)
+    );
+
+
+    // Time period
+    b.rule_4("between <datetime> and <datetime> (interval)",
              b.reg(r#"entre(?: as?| a?o)?"#)?,
              datetime_check!(|time: &DatetimeValue| excluding_form!(Form::Year(_))(time)),
              b.reg(r#"e"#)?,
@@ -1604,15 +1614,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Time period
     b.rule_4("between <time-of-day> e as <time-of-day> (interval)",
              b.reg(r#"entre(?: as?| o)?"#)?,
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"e(?: a)?"#)?,
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, a, _, b| a.value().span_to(b.value(), false)
-    );
-    // Time period
-    b.rule_4("between <time-of-day> e as <time-of-day> (interval)",
-             b.reg(r#"entre(?: as?| o)?"#)?,
-             datetime_check!(form!(Form::TimeOfDay(_))),
+             time_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"e as"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().span_to(b.value(), false)
