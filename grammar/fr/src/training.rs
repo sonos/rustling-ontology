@@ -248,14 +248,14 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_duration!([0, 0, 0, 0, 2]), "pendant deux heures", "durant deux heures");
+    example!(v, check_duration!([0, 0, 0, 0, 2]), "pendant deux heures", "durant deux heures", "pour une durée de deux heures", "une durée de deux heures");
     example!(v, check_duration!([0, 0, 0, 1]), "pendant un jour", "une journée");
     example!(v, check_duration!([0, 1, 0]), "durant un mois");
     example!(v, check_duration!([1]), "durant une année");
     example!(v, check_duration!([0, 0, 0, 0, 0, 1, 3]), "pendant une minute et trois secondes");
-    example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "environ une heure trente", "environ 1h30");
+    example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "environ une heure trente", "environ 1h30", "approximativement une heure trente");
     example!(v, check_duration!([0, 0, 0, 0, 0, 15], Precision::Approximate), "pendant environ un quart d'heure", "environ 1/4h");
-    example!(v, check_duration!([0, 0, 0, 0, 1]), "durant une heure");
+    example!(v, check_duration!([0, 0, 0, 0, 1]), "durant une heure", "pendant exactement une heure");
     example!(v, check_duration!([0, 0, 2]), "pendant 2 semaines");
 }
 
