@@ -1748,7 +1748,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(MoneyUnitValue { unit: Some("฿") })
     );
     b.rule_1_terminal("cent",
-                      b.reg(r#"cents?|penn(?:y|ies)|c|¢"#)?,
+                      b.reg(r#"centimes?|cents?|penn(?:y|ies)|c|¢"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("cent") })
     );
     b.rule_2("<unit> <amount>",
