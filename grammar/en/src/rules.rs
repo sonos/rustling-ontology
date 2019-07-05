@@ -367,7 +367,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_4("<ordinal> <cycle> of <time>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"of|in|from"#)?,
              time_check!(),
@@ -376,7 +376,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_5("the <ordinal> <cycle> of <time>",
              b.reg(r#"the"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"of|in|from"#)?,
              time_check!(),
@@ -392,7 +392,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_4("<ordinal> <cycle> after <time>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"after"#)?,
              time_check!(),
@@ -401,7 +401,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_5("the <ordinal> <cycle> after <time>",
              b.reg(r#"the"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"after"#)?,
              time_check!(),
@@ -409,18 +409,18 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2(
         "<ordinal> quarter",
-        ordinal_check!(),
+        ordinal_check_by_range!(1, 4),
         cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
         |ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
     );
     b.rule_3("the <ordinal> quarter",
              b.reg(r#"the"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |_, ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
     );
     b.rule_3("<ordinal> quarter <year>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              time_check!(),
              |ordinal, _, time| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, time.value())

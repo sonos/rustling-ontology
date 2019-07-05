@@ -433,7 +433,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // LATER
     // END TODO
     b.rule_4("<ordinal> <cycle> of <time>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
              time_check!(),
@@ -441,7 +441,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_5("the <ordinal> <cycle> of <time>",
              b.reg(r#"il|l['ao]"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
              time_check!(),
