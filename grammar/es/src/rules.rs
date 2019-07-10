@@ -416,7 +416,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     b.rule_2("<ordinal> quarter",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |ordinal, _| helpers::cycle_nth_after(
                  Grain::Quarter,
@@ -425,7 +425,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              )
     );
     b.rule_4("<ordinal> quarter <year>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              b.reg(r#"del? ?"#)?,
              time_check!(),
