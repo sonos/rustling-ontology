@@ -1,6 +1,23 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Fixed
+- [Es] Various fixes
+- [Ja] Remove quantifiers in Japanese cardinals
+- [Fr] Fixed some interval rules and switched Duration/Datetime priority
+- [En] Fixed typos in training examples
+- [All] Include prefix + in numbers [#186](https://github.com/snipsco/rustling-ontology/pull/186)
+- [All] Set boundaries for quarters in datetimes [#185](https://github.com/snipsco/rustling-ontology/pull/185)
+- [En] En moneys: add "centime" (request from PM team) [#183](https://github.com/snipsco/rustling-ontology/pull/183)
+- [Fr] Fix/fr add duration vocab 2 [#182](https://github.com/snipsco/rustling-ontology/pull/182)
+- [Fr] Fr "sept" abbreviation (for "september") removed if no following dot [#178](https://github.com/snipsco/rustling-ontology/pull/178)
+- [Es] Misc. fixes for Spanish. [#177](https://github.com/snipsco/rustling-ontology/pull/177)
+- [Ja] Delete rule that accepts numbers followed by quantifiers for cardinal [#176](https://github.com/snipsco/rustling-ontology/pull/176)
+- [Fr] Fix some interval rules in Fr and switched Duration/Datetime priority [#173](https://github.com/snipsco/rustling-ontology/pull/173)
+- [En] Typo in English training [#168](https://github.com/snipsco/rustling-ontology/pull/168)
+
+
 ## [0.18.0]
 ### Changed
 - Add Portuguese V0
@@ -21,6 +38,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Fuller coverage of Spanish and Italian
 
+[Unreleased]: https://github.com/snipsco/rustling-ontology/compare/0.18.0...lts-0.18.0.x
 [0.18.0]: https://github.com/snipsco/rustling-ontology/compare/0.17.7...0.18.0
 [0.17.7]: https://github.com/snipsco/rustling-ontology/compare/0.17.6...0.17.7
 [0.17.6]: https://github.com/snipsco/rustling-ontology/compare/0.17.5...0.17.6
