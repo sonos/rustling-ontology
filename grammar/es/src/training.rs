@@ -263,7 +263,7 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_integer(1), "1", "un", "uno", "una");
+    example!(v, check_integer(1), "1", "+1", "un", "uno", "una");
     example!(v, check_integer(11), "once");
     example!(v, check_integer(17), "diecisiete");
     example!(v, check_integer(21), "veintiuno");
@@ -299,12 +299,12 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(0.3), "0,3%", "cero coma tres por ciento", "cero coma tres porciento");
-    example!(v, check_percentage(15.0), "15%", "quince por ciento", "quince porciento");
+    example!(v, check_percentage(15.0), "15%", "+15%", "quince por ciento", "quince porciento");
     example!(v, check_percentage(355.0), "355 %", "355 por ciento", "355 porciento", "trescientos cincuenta y cinco por ciento");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(3.0, Some("degree")), "tres grados", "3 grados", "3°", "3 °");
+    example!(v, check_temperature(3.0, Some("degree")), "tres grados", "3 grados", "3°", "+3°", "3 °");
     example!(v, check_temperature(32.0, Some("celsius")), "treinta y dos grados celsius", "treinta y dos grados centígrados", "32°C", "32° C", "32° c", "32°c", "32 °c");
     example!(v, check_temperature(-27.0, Some("degree")), "menos 27 grados", "27 grados bajo cero","menos veintisiete grados");
     example!(v, check_temperature(-27.0, Some("celsius")), "menos 27 grados celsius", "menos 27 grados centigrados", "-27C", "-27°C", "-27° C", "-27°c", "-27° c", "- 27 c");
@@ -314,7 +314,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 $", "800$", "ochocientos dólares");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 $", "+800$", "800$", "ochocientos dólares");
     example!(v, check_finance(10.0, Some("$"), Precision::Approximate), "unos diez dólares", "diez dólares más o menos");
     example!(v, check_finance(10.0, Some("USD"), Precision::Approximate), "unos diez dólares americanos", "10 USD más o menos", "casi 10US$");
     example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "tres dólares australianos");

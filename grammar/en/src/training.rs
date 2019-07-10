@@ -5,12 +5,12 @@ use rustling_ontology_values::ResolverContext;
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(0.3), "0.3%", "zero point three per cent");
-    example!(v, check_percentage(15.0), "15%", "15 %", "fifteen percent");
+    example!(v, check_percentage(15.0), "15%", "15 %", "+15%", "fifteen percent");
     example!(v, check_percentage(202.0), "202%", "202 p.c.", "202percent");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(3.0, Some("degree")), "three degrees", "3 degrees", "3°", "3 °");
+    example!(v, check_temperature(3.0, Some("degree")), "three degrees", "3 degrees", "3°", "+3°", "3 °");
     example!(v, check_temperature(32.0, Some("celsius")), "thirty two degrees celsius", "thirty two degrees centigrade", "32°C", "32 °c");
     example!(v, check_temperature(-27.0, Some("celsius")), "minus 27 celsius", "-27C", "- 27 c");
     example!(v, check_temperature(-5.0, Some("fahrenheit")), "minus five degrees fahrenheit", "-5 °F", "- 5°f");
@@ -20,7 +20,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800$", "eight hundred dollars", "eight hundred dollar");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800$", "eight hundred dollars", "+800$","eight hundred dollar");
     example!(v, check_finance(10.0, Some("USD"), Precision::Approximate), "around ten us dollars", "almost 10US$");
     example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "exactly 3 australian dollar", "precisely 3 AUD");
     example!(v, check_finance(0.0, Some("HKD"), Precision::Exact), "zero hk dollar");
@@ -260,7 +260,7 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "naught", "nought", "zero", "nil");
-    example!(v, check_integer(1), "1", "one", "single");
+    example!(v, check_integer(1), "1", "+1", "one", "single");
     example!(v, check_integer(2), "2", "two", "a pair");
     example!(v, check_integer(33), "33", "thirty three", "0033");
     example!(v, check_integer(14), "14", "fourteen");

@@ -652,8 +652,31 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
-    b.rule_1_terminal("ordinals (primero..10)",
-                      b.reg(r#"(primer|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non|d[eéè]cim)(?:[oa]s?)?"#)?,
+    b.rule_2("numbers prefix with +, positive",
+             b.reg(r#"\+"#)?,
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             |_, a| -> RuleResult<NumberValue> {
+                 Ok(match a.value().clone() {
+                     // checked
+                     NumberValue::Integer(integer) => {
+                         IntegerValue {
+                             prefixed: true,
+                             ..integer
+                         }
+                             .into()
+                     }
+                     NumberValue::Float(float) => {
+                         FloatValue {
+                             prefixed: true,
+                             ..float
+                         }
+                             .into()
+                     }
+                 })
+             }
+    );
+    b.rule_1_terminal("ordinals (primero..9)",
+                      b.reg(r#"(primei|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non)(?:[oa]s?)?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "primer" => 1,

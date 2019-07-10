@@ -4,17 +4,18 @@ use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::ResolverContext;
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_integer(1), "1", "um", "uma");
+    example!(v, check_integer(1), "1", "+1", "um", "uma");
 }
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(0.3), "0,3%", "cero vírgula tres porcento", "cero virgula tres porcento");
+    example!(v, check_percentage(15.0), "15%", "+15%");
     example!(v, check_percentage(5.0), "5%", "cinco porcento");
     example!(v, check_percentage(355.0), "355 %", "355 por cento", "355 porcento");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(3.0, Some("degree")), "tres graus", "3 graus", "3°", "3 °");
+    example!(v, check_temperature(3.0, Some("degree")), "tres graus", "3 graus", "+3 graus", "3°", "3 °");
     example!(v, check_temperature(32.0, Some("celsius")), "32°C", "32° C", "32° c", "32°c", "32 °c");
     example!(v, check_temperature(-27.0, Some("degree")), "-27 graus");
     example!(v, check_temperature(-27.0, Some("celsius")), "-27 graus celsius", "menos 27 graus centigrados", "-27C", "-27°C", "-27° C", "-27°c", "-27° c", "- 27 c");

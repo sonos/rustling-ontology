@@ -17,7 +17,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(37.0, Some("celsius")), "37°C", "섭씨37°", "섭씨37도");
+    example!(v, check_temperature(37.0, Some("celsius")), "+37°C", "37°C", "섭씨37°", "섭씨37도");
     example!(v, check_temperature(70.0, Some("fahrenheit")), "70°F", "화씨70°", "화씨70도");
     example!(v, check_temperature(45.0, Some("degree")), "45°", "45도");
     example!(v, check_temperature(-15.0, Some("degree")), "영하 15도");
@@ -276,7 +276,7 @@ pub fn examples_time(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "영", "빵", "공");
-    example!(v, check_integer(1), "1", "일", "하나", "한");
+    example!(v, check_integer(1), "1", "+1", "일", "하나", "한");
     example!(v, check_integer(10), "10", "십", "열");
     example!(v, check_integer(11), "11", "십일", "열하나", "십하나", "열한");
     example!(v, check_integer(20), "20", "이십", "스물");
