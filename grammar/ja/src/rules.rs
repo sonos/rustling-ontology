@@ -309,6 +309,29 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
+    b.rule_2("numbers prefix with +, positive",
+             b.reg(r#"\+"#)?,
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             |_, a| -> RuleResult<NumberValue> {
+                 Ok(match a.value().clone() {
+                     // checked
+                     NumberValue::Integer(integer) => {
+                         IntegerValue {
+                             prefixed: true,
+                             ..integer
+                         }
+                             .into()
+                     }
+                     NumberValue::Float(float) => {
+                         FloatValue {
+                             prefixed: true,
+                             ..float
+                         }
+                             .into()
+                     }
+                 })
+             }
+    );
     Ok(())
 }
 

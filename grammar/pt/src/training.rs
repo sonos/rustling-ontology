@@ -4,7 +4,7 @@ use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::ResolverContext;
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_integer(1), "1", "um", "uma");
+    example!(v, check_integer(1), "1", "+1", "um", "uma");
     example!(v, check_integer(11), "onze");
     example!(v, check_integer(17), "dezessete");
     example!(v, check_integer(21), "vinte e um");
@@ -41,12 +41,12 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(0.3), "0,3%", "zero vírgula três por cento");
-    example!(v, check_percentage(15.0), "15%", "quinze por cento");
+    example!(v, check_percentage(15.0), "15%", "+15%", "quinze por cento");
     example!(v, check_percentage(355.0), "355 %", "355 por cento", "trezentos e cinquenta e cinco por cento");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(3.0, Some("degree")), "três graus", "3 graus");
+    example!(v, check_temperature(3.0, Some("degree")), "três graus", "+3 graus", "3 graus");
     example!(v, check_temperature(32.0, Some("celsius")), "trinta e dois graus celsius", "trinta e dois graus centígrados", "32°C", "32°c");
     example!(v, check_temperature(-27.0, Some("degree")), "menos 27 graus", "27 graus abaixo de zero","menos vinte e sete graus");
     example!(v, check_temperature(-27.0, Some("celsius")), "menos 27 graus celsius", "menos 27 graus centígrados", "-27°C", "-27°c");
@@ -64,7 +64,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_finance(3.5, Some("AUD"), Precision::Exact), "3,5 dólares australianos", "três dólares australianos e cinquenta centavos");
     example!(v, check_finance(0.0, Some("HKD"), Precision::Exact), "zero dólares de hong kong");
     example!(v, check_finance(125.0, Some("CAD"), Precision::Exact), "125 CAD", "cento e vinte e cinco dólares canadenses");
-    example!(v, check_finance(45.0, Some("EUR"), Precision::Exact), "45€", "quarenta e cinco euros");
+    example!(v, check_finance(45.0, Some("EUR"), Precision::Exact), "45€", "+45€", "quarenta e cinco euros");
     // TODO: Support money amounts with cents dois vírgula cinco euros =/= 2.5
     //example!(v, check_finance(2.05, Some("EUR"), Precision::Exact), "2,05€", "dois vírgula cinco euros");
     example!(v, check_finance(2.0, Some("£"), Precision::Exact), "2£", "duas libras");

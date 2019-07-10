@@ -5,12 +5,12 @@ use rustling_ontology_values::ResolverContext;
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(0.3), "0,3%", "zéro virgule trois pour cent");
-    example!(v, check_percentage(15.0), "15%", "quinze pour cent");
+    example!(v, check_percentage(15.0), "15%", "+15%", "quinze pour cent");
     example!(v, check_percentage(355.0), "355 %", "355 pourcent");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(3.0, Some("degree")), "trois degrés", "3 degrés", "3°", "3 °");
+    example!(v, check_temperature(3.0, Some("degree")), "trois degrés", "3 degrés", "3°", "+3°", "3 °");
     example!(v, check_temperature(32.0, Some("celsius")), "trente deux degrés celsius", "trente deux degrés centigrade", "32°C", "32 °c");
     example!(v, check_temperature(-27.0, Some("celsius")), "moins 27 celsius", "-27C", "- 27 c");
     example!(v, check_temperature(-5.0, Some("fahrenheit")), "moins cinq degrés fahrenheit", "-5 °F", "- 5°f");
@@ -20,7 +20,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 $", "huit cents dollars");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 $", "+800$", "huit cents dollars");
     example!(v, check_finance(10.0, Some("USD"), Precision::Approximate), "environ dix dollars américains", "près de 10 USD", "presque 10US$");
     example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "3 dollars australiens");
     example!(v, check_finance(3.5, Some("AUD"), Precision::Exact), "3 dollars australiens et cinquante cents");
@@ -260,7 +260,7 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_integer(1), "1", "un", "une");
+    example!(v, check_integer(1), "1", "+1", "un", "une");
     example!(v, check_integer(11), "onze");
     example!(v, check_integer(17), "dix sept", "dix-sept");
     example!(v, check_integer(21), "vingt et un", "vingt-et-un");
