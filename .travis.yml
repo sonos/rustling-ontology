@@ -6,5 +6,3 @@ os:
   - windows
 script:
   - cargo test --all --verbose
-cache:
-  - cargo
