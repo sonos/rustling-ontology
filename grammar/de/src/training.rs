@@ -4,12 +4,12 @@ use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::ResolverContext;
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_percentage(15.0), "15%", "fünfzehn prozent", "15 vom Hundert");
+    example!(v, check_percentage(15.0), "15%", "fünfzehn prozent", "15 vom Hundert","+15%");
     example!(v, check_percentage(3.2), "3,2 %", "drei komma zwei prozent", "3,2 vom Hundert");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(3.0, Some("degree")), "3°", "3 °", "plus 3°", "3 ° über null");
+    example!(v, check_temperature(3.0, Some("degree")), "3°", "3 °", "plus 3°", "3 ° über null","+3°");
     example!(v, check_temperature(71.0, Some("degree")), "71 grad", "71 Grad", "plus 71 Grad", "71 Grad über null", "ein und siebzig Grad");
     example!(v, check_temperature(-7.0, Some("degree")), "-7°", "-7 Grad", "minus sieben grad", "7 Grad unter null", "sieben grad unter dem gefrierpunkt", "7 Grad unterm gefrierpunkt");
     example!(v, check_temperature(-92.0, None), "zwei und neunzig unter dem gefrierpunkt", "92 unterm gefrierpunkt");
@@ -22,7 +22,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 dollar");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 dollar","+800 dollar");
     example!(v, check_finance(2134.0, Some("$"), Precision::Exact), "2.134 $");
     example!(v, check_finance(90.0, Some("$"), Precision::Exact), "präzise neunzig $");
     example!(v, check_finance(478.0, Some("USD"), Precision::Exact), "478 US-Dollar");
@@ -292,7 +292,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "null");
-    example!(v, check_integer(1), "1", "eins");
+    example!(v, check_integer(1), "1", "eins", "+1");
     example!(v, check_integer(3), "3", "drei");
     example!(v, check_integer(30), "30", "dreissig");
     example!(v, check_integer(33), "33", "drei und dreissig", "dreiunddreissig", "0033");

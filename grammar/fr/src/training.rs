@@ -5,12 +5,12 @@ use rustling_ontology_values::ResolverContext;
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(0.3), "0,3%", "zéro virgule trois pour cent");
-    example!(v, check_percentage(15.0), "15%", "quinze pour cent");
+    example!(v, check_percentage(15.0), "15%", "+15%", "quinze pour cent");
     example!(v, check_percentage(355.0), "355 %", "355 pourcent");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(3.0, Some("degree")), "trois degrés", "3 degrés", "3°", "3 °");
+    example!(v, check_temperature(3.0, Some("degree")), "trois degrés", "3 degrés", "3°", "+3°", "3 °");
     example!(v, check_temperature(32.0, Some("celsius")), "trente deux degrés celsius", "trente deux degrés centigrade", "32°C", "32 °c");
     example!(v, check_temperature(-27.0, Some("celsius")), "moins 27 celsius", "-27C", "- 27 c");
     example!(v, check_temperature(-5.0, Some("fahrenheit")), "moins cinq degrés fahrenheit", "-5 °F", "- 5°f");
@@ -20,7 +20,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 $", "huit cents dollars");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 $", "+800$", "huit cents dollars");
     example!(v, check_finance(10.0, Some("USD"), Precision::Approximate), "environ dix dollars américains", "près de 10 USD", "presque 10US$");
     example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "3 dollars australiens");
     example!(v, check_finance(3.5, Some("AUD"), Precision::Exact), "3 dollars australiens et cinquante cents");
@@ -224,7 +224,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_with_direction!(c, [2013, 2, 20, 10], Direction::After), "le 20 à partir de 10h");
     example!(v, check_moment_with_direction!(c, [2013, 2, 15, 12], Direction::After), "vendredi à partir de midi");
     example!(v, check_moment_span!(c, [2013, 2, 20], [2013, 2, 20, 18]), "le 20 jusqu'à 18h");
-    example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 sept. 2014");
+    example!(v, check_moment_span!(c, [2014, 9, 14], [2014, 9, 21]), "14 - 20 sept. 2014", "14 - 20 sep 2014"); // but not "14 - 20 sept 2014"
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "d'ici 2 semaines");
     //15j != 2 semaines
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 5, 12]), "d'ici 3 mois");
@@ -248,19 +248,19 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_duration!([0, 0, 0, 0, 2]), "pendant deux heures", "durant deux heures");
+    example!(v, check_duration!([0, 0, 0, 0, 2]), "pendant deux heures", "durant deux heures", "pour une durée de deux heures", "une durée de deux heures");
     example!(v, check_duration!([0, 0, 0, 1]), "pendant un jour", "une journée");
     example!(v, check_duration!([0, 1, 0]), "durant un mois");
     example!(v, check_duration!([1]), "durant une année");
     example!(v, check_duration!([0, 0, 0, 0, 0, 1, 3]), "pendant une minute et trois secondes");
-    example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "environ une heure trente", "environ 1h30");
+    example!(v, check_duration!([0, 0, 0, 0, 1, 30], Precision::Approximate), "environ une heure trente", "environ 1h30", "approximativement une heure trente");
     example!(v, check_duration!([0, 0, 0, 0, 0, 15], Precision::Approximate), "pendant environ un quart d'heure", "environ 1/4h");
-    example!(v, check_duration!([0, 0, 0, 0, 1]), "durant une heure");
+    example!(v, check_duration!([0, 0, 0, 0, 1]), "durant une heure", "pendant exactement une heure");
     example!(v, check_duration!([0, 0, 2]), "pendant 2 semaines");
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_integer(1), "1", "un", "une");
+    example!(v, check_integer(1), "1", "+1", "un", "une");
     example!(v, check_integer(11), "onze");
     example!(v, check_integer(17), "dix sept", "dix-sept");
     example!(v, check_integer(21), "vingt et un", "vingt-et-un");

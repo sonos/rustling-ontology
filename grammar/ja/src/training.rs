@@ -25,7 +25,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(1096), "千九十六");
     example!(v, check_integer(40020), "四万二十");
 
-    example!(v, check_float(0.8), "0.8", "0点８", "零点八", "〇点８", "〇.８");
+    example!(v, check_float(0.8), "0.8", "+0.8", "0点８", "零点八", "〇点８", "〇.８");
 
     example!(v, check_ordinal(1), "最初", "一番目", "一行目", "一錠目", "一匹目");
     example!(v, check_ordinal(7), "七番目", "七体目", "七問目", "七拍子目", "七種目", "七種類目");
@@ -35,7 +35,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800$", "800ドル", "八百ドル");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800$", "+800$", "800ドル", "八百ドル");
     example!(v, check_finance(10.0, Some("USD"), Precision::Exact), "10アメリカドル", "十米ドル");
     example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "3豪ドル", "三オーストラリアドル");
     example!(v, check_finance(0.0, Some("HKD"), Precision::Exact), "0香港ドル", "零香港ドル");
@@ -58,7 +58,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(0.3), "0,3 %", "0,3%", "0,3％");
-    example!(v, check_percentage(25.0), "25%", "25％", "25パーセント", "二十五パーセント");
+    example!(v, check_percentage(25.0), "25%", "+25%","25％", "25パーセント", "二十五パーセント");
     example!(v, check_percentage(10.0), "割");
     example!(v, check_percentage(1.0), "分");
     example!(v, check_percentage(0.1), "厘");
@@ -66,7 +66,7 @@ pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_temperature(0.0, Some("degree")), "零度", "0度", "零ど", "0ど", "0 °", "0°");
-    example!(v, check_temperature(5.0, Some("degree")), "五度", "5度", "5 °", "5°");
+    example!(v, check_temperature(5.0, Some("degree")), "五度", "5度", "5 °", "+5°","5°");
     example!(v, check_temperature(6.0, Some("degree")), "六ど", "6ど");
     example!(v, check_temperature(14.0, Some("degree")), "14度");
     example!(v, check_temperature(25.0, Some("degree")), "二十五度");

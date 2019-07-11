@@ -154,18 +154,18 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Quarters identified by an ordinal are similar to months
     b.rule_2("<ordinal> quarter",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
     );
     b.rule_3("the <ordinal> quarter",
              b.reg(r#"the"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |_, ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
     );
     b.rule_3("<ordinal> quarter <year>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              datetime_check!(),
              |ordinal, _, datetime| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, datetime.value())
@@ -1381,7 +1381,7 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     b.rule_4("<ordinal> <cycle> of <datetime>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"of|in|from"#)?,
              datetime_check!(),
@@ -1389,7 +1389,7 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
     );
     b.rule_5("the <ordinal> <cycle> of <datetime>",
              b.reg(r#"the"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"of|in|from"#)?,
              datetime_check!(),
@@ -1403,7 +1403,7 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
              |_, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, 0, datetime.value())
     );
     b.rule_4("<ordinal> <cycle> after <datetime>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"after"#)?,
              datetime_check!(),
@@ -1411,7 +1411,7 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
     );
     b.rule_5("the <ordinal> <cycle> after <datetime>",
              b.reg(r#"the"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"after"#)?,
              datetime_check!(),

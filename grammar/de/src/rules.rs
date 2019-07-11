@@ -539,21 +539,21 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     b.rule_4("<ordinal> <cycle> of/nach <datetime>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"im|in(?: de[mr])?|von|nach|de[sr]"#)?,
              datetime_check!(),
              |ordinal, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, datetime.value())
     );
     b.rule_4("<ordinal> <cycle> of/nach <datetime>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"de[sr]"#)?,
              cycle_check!(),
              |ordinal, a, _, b| helpers::cycle_nth_after_not_immediate(a.value().grain, ordinal.value().value - 1, &helpers::cycle_nth(b.value().grain, 0)?)
     );
     b.rule_3("<ordinal> <datetime> <cycle>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              datetime_check!(),
              cycle_check!(),
              |ordinal, datetime, cycle| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, datetime.value())
@@ -568,12 +568,12 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     //             .latent())
     // );
     b.rule_2("<ordinal> quarter",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |ordinal, _| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, &helpers::cycle_nth(Grain::Year, 0)?)
     );
     b.rule_3("<ordinal> quarter <year>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              datetime_check!(),
              |ordinal, _, datetime| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, datetime.value())
@@ -2339,6 +2339,29 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
+    b.rule_2("numbers prefix with +, positive",
+             b.reg(r#"\+"#)?,
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             |_, a| -> RuleResult<NumberValue> {
+                 Ok(match a.value().clone() {
+                     // checked
+                     NumberValue::Integer(integer) => {
+                         IntegerValue {
+                             prefixed: true,
+                             ..integer
+                         }
+                             .into()
+                     }
+                     NumberValue::Float(float) => {
+                         FloatValue {
+                             prefixed: true,
+                             ..float
+                         }
+                             .into()
+                     }
+                 })
+             }
+    );
     b.rule_2("numbers suffixes (K, M, G)",
              number_check!(|number: &NumberValue| !number.suffixed()),
              b.reg_neg_lh(r#"([kmg])"#, r#"^[^\W\$€]"#)?,

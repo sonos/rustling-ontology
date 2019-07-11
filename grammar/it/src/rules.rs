@@ -91,11 +91,11 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // This is not recognized for a very obscure reason
     b.rule_1_terminal("RUB",
-                      b.reg(r#"rub(?:l[oi])?"#)?,
+                      b.reg(r#"rub(?:l[oi])?(?: russ[oi])?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("RUB") })
     );
     b.rule_1_terminal("INR",
-                      b.reg(r#"inr|rupi[ae]"#)?,
+                      b.reg(r#"inr|rupi[ae](?: indian[ae])?"#)?,
                       |_| Ok(MoneyUnitValue { unit: Some("INR") })
     );
     b.rule_1_terminal("JPY",
@@ -317,6 +317,16 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"(?:all'in)?circa|più o meno"#)?,
              |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
     );
+    b.rule_2("exactly <duration>",
+             b.reg(r#"esattamente"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
+    );
+    b.rule_2("<duration> exactly",
+             duration_check!(),
+             b.reg(r#"(?:esatt|precis)(?:[aoie]|amente)"#)?,
+             |duration, _| Ok(duration.value().clone().precision(Precision::Exact))
+    );
     b.rule_2("during <duration>",
              b.reg(r#"(?:durante|per)"#)?,
              duration_check!(),
@@ -433,7 +443,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // LATER
     // END TODO
     b.rule_4("<ordinal> <cycle> of <datetime>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
              datetime_check!(),
@@ -441,7 +451,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_5("the <ordinal> <cycle> of <datetime>",
              b.reg(r#"il|l['ao]"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
              datetime_check!(),
@@ -881,6 +891,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("at <time-of-day> oclock",
              b.reg(r#"a(?:l(?:l['e]))?"#)?,
+             integer_check_by_range!(1, 23),
+             |_, integer| Ok(helpers::hour(integer.value().value as u32, integer.value().value < 12)?.not_latent())
+    );
+    b.rule_2("<time-of-day> oclock",
+             b.reg(r#"l['e]"#)?,
              integer_check_by_range!(1, 23),
              |_, integer| Ok(helpers::hour(integer.value().value as u32, integer.value().value < 12)?.not_latent())
     );
@@ -1729,9 +1744,9 @@ pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                      latent: false,
                  })
              });
-    b.rule_2("<latent temp> temp below zero",
-             temperature_check!(),
-             b.reg(r#"(?:grad[oi] |° )?(?:sotto (?:lo )?zero)"#)?,
+    b.rule_2("<temp> temp below zero",
+             temperature_check!(|temp: &TemperatureValue| !temp.latent),
+             b.reg(r#"sotto (?:lo )?zero"#)?,
              |a, _| {
                  Ok(TemperatureValue {
                      value: -1.0 * a.value().value,
@@ -1993,7 +2008,29 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
-
+    b.rule_2("numbers prefix with +, positive",
+             b.reg(r#"\+"#)?,
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             |_, a| -> RuleResult<NumberValue> {
+                 Ok(match a.value().clone() {
+                     // checked
+                     NumberValue::Integer(integer) => {
+                         IntegerValue {
+                             prefixed: true,
+                             ..integer
+                         }
+                             .into()
+                     }
+                     NumberValue::Float(float) => {
+                         FloatValue {
+                             prefixed: true,
+                             ..float
+                         }
+                             .into()
+                     }
+                 })
+             }
+    );
     b.rule_2("numbers suffixes (K, M, G)",
              number_check!(|number: &NumberValue| !number.suffixed()),
              b.reg_neg_lh(r#"([kmg])"#, r#"^[\W\$€]"#)?,

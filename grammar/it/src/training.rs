@@ -269,7 +269,7 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_integer(1), "1", "un", "uno", "una", "un'");
+    example!(v, check_integer(1), "1", "+1", "un", "uno", "una", "un'");
     example!(v, check_integer(11), "undici");
     example!(v, check_integer(17), "diciassette");
     example!(v, check_integer(21), "vent uno");
@@ -302,12 +302,12 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 pub fn examples_percentage(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_percentage(0.3), "0,3%", "zero virgola tre per cento", "zero virgola tre percento");
-    example!(v, check_percentage(15.0), "15%", "quindici per cento", "quindici percento");
+    example!(v, check_percentage(15.0), "15%", "+15%", "quindici per cento", "quindici percento");
     example!(v, check_percentage(355.0), "355 %", "355 per cento", "355 percento", "tre cento cinquanta cinque per cento", "tre cento cinquanta cinque percento");
 }
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(3.0, Some("degree")), "tre gradi", "3 gradi", "3°", "3 °");
+    example!(v, check_temperature(3.0, Some("degree")), "tre gradi", "3 gradi", "3°", "+3°", "3 °");
     example!(v, check_temperature(32.0, Some("celsius")), "trenta due gradi celsius", "trenta due gradi centigradi", "32°C", "32° C", "32° c", "32°c", "32 °c");
     example!(v, check_temperature(-27.0, Some("celsius")), "meno 27 celsius", "meno 27 gradi celsius", "meno venti sette gradi celsius", "-27C", "-27°C", "-27° C", "-27°c", "-27° c", "- 27 c");
     example!(v, check_temperature(-5.0, Some("fahrenheit")), "meno cinque gradi fahrenheit", "-5 °F", "-5°F", "-5°f", "-5° f", "- 5°f");
@@ -317,7 +317,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 }
 
 pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 $", "800$", "otto cento dollari");
+    example!(v, check_finance(800.0, Some("$"), Precision::Exact), "800 $", "800$", "+800$", "otto cento dollari");
     example!(v, check_finance(10.0, Some("$"), Precision::Approximate), "circa dieci dollari", "dieci dollari circa");
     example!(v, check_finance(10.0, Some("USD"), Precision::Approximate), "circa dieci dollari americani", "più o meno 10 USD", "quasi 10US$");
     example!(v, check_finance(3.0, Some("AUD"), Precision::Exact), "tre dollari australiani");

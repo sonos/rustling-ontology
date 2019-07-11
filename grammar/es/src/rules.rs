@@ -8,7 +8,7 @@ pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()>
     b.rule_2("<number> per cent",
         number_check!(),
         // FIXME
-        b.reg(r#"(?:%|p\.c\.|por ?cien(?:tos?))?"#)?,
+        b.reg(r#"(?:%|p\.c\.|por ?cien(?:tos?)?)"#)?,
         |number, _| Ok(PercentageValue(number.value().value()))
     );
     Ok(())
@@ -416,7 +416,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     b.rule_2("<ordinal> quarter",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              |ordinal, _| helpers::cycle_nth_after(
                  Grain::Quarter,
@@ -425,7 +425,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              )
     );
     b.rule_4("<ordinal> quarter <year>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
              b.reg(r#"del? ?"#)?,
              datetime_check!(),
@@ -1321,13 +1321,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, duration| Ok(duration.value().clone().prefixed())
     );
     b.rule_2("exactly <duration>",
-             b.reg(r#"(?:precis|exact)amente|justo"#)?,
+             b.reg(r#"(?:precis|exact)amente|(?:exact|just)o"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed().precision(Precision::Exact))
     );
     b.rule_2("<duration> exactly",
              duration_check!(),
-             b.reg(r#"(?:precis|exact)amente|justo"#)?,
+             b.reg(r#"(?:precis|exact)amente|(?:exact|just)o"#)?,
              |duration, _| Ok(duration.value().clone().prefixed().precision(Precision::Exact))
     );
     b.rule_2("approx <duration>",
@@ -1607,8 +1607,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..IntegerValue::default()
                  })
              });
+    // Warning! Es uses long scale, i.e. 1 billion = 1000 million
     b.rule_2("number millions",
-             integer_check_by_range!(1, 999),
+             integer_check_by_range!(1, 999999),
              b.reg(r#"mill[oóò]n(?:es)?"#)?,
              |a, _| {
                  Ok(IntegerValue {
@@ -1702,6 +1703,29 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
+    b.rule_2("numbers prefix with +, positive",
+             b.reg(r#"\+"#)?,
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             |_, a| -> RuleResult<NumberValue> {
+                 Ok(match a.value().clone() {
+                     // checked
+                     NumberValue::Integer(integer) => {
+                         IntegerValue {
+                             prefixed: true,
+                             ..integer
+                         }
+                             .into()
+                     }
+                     NumberValue::Float(float) => {
+                         FloatValue {
+                             prefixed: true,
+                             ..float
+                         }
+                             .into()
+                     }
+                 })
+             }
+    );
     b.rule_2("numbers suffixes (K, M, G)",
              number_check!(|number: &NumberValue| !number.suffixed()),
              b.reg_neg_lh(r#"([kmg])"#, r#"^[\W\$€]"#)?,
@@ -1800,7 +1824,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_1_terminal("ordinals 11-19",
-                      b.reg(r#"d[eé]cimo? ?(primer|segund|tercer|cuart|quint|sext|s[eéè]ptim|octav|noven)(?:[oa]s?)?"#)?,
+                      b.reg(r#"d[eé]cimo?s? ?(primer|segund|tercer|cuart|quint|sext|s[eéè]ptim|octav|noven)(?:[oa]s?)?"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "primer" => 11,

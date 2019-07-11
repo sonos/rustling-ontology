@@ -101,7 +101,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
 
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    example!(v, check_temperature(45.0, Some("degree")), "45°", "45度");
+    example!(v, check_temperature(45.0, Some("degree")), "45°", "+45°", "45度");
     example!(v, check_temperature(45.0, Some("degree")), "45°", "45度");
     example!(v,
              check_temperature(50.0, Some("fahrenheit")),
@@ -152,7 +152,7 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
 
 pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(0), "0", "〇", "零", "零个", "0个");
-    example!(v, check_integer(1), "1", "一", "一个", "1个");
+    example!(v, check_integer(1), "1", "+1", "一", "一个", "1个");
     example!(v, check_integer(2), "2", "二", "两", "兩", "二個", "二个");
     example!(v, check_integer(3), "3", "三");
     example!(v, check_integer(4), "4", "四");

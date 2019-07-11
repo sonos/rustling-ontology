@@ -209,6 +209,10 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         b.reg(r#"an(?:n[ée]e?)?s?"#)?,
         |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
+    b.rule_1_terminal("trimestre (unit-of-duration)",
+        b.reg(r#"trimestres?"#)?,
+        |_| Ok(UnitOfDurationValue::new(Grain::Quarter))
+    );
     b.rule_1_terminal("un quart heure",
         b.reg(r#"(1/4\s?h(?:eure)?|(?:un|1) quart d'heure)"#)?,
         |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
@@ -288,12 +292,32 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |duration, _| duration.value().in_present()
     );
     b.rule_2("environ <duration>",
-             b.reg(r#"environ"#)?,
+             b.reg(r#"environ|approximativement|à peu près|presque"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
     );
+    b.rule_2("<duration> environ",
+             duration_check!(),
+             b.reg(r#"environ|approximativement|à peu près"#)?,
+             |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("exactement <duration> ",
+             b.reg(r#"exactement|précisément"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
+    );
+    b.rule_2("<duration> exactement",
+             duration_check!(),
+             b.reg(r#"exactement|précisément|pile"#)?,
+             |duration, _| Ok(duration.value().clone().precision(Precision::Exact))
+    );
     b.rule_2("pendant <duration>",
-             b.reg(r#"pendant|durant|pour(?: une dur[eé]e? d['e])?"#)?,
+             b.reg(r#"pendant|durant|pour"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
+    );
+    b.rule_2("une durée de <duration>",
+             b.reg(r#"une dur[ée]e d['e]"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
@@ -352,6 +376,10 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("année (cycle)",
              b.reg(r#"an(?:n[ée]e?)?s?"#)?,
              |_| CycleValue::new(Grain::Year)
+    );
+    b.rule_1_terminal("trimestre (cycle)",
+             b.reg(r#"trimestres?"#)?,
+             |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_2("ce|dans le <cycle>",
              b.reg(r#"(?:cet?t?e?s?)|(?:dans l[ae']? ?)"#)?,
@@ -467,7 +495,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     b.rule_4("<ordinal> <cycle> de <datetime>",
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"d['eu]|en"#)?,
              datetime_check!(),
@@ -475,7 +503,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_5("le <ordinal> <cycle> de <datetime>",
              b.reg(r#"l[ea]"#)?,
-             ordinal_check!(),
+             ordinal_check_by_range!(1, 9999),
              cycle_check!(),
              b.reg(r#"d['eu]|en"#)?,
              datetime_check!(),
@@ -590,7 +618,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::month(8)
     );
     b.rule_1_terminal("named-month",
-        b.reg(r#"septembre|sept?\.?"#)?,
+//        b.reg(r#"septembre|sept?\.?"#)?, // "sept" with no dot forbidden (confusion with nb "sept" in "à trois heures trente sept")
+        b.reg(r#"septembre|sept\.|sep\.?"#)?,
         |_| helpers::month(9)
     );
     b.rule_1_terminal("named-month",
@@ -899,6 +928,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("<time-of-day> heures",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              b.reg(r#"h\.?(?:eure)?s?"#)?,
+             |a, _| Ok(a.value().clone().not_latent())
+    );
+    b.rule_2("<time-of-day> (heures) pile",
+             datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
+             b.reg(r#"pile"#)?,
              |a, _| Ok(a.value().clone().not_latent())
     );
     b.rule_2("à|vers <time-of-day>",
@@ -1897,6 +1931,29 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      }
                  })
              });
+    b.rule_2("numbers prefix with +, positive",
+             b.reg(r#"\+"#)?,
+             number_check!(|number: &NumberValue| !number.prefixed()),
+             |_, a| -> RuleResult<NumberValue> {
+                 Ok(match a.value().clone() {
+                     // checked
+                     NumberValue::Integer(integer) => {
+                         IntegerValue {
+                             prefixed: true,
+                             ..integer
+                         }
+                             .into()
+                     }
+                     NumberValue::Float(float) => {
+                         FloatValue {
+                             prefixed: true,
+                             ..float
+                         }
+                             .into()
+                     }
+                 })
+             }
+    );
     b.rule_2("numbers suffixes (K, M, G)",
              number_check!(|number: &NumberValue| !number.suffixed()),
              b.reg_neg_lh(r#"([kmg])"#, r#"^[\W\$€]"#)?,
