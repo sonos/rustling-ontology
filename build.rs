@@ -14,7 +14,7 @@ use std::{path, env, fs};
 use grammar::Lang;
 
 pub fn train_async(lang: Lang) -> JoinHandle<()> {
-    println!("cargo:rerun-if-changed=grammar/{}/src/rules.rs", lang.to_string().to_lowercase());
+    println!("cargo:rerun-if-changed=grammar/{}/src/", lang.to_string().to_lowercase());
     thread::spawn(move || {
         let out_dir = path::PathBuf::from(env::var("OUT_DIR").unwrap());
         let mut file = fs::File::create(out_dir.join(format!("{}{}", lang.to_string().to_lowercase(), ".rmp"))).unwrap(); 
@@ -26,7 +26,7 @@ pub fn train_async(lang: Lang) -> JoinHandle<()> {
 }
 
 pub fn train_sync(lang: Lang) {
-    println!("cargo:rerun-if-changed=grammar/{}/src/rules.rs", lang.to_string().to_lowercase());
+    println!("cargo:rerun-if-changed=grammar/{}/src/", lang.to_string().to_lowercase());
     let out_dir = path::PathBuf::from(env::var("OUT_DIR").unwrap());
     let mut file = fs::File::create(out_dir.join(format!("{}{}", lang.to_string().to_lowercase(), ".rmp"))).unwrap(); 
     let rules = grammar::rules(lang).unwrap();

@@ -84,15 +84,15 @@ macro_rules! temperature_check {
 
 
 #[macro_export]
-macro_rules! time_check {
-    () => ( ::rustling::core::AnyNodePattern::<TimeValue>::new() );
-    ($($predicate:expr),*) => ( ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![ $( b!($predicate) ),*]) );
+macro_rules! datetime_check {
+    () => ( ::rustling::core::AnyNodePattern::<DatetimeValue>::new() );
+    ($($predicate:expr),*) => ( ::rustling::core::FilterNodePattern::<DatetimeValue>::filter(vec![ $( b!($predicate) ),*]) );
 }
 
 
 #[macro_export]
-macro_rules! time_check_exclude_too_ambiguous {
-    () => ( ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| !time.is_too_ambiguous())]) );
+macro_rules! datetime_check_exclude_too_ambiguous {
+    () => ( ::rustling::core::FilterNodePattern::<DatetimeValue>::filter(vec![b!(|datetime: &DatetimeValue| !datetime.is_too_ambiguous())]) );
 }
 
 #[macro_export]
@@ -100,8 +100,8 @@ macro_rules! time_of_day_check_hour {
     ($min:expr, $max:expr) => ( 
     #[allow(unused_comparisons)]
     { 
-        ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| {
-            if let ::rustling_ontology_values::dimension::Form::TimeOfDay(ref tod) = time.form {
+        ::rustling::core::FilterNodePattern::<DatetimeValue>::filter(vec![b!(|datetime: &DatetimeValue| {
+            if let ::rustling_ontology_values::dimension::Form::TimeOfDay(ref tod) = datetime.form {
                 $min <= tod.full_hour() &&  tod.full_hour() <= $max
             } else {
                 false
@@ -111,8 +111,8 @@ macro_rules! time_of_day_check_hour {
     ($min_1:expr, $max_1:expr, $min_2:expr, $max_2:expr) => ( 
     #[allow(unused_comparisons)]
     {
-        ::rustling::core::FilterNodePattern::<TimeValue>::filter(vec![b!(|time: &TimeValue| {
-            if let ::rustling_ontology_values::dimension::Form::TimeOfDay(ref tod) = time.form {
+        ::rustling::core::FilterNodePattern::<DatetimeValue>::filter(vec![b!(|datetime: &DatetimeValue| {
+            if let ::rustling_ontology_values::dimension::Form::TimeOfDay(ref tod) = datetime.form {
                 ($min_1 <= tod.full_hour() &&  tod.full_hour() <= $max_1) || ($min_2 <= tod.full_hour() &&  tod.full_hour() <= $max_2)
             } else {
                 false
@@ -137,21 +137,21 @@ macro_rules! relative_minute_check {
 
 #[macro_export]
 macro_rules! form {
-    ($form:pat) => (|time: &TimeValue| if let $form = time.form { true } else { false })
+    ($form:pat) => (|datetime: &DatetimeValue| if let $form = datetime.form { true } else { false })
 }
 
 
 #[macro_export]
 macro_rules! excluding_form {
-    ($form:pat) => (|time: &TimeValue| if let $form = time.form { false } else { true })
+    ($form:pat) => (|datetime: &DatetimeValue| if let $form = datetime.form { false } else { true })
 }
 
 #[macro_export]
 macro_rules! excluding_too_ambiguous {
-    () => (|time: &TimeValue| !time.is_too_ambiguous())
+    () => (|datetime: &DatetimeValue| !datetime.is_too_ambiguous())
 }
 
 #[macro_export]
 macro_rules! excluding_latent {
-    () => (|time: &TimeValue| !time.latent)
+    () => (|datetime: &DatetimeValue| !datetime.latent)
 }

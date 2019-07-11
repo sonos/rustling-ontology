@@ -5,7 +5,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
-use rustling_ontology::{Output, dimension, output::TimeIntervalOutput};
+use rustling_ontology::{Output, dimension, output::DatetimeIntervalKind};
 use moment::{Moment, Local};
 use ::std::f64;
 
@@ -107,23 +107,27 @@ impl From<Output> for SlotValue {
             Output::Float(float) => SlotValue::Number(NumberValue { value: float.0.into() }),
             Output::Ordinal(ordinal) => SlotValue::Ordinal(OrdinalValue { value: ordinal.0 as i64 }),
             Output::Percentage(percentage) => SlotValue::Percentage(PercentageValue { value: percentage.0.into() }),
-            Output::Time(time) => SlotValue::InstantTime( InstantTimeValue {
-                value: time.moment,
-                grain: time.grain.into(),
-                precision: time.precision.into(),
+            Output::Datetime(datetime) => SlotValue::InstantTime( InstantTimeValue {
+                value: datetime.moment,
+                grain: datetime.grain.into(),
+                precision: datetime.precision.into(),
             }),
-            Output::TimeInterval(TimeIntervalOutput::After(time)) => SlotValue::TimeInterval( TimeIntervalValue {
-                from: Some(time.moment),
-                to: None,
-            }),
-            Output::TimeInterval(TimeIntervalOutput::Before(time)) => SlotValue::TimeInterval( TimeIntervalValue {
-                from: None,
-                to: Some(time.moment),
-            }),
-            Output::TimeInterval(TimeIntervalOutput::Between { start, end, .. }) => SlotValue::TimeInterval( TimeIntervalValue {
-                from: Some(start),
-                to: Some(end),
-            }),
+            Output::DatetimeInterval(datetime_interval) => {
+                match datetime_interval.interval_kind {
+                    DatetimeIntervalKind::After(datetime) => SlotValue::TimeInterval( TimeIntervalValue {
+                        from: Some(datetime.moment),
+                        to: None,
+                    }),
+                    DatetimeIntervalKind::Before(datetime) => SlotValue::TimeInterval( TimeIntervalValue {
+                        from: None,
+                        to: Some(datetime.moment),
+                    }),
+                    DatetimeIntervalKind::Between { start, end, .. } => SlotValue::TimeInterval(TimeIntervalValue {
+                        from: Some(start),
+                        to: Some(end),
+                    })
+                }
+            },
             Output::AmountOfMoney(amount) => SlotValue::AmountOfMoney( AmountOfMoneyValue {
                 value: amount.value,
                 precision: amount.precision.into(),

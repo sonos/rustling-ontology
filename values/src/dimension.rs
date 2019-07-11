@@ -3,7 +3,8 @@ use std::{fmt, result};
 use rustling::*;
 use moment::{RcConstraint, Period, Grain, Local};
 
-/// Union of all possible values parsed by the ontology.
+// Union of all possible values parsed by the ontology.
+
 rustling_value! {
     #[doc="Union of all possible values parsed by the ontology."]
     #[derive(Clone,PartialEq,Debug)]
@@ -13,7 +14,7 @@ rustling_value! {
         Ordinal(OrdinalValue),
         Temperature(TemperatureValue),
         MoneyUnit(MoneyUnitValue),
-        Time(TimeValue),
+        Datetime(DatetimeValue),
         Duration(DurationValue),
         Percentage(PercentageValue),
         Cycle(CycleValue),
@@ -29,7 +30,7 @@ rustling_value! {
             &Dimension::Ordinal(_) => false,
             &Dimension::Temperature(ref temp) => temp.latent,
             &Dimension::MoneyUnit(_) => true,
-            &Dimension::Time(ref tv) => tv.latent,
+            &Dimension::Datetime(ref dtv) => dtv.latent,
             &Dimension::Duration(_) => false,
             &Dimension::Cycle(_) => true,
             &Dimension::UnitOfDuration(_) => true,
@@ -45,7 +46,7 @@ rustling_value! {
             &Dimension::Ordinal(_) => None,
             &Dimension::Temperature(_) => None,
             &Dimension::MoneyUnit(_) => None,
-            &Dimension::Time(ref tv) => Some(Payload(tv.constraint.grain())),
+            &Dimension::Datetime(ref dtv) => Some(Payload(dtv.constraint.grain())),
             &Dimension::Duration(_) => None,
             &Dimension::Cycle(_) => None,
             &Dimension::UnitOfDuration(_) => None,
@@ -64,13 +65,14 @@ impl Dimension {
             &Dimension::Ordinal(_) => false,
             &Dimension::Temperature(_) => false,
             &Dimension::MoneyUnit(_) => false,
-            &Dimension::Time(ref tv) => tv.is_too_ambiguous(),
+            &Dimension::Datetime(ref dtv) => dtv.is_too_ambiguous(),
             &Dimension::Duration(_) => false,
             &Dimension::Cycle(_) => true,
             &Dimension::UnitOfDuration(_) => true,
             &Dimension::RelativeMinute(_) => true,
         }
     }
+
 }
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
@@ -90,7 +92,7 @@ impl fmt::Display for Dimension {
             &Dimension::Temperature(_) => write!(fmt, "Temperature"),
             &Dimension::AmountOfMoney(_) => write!(fmt, "AmountOfMoney"),
             &Dimension::MoneyUnit(_) => write!(fmt, "MoneyUnit"),
-            &Dimension::Time(_) => write!(fmt, "Time"),
+            &Dimension::Datetime(_) => write!(fmt, "Datetime"),
             &Dimension::Duration(_) => write!(fmt, "Duration"),
             &Dimension::Cycle(_) => write!(fmt, "Cycle"),
             &Dimension::UnitOfDuration(_) => write!(fmt, "UnitOfDuration"),
@@ -99,7 +101,7 @@ impl fmt::Display for Dimension {
     }
 }
 
-/// Payload for the ordinal numbers of Dimension
+/// Payload for the ordinal numbers value of Dimension
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub struct OrdinalValue {
     pub value: i64,
@@ -145,7 +147,7 @@ impl Default for Precision {
     }
 }
 
-/// Payload for the amount of money of Dimension
+/// Payload for the amount of money value of Dimension
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct AmountOfMoneyValue {
     pub value: f32,
@@ -153,7 +155,7 @@ pub struct AmountOfMoneyValue {
     pub unit: Option<&'static str>,
 }
 
-/// Payload for the unit of money of Dimension
+/// Payload for the unit of money value of Dimension
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct MoneyUnitValue {
     pub unit: Option<&'static str>,
@@ -165,7 +167,7 @@ pub enum CombinationDirection {
     Right,
 }
 
-/// Payload for the integral numbers of Dimension
+/// Payload for the integral numbers value of Dimension
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct IntegerValue {
     pub value: i64,
@@ -313,7 +315,7 @@ impl AttemptFrom<Dimension> for FloatValue {
     }
 }
 
-/// Payload for the floating numbers of Dimension
+/// Payload for the floating numbers value of Dimension
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct FloatValue {
     pub value: f32,
@@ -441,7 +443,7 @@ impl NumberValue {
     }
 }
 
-/// Payload for the temperatures of Dimension
+/// Payload for the temperatures value of Dimension
 #[derive(Debug, PartialEq, Clone)]
 pub struct TemperatureValue {
     pub value: f32,
@@ -451,7 +453,7 @@ pub struct TemperatureValue {
     pub latent: bool,
 }
 
-/// Payload for the cycle of Dimension
+/// Payload for the cycle value of Dimension
 #[derive(Debug, PartialEq, Clone)]
 pub struct CycleValue {
     pub is_plural: bool,
@@ -471,7 +473,7 @@ impl CycleValue {
     }
 }
 
-/// Payload for the unit of duration of Dimension
+/// Payload for the unit of duration value of Dimension
 #[derive(Debug, PartialEq, Clone)]
 pub struct UnitOfDurationValue {
     pub grain: Grain,
@@ -490,32 +492,46 @@ pub enum Ambiguity {
     Big,
 }
 
-/// Payload for the time of Dimension
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Copy)]
+pub enum DatetimeKind {
+    Date,
+    Time,
+    DatePeriod,
+    TimePeriod,
+    DatetimeComplement { date_and_time: bool, today: bool },
+    Datetime,
+    Empty,
+}
+
+/// Payload for the datetime value of Dimension
 #[derive(Clone)]
-pub struct TimeValue {
+pub struct DatetimeValue {
     pub constraint: RcConstraint<Local>,
     pub form: Form,
     pub direction: Option<BoundedDirection>,
     pub precision: Precision,
     pub latent: bool,
     pub ambiguity: Ambiguity,
+    pub datetime_kind: DatetimeKind,
 }
 
 // We need partial eq to make Dimension partial eq happy, but this is only
 // useful for testing.
-impl PartialEq for TimeValue {
-    fn eq(&self, _other: &TimeValue) -> bool {
+impl PartialEq for DatetimeValue {
+    fn eq(&self, _other: &DatetimeValue) -> bool {
         unimplemented!()
     }
 }
 
-impl ::std::fmt::Debug for TimeValue {
+impl ::std::fmt::Debug for DatetimeValue {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
-        write!(fmt, "<TimeValue>")
+        write!(fmt, "DatetimeValue(form={:?}, grain={:?}, min-grain={:?}, kind={:?})",
+               self.form, self.constraint.grain(), self.constraint.grain_min(), self.datetime_kind)
+
     }
 }
 
-impl TimeValue {
+impl DatetimeValue {
     pub fn is_coarse_grain_smaller_than(&self, grain: Grain) -> bool {
         (self.constraint.coarse_grain_step() as usize) < (grain as usize)
     }
@@ -523,11 +539,67 @@ impl TimeValue {
     pub fn is_coarse_grain_greater_than(&self, grain: Grain) -> bool {
         (self.constraint.coarse_grain_step() as usize) > (grain as usize)
     }
+
+    pub fn has_period_form(&self) -> bool {
+        match self.form {
+            Form::Cycle(grain) => {
+                match grain {
+                    Grain::Day => false,
+                    Grain::Second => false,
+                    _ => true,
+                }
+            },
+            Form::Year(_) => true,
+            Form::Month(_) => true,
+            Form::MonthDay(_) => false,
+            Form::YearMonthDay(_) => false,
+            Form::TimeOfDay(_) => false,
+            Form::DayOfWeek { .. } => false,
+            Form::Empty => false,
+            Form::PartOfDay { .. } => true,
+            Form::Meal => true,
+            Form::Celebration => false,
+            Form::PartOfMonth => true,
+            Form::PartOfYear => true,
+            Form::Season => true,
+            Form::DayOfMonth => false,
+            Form::PartOfForm(_) => true,
+            Form::PartOfWeek => true,
+            Form::Span => true,
+        }
+    }
+
+    pub fn has_period_grain(&self) -> bool {
+        match self.constraint.grain() {
+            Grain::Week => true,
+            Grain::Month => true,
+            Grain::Quarter => true,
+            Grain::Year => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_period(&self) -> bool {
+        self.direction.is_some() ||
+            self.has_period_form() ||
+            self.has_period_grain()
+    }
+
+    pub fn is_today_date_and_time(&self) -> bool {
+        match self.datetime_kind {
+            DatetimeKind::DatetimeComplement { date_and_time, today } => date_and_time && today,
+            _ => false
+        }
+    }
+
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Form {
-    Cycle(Grain),
+    // TODO: Change this into a tree structure, more informative and better reflecting relationships
+    // between certain forms.
+    // For now just adding values if needed, flatly.
+    Cycle(Grain), // e.g. Hour, Day
     Year(i32),
     Month(u32),
     DayOfMonth,
@@ -539,9 +611,11 @@ pub enum Form {
     PartOfWeek,
     PartOfMonth,
     PartOfYear,
+    Season,
     PartOfForm(PartOfForm),
     Meal,
     Celebration,
+    Span,
     Empty,
 }
 
@@ -561,9 +635,11 @@ impl Form {
             &Form::Celebration => None,
             &Form::PartOfMonth => None,
             &Form::PartOfYear => None,
+            &Form::Season => None,
             &Form::DayOfMonth => None,
             &Form::PartOfForm(_) => None,
             &Form::PartOfWeek => None,
+            &Form::Span => None,
         }
     }
 }
@@ -755,6 +831,10 @@ impl DurationValue {
 
     pub fn precision(self, precision: Precision) -> DurationValue {
         DurationValue { precision: precision, ..self }
+    }
+
+    pub fn get_grain(&self) -> Grain {
+        self.period.finer_grain().unwrap_or(Grain::Second)
     }
 
     pub fn from_addition(self, from_addition: FromAddition) -> DurationValue {

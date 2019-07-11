@@ -29,6 +29,7 @@ fn main() {
             (@arg path: -p --path +takes_value "Path to utterances file")
         )
         (@subcommand test =>
+             (@arg kinds: -k --kinds +takes_value +use_delimiter "kinds, last one wins, coma separated")
              (@arg input: -i --input +takes_value "Path to utterances file")
              (@arg output: -o --output +takes_value "Path to test output file")
         )
@@ -54,7 +55,7 @@ fn main() {
                 parser.parse(&*sentence, &context).unwrap()
             };
             let mut table = Table::new();
-            table.set_titles(row!["ix", "log(p)", "p", "text", "value"]);
+            table.set_titles(row!["ix", "log(p)", "p", "text", "Output(OutputValue)"]);
             for (ix, c) in entities.iter().enumerate().rev() {
                 let mut hilite = String::new();
                 for _ in 0..c.byte_range.0 {
@@ -87,14 +88,14 @@ fn main() {
             let context = ResolverContext::default();
             
             let tagger = CandidateTagger {
-                order: &kinds,
+                output_kind_filter: &kinds,
                 context: &context,
                 resolve_all_candidates: true,
             };
             let candidates = parser.candidates(&*sentence, &tagger).unwrap();
             let mut table = Table::new();
             table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-            table.set_titles(row!["ix", "best", "log(p)", "p", "text", "value", "latent", "rule", "childs"]);
+            table.set_titles(row!["ix", "best", "log(p)", "p", "text", "value", "latent", "rule", "children"]);
 
             for (ix, c) in candidates.iter().enumerate().rev() {
                 let mut hilite = String::new();
@@ -165,12 +166,19 @@ fn main() {
                   }
                 })
                 .collect();
-            let mut file = ::std::fs::File::create(path).unwrap();
+            let file = ::std::fs::File::create(path).unwrap();
             serde_json::to_writer_pretty(&file, &utterances).unwrap();
         }
         ("test", Some(matches)) => {
             let input_path = matches.value_of("input").unwrap();
             let output_path = matches.value_of("output").unwrap();
+            let kinds = matches
+                .values_of("kinds")
+                .map(|values| {
+                    values
+                        .map(|s| OutputKind::from_str(s).unwrap())
+                        .collect::<Vec<_>>()
+                });
             let utterances: Vec<Utterance> = {
               let file = ::std::fs::File::open(input_path).map_err(|e| format!("Could not open input file at path: {}, with error {}", input_path, e)).unwrap();;
               serde_json::from_reader(&file).unwrap()
@@ -182,7 +190,11 @@ fn main() {
                 .map(|utterance| {
                   if utterance.keep() {
                       let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
-                      let entities = parser.parse(utterance.phrase.to_lowercase().as_str(), &context).unwrap();
+                      let entities = if let Some(ref kinds) = kinds {
+                          parser.parse_with_kind_order(utterance.phrase.to_lowercase().as_str(), &context, &kinds).unwrap()
+                      } else {
+                          parser.parse(utterance.phrase.to_lowercase().as_str(), &context).unwrap()
+                      };
                       let assertion = if entities.len() == 1 {
                          let entity = entities.first();
                          match (entity, utterance.value) {
@@ -252,7 +264,7 @@ fn main() {
                 .collect();
             let total_test = output.len();
             let failed_test = output.iter().filter(|it| it.output.is_failed()).collect::<Vec<_>>().len();
-            let mut file = ::std::fs::File::create(output_path).map_err(|e| format!("Could not create output file at path: {} with error {}", output_path, e)).unwrap();
+            let file = ::std::fs::File::create(output_path).map_err(|e| format!("Could not create output file at path: {} with error {}", output_path, e)).unwrap();
             serde_json::to_writer_pretty(&file, &output).unwrap();
             println!("Total: {:?} | {:?} tests fail", total_test, failed_test);
         }

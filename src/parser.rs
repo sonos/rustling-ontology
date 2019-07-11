@@ -55,7 +55,7 @@ mod tests {
     fn test_twenty() {
         let parser = build_raw_parser(Lang::EN).unwrap();
         let tagger = CandidateTagger {
-            order: &[OutputKind::Number],
+            output_kind_filter: &[OutputKind::Number],
             context: &IdentityContext::new(),
             resolve_all_candidates: false,
         };
@@ -79,7 +79,7 @@ mod tests {
     fn test_21() {
         let parser = build_raw_parser(Lang::EN).unwrap();
         let tagger = CandidateTagger {
-            order: &[OutputKind::Number],
+            output_kind_filter: &[OutputKind::Number],
             context: &IdentityContext::new(),
             resolve_all_candidates: false,
         };
@@ -95,7 +95,7 @@ mod tests {
     #[test]
     fn test_2_1000() {
         let tagger = CandidateTagger {
-            order: &[OutputKind::Number],
+            output_kind_filter: &[OutputKind::Number],
             context: &IdentityContext::new(),
             resolve_all_candidates: false,
         };
@@ -111,7 +111,7 @@ mod tests {
     fn test_foobar() {
         let parser = build_raw_parser(Lang::EN).unwrap();
         let tagger = CandidateTagger {
-            order: &[OutputKind::Number],
+            output_kind_filter: &[OutputKind::Number],
             context: &IdentityContext::new(),
             resolve_all_candidates: false,
         };

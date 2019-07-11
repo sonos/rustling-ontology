@@ -80,6 +80,41 @@ impl Grain {
             &Grain::Second => 1,
         }
     }
+
+
+    pub fn is_greater_than_day(&self) -> bool {
+        match self {
+            Grain::Week | Grain::Month | Grain::Year | Grain::Quarter => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_date_grain(&self) -> bool {
+        match self {
+            &Grain::Year => true,
+            &Grain::Quarter => true,
+            &Grain::Month => true,
+            &Grain::Week => true,
+            &Grain::Day => true,
+            &Grain::Hour => false,
+            &Grain::Minute => false,
+            &Grain::Second => false,
+        }
+    }
+
+    pub fn is_time_grain(&self) -> bool {
+        match self {
+            &Grain::Year => false,
+            &Grain::Quarter => false,
+            &Grain::Month => false,
+            &Grain::Week => false,
+            &Grain::Day => false,
+            &Grain::Hour => true,
+            &Grain::Minute => true,
+            &Grain::Second => true,
+        }
+    }
+
 }
 
 impl Grain {

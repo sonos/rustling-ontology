@@ -13,7 +13,7 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
                     ::rustling::BoundariesChecker::no_check(),
                     ::rustling::BoundariesChecker::no_check());
     rules::rules_numbers(&mut b)?;
-    rules::rules_time(&mut b)?;
+    rules::rules_datetime(&mut b)?;
     rules::rules_cycle(&mut b)?;
     rules::rules_duration(&mut b)?;
     rules::rules_temperature(&mut b)?;            
@@ -23,13 +23,13 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
 }
 
 pub fn dims() -> Vec<rustling_ontology_values::DimensionKind> {
-    return vec![Number, Ordinal, Duration, Time, Temperature, AmountOfMoney, Percentage];
+    return vec![Number, Ordinal, Duration, Datetime, Temperature, AmountOfMoney, Percentage];
 }
 
 pub fn examples() -> Vec<::rustling::train::Example<rustling_ontology_values::Dimension>> {
     let mut v = vec![];
     training::examples_numbers(&mut v);
-    training::examples_time(&mut v);
+    training::examples_datetime(&mut v);
     training::examples_durations(&mut v);
     training::examples_temperature(&mut v);
     training::examples_finance(&mut v);
