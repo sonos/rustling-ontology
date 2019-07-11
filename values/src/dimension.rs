@@ -3,7 +3,7 @@ use std::{fmt, result};
 use rustling::*;
 use moment::{RcConstraint, Period, Grain, Local};
 
-/// Union of all possible values parsed by the ontology.
+// Union of all possible values parsed by the ontology.
 
 rustling_value! {
     #[doc="Union of all possible values parsed by the ontology."]

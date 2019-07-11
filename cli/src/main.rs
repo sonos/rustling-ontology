@@ -166,7 +166,7 @@ fn main() {
                   }
                 })
                 .collect();
-            let mut file = ::std::fs::File::create(path).unwrap();
+            let file = ::std::fs::File::create(path).unwrap();
             serde_json::to_writer_pretty(&file, &utterances).unwrap();
         }
         ("test", Some(matches)) => {
@@ -264,7 +264,7 @@ fn main() {
                 .collect();
             let total_test = output.len();
             let failed_test = output.iter().filter(|it| it.output.is_failed()).collect::<Vec<_>>().len();
-            let mut file = ::std::fs::File::create(output_path).map_err(|e| format!("Could not create output file at path: {} with error {}", output_path, e)).unwrap();
+            let file = ::std::fs::File::create(output_path).map_err(|e| format!("Could not create output file at path: {} with error {}", output_path, e)).unwrap();
             serde_json::to_writer_pretty(&file, &output).unwrap();
             println!("Total: {:?} | {:?} tests fail", total_test, failed_test);
         }

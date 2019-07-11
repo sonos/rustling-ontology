@@ -30,7 +30,7 @@ pub fn map_dimension(dimension: &mut Dimension, output_kind_filter: &[OutputKind
             // Find the subkind: Figure out the Datetime subtype from the Form, Grain and other
             // stuff contained in the Dimension::Datetime(datetime_value)
 
-            let mut date_time_grain = (datetime_value.constraint.grain_left().is_date_grain() &&
+            let date_time_grain = (datetime_value.constraint.grain_left().is_date_grain() &&
                 datetime_value.constraint.grain_right().is_time_grain()) ||
                 (datetime_value.constraint.grain_right().is_date_grain() &&
                     datetime_value.constraint.grain_left().is_time_grain());
