@@ -778,6 +778,18 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::Year(_))),
              |a, _, b| a.value().intersect(b.value())
     );
+    // Date-Period
+//    b.rule_2("in year",
+//             b.reg(r#"em"#)?,
+//             integer_check_by_range!(1000, 2100),
+//             |_, integer| helpers::year(integer.value().value as i32)
+//    );
+    // Date-Period
+    b.rule_2("in year",
+             b.reg(r#"(?:para|durante)? o ano(?: de)?"#)?,
+             integer_check_by_range!(1000, 2100),
+             |_, integer| helpers::year(integer.value().value as i32)
+    );
     // Date
     b.rule_2("o ordinal (<day-of-month>)",
              b.reg(r#"o"#)?,
