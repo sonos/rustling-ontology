@@ -925,7 +925,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //    );
     // Date-Period
     b.rule_2("in year",
-             b.reg(r#"(para|durante) o ano( de)?"#)?,
+             b.reg(r#"(?:para|durante)? o ano(?: de)?"#)?,
              integer_check_by_range!(1000, 2100),
              |_, integer| helpers::year(integer.value().value as i32)
     );
@@ -1494,8 +1494,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("<integer> (as relative minutes) para o <hour-of-day>",
              b.reg(r#"às|aos"#)?,
              relative_minute_check!(),
-             b.reg(r#"para (?:o|as)"#)?,
-             datetime_check!(|time: &DatetimeValue| !time.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(time)),
+             b.reg(r#"para (?:o|as)?"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             //datetime_check!(|time: &DatetimeValue| !time.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(time)),
              |_, minutes, _, time| helpers::hour_relative_minute(
                  time.value().form_time_of_day()?.full_hour(),
                  -1 * minutes.value().0,
@@ -1505,8 +1506,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Time
     b.rule_3("<integer> (as relative minutes) para o <hour-of-day>",
              relative_minute_check!(),
-             b.reg(r#"para (?:o|as)"#)?,
-             datetime_check!(|time: &DatetimeValue| !time.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(time)),
+             b.reg(r#"para (?:o|as)?"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             //datetime_check!(|time: &DatetimeValue| !time.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(time)),
              |minutes, _, time| helpers::hour_relative_minute(
                  time.value().form_time_of_day()?.full_hour(),
                  -1 * minutes.value().0,
