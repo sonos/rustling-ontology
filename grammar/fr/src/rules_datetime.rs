@@ -1129,7 +1129,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::PartOfDay(_))),
              b.reg(r#"(?:jusqu')?(?:au|[aà])"#)?,
              datetime_check!(form!(Form::PartOfDay(_))),
-             //datetime.value().clone().mark_before_start()
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_4("de <meal> - <meal> (interval)",
@@ -1137,7 +1136,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::Meal)),
              b.reg(r#"(?:jusqu')?(?:au|[aà])"#)?,
              datetime_check!(form!(Form::Meal)),
-             //datetime.value().clone().mark_before_start()
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_2("de maintenant - <time-of-day> (interval)",
