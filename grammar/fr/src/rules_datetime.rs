@@ -546,7 +546,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::Meal))
     );
     b.rule_1_terminal("fin de matinée",
-                      b.reg(r#"fin de matin[ée]e"#)?,
+                      b.reg(r#"fin de (?:la )?matin[ée]e"#)?,
                       |_| Ok(helpers::hour(10, false)?
                           .span_to(&helpers::hour(12, false)?, false)?
                           .latent()
@@ -1117,6 +1117,22 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"(?:jusqu')?(?:au|[aà])"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
+             |_, a, _, b| a.value().smart_span_to(b.value(), false)
+    );
+    b.rule_4("de <part-of-day> - <part-of-day> (interval)",
+             b.reg(r#"(?:[aà] partir )?d['eu]"#)?,
+             datetime_check!(form!(Form::PartOfDay(_))),
+             b.reg(r#"(?:jusqu')?(?:au|[aà])"#)?,
+             datetime_check!(form!(Form::PartOfDay(_))),
+             //datetime.value().clone().mark_before_start()
+             |_, a, _, b| a.value().smart_span_to(b.value(), false)
+    );
+    b.rule_4("de <meal> - <meal> (interval)",
+             b.reg(r#"(?:[aà] partir )?d['e]"#)?,
+             datetime_check!(form!(Form::Meal)),
+             b.reg(r#"(?:jusqu')?(?:au|[aà])"#)?,
+             datetime_check!(form!(Form::Meal)),
+             //datetime.value().clone().mark_before_start()
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_2("de maintenant - <time-of-day> (interval)",
