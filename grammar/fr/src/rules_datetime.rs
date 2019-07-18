@@ -518,9 +518,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("lever du soleil",
-                      b.reg(r#"lever du soleil|aurore|aube"#)?,
-                      |_| Ok(helpers::hour(5, false)?
-                          .span_to(&helpers::hour(9, false)?, false)?
+                      b.reg(r#"lever d[ue] soleil|aurore|aube"#)?,
+                      |_| Ok(helpers::hour(4, false)?
+                          .span_to(&helpers::hour(8, false)?, false)?
                           .latent()
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
@@ -693,8 +693,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("coucher du soleil",
                       b.reg(r#"coucher du soleil|cr[eé]puscule|tomb[ée]e de la nuit"#)?,
                       |_| {
-                          Ok(helpers::hour(18, false)?
-                              .span_to(&helpers::hour(21, false)?, false)?
+                          Ok(helpers::hour(19, false)?
+                              .span_to(&helpers::hour(22, false)?, false)?
                               .latent()
                               .form(Form::PartOfDay(PartOfDayForm::Evening)))
                       }
@@ -1166,9 +1166,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
     b.rule_2("à partir de <part-of-day>",
-             b.reg(r#"[aà] partir d['eu](?:l[ 'a])?|après"#)?,
+             b.reg(r#"[aà] partir d['eu](?:l[ 'a])?"#)?,
              datetime_check!(form!(Form::PartOfDay(_))),
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
+    );
+    b.rule_2("après <part-of-day>",
+             b.reg(r#"après"#)?,
+             datetime_check!(form!(Form::PartOfDay(_))),
+             |_, datetime| Ok(datetime.value().clone().mark_after_end())
     );
     b.rule_2("après le <day-of-month>",
              b.reg(r#"apr(?:e|è)s le"#)?,
