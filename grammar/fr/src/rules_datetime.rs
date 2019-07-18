@@ -890,6 +890,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .latent()
                 .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
+    b.rule_1_terminal("lever du soleil",
+                      b.reg(r#"lever du soleil|aurore|aube"#)?,
+                      |_| Ok(helpers::hour(5, false)?
+                          .span_to(&helpers::hour(9, false)?, false)?
+                          .latent()
+                          .form(Form::PartOfDay(PartOfDayForm::Morning)))
+    );
     b.rule_1_terminal("petit dejeuner",
         b.reg(r#"petit[- ]d[ée]jeuner"#)?,
         |_| Ok(helpers::hour(5, false)?
@@ -898,11 +905,12 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                 .form(Form::Meal))
     );
     b.rule_1_terminal("milieu de matinée",
-        b.reg(r#"milieu de matin[ée]e"#)?,
-        |_| Ok(helpers::hour(9, false)?
+         b.reg(r#"(?:le )?milieu de matin[ée]e"#)?,
+         |_| Ok(helpers::hour(9, false)?
                 .span_to(&helpers::hour(11, false)?, false)?
                 .latent()
                 .form(Form::PartOfDay(PartOfDayForm::Morning)))
+
     );
     b.rule_1_terminal("brunch",
         b.reg(r#"brunch"#)?,
@@ -1032,7 +1040,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("milieu de journée",
                       b.reg(r#"(?:milieu de (?:la )?|(?:(?:[àa] )?la )?mi[ -])journ[ée]e"#)?,
                       |_| {
-                          Ok(helpers::hour(11, false)?
+                          Ok(helpers::hour(12, false)?
                               .span_to(&helpers::hour(16, false)?, false)?
                               .latent()
                               .form(Form::PartOfDay(PartOfDayForm::None)))
@@ -1088,6 +1096,15 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .latent()
                     .form(Form::PartOfDay(PartOfDayForm::Night)))
         }
+    );
+    b.rule_1_terminal("milieu de la nuit",
+                      b.reg(r#"(?:le )?milieu de la nuit"#)?,
+                      |_| {
+                          Ok(helpers::hour(2, false)?
+                              .span_to(&helpers::hour(4, false)?, false)?
+                              .latent()
+                              .form(Form::PartOfDay(PartOfDayForm::Night)))
+                      }
     );
     b.rule_2("a l'heure de <meal>",
              b.reg(r#"(?:[àa] )?l[' ]heure du|au moment du|pendant l[ea']|au|pour l[ea']|l[ea']"#)?,
