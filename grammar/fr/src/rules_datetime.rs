@@ -520,6 +520,16 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      .datetime_kind(a.value().datetime_kind.clone()))
              }
     );
+    b.rule_2("au prochain <date>",
+             b.reg(r#"(au |(?:[aà] )?la )prochaine?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
+             |_, datetime| datetime.value().the_nth_not_immediate(0)
+    );
+    b.rule_2("au dernier <date>",
+             b.reg(r#"(au |(?:[aà] )?la )dernier?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
+             |_, datetime| datetime.value().the_nth_not_immediate(-1)
+    );
     b.rule_2("<named-month> prochain",
              // The direction check is to avoid application of datetime_check(month) on rule result
              // "avant <named-month>"
