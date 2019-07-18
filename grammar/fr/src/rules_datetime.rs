@@ -1064,6 +1064,15 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .form(Form::PartOfDay(PartOfDayForm::Evening)))
         }
     );
+    b.rule_1_terminal("coucher du soleil",
+                      b.reg(r#"coucher du soleil|cr[eé]puscule|tomb[ée]e de la nuit"#)?,
+                      |_| {
+                          Ok(helpers::hour(18, false)?
+                              .span_to(&helpers::hour(21, false)?, false)?
+                              .latent()
+                              .form(Form::PartOfDay(PartOfDayForm::Evening)))
+                      }
+    );
     b.rule_1_terminal("début de soirée",
         b.reg(r#"d[ée]but de (?:la )?soir[ée]e?"#)?,
         |_| {
@@ -1098,7 +1107,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("milieu de la nuit",
-                      b.reg(r#"(?:le )?milieu de la nuit"#)?,
+                      b.reg(r#"milieu de la nuit"#)?,
                       |_| {
                           Ok(helpers::hour(2, false)?
                               .span_to(&helpers::hour(4, false)?, false)?
