@@ -226,12 +226,15 @@ pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingR
              datetime_check!(),
              |_, cycle, _, datetime| helpers::cycle_nth_after(cycle.value().grain, -1, datetime.value())
     );
-    b.rule_4("<ordinal> <cycle> de <datetime>",
-             ordinal_check_by_range!(1, 9999),
-             cycle_check!(),
-             b.reg(r#"d['eu]|en"#)?,
-             datetime_check!(),
-             |ordinal, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, datetime.value())
+    b.rule_1_terminal("fin du mois",
+                      b.reg(r#"(?:(?:(?:[aà] )?la|en)? )?fin (?:du|de) mois"#)?,
+                      |_| {
+                          let month = helpers::cycle_nth(Grain::Month, 1)?;
+                          Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
+                              .span_to(&month, false)?
+                              .latent()
+                              .form(Form::PartOfMonth))
+                      }
     );
     b.rule_5("le <ordinal> <cycle> de <datetime>",
              b.reg(r#"l[ea]"#)?,
