@@ -1413,6 +1413,15 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           start.span_to(&end, true)
                       }
     );
+    b.rule_1_terminal("début de cette année",
+                      b.reg(r#"d[ée]but (?:de (?:l'|cette )|d')?ann[ée]e"#)?,
+                      |_| {
+                          let current_year = helpers::cycle_nth(Grain::Year, 0)?;
+                          let start = current_year.intersect(&helpers::month(1)?)?;
+                          let end = current_year.intersect(&helpers::month(2)?)?;
+                          start.span_to(&end, true)
+                      }
+    );
     b.rule_2("le <datetime>",
              //b.reg(r#"l[ea]"#)?,
              b.reg(r#"l[ea]|en|au|à|pour"#)?,
