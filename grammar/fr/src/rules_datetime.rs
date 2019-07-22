@@ -1404,6 +1404,15 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
                       |_| helpers::month_day(5, 15)?.span_to(&helpers::month_day(6, 21)?, false)
     );
+    b.rule_1_terminal("fin de cette année",
+                      b.reg(r#"fin (?:de (?:l'|cette )|d')?ann[ée]e"#)?,
+                      |_| {
+                          let current_year = helpers::cycle_nth(Grain::Year, 0)?;
+                          let start = current_year.intersect(&helpers::month(10)?)?;
+                          let end = current_year.intersect(&helpers::month(12)?)?;
+                          start.span_to(&end, true)
+                      }
+    );
     b.rule_2("le <datetime>",
              //b.reg(r#"l[ea]"#)?,
              b.reg(r#"l[ea]|en|au|à|pour"#)?,
