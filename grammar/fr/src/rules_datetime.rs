@@ -1258,39 +1258,39 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month_day(8, 15)?.span_to(&helpers::month_day(9, 21)?, false)
     );
     b.rule_1_terminal("début de l'automne",
-                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"début de (?:cet |l')?automne"#)?,
                       |_| helpers::month_day(9, 21)?.span_to(&helpers::month_day(10, 15)?, false)
     );
     b.rule_1_terminal("milieu de l'automne",
-                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"milieu de (?:cet |l')?automne"#)?,
                       |_| helpers::month_day(10, 15)?.span_to(&helpers::month_day(11, 15)?, false)
     );
     b.rule_1_terminal("fin de l'automne",
-                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"fin de (?:cet |l')?automne"#)?,
                       |_| helpers::month_day(11, 15)?.span_to(&helpers::month_day(12, 21)?, false)
     );
     b.rule_1_terminal("début de l'hiver",
-                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"début de (?:cet |l')?hiver"#)?,
                       |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(1, 15)?, false)
     );
     b.rule_1_terminal("milieu de l'hiver",
-                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"milieu de (?:cet |l')?hiver"#)?,
                       |_| helpers::month_day(1, 15)?.span_to(&helpers::month_day(2, 15)?, false)
     );
     b.rule_1_terminal("fin de l'hiver",
-                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"fin de (?:cet |l')?hiver"#)?,
                       |_| helpers::month_day(2, 15)?.span_to(&helpers::month_day(3, 21)?, false)
     );
     b.rule_1_terminal("début du printemps",
-                      b.reg(r#"début de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"début (?:du|de ce)? printemps"#)?,
                       |_| helpers::month_day(3, 21)?.span_to(&helpers::month_day(4, 15)?, false)
     );
     b.rule_1_terminal("milieu du printemps",
-                      b.reg(r#"milieu de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"milieu (?:du|de ce)? printemps"#)?,
                       |_| helpers::month_day(4, 15)?.span_to(&helpers::month_day(5, 15)?, false)
     );
     b.rule_1_terminal("fin du printemps",
-                      b.reg(r#"fin de (?:cet |l')?(?:été|ete)"#)?,
+                      b.reg(r#"fin (?:du|de ce)? printemps"#)?,
                       |_| helpers::month_day(5, 15)?.span_to(&helpers::month_day(6, 21)?, false)
     );
     b.rule_1_terminal("fin de cette année",
