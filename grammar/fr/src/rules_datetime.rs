@@ -175,15 +175,25 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"prochaine?"#)?,
              |datetime, _| datetime.value().the_nth_not_immediate(0)
     );
-    b.rule_2("au prochain <date>",
+    // TODO: add restrictions on datetime form?
+    b.rule_2("au prochain <datetime>",
              b.reg(r#"(au |(?:[aà] )?l[ae] )prochaine?"#)?,
-             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
-             |_, datetime| datetime.value().the_nth_not_immediate(0)
+             datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime) && !form!(Form::Meal)(datetime)),
+             |_, a| {
+                 Ok(a.value().the_nth(0)?
+                     .form(a.value().form.clone())
+                     .datetime_kind(a.value().datetime_kind.clone()))
+             }
     );
-    b.rule_2("au dernier <date>",
+    // TODO: add restrictions on datetime form?
+    b.rule_2("au dernier <datetime>",
              b.reg(r#"(au |(?:[aà] )?l[ea] )derni[eè]re?"#)?,
-             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
-             |_, datetime| datetime.value().the_nth_not_immediate(-1)
+             datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime) && !form!(Form::Meal)(datetime)),
+             |_, a| {
+                 Ok(a.value().the_nth(-1)?
+                     .form(a.value().form.clone())
+                     .datetime_kind(a.value().datetime_kind.clone()))
+             }
     );
     b.rule_2("<named-month> prochain",
              // The direction check is to avoid application of datetime_check(month) on rule result
