@@ -127,7 +127,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::cycle_nth(Grain::Day, -1)
     );
     b.rule_1_terminal("fin du mois",
-                      b.reg(r#"(?:(?:[aà] )?la )?fin (?:du|de) mois"#)?,
+                      b.reg(r#"(?:(?:(?:[aà] )?la|en)? )?fin (?:du|de) mois"#)?,
                       |_| {
                           let month = helpers::cycle_nth(Grain::Month, 1)?;
                           Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
