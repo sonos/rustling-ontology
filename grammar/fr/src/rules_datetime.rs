@@ -1509,6 +1509,34 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
+    b.rule_4("entre <part-of-day> et <time-of-day> (interval)",
+             b.reg(r#"entre"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
+             b.reg(r#"et"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
+             |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("entre <time-of-day> et <part-of-day> (interval)",
+             b.reg(r#"d[eu]"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
+             b.reg(r#"(?:jusqu')?(?:à|au)"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
+             |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("entre <part-of-day> et <time-of-day> (interval)",
+             b.reg(r#"d[eu]"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
+             b.reg(r#"(?:jusqu')?(?:à|au)"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
+             |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("entre <time-of-day> et <part-of-day> (interval)",
+             b.reg(r#"entre"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
+             b.reg(r#"et"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
+             |_, a, _, b| a.value().span_to(b.value(), true)
+    );
     // Specific case with years
     b.rule_5("de <datetime> - <datetime> <year> (interval)",
              b.reg(r#"depuis|d[e'u]?"#)?,
