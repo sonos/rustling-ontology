@@ -4,11 +4,30 @@ use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Weekday, Grain};
 
 
+<<<<<<< HEAD
 /* DATETIME - CYCLE DEFINITIONS */
 pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("seconde (cycle)",
         b.reg(r#"secondes?"#)?,
         |_| CycleValue::new(Grain::Second)
+=======
+pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("intersect",
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             |a, b| a.value().intersect(b.value())
+    );
+    b.rule_2("intersect <date> + <part-of-day>",
+             datetime_check!(form!(Form::DayOfWeek{..})),
+             datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime) && !form!(Form::Meal)(datetime)),
+             |a, b| a.value().intersect(b.value())
+    );
+    b.rule_3("intersect by 'de' or ','",
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             b.reg(r#"de|,"#)?,
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             |a, _, b| a.value().intersect(b.value())
+>>>>>>> Add preposition 'au' in rule 'goûter'.
     );
     b.rule_1_terminal("minute (cycle)",
         b.reg(r#"minutes?"#)?,
@@ -1019,10 +1038,10 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("gouter",
-        b.reg(r#"(?:(?:[àa] )?l[' ]heure du|au moment du|pendant le|pour le) go[uû]ter"#)?,
-        |_| Ok(helpers::hour(16, false)?
-                .span_to(&helpers::hour(18, false)?, false)?
-                .form(Form::Meal))
+                      b.reg(r#"(?:(?:[àa] )?l[' ]heure du|au(?: moment du)?|pendant le|pour le) go[uû]ter"#)?,
+                      |_| Ok(helpers::hour(16, false)?
+                          .span_to(&helpers::hour(18, false)?, false)?
+                          .form(Form::Meal))
     );
     b.rule_1_terminal("thé",
         b.reg(r#"(?:(?:[àa] )?l[' ]heure du|au moment du|pendant le|pour le) th[eé]"#)?,
