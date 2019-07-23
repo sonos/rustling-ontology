@@ -10,11 +10,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |a, b| a.value().intersect(b.value())
     );
-    b.rule_2("intersect <date> + <part-of-day>",
-             datetime_check!(form!(Form::DayOfWeek{..})),
-             datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime) && !form!(Form::Meal)(datetime)),
-             |a, b| a.value().intersect(b.value())
-    );
     b.rule_3("intersect by 'de' or ','",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              b.reg(r#"de|,"#)?,
@@ -766,11 +761,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| form!(Form::Meal)(datetime)),
              |_, a| Ok(a.value().clone().not_latent())
     );
-    b.rule_2("<date> <meal>",
-             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
-             datetime_check!(form!(Form::Meal)),
-             |a, b| a.value().intersect(b.value())
-    );
     b.rule_2("prep? & article <part-of-day>", // This is very catch-all/junky
              b.reg(r#"(?:pendant |durant |dans |d[eè]s )?l[ae']?|en|au"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime)),
@@ -784,7 +774,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  .form(datetime.value().form.clone())
                  .datetime_kind(DatetimeKind::DatetimeComplement { date_and_time: true, today: true }))
     );
-    b.rule_2("<date> <part-of-day>",
+    b.rule_2("intersect <date> <part-of-day|meal>",
              datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |a, b| a.value().intersect(b.value())
