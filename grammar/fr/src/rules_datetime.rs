@@ -706,7 +706,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_1_terminal("coucher du soleil",
-                      b.reg(r#"coucher du soleil|cr[eé]puscule|tomb[ée]e de la nuit"#)?,
+                      b.reg(r#"coucher d[eu] soleil|cr[eé]puscule|tomb[ée]e de la nuit"#)?,
                       |_| {
                           Ok(helpers::hour(19, false)?
                               .span_to(&helpers::hour(22, false)?, false)?
@@ -1126,14 +1126,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_4("entre <time-of-day> et <part-of-day> (interval)",
-             b.reg(r#"d[eu]"#)?,
+             b.reg(r#"(?:[aà] partir )?d[eu]"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"(?:jusqu')?(?:à|au)"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_4("entre <part-of-day> et <time-of-day> (interval)",
-             b.reg(r#"d[eu]"#)?,
+             b.reg(r#"(?:[aà] partir )?d[eu]"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              b.reg(r#"(?:jusqu')?(?:à|au)"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
