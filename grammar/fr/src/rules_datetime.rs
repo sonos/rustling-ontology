@@ -1170,6 +1170,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |a, b| a.value().intersect(b.value())
     );
+    b.rule_2("intersect <part-of-day|meal> <date>",
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
+             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
+             |a, b| a.value().intersect(b.value())
+    );
     b.rule_2("<time-of-day> du matin",
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"(?:(?:du|dans|de) )?(?:(?:au|le|la) )?mat(?:in[ée]?e?)?(?: pile| exactement| pr[eé]cises?)?"#)?,
@@ -1603,7 +1608,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_2("jusqu'à <datetime>",
-             b.reg(r#"(?:n[ ']importe quand )?jusqu'(?:au|[aà]|en)"#)?,
+             b.reg(r#"(?:n[ ']importe quand )?jusqu'(?:au|[aà]|en)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
     );
