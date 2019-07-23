@@ -1116,7 +1116,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_1_terminal("coucher du soleil",
-                      b.reg(r#"coucher du soleil|cr[eé]puscule|tomb[ée]e de la nuit"#)?,
+                      b.reg(r#"coucher d[eu] soleil|cr[eé]puscule|tomb[ée]e de la nuit"#)?,
                       |_| {
                           Ok(helpers::hour(19, false)?
                               .span_to(&helpers::hour(22, false)?, false)?
