@@ -1123,32 +1123,32 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
-    b.rule_4("entre <part-of-day> et <time-of-day> (interval)",
+    b.rule_4("entre <part-of-day|meal> et <time-of-day> (interval)",
              b.reg(r#"entre"#)?,
-             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime)),
              b.reg(r#"et"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
-    b.rule_4("entre <time-of-day> et <part-of-day> (interval)",
+    b.rule_4("entre <time-of-day> et <part-of-day|meal> (interval)",
+             b.reg(r#"entre"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
+             b.reg(r#"et"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime)),
+             |_, a, _, b| a.value().span_to(b.value(), true)
+    );
+    b.rule_4("de <time-of-day> à <part-of-day> (interval)",
              b.reg(r#"(?:[aà] partir )?d[eu]"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"(?:jusqu')?(?:à|au)"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
-    b.rule_4("entre <part-of-day> et <time-of-day> (interval)",
+    b.rule_4("de <part-of-day> à <time-of-day> (interval)",
              b.reg(r#"(?:[aà] partir )?d[eu]"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              b.reg(r#"(?:jusqu')?(?:à|au)"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
-             |_, a, _, b| a.value().span_to(b.value(), true)
-    );
-    b.rule_4("entre <time-of-day> et <part-of-day> (interval)",
-             b.reg(r#"entre"#)?,
-             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime)),
-             b.reg(r#"et"#)?,
-             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
     // Specific case with years
@@ -1181,18 +1181,18 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
-    b.rule_4("de <part-of-day> - <part-of-day> (interval)",
+    b.rule_4("de <meal|part-of-day> à <meal|part-of-day> (interval)",
              b.reg(r#"(?:[aà] partir )?d['eu]"#)?,
-             datetime_check!(form!(Form::PartOfDay(_))),
+             datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime)),
              b.reg(r#"(?:jusqu')?(?:au|[aà])"#)?,
-             datetime_check!(form!(Form::PartOfDay(_))),
+             datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime)),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
-    b.rule_4("de <meal> - <meal> (interval)",
-             b.reg(r#"(?:[aà] partir )?d['e]"#)?,
-             datetime_check!(form!(Form::Meal)),
-             b.reg(r#"(?:jusqu')?(?:au|[aà])"#)?,
-             datetime_check!(form!(Form::Meal)),
+    b.rule_4("entre <meal|part-of-day> et <meal|part-of-day> (interval)",
+             b.reg(r#"entre"#)?,
+             datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime)),
+             b.reg(r#"et"#)?,
+             datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime)),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_2("de maintenant - <time-of-day> (interval)",
