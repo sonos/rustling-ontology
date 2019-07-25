@@ -105,17 +105,37 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |duration, integer| helpers::compose_duration_with_integer(duration.value(), integer.value())
     );
     b.rule_2("environ <duration>",
-             b.reg(r#"environ"#)?,
+             b.reg(r#"environ|approximativement|à peu près|presque"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("<duration> environ",
+             duration_check!(),
+             b.reg(r#"environ|approximativement|à peu près"#)?,
+             |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
+    );
+    b.rule_2("exactement <duration> ",
+             b.reg(r#"exactement|précisément"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
+    );
+    b.rule_2("<duration> exactement",
+             duration_check!(),
+             b.reg(r#"exactement|précisément|pile"#)?,
+             |duration, _| Ok(duration.value().clone().precision(Precision::Exact))
     );
     // Ambiguous w/ time-of-day w/ "pour"
     // Duration has less priority than Datetime types, therefore duration will be output only
     // if the output kind filter is set for Duration
     b.rule_2("pendant <duration>",
-             b.reg(r#"pendant|durant|pour(?: une dur[eé]e? d['e])?"#)?,
+             b.reg(r#"pendant|durant|pour"#)?,
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
+    );
+    b.rule_2("une durée de <duration>",
+            b.reg(r#"une dur[ée]e d['e]"#)?,
+            duration_check!(),
+            |_, duration| Ok(duration.value().clone().prefixed())
     );
     Ok(())
 }
