@@ -32,6 +32,10 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"an(?:n[ée]e?)?s?"#)?,
                       |_| Ok(UnitOfDurationValue::new(Grain::Year))
     );
+    b.rule_1_terminal("trimestre (unit-of-duration)",
+                      b.reg(r#"trimestres?"#)?,
+                      |_| Ok(UnitOfDurationValue::new(Grain::Quarter))
+    );
     b.rule_1_terminal("un quart heure",
                       b.reg(r#"(1/4\s?h(?:eure)?|(?:un|1) quart d'heure)"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))

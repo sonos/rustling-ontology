@@ -118,7 +118,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2015, 10, 31]), "dernier jour d'octobre 2015", "le dernier jour d'octobre 2015");
     example!(v, check_moment!(c, [2014, 9, 22], Grain::Week), "dernière semaine de septembre 2014", "la dernière semaine de septembre 2014");
     //Hours
-    example!(v, check_moment!(c, [2013, 2, 12, 15]), "à quinze heures", "à 15 heures", "à 3 heures cet après-midi", "15h", "15H");
+    example!(v, check_moment!(c, [2013, 2, 12, 15]), "à quinze heures", "à 15 heures", "15h précises", "15 heures pile", "à 3 heures cet après-midi", "15h", "15H");
     example!(v, check_moment_with_precision!(c, [2013, 2, 12, 15], Precision::Approximate), "vers 15 heures", "à environ 15 heures");
     example!(v, check_moment!(c, [2013, 2, 12, 15, 0]), "15:00", "15h00", "15H00");
     example!(v, check_moment!(c, [2013, 2, 13, 00]), "minuit");
@@ -154,12 +154,14 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2011, 2]), "il y a deux ans");
     //Seasons
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "cet été");
+    example!(v, check_moment_span!(c, [2013, 7, 15], [2013, 8, 16]), "au milieu de cet été");
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "cet hiver");
     example!(v, check_moment!(c, [2013, 12, 25]), "Noel", "noël", "jour de noel");
     example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "le soir de noël");
     example!(v, check_moment!(c, [2014, 1, 1]), "jour de l'an", "nouvel an", "premier janvier");
+    example!(v, check_moment!(c, [2013, 12, 31]), "le réveillon de la saint sylvestre", "pour la saint-sylvestre");
     example!(v, check_moment!(c, [2013, 11, 1]), "la toussaint", "le jour de la toussaint", "la journée de la toussaint", "toussaint", "le jour des morts");
-    example!(v, check_moment!(c, [2013, 05, 1]), "fête du travail");
+    example!(v, check_moment!(c, [2013, 05, 1]), "fête du travail", "à la prochaine fête du travail");
     //Part of day (morning, afternoon...)
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "cet après-midi", "l'après-midi");
     example!(v, check_moment_span!(c, [2013, 2, 12, 15], [2013, 2, 12, 17]), "en milieu d'après-midi");
@@ -254,6 +256,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_duration!([0, 0, 0, 0, 2]), "pendant deux heures", "durant deux heures", "pour une durée de deux heures", "une durée de deux heures");
     example!(v, check_duration!([0, 0, 0, 1]), "pendant un jour", "une journée");
+    example!(v, check_duration!([0, 0, 0, 3]), "pour une durée de quelques jours", "quelques jours");
     example!(v, check_duration!([0, 1, 0]), "durant un mois");
     example!(v, check_duration!([1]), "durant une année");
     example!(v, check_duration!([0, 0, 0, 0, 0, 1, 3]), "pendant une minute et trois secondes");

@@ -1596,7 +1596,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     |_| CycleValue::new(Grain::Month)
     );
     b.rule_1_terminal("trimestre (cycle)",
-    b.reg(r#"trimestre"#)?,
+    b.reg(r#"trimestres?"#)?,
     |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_1("année (cycle)",
