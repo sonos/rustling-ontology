@@ -1043,7 +1043,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         }
     );
     b.rule_1_terminal("gouter",
-                      b.reg(r#"(?:(?:[àa] )?l[' ]heure du|au(?: moment du)?|pendant le|pour le) go[uû]ter"#)?,
+                      b.reg(r#"(?:(?:[àa] )?l[' ]heure du|au(?: moment du)?|pendant le|(?:pour )?le) go[uû]ter"#)?,
                       |_| Ok(helpers::hour(16, false)?
                           .span_to(&helpers::hour(18, false)?, false)?
                           .form(Form::Meal))
