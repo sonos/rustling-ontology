@@ -533,7 +533,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           .form(Form::PartOfDay(PartOfDayForm::Morning)))
     );
     b.rule_1_terminal("lever du soleil",
-                      b.reg(r#"lever d[ue] soleil|aurore|aube"#)?,
+                      b.reg(r#"lever d[ue] soleil|(?:aux )?aurores?|aube"#)?,
                       |_| Ok(helpers::hour(4, false)?
                           .span_to(&helpers::hour(8, false)?, false)?
                           .latent()
