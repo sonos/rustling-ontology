@@ -154,8 +154,12 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2011, 2]), "il y a deux ans");
     //Seasons
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "cet été");
+    example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 7, 16]), "au début de cet été");
     example!(v, check_moment_span!(c, [2013, 7, 15], [2013, 8, 16]), "au milieu de cet été");
+    example!(v, check_moment_span!(c, [2013, 8, 15], [2013, 9, 22]), "à la fin de cet été");
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "cet hiver");
+    example!(v, check_moment_span!(c, [2013, 10, 01], [2014, 01, 01]), "en fin d'année");
+    example!(v, check_moment_span!(c, [2013, 01, 01], [2013, 03, 01]), "en début d'année");
     example!(v, check_moment!(c, [2013, 12, 25]), "Noel", "noël", "jour de noel");
     example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "le soir de noël");
     example!(v, check_moment!(c, [2014, 1, 1]), "jour de l'an", "nouvel an", "premier janvier");
@@ -181,6 +185,9 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 13, 00]), "ce soir");
     example!(v, check_moment_span!(c, [2013, 2, 12, 18], [2013, 2, 12, 21]), "en début de soirée");
     example!(v, check_moment_span!(c, [2013, 2, 12, 21], [2013, 2, 13, 00]), "en fin de soirée");
+    example!(v, check_moment_span!(c, [2013, 2, 13, 02], [2013, 2, 13, 04]), "au milieu de la nuit");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 19], [2013, 2, 12, 22]), "au coucher du soleil", "à la tombée de la nuit", "pour le crépuscule");
+    example!(v, check_moment_span!(c, [2013, 2, 12, 04], [2013, 2, 12, 08]), "au lever du soleil", "à l'aube", "aux aurores", "à l'aurore");
     example!(v, check_moment_span!(c, [2013, 2, 13, 18], [2013, 2, 14, 00]), "demain soir", "mercredi soir", "mercredi en soirée");
     example!(v, check_moment_span!(c, [2013, 2, 11, 18], [2013, 2, 12, 00]), "hier soir", "la veille au soir");
     example!(v, check_moment_span!(c, [2013, 2, 15, 18], [2013, 2, 18, 00]), "ce week-end");
