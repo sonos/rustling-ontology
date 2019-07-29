@@ -529,13 +529,18 @@ pub fn cycle_n_not_immediate(grain: Grain, n: i64) -> RuleResult<DatetimeValue> 
     Ok(DatetimeValue::constraint(Cycle::rc(grain).take_not_immediate(n)).form(Form::Cycle(grain)))
 }
 
+pub fn weekend() -> RuleResult<DatetimeValue> {
+    let friday = day_of_week(Weekday::Fri)?.intersect(&hour(18, false)?)?;
+    let monday = day_of_week(Weekday::Mon)?.intersect(&hour(0, false)?)?;
+    Ok(friday.span_to(&monday, false)?.datetime_kind(DatetimeKind::DatePeriod))
+}
 
 pub fn easter() -> RuleResult<DatetimeValue> {
     fn offset(i: &Interval<Local>, _: &Context<Local>) -> Option<Interval<Local>> {
         let (year, month, day) = computer_easter(i.start.year());
         Some(Interval::ymd(year, month, day))
     }
-Ok(DatetimeValue::constraint(Month::new(3).invalid_if_err()?.translate_with(offset))
+    Ok(DatetimeValue::constraint(Month::new(3).invalid_if_err()?.translate_with(offset))
         .datetime_kind(DatetimeKind::Date)) // otherwise grain is Month; not the cleanest but does the job
 }
 
