@@ -103,4 +103,6 @@ b.rule_1_terminal("noel",
                 .form(Form::Celebration))
     );
 
+    Ok(())
+
 }
