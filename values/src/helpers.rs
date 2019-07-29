@@ -408,12 +408,6 @@ pub fn year(y: i32) -> RuleResult<DatetimeValue> {
     Ok(DatetimeValue::constraint(Year::new(y)).form(Form::Year(y)))
 }
 
-pub fn weekend() -> RuleResult<DatetimeValue> {
-    let friday = day_of_week(Weekday::Fri)?.intersect(&hour(18, false)?)?;
-    let monday = day_of_week(Weekday::Mon)?.intersect(&hour(0, false)?)?;
-    Ok(friday.span_to(&monday, false)?.datetime_kind(DatetimeKind::DatePeriod))
-}
-
 pub fn month(m: u32) -> RuleResult<DatetimeValue> {
     if !(1 <= m && m <= 12) {
         return Err(RuleError::Invalid.into())

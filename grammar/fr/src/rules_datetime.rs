@@ -40,225 +40,6 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     Ok(())
 }
 
-
-pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-
-    // Cycle patterns relative to now
-    b.rule_2("ce|dans le <cycle>",
-             b.reg(r#"(?:(?:dans )?l[ea' ]|cet?(?:te)?)"#)?,
-             cycle_check!(),
-             |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
-    );
-    b.rule_3("ce <cycle> (la ou ci)",
-             b.reg(r#"cet?t?e?s?"#)?,
-             cycle_check!(),
-             b.reg(r#"-?ci"#)?,
-             |_, cycle, _| helpers::cycle_nth(cycle.value().grain, 0)
-    );
-    b.rule_2("<cycle> dernier",
-             cycle_check!(),
-             b.reg(r#"derni[èe]re?|pass[ée]e?|pr[eé]c[eé]dente?|(?:d')? ?avant"#)?,
-             |cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
-    );
-    b.rule_3("le <cycle> dernier",
-             b.reg(r#"l[ae']? ?"#)?,
-             cycle_check!(),
-             b.reg(r#"derni[èe]re?|pass[ée]e?"#)?,
-             |_, cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
-    );
-    b.rule_3("n derniers <cycle>",
-             integer_check_by_range!(2, 9999),
-             b.reg(r#"derni.re?s?"#)?,
-             cycle_check!(),
-             |integer, _, cycle| {
-                 let mut res = helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    b.rule_4("(pendant/durant/dans) les n derniers <cycle>",
-             b.reg(r#"(?:pendant |durant |dans )?[cld]es"#)?,
-             integer_check_by_range!(2, 9999),
-             b.reg(r#"derni.re?s?"#)?,
-             cycle_check!(),
-             |_, integer, _, cycle| {
-                 let mut res = helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    b.rule_3("n <cycle> passes|precedents",
-             integer_check_by_range!(2, 9999),
-             cycle_check!(),
-             b.reg(r#"pass[eèé][eèé]?s?|pr[eé]c[eé]dente?s?|(?:d')? ?avant|plus t[oô]t"#)?,
-             |integer, cycle, _| {
-                 let mut res = helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    b.rule_4("(pendant/durant/dans) les n <cycle> passes|precedents",
-             b.reg(r#"(?:pendant |durant |dans )?[cld]es"#)?,
-             integer_check_by_range!(2, 9999),
-             cycle_check!(),
-             b.reg(r#"pass[eèé][eèé]?s?|pr[eé]c[eé]dente?s?|(?:d')? ?avant|plus t[oô]t"#)?,
-             |_, integer, cycle, _| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
-    );
-    // Incorrect resolution if some <datetime> follows the expression,
-    // e.g. "suivant le <date>" (unsupported)
-    b.rule_2("<cycle> prochain|suivant|d'après",
-             cycle_check!(),
-             b.reg(r#"prochaine?|suivante?|qui suit|(?:d')? ?apr[eèé]s"#)?,
-             |cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
-    );
-    b.rule_3("le <cycle> prochain|suivant|d'après",
-             b.reg(r#"l[ae']? ?|une? ?"#)?,
-             cycle_check!(),
-             b.reg(r#"prochaine?|suivante?|qui suit|(?:d'? ?)?apr[eèé]s"#)?,
-             |_, cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
-    );
-    b.rule_3("n prochains <cycle>",
-             integer_check_by_range!(2, 9999),
-             b.reg(r#"prochaine?s?|suivante?s?|apr[eèé]s"#)?,
-             cycle_check!(),
-             |integer, _, cycle| {
-                 let mut res = helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    b.rule_4("(pendant/durant/dans) les n prochains <cycle>",
-             b.reg(r#"(?:pendant |durant |dans )?[cld]es"#)?,
-             integer_check_by_range!(2, 9999),
-             b.reg(r#"prochaine?s?|suivante?s?|apr[eèé]s"#)?,
-             cycle_check!(),
-             |_, integer, _, cycle| {
-                 let mut res = helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    b.rule_3("n <cycle> suivants",
-             integer_check_by_range!(2, 9999),
-             cycle_check!(),
-             b.reg(r#"prochaine?s?|suivante?s?|apr[eèé]s|qui sui(?:t|ves?)|plus tard"#)?,
-             |integer, cycle, _| {
-                 let mut res = helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    b.rule_4("(pendant/durant/dans) les n <cycle> suivants",
-             b.reg(r#"(?:pendant |durant |dans )?[cld]es"#)?,
-             integer_check_by_range!(2, 9999),
-             cycle_check!(),
-             b.reg(r#"prochaine?s?|suivante?s?|apr[eèé]s|qui sui(?:t|ves?)|plus tard"#)?,
-             |_, integer, cycle, _| {
-                 let mut res = helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    b.rule_3("n <cycle> avant",
-             integer_check_by_range!(2, 9999),
-             cycle_check!(),
-             b.reg(r#"(?:d')? ?avant|plus t[oô]t"#)?,
-             |integer, cycle, _| {
-                 let mut res = helpers::cycle_nth(cycle.value().grain, -1 * integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    b.rule_3("n <cycle> après",
-             integer_check_by_range!(2, 9999),
-             cycle_check!(),
-             b.reg(r#"(?:d')? ?apr[eèé]s|qui sui(?:t|ves?)|plus tard"#)?,
-             |integer, cycle, _| {
-                 let mut res = helpers::cycle_nth(cycle.value().grain, integer.value().value)?;
-                 // All grains except Day will trigger the right datetime_kind
-                 if cycle.value().grain == Grain::Day {
-                     res = res.datetime_kind(DatetimeKind::DatePeriod);
-                 }
-                 Ok(res)
-             }
-    );
-    // Cycle patterns relative to another datetime
-    b.rule_4("le <cycle> après|suivant <datetime>",
-             b.reg(r#"l[ea']? ?"#)?,
-             cycle_check!(),
-             b.reg(r#"suivante?|apr[eèé]s"#)?,
-             datetime_check!(),
-             |_, cycle, _, datetime| helpers::cycle_nth_after(cycle.value().grain, 1, datetime.value())
-    );
-    b.rule_4("le <cycle> avant|précédent <datetime>",
-             b.reg(r#"l[ea']? ?"#)?,
-             cycle_check!(),
-             b.reg(r#"avant|pr[ée]c[ée]dent"#)?,
-             datetime_check!(),
-             |_, cycle, _, datetime| helpers::cycle_nth_after(cycle.value().grain, -1, datetime.value())
-    );
-    b.rule_1_terminal("fin du mois",
-                      b.reg(r#"(?:(?:(?:[aà] )?la|en)? )?fin (?:du|de) mois"#)?,
-                      |_| {
-                          let month = helpers::cycle_nth(Grain::Month, 1)?;
-                          Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
-                              .span_to(&month, false)?
-                              .latent()
-                              .form(Form::PartOfMonth))
-                      }
-    );
-    b.rule_5("le <ordinal> <cycle> de <datetime>",
-             b.reg(r#"l[ea]"#)?,
-             ordinal_check_by_range!(1, 9999),
-             cycle_check!(),
-             b.reg(r#"d['eu]|en"#)?,
-             datetime_check!(),
-             |_, ordinal, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, datetime.value())
-    );
-    b.rule_4("le <cycle> de <datetime>",
-             b.reg(r#"l[ea]"#)?,
-             cycle_check!(),
-             b.reg(r#"d['eu]|en"#)?,
-             datetime_check!(),
-             |_, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, 0, datetime.value())
-    );
-    b.rule_2("le lendemain du <datetime>",
-             b.reg(r#"(?:le|au)? ?lendemain du"#)?,
-             datetime_check!(),
-             |_, datetime| helpers::cycle_nth_after_not_immediate(Grain::Day, 1, datetime.value())
-    );
-    b.rule_2("la veille du <datetime>",
-             b.reg(r#"(la )?veille du"#)?,
-             datetime_check!(),
-             |_, datetime| helpers::cycle_nth_after_not_immediate(Grain::Day, -1, datetime.value())
-    );
-    Ok(())
-}
-
 pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("il y a <duration>",
              b.reg(r#"il y a"#)?,
@@ -458,14 +239,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::cycle_nth(Grain::Day, -1)
     );
     b.rule_1_terminal("fin du mois",
-        b.reg(r#"(?:(?:[aà] )?la )?fin (?:du|de) mois"#)?,
-        |_| {
-            let month = helpers::cycle_nth(Grain::Month, 1)?;
-            Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
-                .span_to(&month, false)?
-                .latent()
-                .form(Form::PartOfMonth))
-        }
+                      b.reg(r#"(?:(?:(?:[aà] )?la|en)? )?fin (?:du|de) mois"#)?,
+                      |_| {
+                          let month = helpers::cycle_nth(Grain::Month, 1)?;
+                          Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
+                              .span_to(&month, false)?
+                              .latent()
+                              .form(Form::PartOfMonth))
+                      }
     );
     b.rule_1_terminal("après-demain",
         b.reg(r#"apr(?:e|è)s[- ]?demain"#)?,
@@ -474,6 +255,16 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("avant-hier",
         b.reg(r#"avant[- ]?hier"#)?,
         |_| helpers::cycle_nth(Grain::Day, -2)
+    );
+    b.rule_2("le lendemain du <datetime>",
+             b.reg(r#"(?:le|au)? ?lendemain du"#)?,
+             datetime_check!(),
+             |_, datetime| helpers::cycle_nth_after_not_immediate(Grain::Day, 1, datetime.value())
+    );
+    b.rule_2("la veille du <datetime>",
+             b.reg(r#"(la )?veille du"#)?,
+             datetime_check!(),
+             |_, datetime| helpers::cycle_nth_after_not_immediate(Grain::Day, -1, datetime.value())
     );
     b.rule_2("ce <day-of-week>",
              b.reg(r#"ce"#)?,
