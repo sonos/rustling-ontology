@@ -273,6 +273,45 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              }
     );
+    b.rule_2("numbers suffixes (K, M, G)",
+             number_check!(|number: &NumberValue| !number.suffixed()),
+             b.reg_neg_lh(r#"([kmg])"#, r#"^[\W\$€]"#)?,
+             |a, text_match| -> RuleResult<NumberValue> {
+        let multiplier = match text_match.group(0).as_ref() {
+            "k" => 1000,
+            "m" => 1000000,
+            "g" => 1000000000,
+            _ => return Err(RuleError::Invalid.into()),
+        };
+        Ok(match a.value().clone() { // checked
+               NumberValue::Integer(integer) => {
+                   IntegerValue {
+                           value: integer.value * multiplier,
+                           suffixed: true,
+                           ..integer
+                       }
+                       .into()
+               }
+               NumberValue::Float(float) => {
+            let product = float.value * (multiplier as f32);
+            if product.floor() == product {
+                IntegerValue {
+                        value: product as i64,
+                        suffixed: true,
+                        ..IntegerValue::default()
+                    }
+                    .into()
+            } else {
+                FloatValue {
+                        value: product,
+                        suffixed: true,
+                        ..float
+                    }
+                    .into()
+            }
+        }
+           })
+    });
     b.rule_1_terminal("(douzaine ... soixantaine)",
                       b.reg(r#"(demi[ -]douz|diz|douz|quinz|vingt|trent|quarant|cinquant|soixant|cent)aines?"#)?,
                       |text_match| {
