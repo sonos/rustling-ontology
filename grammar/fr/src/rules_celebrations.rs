@@ -5,18 +5,17 @@ use rustling_ontology_moment::{Weekday, Grain};
 
 pub fn rules_celebration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("noel",
-        b.reg(r#"(?:(?:le )?jour de )?no[eë]l"#)?,
-        |_| Ok(helpers::month_day(12, 25)?.form(Form::Celebration))
+                      b.reg(r#"(?:(?:le )?jour de )?no[eë]l"#)?,
+                      |_| Ok(helpers::month_day(12, 25)?.form(Form::Celebration))
     );
     b.rule_1_terminal("soir de noël",
-        b.reg(r#"(?:l[ea] )?(?:soir(?:ée)?|veille|r[eé]veillon) de no[eë]l"#)?,
-        |_| {
-            let start = helpers::month_day(12, 24)?.intersect(&helpers::hour(18, false)?)?;
-            let end = helpers::month_day(12, 25)?.intersect(&helpers::hour(0, false)?)?;
-            Ok(start.span_to(&end, false)?
-                 .form(Form::Celebration))
-        }
-
+                      b.reg(r#"(?:l[ea] )?(?:soir(?:ée)?|veille|r[eé]veillon) de no[eë]l"#)?,
+                      |_| {
+                          let start = helpers::month_day(12, 24)?.intersect(&helpers::hour(18, false)?)?;
+                          let end = helpers::month_day(12, 25)?.intersect(&helpers::hour(0, false)?)?;
+                          Ok(start.span_to(&end, false)?
+                              .form(Form::Celebration))
+                      }
     );
     b.rule_1_terminal("saint sylvestre",
                       b.reg(r#"(?:l[ea] )?(?:saint[- ]sylvestre|r[eé]veillon)"#)?,

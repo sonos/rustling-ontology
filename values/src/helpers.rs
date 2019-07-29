@@ -529,7 +529,6 @@ pub fn weekend() -> RuleResult<DatetimeValue> {
     Ok(friday.span_to(&monday, false)?.datetime_kind(DatetimeKind::DatePeriod))
 }
 
-
 pub fn easter() -> RuleResult<DatetimeValue> {
     fn offset(i: &Interval<Local>, _: &Context<Local>) -> Option<Interval<Local>> {
         let (year, month, day) = computer_easter(i.start.year());
