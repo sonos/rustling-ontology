@@ -707,7 +707,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("gouter",
                       b.reg(r#"(?:(?:[àa] )?l[' ]heure du|au(?: moment du)?|pendant le|(?:pour )?le) go[uû]ter"#)?,
                       |_| Ok(helpers::hour(16, false)?
-                          .span_to(&helpers::hour(18, false)?, false)?
+                          .span_to(&helpers::hour(17, false)?, false)?
                           .form(Form::Meal))
     );
     b.rule_1_terminal("thé",
@@ -1366,12 +1366,12 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_after_end())
     );
     b.rule_2("à partir de <datetime>",
-             b.reg(r#"[aà] partir d['eu]"#)?,
+             b.reg(r#"[aà] partir d['eu]|depuis"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
     b.rule_2("à partir de <part-of-day>",
-             b.reg(r#"[aà] partir d['eu](?:l[ 'a])?"#)?,
+             b.reg(r#"[aà] partir d['eu](?:l[ 'a])?|depuis"#)?,
              datetime_check!(form!(Form::PartOfDay(_))),
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
