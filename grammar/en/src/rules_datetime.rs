@@ -1267,7 +1267,7 @@ pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> Rustli
 }
 
 // FIXME: rename "rules_datetime_with_cycle"
-pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("this <cycle>",
              b.reg(r#"this|current|coming"#)?,
