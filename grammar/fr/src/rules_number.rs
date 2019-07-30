@@ -38,7 +38,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         });
     b.rule_1_terminal("quelques",
                       b.reg(r#"quelques"#)?,
-                      |_| IntegerValue::new_with_grain(3, 1)
+                      |_| IntegerValue::new_with_grain(2, 1)
     );
     b.rule_1_terminal("number (20..60)",
                       b.reg(r#"(vingt|trente|quarante|cinquante|soixante)"#)?,

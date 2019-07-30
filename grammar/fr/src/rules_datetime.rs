@@ -369,11 +369,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"pile"#)?,
              |a, _| Ok(a.value().clone().not_latent())
     );
-    b.rule_2("à|vers <time-of-day>",
-             b.reg(r#"(?:vers|autour de|[aà] environ|aux alentours de|[aà])"#)?,
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, a| Ok(a.value().clone().not_latent())
-    );
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
         b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:h]([0-5]\d)"#)?,
         |text_match| {
@@ -511,7 +506,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a| Ok(a.value().clone().not_latent())
     );
-    b.rule_2("à <time-of-day>",
+    b.rule_2("à <part-of-day>",
              b.reg(r#"[aà]|pour"#)?,
              datetime_check!(form!(Form::PartOfDay(_))),
              |_, a| Ok(a.value().clone().not_latent())
