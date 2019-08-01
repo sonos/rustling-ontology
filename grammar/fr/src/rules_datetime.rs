@@ -1068,7 +1068,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("le <datetime>",
              //b.reg(r#"l[ea]"#)?,
-             b.reg(r#"l[ea]|en|au|à|pour"#)?,
+             b.reg(r#"l['ea]|en|au|à|pour"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |_, a| Ok(a.value().clone())
     );
