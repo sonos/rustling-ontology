@@ -126,7 +126,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::cycle_nth(Grain::Day, -1)
     );
     b.rule_1_terminal("fin du mois",
-                      b.reg(r#"(?:(?:(?:[aà] )?la|en)? )?fin (?:du|de) mois"#)?,
+                      b.reg(r#"(?:(?:(?:[aà] |pour )?la|en)? )?fin (?:du|de) mois"#)?,
                       |_| {
                           let month = helpers::cycle_nth(Grain::Month, 1)?;
                           Ok(helpers::cycle_nth_after(Grain::Day, -10, &month)?
@@ -222,7 +222,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<named-month|named-day> suivant|d'après",
              datetime_check!(),
-             b.reg(r#"suivante?s?|d'apr[eéè]s"#)?,
+             b.reg(r#"suivante?s?|d'apr[eéè]s|prochain"#)?,
              |datetime, _| datetime.value().the_nth(1)
     );
     b.rule_2("<named-month|named-day> dernier|passé",
