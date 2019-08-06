@@ -441,6 +441,21 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a| Ok(a.value().clone().not_latent().precision(Precision::Approximate))
     );
+    b.rule_2("<time-of-day> around",
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"(?:all'in)?circa"#)?,
+             |a, _| Ok(a.value().clone().not_latent().precision(Precision::Approximate))
+    );
+    b.rule_2("<time-of-day> exactly",
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"in punto|precise"#)?,
+             |a, _| Ok(a.value().clone().not_latent().precision(Precision::Exact))
+    );
+    b.rule_2("exactly <time-of-day>",
+             b.reg(r#"(?:precis|esatt)amente|esatte"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             |_, a| Ok(a.value().clone().not_latent().precision(Precision::Exact))
+    );
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:\.h]([0-5]\d)"#)?,
                       |text_match| {
