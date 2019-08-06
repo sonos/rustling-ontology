@@ -127,7 +127,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // END TODO
     // Deictic lexemes
     b.rule_1_terminal("now",
-                      b.reg(r#"ora|adesso|subito|in questo (?:momento esatto|preciso istante)"#)?,
+                      b.reg(r#"ora|adesso|subito|in questo (?:momento esatto|preciso istante)|immediatamente|proprio(?: ora| adesso)"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("today",
@@ -454,11 +454,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<time-of-day> exactly",
              datetime_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"in punto|precise"#)?,
+             b.reg(r#"in punto|precis[ea]|esatte"#)?,
              |a, _| Ok(a.value().clone().not_latent().precision(Precision::Exact))
     );
     b.rule_2("exactly <time-of-day>",
-             b.reg(r#"(?:precis|esatt)amente|esatte"#)?,
+             b.reg(r#"(?:precis|esatt)amente"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a| Ok(a.value().clone().not_latent().precision(Precision::Exact))
     );
