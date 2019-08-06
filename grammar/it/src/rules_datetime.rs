@@ -488,8 +488,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"min(?:\.|ut[oi])?"#)?,
              |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
     );
+    // check datetime islatent() removed (I don't understand why it is not working with this check)
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              relative_minute_check!(),
              |datetime, minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
@@ -497,8 +498,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
+    // check datetime islatent() removed (I don't understand why it is not working with this check)
     b.rule_3("<hour-of-day> minus <integer> (as relative minutes)",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              b.reg(r#"meno"#)?,
              relative_minute_check!(),
              |datetime, _, minutes| helpers::hour_relative_minute(
@@ -507,8 +509,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
+    // check datetime islatent() removed (I don't understand why it is not working with this check)
     b.rule_3("<hour-of-day> and/past <relative minutes>",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              b.reg(r#"e"#)?,
              relative_minute_check!(),
              |datetime, _, minutes| helpers::hour_relative_minute(
