@@ -34,9 +34,15 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::Month(_))),
              |_, a| Ok(a.value().clone())
     );
+//    b.rule_2("for <datetime>",
+//             b.reg(r#"per"#)?,
+//             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
+//             |_, a| Ok(a.value().clone())
+//    );
+// Removed constraints (latent() And Not(TimeOfDay)) on datetime  (in cov test : 'per mezzanotte e venti' for ex) but need to check if this is a mistake to remove constraints
     b.rule_2("for <datetime>",
              b.reg(r#"per"#)?,
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
+             datetime_check!(),
              |_, a| Ok(a.value().clone())
     );
     // Days, months
