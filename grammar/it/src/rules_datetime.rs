@@ -127,11 +127,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // END TODO
     // Deictic lexemes
     b.rule_1_terminal("now",
-                      b.reg(r#"ora|adesso|subito|in questo (?:momento esatto|preciso istante)|immediatamente|proprio(?: ora| adesso)"#)?,
+                      b.reg(r#"ora|adesso|subito|in questo (?:momento esatto|preciso istante)|immediatamente|proprio(?: ora| adesso)|attualmente"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("today",
-                      b.reg(r#"oggi|in questo momento|in questa giornata"#)?,
+                      b.reg(r#"oggi|in questo(?: preciso)? momento|in questa giornata"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
     b.rule_1_terminal("tomorrow",
