@@ -41,8 +41,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //    );
 // Removed constraints (latent() And Not(TimeOfDay)) on datetime  (in cov test : 'per mezzanotte e venti' for ex) but need to check if this is a mistake to remove constraints
     b.rule_2("for <datetime>",
-             b.reg(r#"per"#)?,
+             b.reg(r#"per|durante"#)?,
              datetime_check!(),
+             |_, a| Ok(a.value().clone())
+    );
+    b.rule_2("for <celebration>",
+             b.reg(r#"a"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::Celebration)(datetime)),
              |_, a| Ok(a.value().clone())
     );
     // Days, months
@@ -1362,7 +1367,7 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| CycleValue::new(Grain::Hour)
     );
     b.rule_1_terminal("day (cycle)",
-                      b.reg(r#"giorn[oi]"#)?,
+                      b.reg(r#"giorn(?:[oi]|ata)"#)?,
                       |_| CycleValue::new(Grain::Day)
     );
     b.rule_1_terminal("week (cycle)",
