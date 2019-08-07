@@ -45,6 +45,10 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"(?:3/4|tre quarti) d'ora"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
     );
+    b.rule_1_terminal("two weeks | fortnight",
+                      b.reg(r#"(?:un )?paio di settimane"#)?,
+                      |_| Ok(DurationValue::new(PeriodComp::days(14).into()))
+    );
     // N duration units
     b.rule_2("<integer> <unit-of-duration>",
              integer_check_by_range!(0),

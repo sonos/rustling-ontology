@@ -323,7 +323,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Days of the month
     b.rule_1_terminal("first of the month",
-                      b.reg(r#"(?:il )?(?:1|prim)[o°]"#)?,
+                      b.reg(r#"(?:il )?(?:1|prim)[o°](?: di)?"#)?,
                       |_| helpers::day_of_month(1)
     );
     b.rule_2("the <day-of-month> (non ordinal)",
