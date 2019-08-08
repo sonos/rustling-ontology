@@ -30,7 +30,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_2("in <named-month>",
-             b.reg(r#"(?:ad?|in)"#)?,
+             b.reg(r#"(?:ad?|in|nel)"#)?,
              datetime_check!(form!(Form::Month(_))),
              |_, a| Ok(a.value().clone())
     );
@@ -180,34 +180,29 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("next <named-month>",
              b.reg(r#"(?:il |la )?prossim[oa]"#)?,
              datetime_check!(form!(Form::Month(_))),
-             |_, datetime| datetime.value().the_nth(1)
+             |_, datetime| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_2("<named-month> next",
              datetime_check!(form!(Form::Month(_))),
              b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
-             |datetime, _| datetime.value().the_nth(1)
+             |datetime, _| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_3("the <named-month> next",
              b.reg(r#"il|l['ao]"#)?,
              datetime_check!(form!(Form::Month(_))),
              b.reg(r#"prossim[oa]"#)?,
-             |_, datetime, _| datetime.value().the_nth(1)
+             |_, datetime, _| datetime.value().the_nth_not_immediate(0)
     );
-    b.rule_2("following <named-month|named-day>",
-             b.reg(r#"(?:il |la )?prossim[oa]"#)?,
-             datetime_check!(form!(Form::Month(_))),
-             |_, datetime| datetime.value().the_nth(1)
-    );
-    b.rule_2("<named-month|named-day> following",
+    b.rule_2("<named-month> following",
              datetime_check!(form!(Form::Month(_))),
              b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
-             |datetime, _| datetime.value().the_nth(1)
+             |datetime, _| datetime.value().the_nth_not_immediate(0)
     );
-    b.rule_3("the <named-month|named-day> following",
+    b.rule_3("the <named-month> following",
              b.reg(r#"il|l['ao]"#)?,
              datetime_check!(form!(Form::Month(_))),
              b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
-             |_, datetime, _| datetime.value().the_nth(1)
+             |_, datetime, _| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_2("<named-month|named-day> last/past",
              datetime_check!(),
@@ -311,8 +306,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("in <year>",
-             b.reg(r#"[nd]el(?:l'anno)?"#)?,
+             b.reg(r#"[dn]el(?: corso del(?:l'anno)?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::Year(_))(datetime)),
+             |_, year| Ok(year.value().clone())
+    );
+    b.rule_2("in <year>",
+             b.reg(r#"nel corso del|l'anno"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::Year(_))(datetime)),
              |_, year| Ok(year.value().clone())
     );
     b.rule_1("year (latent)",
@@ -1369,6 +1369,10 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("month (cycle)",
                       b.reg(r#"mes[ei]"#)?,
                       |_| CycleValue::new(Grain::Month)
+    );
+    b.rule_1_terminal("Quarter (cycle)",
+                      b.reg(r#"trimestre"#)?,
+                      |_| CycleValue::new(Grain::Quarter)
     );
     b.rule_1_terminal("year (cycle)",
                       b.reg(r#"ann[oi]"#)?,
