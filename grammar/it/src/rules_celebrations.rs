@@ -30,7 +30,6 @@ pub fn rules_celebration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                           |_| Ok(helpers::month_day(8, 15)?
                               .form(Form::Celebration))
     );
-
     b.rule_1_terminal("all soul's day",
                           b.reg(r#"giorno dei morti"#)?,
                           |_| Ok(helpers::month_day(11, 2)?
@@ -41,6 +40,5 @@ pub fn rules_celebration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                           |_| Ok(helpers::month_day(3, 19)?
                               .form(Form::Celebration))
     );
-
     Ok(())
 }

@@ -1266,14 +1266,6 @@ pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> Rustli
 }
 
 pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_1("month (cycle)",
-             b.reg(r#"mes[ei]"#)?,
-             |_| CycleValue::new(Grain::Month)
-    );
-    b.rule_1("year (cycle)",
-             b.reg(r#"ann[oi]"#)?,
-             |_| CycleValue::new(Grain::Year)
-    );
     // Cycles with modifiers / timeline positioning
     b.rule_2("this / in the <cycle>",
              b.reg(r#"quest[oa']|in"#)?,
@@ -1373,6 +1365,14 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("week (cycle)",
                       b.reg(r#"settiman[ae]"#)?,
                       |_| CycleValue::new(Grain::Week)
+    );
+    b.rule_1_terminal("month (cycle)",
+                      b.reg(r#"mes[ei]"#)?,
+                      |_| CycleValue::new(Grain::Month)
+    );
+    b.rule_1_terminal("year (cycle)",
+                      b.reg(r#"ann[oi]"#)?,
+                      |_| CycleValue::new(Grain::Year)
     );
     Ok(())
 }
