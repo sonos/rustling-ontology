@@ -12,15 +12,21 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| a.value().intersect(b.value())
     );
     b.rule_3("intersect by 'and' or ','",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             datetime_check!(),
              b.reg(r#"e|,"#)?,
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             datetime_check!(),
              |a, _, b| a.value().intersect(b.value())
     );
+//    b.rule_3("intersect by 'and' or ','",
+//             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+//             b.reg(r#"e|,"#)?,
+//             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+//             |a, _, b| a.value().intersect(b.value())
+//    );
     b.rule_3("intersect by 'of'",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             datetime_check!(),
              b.reg(r#"del(?:l['oa])?"#)?,
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             datetime_check!(),
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_3("intersect by 'but/for example/rather'",
@@ -210,7 +216,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |datetime, _| datetime.value().the_nth(-1)
     );
     b.rule_2("last/past <named-month|named-day>",
-             b.reg(r#"scors[oa]|passat[oa]"#)?,
+             b.reg(r#"(?:nell[oa] )?scors[oa]|passat[oa]"#)?,
              datetime_check!(),
              |_, datetime| datetime.value().the_nth(-1)
     );
@@ -1272,18 +1278,18 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
-    b.rule_2("<cycle> last",
-             b.reg(r#"scors[oa]|passat[oa]"#)?,
+    b.rule_2("last <cycle>",
+             b.reg(r#"(?:nell[oa] |nell'|nel corso (?:dell[oa] |dell')?)?(scors[oa]|passat[oa]|ultim[ao])"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
     );
-    b.rule_2("last <cycle>",
+    b.rule_2("<cycle> last",
              cycle_check!(),
              b.reg(r#"scors[oa]|passat[oa]"#)?,
              |cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
     );
     b.rule_2("the next <cycle>",
-             b.reg(r#"(?:il |la )prossim[oa]"#)?,
+             b.reg(r#"(?:il |la |nella |nel )?prossim[oa]"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
     );
