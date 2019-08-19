@@ -184,7 +184,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |datetime, _| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_2("next <named-month>",
-             b.reg(r#"(?:il |la )?prossim[oa]"#)?,
+             b.reg(r#"(?:il |la |nel corso del )?prossim[oa]"#)?,
              datetime_check!(form!(Form::Month(_))),
              |_, datetime| datetime.value().the_nth_not_immediate(0)
     );
@@ -1289,7 +1289,7 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
              |cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
     );
     b.rule_2("the next <cycle>",
-             b.reg(r#"(?:il |la |nella |nel )?prossim[oa]"#)?,
+             b.reg(r#"(?:il |la |nella |nel (?:corso del )?)?prossim[oa]"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
     );
@@ -1312,7 +1312,7 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
     b.rule_3("n <cycle> before",
              integer_check_by_range!(2, 9999),
              cycle_check!(),
-             b.reg(r#"prima"#)?,
+             b.reg(r#"prima|fa"#)?,
              |integer, cycle, _| helpers::cycle_nth(cycle.value().grain, -1 * integer.value().value)
     );
     b.rule_3("n <cycle> after",
