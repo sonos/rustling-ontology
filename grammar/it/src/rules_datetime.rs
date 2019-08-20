@@ -1173,7 +1173,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("from <datetime> - <datetime> (interval)",
-             b.reg(r#"dal?(?:l['o])?"#)?,
+             b.reg(r#"dal?(?:l['oe])?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
@@ -1188,7 +1188,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Specific case with years
     b.rule_5("from <datetime> - <datetime> <year> (interval)",
-             b.reg(r#"dal?(?:l['o])?"#)?,
+             b.reg(r#"dal?(?:l['oe])?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime) && datetime.is_coarse_grain_greater_than(Grain::Year)),
@@ -1205,14 +1205,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(_))(datetime)),
-             b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
+             b.reg(r#"(?:fino )?a(?:l(?:l['oe])?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(_))(datetime)),
              |a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_4("from <time-of-day> - <time-of-day> (interval)",
-             b.reg(r#"dal?(?:l['o])?"#)?,
+             b.reg(r#"dal?(?:l['oe])?"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
+             b.reg(r#"(?:fino )?a(?:l(?:l['oe])?)?"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
