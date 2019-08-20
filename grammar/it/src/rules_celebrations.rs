@@ -25,8 +25,8 @@ pub fn rules_celebration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                           |_| Ok(helpers::month_day(4, 25)?
                               .form(Form::Celebration))
     );
-    b.rule_1_terminal("Ferragosto",
-                          b.reg(r#"Assumption"#)?,
+    b.rule_1_terminal("Assumption",
+                          b.reg(r#"ferragosto"#)?,
                           |_| Ok(helpers::month_day(8, 15)?
                               .form(Form::Celebration))
     );
