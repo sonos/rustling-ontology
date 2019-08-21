@@ -12,9 +12,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, b| a.value().intersect(b.value())
     );
     b.rule_3("intersect by 'and' or ','",
-             datetime_check!(),
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              b.reg(r#"e|,"#)?,
-             datetime_check!(),
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |a, _, b| a.value().intersect(b.value())
     );
 //    b.rule_3("intersect by 'and' or ','",
@@ -24,9 +24,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //             |a, _, b| a.value().intersect(b.value())
 //    );
     b.rule_3("intersect by 'of'",
-             datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent),
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              b.reg(r#"del(?:l['oa])?"#)?,
-             datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent),
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_3("intersect by 'but/for example/rather'",
@@ -388,30 +388,32 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 31),
              |_, integer| helpers::day_of_month(integer.value().value as u32)
     );
-    b.rule_3("<day-of-week> <day-of-month> at <time-of-day>)",
-             datetime_check!(form!(Form::DayOfWeek{..})),
-             integer_check_by_range!(1, 31),
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, integer, tod| helpers::day_of_month(integer.value().value as u32)
-                 ?.intersect(tod.value())
-    );
+ // ex: wrong parsing: 'mercoledi venti sei del mese prossimo' --> day-of-week('mercoledi') + integer('vinte') + time-of-day('sei')
+ //   b.rule_3("<day-of-week> <day-of-month> at <time-of-day>)",
+ //            datetime_check!(form!(Form::DayOfWeek{..})),
+ //            integer_check_by_range!(1, 31),
+ //            datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent && form!(Form::TimeOfDay(_)(datetime))),
+             //datetime_check!(form!(Form::TimeOfDay(_))),
+ //            |_, integer, tod| helpers::day_of_month(integer.value().value as u32)
+ //                ?.intersect(tod.value())
+ //   );
     // FIXME: Why can't this sort of thing be caught with intersect?
-    b.rule_4("the <day-of-month> <named-month> at <time-of-day>)",
-             b.reg(r#"il|l['oa]"#)?,
-             integer_check_by_range!(1, 31),
-             datetime_check!(form!(Form::Month(_))),
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, integer, month, tod| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
-                 ?.intersect(tod.value())
-    );
-    b.rule_4("the <day-of-week> <day-of-month> at <time-of-day>)",
-             b.reg(r#"il|l['oa]"#)?,
-             datetime_check!(form!(Form::DayOfWeek{..})),
-             integer_check_by_range!(1, 31),
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, _, integer, tod| helpers::day_of_month(integer.value().value as u32)
-                 ?.intersect(tod.value())
-    );
+//    b.rule_4("the <day-of-month> <named-month> at <time-of-day>)",
+//             b.reg(r#"il|l['oa]"#)?,
+//             integer_check_by_range!(1, 31),
+//             datetime_check!(form!(Form::Month(_))),
+//             datetime_check!(form!(Form::TimeOfDay(_))),
+//             |_, integer, month, tod| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+//                 ?.intersect(tod.value())
+//    );
+//    b.rule_4("the <day-of-week> <day-of-month> at <time-of-day>)",
+//             b.reg(r#"il|l['oa]"#)?,
+//             datetime_check!(form!(Form::DayOfWeek{..})),
+//             integer_check_by_range!(1, 31),
+//             datetime_check!(form!(Form::TimeOfDay(_))),
+//             |_, _, integer, tod| helpers::day_of_month(integer.value().value as u32)
+//                 ?.intersect(tod.value())
+//    );
     b.rule_2("next <date>",
              b.reg(r#"prossim[oa]"#)?,
              datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
@@ -879,8 +881,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("<dim time> <part-of-day>",
-
-             datetime_check!(excluding_form!(Form::TimeOfDay(_))),
+             //datetime_check!(excluding_form!(Form::TimeOfDay(_))),
+             datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |a, b| a.value().intersect(b.value())
     );
