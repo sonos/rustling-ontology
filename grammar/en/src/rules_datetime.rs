@@ -817,7 +817,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           yesterday.intersect(&night)
                       }
     );
-        b.rule_1_terminal("brunch",
+    b.rule_1_terminal("brunch",
                       b.reg(r#"brunch"#)?,
                       |_| Ok(helpers::hour(10, false)?
                           .span_to(&helpers::hour(15, false)?, false)?
@@ -1266,7 +1266,7 @@ pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> Rustli
 
 }
 
-// FIXME: rename "rules_datetime_with_cycle"
+
 pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_2("this <cycle>",
@@ -1457,6 +1457,5 @@ pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"y(?:ea)?rs?"#)?,
                       |_| CycleValue::new(Grain::Year)
     );
-
     Ok(())
 }
