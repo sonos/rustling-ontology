@@ -29,6 +29,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
 //             |a, _, b| a.value().intersect(b.value())
 //    );
+    b.rule_2("for <datetime>",
+             b.reg(r#"para|por|en"#)?,
+             datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent),
+             |_, a| Ok(a.value().clone())
+    );
     b.rule_1_terminal("named-day",
                       b.reg(r#"lunes|lun?\.?"#)?,
                       |_| helpers::day_of_week(Weekday::Mon)
