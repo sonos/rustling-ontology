@@ -1,6 +1,6 @@
 [package]
 name = "rustling-ontology-json-utils"
-version = "0.19.0"
+version = "0.19.1"
 authors = ["Hubert De La Jonquiere <hubert.delajonquiere@snips.net>"]
 
 [dependencies]
