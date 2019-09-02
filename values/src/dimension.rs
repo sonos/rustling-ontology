@@ -642,6 +642,22 @@ impl Form {
             &Form::Span => None,
         }
     }
+
+    pub fn is_day(&self) -> bool {
+        match self {
+            &Form::Cycle(grain) => {
+                match grain {
+                    Grain::Day => true,
+                    _ => false,
+                }
+            }
+            &Form::MonthDay(_) => true,
+            &Form::DayOfWeek { .. } => true,
+            &Form::DayOfMonth => true,
+            &Form::Celebration => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -835,6 +851,10 @@ impl DurationValue {
 
     pub fn get_grain(&self) -> Grain {
         self.period.finer_grain().unwrap_or(Grain::Second)
+    }
+
+    pub fn get_coarser_grain(&self) -> Grain {
+        self.period.coarser_grain().unwrap_or(Grain::Second)
     }
 
     pub fn from_addition(self, from_addition: FromAddition) -> DurationValue {

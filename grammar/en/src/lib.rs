@@ -23,7 +23,7 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
     rules_datetime::rules_cycle(&mut b)?;
     rules_datetime::rules_datetime(&mut b)?;
     rules_datetime::rules_datetime_with_duration(&mut b)?;
-    rules_datetime::rules_datetime_with_nth_cycle(&mut b)?;
+    rules_datetime::rules_datetime_with_cycle(&mut b)?;
     rules_celebrations::rules_celebration(&mut b)?;
     rules_duration::rules_duration(&mut b)?;
     Ok(b.build())
