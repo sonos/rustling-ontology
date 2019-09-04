@@ -19,7 +19,7 @@ pub fn rule_set() -> ::rustling::RustlingResult<::rustling::RuleSet<rustling_ont
     rules_number::rules_numbers(&mut b)?;
     rules_amount::rules_temperature(&mut b)?;
     rules_amount::rules_finance(&mut b)?;
-    rules_amount::rules_percentage(&mut b)?;
+    rules_amount::rules_percentage(git &mut b)?;
     rules_datetime::rules_cycle(&mut b)?;
     rules_datetime::rules_datetime(&mut b)?;
     rules_datetime::rules_datetime_with_duration(&mut b)?;
