@@ -29,6 +29,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
 //             |a, _, b| a.value().intersect(b.value())
 //    );
+    // Add constraints? en + year, en + celebration, para + Part-of-day, por + part-of-day, etc?
     b.rule_2("for <datetime>",
              b.reg(r#"para|por|en"#)?,
              datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent),
