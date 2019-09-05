@@ -2,7 +2,6 @@ use std::f32;
 
 use rustling::*;
 use rustling_ontology_values::dimension::*;
-use rustling_ontology_values::dimension::Precision::*;
 use rustling_ontology_values::helpers;
 use rustling_ontology_moment::{Weekday, Grain};
 
@@ -1114,6 +1113,24 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
 
 pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("ago <duration>",
+             b.reg(r#"h[áà]"#)?,
+             duration_check!(),
+             |_, a| {
+                 a.value().ago()
+             }
+    );
+    b.rule_2("in <duration>",
+             b.reg(r#"dentro de|daqui a"#)?,
+             duration_check!(),
+             |_, duration| duration.value().in_present()
+    );
+    b.rule_3("in <duration> from now",
+             b.reg(r#"em"#)?,
+             duration_check!(),
+             b.reg(r#"a partir de hoje"#)?,
+             |_, duration, _| duration.value().in_present()
+    );
     Ok(())
 }
 
