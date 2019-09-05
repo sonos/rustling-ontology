@@ -1,7 +1,6 @@
 use rustling::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::helpers;
-use rustling_ontology_moment::{Weekday, Grain};
 
 pub fn rules_celebration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Date HOLIDAY
