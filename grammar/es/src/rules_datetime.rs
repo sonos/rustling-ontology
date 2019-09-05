@@ -1046,35 +1046,20 @@ pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingR
 
 
 pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("during <duration>",
-             b.reg(r#"(?:durante|por|todo) (?:el|la|una?)"#)?,
+    b.rule_2("<duration> ago",
+             b.reg(r#"hace"#)?,
              duration_check!(),
-             |_, duration| Ok(duration.value().clone().prefixed())
+             |_, duration| duration.value().ago()
     );
-    b.rule_2("during <duration>",
-             b.reg(r#"(?:durante|por|todo)"#)?,
+    b.rule_2("<duration> later",
              duration_check!(),
-             |_, duration| Ok(duration.value().clone().prefixed())
+             b.reg(r#"m[aáà]s tarde|despu[eéè]s"#)?,
+             |duration, _| duration.value().in_present()
     );
-    b.rule_2("exactly <duration>",
-             b.reg(r#"(?:precis|exact)amente|(?:exact|just)o"#)?,
+    b.rule_2("in <duration> (future moment)",
+             b.reg(r#"(?:en|dentro(?: de)?)(?: (?:el|la|los|las) pr[oóò]xim[oa]s)?"#)?,
              duration_check!(),
-             |_, duration| Ok(duration.value().clone().prefixed().precision(Precision::Exact))
-    );
-    b.rule_2("<duration> exactly",
-             duration_check!(),
-             b.reg(r#"(?:precis|exact)amente|(?:exact|just)o"#)?,
-             |duration, _| Ok(duration.value().clone().prefixed().precision(Precision::Exact))
-    );
-    b.rule_2("approx <duration>",
-             b.reg(r#"sobre|cerca de"#)?,
-             duration_check!(),
-             |_, duration| Ok(duration.value().clone().prefixed().precision(Precision::Approximate))
-    );
-    b.rule_2("<duration> approx",
-             duration_check!(),
-             b.reg(r#"m[aáà]s o menos|aproximadamente"#)?,
-             |duration, _| Ok(duration.value().clone().prefixed().precision(Precision::Approximate))
+             |_, duration| duration.value().in_present()
     );
     Ok(())
 }
