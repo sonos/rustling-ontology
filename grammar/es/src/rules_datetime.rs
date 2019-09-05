@@ -112,11 +112,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month(12)
     );
     b.rule_1_terminal("right now",
-                      b.reg(r#"ahor(?:it)?a(?: mismo)?|ya|en\s?seguida|cuanto antes|en este preciso (?:istante|momento)"#)?,
+                      b.reg(r#"(?:justo )?ahor(?:it)?a(?: mismo)?|ya|en\s?seguida|cuanto antes|en este preciso (?:istante|momento)"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("now / today",
-                      b.reg(r#"(?:hoy)|(?:en este momento)"#)?,
+                      b.reg(r#"(?:hoy)|(?:en este momento)|actualmente|en la actualidad|de momento"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
     b.rule_1_terminal("tomorrow",
@@ -140,8 +140,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::DayOfWeek{..})),
              |_, datetime| datetime.value().the_nth_not_immediate(0)
     );
+    b.rule_2("this <month>", //assumed to be in the future
+             b.reg(r#"este mes de"#)?,
+             datetime_check!(form!(Form::Month(_))),
+             |_, datetime| datetime.value().the_nth_not_immediate(0)
+    );
     b.rule_2("this <datetime>",
-             b.reg(r#"este"#)?,
+             b.reg(r#"est[ea]"#)?,
              datetime_check!(),
              |_, datetime| datetime.value().the_nth(0)
     );
@@ -917,10 +922,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
 pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("this <cycle>",
-             b.reg(r#"(?:est(?:e|a|os)|en (?:el|l[oa]s?) ?)"#)?,
+             b.reg(r#"(?:durante )?(?:est(?:e|a|os)|en (?:el|l[oa]s?) ?)"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
+
     b.rule_3("the <cycle> past",
              b.reg(r#"(?:el|l[oa]s?) ?"#)?,
              cycle_check!(),
