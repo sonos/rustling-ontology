@@ -45,6 +45,36 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"(?:(?:3|tres) cuartos?|3/4)(?: de hora)?"#)?,
                       |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
     );
+    b.rule_2("during <duration>",
+             b.reg(r#"(?:durante|por|todo) (?:el|la|una?)"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
+    );
+    b.rule_2("during <duration>",
+             b.reg(r#"(?:durante|por|todo)"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed())
+    );
+    b.rule_2("exactly <duration>",
+             b.reg(r#"(?:precis|exact)amente|(?:exact|just)o"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed().precision(Precision::Exact))
+    );
+    b.rule_2("<duration> exactly",
+             duration_check!(),
+             b.reg(r#"(?:precis|exact)amente|(?:exact|just)o"#)?,
+             |duration, _| Ok(duration.value().clone().prefixed().precision(Precision::Exact))
+    );
+    b.rule_2("approx <duration>",
+             b.reg(r#"sobre|cerca de"#)?,
+             duration_check!(),
+             |_, duration| Ok(duration.value().clone().prefixed().precision(Precision::Approximate))
+    );
+    b.rule_2("<duration> approx",
+             duration_check!(),
+             b.reg(r#"m[aáà]s o menos|aproximadamente"#)?,
+             |duration, _| Ok(duration.value().clone().prefixed().precision(Precision::Approximate))
+    );
     b.rule_2("<integer> <unit-of-duration>",
              integer_check_by_range!(0),
              unit_of_duration_check!(),
@@ -68,11 +98,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  Ok(DurationValue::new(half_period + PeriodComp::new(uod.value().grain, integer.value().value)))
              }
     );
-    b.rule_2("in <duration> (future moment)",
-             b.reg(r#"(?:en|dentro(?: de)?)(?: (?:el|la|los|las) pr[oóò]xim[oa]s)?"#)?,
-             duration_check!(),
-             |_, duration| duration.value().in_present()
-    );
     b.rule_3("<duration> y <duration>",
              duration_check!(|duration: &DurationValue| !duration.suffixed),
              b.reg(r#"y"#)?,
@@ -88,16 +113,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(|duration: &DurationValue| !duration.prefixed),
              integer_check_by_range!(0),
              |duration, integer| helpers::compose_duration_with_integer(duration.value(), integer.value())
-    );
-    b.rule_2("<duration> ago",
-             b.reg(r#"hace"#)?,
-             duration_check!(),
-             |_, duration| duration.value().ago()
-    );
-    b.rule_2("<duration> later",
-             duration_check!(),
-             b.reg(r#"m[aáà]s tarde|despu[eéè]s"#)?,
-             |duration, _| duration.value().in_present()
     );
     Ok(())
 }
