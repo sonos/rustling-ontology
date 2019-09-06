@@ -1,6 +1,6 @@
 [package]
 name = "rustling-ontology-en"
-version = "0.19.0"
+version = "0.19.1"
 authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 
 [dependencies]
