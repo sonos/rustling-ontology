@@ -1,6 +1,7 @@
 use rustling::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::helpers;
+use rustling_ontology_values::dimension::Precision::*;
 use rustling_ontology_moment::{Weekday, Grain};
 
 
@@ -875,13 +876,18 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
     );
     b.rule_2("approx <time-of-day>",
-             b.reg(r#"sobre|cerca de|hacia"#)?,
+             b.reg(r#"sobre|cerca de|hacia|alrededor de"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, a| Ok(a.value().clone().not_latent())
+             |_, a| Ok(a.value().clone().not_latent().precision(Approximate))
     );
     b.rule_2("<time-of-day> approx",
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"m[aáà]s o menos|aproximadamente"#)?,
+             |a, _| Ok(a.value().clone().not_latent().precision(Approximate))
+    );
+    b.rule_2("<time-of-day> exact",
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"exactamente|exactas|en punto"#)?,
              |a, _| Ok(a.value().clone().not_latent())
     );
     b.rule_2("from <time-of-day>",
@@ -890,7 +896,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
     b.rule_3("from <time-of-day> on",
-             b.reg(r#"(?:a partir|despu[eéè]s) del?|desde"#)?,
+             b.reg(r#"(?:a partir |despu[eéè]s )?del?|desde"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"en adelante"#)?,
              |_, datetime, _| Ok(datetime.value().clone().mark_after_start())
@@ -906,7 +912,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
     b.rule_3("from <datetime> on",
-             b.reg(r#"(?:a partir|despu[eéè]s) del?|desde"#)?,
+             b.reg(r#"(?:a partir |despu[eéè]s )?del?|desde"#)?,
              datetime_check!(excluding_form!(Form::TimeOfDay(_))),
              b.reg(r#"en adelante"#)?,
              |_, datetime, _| Ok(datetime.value().clone().mark_after_start())
