@@ -6,7 +6,7 @@ use rustling_ontology_values::ResolverContext;
 pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     // Days
-    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "ahora", "ahora mismo", "en este preciso momento", "en este preciso istante");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "ahora", "ahora mismo", "en este preciso momento", "en este preciso istante", "inmediatamente");
     example!(v, check_moment!(c, [2013, 2, 12]), "hoy", "en este momento");
     example!(v, check_moment!(c, [2013, 2, 11]), "ayer", "el día anterior", "el dia anterior", "el día de antes", "el dia de antes", "la víspera", "la vispera");
     example!(v, check_moment!(c, [2013, 2, 10]), "antes de ayer", "anteayer");

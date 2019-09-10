@@ -32,7 +32,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //    );
     // Add constraints? en + year, en + celebration, para + Part-of-day, por + part-of-day, etc?
     b.rule_2("for <datetime>",
-             b.reg(r#"para|por|en"#)?,
+             b.reg(r#"para|por|en|durante"#)?,
              datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent),
              |_, a| Ok(a.value().clone())
     );
@@ -113,11 +113,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::month(12)
     );
     b.rule_1_terminal("right now",
-                      b.reg(r#"(?:justo )?ahor(?:it)?a(?: mismo)?|ya|en\s?seguida|cuanto antes|en este preciso (?:istante|momento)"#)?,
+                      b.reg(r#"(?:justo )?ahor(?:it)?a(?: mismo)?|ya|en\s?seguida|cuanto antes|en este preciso (?:istante|momento)|inmediatamente|a estas horas|actualmente"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("now / today",
-                      b.reg(r#"(?:hoy)|(?:en este momento)|actualmente|en la actualidad|de momento"#)?,
+                      b.reg(r#"hoy|(?:en este momento)|actualmente|en la actualidad|de momento"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
     b.rule_1_terminal("tomorrow",
@@ -150,6 +150,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"est[ea]"#)?,
              datetime_check!(),
              |_, datetime| datetime.value().the_nth(0)
+    );
+    b.rule_2("during <date>",
+             b.reg(r#"durante"#)?,
+             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
+             |_, datetime| Ok(datetime.value().clone())
     );
     b.rule_2("in <named-month>",
              b.reg(r#"(?:durante|en)(?: el mes de)?"#)?,
@@ -932,15 +937,14 @@ pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingR
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
-
     b.rule_3("the <cycle> past",
-             b.reg(r#"(?:el|l[oa]s?) ?"#)?,
+             b.reg(r#"(?:el|l[oa]s?|est[ea]) ?"#)?,
              cycle_check!(),
              b.reg(r#"(?:pasad|[uúù]ltim)[oa]s?"#)?,
              |_, cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
     );
     b.rule_2("the past <cycle>",
-             b.reg(r#"(?:(?:el|l[oa]s?) )?(?:pasad|[uúù]ltim)[oa]s?"#)?,
+             b.reg(r#"(?:(?:el|l[oa]s?|est[ea]) )?(?:pasad|[uúù]ltim)[oa]s?"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
     );
@@ -951,7 +955,7 @@ pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingR
              |_, cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
     );
     b.rule_2("the next <cycle>",
-             b.reg(r#"(?:(?:el|l[oa]s?) )?pr[oóò]xim[oa]s?|siguientes?"#)?,
+             b.reg(r#"(?:(?:el|l[oa]s?|est[ea]) )?pr[oóò]xim[oa]s?|siguientes?"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
     );
