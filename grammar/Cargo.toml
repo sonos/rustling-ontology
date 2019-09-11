@@ -5,14 +5,14 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 edition = "2018"
 
 [dependencies]
-rustling = { git="https://github.com/snipsco/rustling", tag="0.9.0" }
-rustling-ontology-de = { path="de"}
-rustling-ontology-en = { path="en"}
-rustling-ontology-es = { path="es"}
-rustling-ontology-fr = { path="fr"}
-rustling-ontology-pt = { path="pt"}
-rustling-ontology-ko = { path="ko"}
-rustling-ontology-zh = { path="zh"}
-rustling-ontology-ja = { path="ja"}
-rustling-ontology-it = { path="it"}
-rustling-ontology-values = { path="../values"}
+rustling = { git = "https://github.com/snipsco/rustling", tag="0.9.1" }
+rustling-ontology-de = { path = "de" }
+rustling-ontology-en = { path = "en" }
+rustling-ontology-es = { path = "es" }
+rustling-ontology-fr = { path = "fr" }
+rustling-ontology-pt = { path = "pt" }
+rustling-ontology-ko = { path = "ko" }
+rustling-ontology-zh = { path = "zh" }
+rustling-ontology-ja = { path = "ja" }
+rustling-ontology-it = { path = "it" }
+rustling-ontology-values = { path = "../values" }

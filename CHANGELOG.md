@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Fixed
+- Fix chrono issue and move to rust edition 2018 [#194](https://github.com/snipsco/rustling-ontology/pull/194)
+- Bump rustling to `0.9.1` [#195](https://github.com/snipsco/rustling-ontology/pull/195)
+
 ## [0.19.1]
 ### Added
 - [Fr] Implement datetime subtypes in French [#191](https://github.com/snipsco/rustling-ontology/pull/191)

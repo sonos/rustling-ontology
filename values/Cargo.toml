@@ -8,5 +8,5 @@ edition = "2018"
 log = "0.4"
 failure = "0.1"
 regex = "1.0"
-rustling = { git="https://github.com/snipsco/rustling", tag="0.9.0" }
-rustling-ontology-moment = { path="../moment"}
+rustling = { git = "https://github.com/snipsco/rustling", tag="0.9.1" }
+rustling-ontology-moment = { path = "../moment" }
