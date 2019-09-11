@@ -12,24 +12,24 @@ members=["values", "cli", "cli-debug", "moment", "json-utils",
 [dependencies]
 rmp-serde = "0.14"
 serde = { version = "1.0", features = ["derive"] }
-rustling = { git="https://github.com/snipsco/rustling", tag="0.9.0" }
-rustling-ontology-moment = { path="moment"}
-rustling-ontology-values = { path="values"}
-rustling-ontology-grammar = { path="grammar" }
+rustling = { git = "https://github.com/snipsco/rustling", tag="0.9.1" }
+rustling-ontology-moment = { path = "moment" }
+rustling-ontology-values = { path = "values" }
+rustling-ontology-grammar = { path = "grammar" }
 
 [dev-dependencies]
-bencher = { git="https://github.com/snipsco/bencher", rev="63910ace" }
-rustling-ontology-json-utils = { path="json-utils" }
+bencher = { git = "https://github.com/snipsco/bencher", rev="63910ace" }
+rustling-ontology-json-utils = { path = "json-utils" }
 serde_json = "1.0"
 
 
 [build-dependencies]
 rmp-serde = "0.14"
 serde = { version = "1.0", features = ["derive"] }
-rustling = { git="https://github.com/snipsco/rustling", tag="0.9.0" }
-rustling-ontology-values = { path="values"}
-rustling-ontology-moment = { path="moment"}
-rustling-ontology-grammar = { path="grammar" }
+rustling = { git = "https://github.com/snipsco/rustling", tag="0.9.1" }
+rustling-ontology-values = { path = "values" }
+rustling-ontology-moment = { path = "moment" }
+rustling-ontology-grammar = { path = "grammar" }
 
 [[bench]]
 name = "example"
