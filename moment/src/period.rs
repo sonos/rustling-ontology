@@ -75,12 +75,11 @@ impl Grain {
             &Grain::Month => 30 * 24 * 3600,
             &Grain::Week => 7 * 24 * 3600,
             &Grain::Day => 24 * 3600,
-            &Grain::Hour =>  3600,
+            &Grain::Hour => 3600,
             &Grain::Minute => 60,
             &Grain::Second => 1,
         }
     }
-
 
     pub fn is_greater_than_day(&self) -> bool {
         match self {
@@ -114,16 +113,16 @@ impl Grain {
             &Grain::Second => true,
         }
     }
-
 }
 
 impl Grain {
     pub fn all() -> Vec<Grain> {
         use enum_primitive::FromPrimitive;
-        (0..8).filter_map(|primitive| Grain::from_usize(primitive)).collect::<Vec<Grain>>()
+        (0..8)
+            .filter_map(|primitive| Grain::from_usize(primitive))
+            .collect::<Vec<Grain>>()
     }
 }
-
 
 #[derive(Debug, Clone, Eq, Default)]
 pub struct Period(pub VecMap<i64>);
@@ -135,10 +134,10 @@ impl PartialEq for Period {
             let lhs_comp = self.0.get(grain as usize).unwrap_or(&zero);
             let rhs_comp = other.0.get(grain as usize).unwrap_or(&zero);
             if lhs_comp != rhs_comp {
-                return false
+                return false;
             }
         }
-        return true
+        return true;
     }
 }
 
@@ -161,14 +160,16 @@ impl Period {
 
     pub fn comps(&self) -> Vec<PeriodComp> {
         use enum_primitive::FromPrimitive;
-        self.0.iter()
+        self.0
+            .iter()
             .filter_map(|(g, q)| {
                 if let Some(grain) = Grain::from_usize(g) {
                     Some(PeriodComp::new(grain, *q))
                 } else {
                     None
                 }
-            }).collect()
+            })
+            .collect()
     }
 
     pub fn coarse_num_secs(&self) -> i64 {
@@ -276,7 +277,6 @@ impl<'a> ops::Neg for &'a Period {
     }
 }
 
-
 #[derive(Debug, PartialEq, Copy, Clone, Eq)]
 pub struct PeriodComp {
     pub grain: Grain,
@@ -285,10 +285,7 @@ pub struct PeriodComp {
 
 impl PeriodComp {
     pub fn new(grain: Grain, quantity: i64) -> PeriodComp {
-        PeriodComp {
-            grain: grain,
-            quantity: quantity,
-        }
+        PeriodComp { grain, quantity }
     }
 
     pub fn coarse_num_secs(&self) -> i64 {
@@ -372,18 +369,24 @@ mod tests {
 
     #[test]
     fn period_comp_add_to_period() {
-        assert_eq!(Some(&1),
-                   (Period::default() + PeriodComp::years(1))
-                       .0
-                       .get(Grain::Year as usize));
-        assert_eq!(Some(&1),
-                   (Period::default() + PeriodComp::days(1))
-                       .0
-                       .get(Grain::Day as usize));
-        assert_eq!(None,
-                   (Period::default() + PeriodComp::days(1))
-                       .0
-                       .get(Grain::Year as usize));
+        assert_eq!(
+            Some(&1),
+            (Period::default() + PeriodComp::years(1))
+                .0
+                .get(Grain::Year as usize)
+        );
+        assert_eq!(
+            Some(&1),
+            (Period::default() + PeriodComp::days(1))
+                .0
+                .get(Grain::Day as usize)
+        );
+        assert_eq!(
+            None,
+            (Period::default() + PeriodComp::days(1))
+                .0
+                .get(Grain::Year as usize)
+        );
     }
 
     #[test]

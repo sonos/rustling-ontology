@@ -1,8 +1,8 @@
+use crate::dimension::*;
 use moment::*;
-use dimension::*;
 use rustling::Value;
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum Output {
     Integer(IntegerOutput),
     Float(FloatOutput),
@@ -28,9 +28,9 @@ impl Output {
                     DatetimeKind::Time => OutputKind::Time,
                     DatetimeKind::DatePeriod => OutputKind::DatePeriod,
                     DatetimeKind::TimePeriod => OutputKind::TimePeriod,
-                    _ => OutputKind::Datetime
+                    _ => OutputKind::Datetime,
                 }
-            },
+            }
             Output::DatetimeInterval(datetime_interval_output_value) => {
                 match datetime_interval_output_value.datetime_kind {
                     // Only DatePeriod and TimePeriod should occur here
@@ -38,9 +38,9 @@ impl Output {
                     DatetimeKind::Time => OutputKind::Time,
                     DatetimeKind::DatePeriod => OutputKind::DatePeriod,
                     DatetimeKind::TimePeriod => OutputKind::TimePeriod,
-                    _ => OutputKind::Datetime
+                    _ => OutputKind::Datetime,
                 }
-            },
+            }
             &Output::AmountOfMoney(_) => OutputKind::AmountOfMoney,
             &Output::Temperature(_) => OutputKind::Temperature,
             &Output::Duration(_) => OutputKind::Duration,
@@ -49,7 +49,8 @@ impl Output {
     }
 }
 
-enum_kind!(OutputKind,
+enum_kind!(
+    OutputKind,
     [
         Number,
         Ordinal,
@@ -66,7 +67,6 @@ enum_kind!(OutputKind,
 );
 
 impl OutputKind {
-
     pub fn to_dim(&self) -> DimensionKind {
         match self {
             &OutputKind::Number => DimensionKind::Number,
@@ -89,81 +89,89 @@ impl OutputKind {
                 match self {
                     OutputKind::Date => DatetimeKind::Date == datetime_value.datetime_kind,
                     OutputKind::Time => DatetimeKind::Time == datetime_value.datetime_kind,
-                    OutputKind::DatePeriod => DatetimeKind::DatePeriod == datetime_value.datetime_kind,
-                    OutputKind::TimePeriod => DatetimeKind::TimePeriod == datetime_value.datetime_kind,
+                    OutputKind::DatePeriod => {
+                        DatetimeKind::DatePeriod == datetime_value.datetime_kind
+                    }
+                    OutputKind::TimePeriod => {
+                        DatetimeKind::TimePeriod == datetime_value.datetime_kind
+                    }
                     // If the dimension is datetime and none of the 4 subtypes, then it's the
                     // complement subtype, hence Datetime
                     // This works if the arm matching hasn't matched something first
                     OutputKind::Datetime => true,
                     _ => false,
                 }
-            },
+            }
             _ => self.to_dim() == dimension_value.kind(),
         }
     }
-
 }
 
-
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct IntegerOutput(pub i64);
 
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct FloatOutput(pub f32);
 
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct PercentageOutput(pub f32);
 
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct OrdinalOutput(pub i64);
 
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct DatetimeOutput {
-    pub moment: Moment<Local>, 
-    pub grain: Grain, 
+    pub moment: Moment<Local>,
+    pub grain: Grain,
     pub precision: Precision,
     pub latent: bool,
     pub datetime_kind: DatetimeKind,
 }
 
 impl DatetimeOutput {
-
     pub fn datetime_kind(self, datetime_kind: DatetimeKind) -> DatetimeOutput {
-        DatetimeOutput { datetime_kind: datetime_kind, ..self }
+        DatetimeOutput {
+            datetime_kind,
+            ..self
+        }
     }
-
 }
 
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct DatetimeIntervalOutput {
     pub interval_kind: DatetimeIntervalKind,
     pub datetime_kind: DatetimeKind,
 }
 
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum DatetimeIntervalKind {
     After(DatetimeOutput),
     Before(DatetimeOutput),
-    Between { start: Moment<Local>, end: Moment<Local>, precision: Precision, latent: bool }
+    Between {
+        start: Moment<Local>,
+        end: Moment<Local>,
+        precision: Precision,
+        latent: bool,
+    },
 }
 
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct AmountOfMoneyOutput {
-    pub value: f32, 
-    pub precision: Precision, 
+    pub value: f32,
+    pub precision: Precision,
     pub unit: Option<&'static str>,
 }
 
-#[derive(Clone,Copy,PartialEq,Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct TemperatureOutput {
-    pub value: f32, 
+    pub value: f32,
     pub unit: Option<&'static str>,
     pub latent: bool,
 }
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct DurationOutput {
-    pub period: Period, 
+    pub period: Period,
     pub precision: Precision,
 }
 

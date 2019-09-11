@@ -2,10 +2,10 @@
 name = "rustling-ontology-json-utils"
 version = "0.19.1"
 authors = ["Hubert De La Jonquiere <hubert.delajonquiere@snips.net>"]
+edition = "2018"
 
 [dependencies]
 rustling-ontology-moment = { path="../moment" }
 rustling-ontology = { path =".." }
-serde = "1.0"
-serde_derive = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

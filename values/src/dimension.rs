@@ -1,7 +1,6 @@
-use std::{fmt, result};
-
+use moment::{Grain, Local, Period, RcConstraint};
 use rustling::*;
-use moment::{RcConstraint, Period, Grain, Local};
+use std::{fmt, result};
 
 // Union of all possible values parsed by the ontology.
 
@@ -55,7 +54,6 @@ rustling_value! {
     }
 }
 
-
 impl Dimension {
     pub fn is_too_ambiguous(&self) -> bool {
         match self {
@@ -72,7 +70,6 @@ impl Dimension {
             &Dimension::RelativeMinute(_) => true,
         }
     }
-
 }
 
 #[derive(Debug, PartialEq, Copy, Clone, Hash, Eq)]
@@ -81,12 +78,10 @@ pub struct Payload(pub Grain);
 impl fmt::Display for Dimension {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
         match self {
-            &Dimension::Number(ref number) => {
-                match number {
-                    &NumberValue::Integer(ref v) => write!(fmt, "Number: {}", v.value),
-                    &NumberValue::Float(ref v) => write!(fmt, "Number: {}", v.value),
-                }
-            }
+            &Dimension::Number(ref number) => match number {
+                &NumberValue::Integer(ref v) => write!(fmt, "Number: {}", v.value),
+                &NumberValue::Float(ref v) => write!(fmt, "Number: {}", v.value),
+            },
             &Dimension::Percentage(ref v) => write!(fmt, "Percentage: {}", v.0),
             &Dimension::Ordinal(_) => write!(fmt, "Ordinal"),
             &Dimension::Temperature(_) => write!(fmt, "Temperature"),
@@ -120,7 +115,7 @@ impl OrdinalValue {
 
     pub fn new_with_grain(value: i64, grain: u8) -> OrdinalValue {
         OrdinalValue {
-            value: value,
+            value,
             prefixed: false,
             grain: Some(grain),
         }
@@ -188,24 +183,21 @@ pub struct IntegerValue {
 impl IntegerValue {
     pub fn new(value: i64) -> RuleResult<IntegerValue> {
         Ok(IntegerValue {
-            value: value,
+            value,
             grain: None,
             ..IntegerValue::default()
         })
     }
     pub fn new_with_grain(value: i64, grain: u8) -> RuleResult<IntegerValue> {
         Ok(IntegerValue {
-            value: value,
+            value,
             grain: Some(grain),
             ..IntegerValue::default()
         })
     }
 
     pub fn with_grain(self, grain: Option<u8>) -> RuleResult<IntegerValue> {
-        Ok(IntegerValue {
-            grain,
-            ..self
-        })
+        Ok(IntegerValue { grain, ..self })
     }
 
     #[doc(hidden)]
@@ -217,7 +209,10 @@ impl IntegerValue {
     }
 
     #[doc(hidden)]
-    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<IntegerValue> {
+    pub fn combine_from_opt(
+        self,
+        direction: Option<CombinationDirection>,
+    ) -> RuleResult<IntegerValue> {
         Ok(IntegerValue {
             combine_from: direction,
             ..self
@@ -226,12 +221,12 @@ impl IntegerValue {
 
     #[doc(hidden)]
     pub fn combined_from_left(&self) -> bool {
-        return self.combine_from == Some(CombinationDirection::Left)
+        return self.combine_from == Some(CombinationDirection::Left);
     }
 
     #[doc(hidden)]
     pub fn combined_from_right(&self) -> bool {
-        return self.combine_from == Some(CombinationDirection::Right)
+        return self.combine_from == Some(CombinationDirection::Right);
     }
 }
 
@@ -332,7 +327,7 @@ pub struct FloatValue {
 impl FloatValue {
     pub fn new(value: f32) -> RuleResult<FloatValue> {
         Ok(FloatValue {
-            value: value,
+            value,
             ..FloatValue::default()
         })
     }
@@ -346,7 +341,10 @@ impl FloatValue {
     }
 
     #[doc(hidden)]
-    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<FloatValue> {
+    pub fn combine_from_opt(
+        self,
+        direction: Option<CombinationDirection>,
+    ) -> RuleResult<FloatValue> {
         Ok(FloatValue {
             combine_from: direction,
             ..self
@@ -355,12 +353,12 @@ impl FloatValue {
 
     #[doc(hidden)]
     pub fn combined_from_left(&self) -> bool {
-        return self.combine_from == Some(CombinationDirection::Left)
+        return self.combine_from == Some(CombinationDirection::Left);
     }
 
     #[doc(hidden)]
     pub fn combined_from_right(&self) -> bool {
-        return self.combine_from == Some(CombinationDirection::Right)
+        return self.combine_from == Some(CombinationDirection::Right);
     }
 }
 
@@ -403,7 +401,10 @@ impl NumberValue {
     }
 
     #[doc(hidden)]
-    pub fn combine_from_opt(self, direction: Option<CombinationDirection>) -> RuleResult<NumberValue> {
+    pub fn combine_from_opt(
+        self,
+        direction: Option<CombinationDirection>,
+    ) -> RuleResult<NumberValue> {
         match self {
             NumberValue::Float(v) => Ok(v.combine_from_opt(direction)?.into()),
             NumberValue::Integer(v) => Ok(v.combine_from_opt(direction)?.into()),
@@ -462,13 +463,16 @@ pub struct CycleValue {
 
 impl CycleValue {
     pub fn new(grain: Grain) -> RuleResult<CycleValue> {
-        Ok(CycleValue { is_plural: false, grain: grain })
+        Ok(CycleValue {
+            is_plural: false,
+            grain,
+        })
     }
 
     pub fn mark_as_plural(self) -> RuleResult<CycleValue> {
-        Ok(CycleValue { 
+        Ok(CycleValue {
             is_plural: true,
-            .. self
+            ..self
         })
     }
 }
@@ -481,7 +485,7 @@ pub struct UnitOfDurationValue {
 
 impl UnitOfDurationValue {
     pub fn new(grain: Grain) -> UnitOfDurationValue {
-        UnitOfDurationValue { grain: grain }
+        UnitOfDurationValue { grain }
     }
 }
 
@@ -525,9 +529,14 @@ impl PartialEq for DatetimeValue {
 
 impl ::std::fmt::Debug for DatetimeValue {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::result::Result<(), ::std::fmt::Error> {
-        write!(fmt, "DatetimeValue(form={:?}, grain={:?}, min-grain={:?}, kind={:?})",
-               self.form, self.constraint.grain(), self.constraint.grain_min(), self.datetime_kind)
-
+        write!(
+            fmt,
+            "DatetimeValue(form={:?}, grain={:?}, min-grain={:?}, kind={:?})",
+            self.form,
+            self.constraint.grain(),
+            self.constraint.grain_min(),
+            self.datetime_kind
+        )
     }
 }
 
@@ -542,12 +551,10 @@ impl DatetimeValue {
 
     pub fn has_period_form(&self) -> bool {
         match self.form {
-            Form::Cycle(grain) => {
-                match grain {
-                    Grain::Day => false,
-                    Grain::Second => false,
-                    _ => true,
-                }
+            Form::Cycle(grain) => match grain {
+                Grain::Day => false,
+                Grain::Second => false,
+                _ => true,
             },
             Form::Year(_) => true,
             Form::Month(_) => true,
@@ -580,18 +587,18 @@ impl DatetimeValue {
     }
 
     pub fn is_period(&self) -> bool {
-        self.direction.is_some() ||
-            self.has_period_form() ||
-            self.has_period_grain()
+        self.direction.is_some() || self.has_period_form() || self.has_period_grain()
     }
 
     pub fn is_today_date_and_time(&self) -> bool {
         match self.datetime_kind {
-            DatetimeKind::DatetimeComplement { date_and_time, today } => date_and_time && today,
-            _ => false
+            DatetimeKind::DatetimeComplement {
+                date_and_time,
+                today,
+            } => date_and_time && today,
+            _ => false,
         }
     }
-
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -645,12 +652,10 @@ impl Form {
 
     pub fn is_day(&self) -> bool {
         match self {
-            &Form::Cycle(grain) => {
-                match grain {
-                    Grain::Day => true,
-                    _ => false,
-                }
-            }
+            &Form::Cycle(grain) => match grain {
+                Grain::Day => true,
+                _ => false,
+            },
             &Form::MonthDay(_) => true,
             &Form::DayOfWeek { .. } => true,
             &Form::DayOfMonth => true,
@@ -675,7 +680,7 @@ pub enum Bound {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BoundedDirection {
     pub bound: Bound,
-    pub direction: Direction, 
+    pub direction: Direction,
 }
 
 impl BoundedDirection {
@@ -688,28 +693,36 @@ impl BoundedDirection {
 
     pub fn after_end() -> BoundedDirection {
         BoundedDirection {
-            bound: Bound::End { only_interval: true },
+            bound: Bound::End {
+                only_interval: true,
+            },
             direction: Direction::After,
         }
     }
 
     pub fn after_end_all() -> BoundedDirection {
         BoundedDirection {
-            bound: Bound::End { only_interval: false },
+            bound: Bound::End {
+                only_interval: false,
+            },
             direction: Direction::After,
         }
     }
 
     pub fn before_end() -> BoundedDirection {
         BoundedDirection {
-            bound: Bound::End { only_interval: true },
+            bound: Bound::End {
+                only_interval: true,
+            },
             direction: Direction::Before,
         }
     }
 
     pub fn before_end_all() -> BoundedDirection {
         BoundedDirection {
-            bound: Bound::End { only_interval: false },
+            bound: Bound::End {
+                only_interval: false,
+            },
             direction: Direction::Before,
         }
     }
@@ -738,22 +751,22 @@ pub struct PartOfForm {
 impl PartOfForm {
     pub fn start_of(inner_form: Form) -> Form {
         Form::PartOfForm(PartOfForm {
-           position: Position::Start,
-           inner_form: Box::new(inner_form),
+            position: Position::Start,
+            inner_form: Box::new(inner_form),
         })
     }
 
     pub fn middle_of(inner_form: Form) -> Form {
         Form::PartOfForm(PartOfForm {
-           position: Position::Middle,
-           inner_form: Box::new(inner_form),
+            position: Position::Middle,
+            inner_form: Box::new(inner_form),
         })
     }
 
     pub fn end_of(inner_form: Form) -> Form {
         Form::PartOfForm(PartOfForm {
-           position: Position::End,
-           inner_form: Box::new(inner_form),
+            position: Position::End,
+            inner_form: Box::new(inner_form),
         })
     }
 }
@@ -769,9 +782,21 @@ pub enum PartOfDayForm {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum TimeOfDayForm {
-    Hour { full_hour: u32, is_12_clock: bool },
-    HourMinute {  full_hour: u32, minute: u32, is_12_clock: bool },
-    HourMinuteSecond { full_hour: u32, minute: u32, second: u32, is_12_clock: bool },
+    Hour {
+        full_hour: u32,
+        is_12_clock: bool,
+    },
+    HourMinute {
+        full_hour: u32,
+        minute: u32,
+        is_12_clock: bool,
+    },
+    HourMinuteSecond {
+        full_hour: u32,
+        minute: u32,
+        second: u32,
+        is_12_clock: bool,
+    },
 }
 
 impl TimeOfDayForm {
@@ -790,7 +815,12 @@ impl TimeOfDayForm {
         }
     }
 
-    pub fn hour_minute_second(full_hour: u32, minute: u32, second: u32, is_12_clock: bool) -> TimeOfDayForm {
+    pub fn hour_minute_second(
+        full_hour: u32,
+        minute: u32,
+        second: u32,
+        is_12_clock: bool,
+    ) -> TimeOfDayForm {
         TimeOfDayForm::HourMinuteSecond {
             full_hour,
             is_12_clock,
@@ -801,13 +831,12 @@ impl TimeOfDayForm {
 
     pub fn get_hour(&self) -> u32 {
         match self {
-            &TimeOfDayForm::Hour { full_hour, ..} => full_hour,
-            &TimeOfDayForm::HourMinute {  full_hour, .. } => full_hour,
+            &TimeOfDayForm::Hour { full_hour, .. } => full_hour,
+            &TimeOfDayForm::HourMinute { full_hour, .. } => full_hour,
             &TimeOfDayForm::HourMinuteSecond { full_hour, .. } => full_hour,
         }
     }
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MonthDayForm {
@@ -842,11 +871,17 @@ pub struct DurationValue {
 
 impl DurationValue {
     pub fn new(period: Period) -> DurationValue {
-        DurationValue { period: period, precision: Precision::Exact, suffixed: false, prefixed: false, from_addition: None }
+        DurationValue {
+            period,
+            precision: Precision::Exact,
+            suffixed: false,
+            prefixed: false,
+            from_addition: None,
+        }
     }
 
     pub fn precision(self, precision: Precision) -> DurationValue {
-        DurationValue { precision: precision, ..self }
+        DurationValue { precision, ..self }
     }
 
     pub fn get_grain(&self) -> Grain {
@@ -858,7 +893,10 @@ impl DurationValue {
     }
 
     pub fn from_addition(self, from_addition: FromAddition) -> DurationValue {
-        DurationValue { from_addition: Some(from_addition), .. self}
+        DurationValue {
+            from_addition: Some(from_addition),
+            ..self
+        }
     }
 
     pub fn is_added_by_left(&self) -> bool {
@@ -882,11 +920,17 @@ impl DurationValue {
     }
 
     pub fn suffixed(self) -> DurationValue {
-        DurationValue { suffixed: true, .. self}
+        DurationValue {
+            suffixed: true,
+            ..self
+        }
     }
 
     pub fn prefixed(self) -> DurationValue {
-        DurationValue { prefixed: true, .. self }
+        DurationValue {
+            prefixed: true,
+            ..self
+        }
     }
 }
 
