@@ -1,4 +1,4 @@
-use walker::*;
+use crate::walker::*;
 
 #[derive(Clone)]
 pub struct BidirectionalWalker<V: Copy + Clone> {
@@ -29,7 +29,8 @@ impl<V: Copy + Clone> BidirectionalWalker<V> {
     }
 
     pub fn forward_with<FP>(self, anchor: V, transform: FP) -> BidirectionalWalker<V>
-        where FP: Fn(V) -> V + 'static
+    where
+        FP: Fn(V) -> V + 'static,
     {
         BidirectionalWalker {
             forward: Walker::generator(anchor, transform),
@@ -52,7 +53,8 @@ impl<V: Copy + Clone> BidirectionalWalker<V> {
     }
 
     pub fn backward_with<BP>(self, anchor: V, transform: BP) -> BidirectionalWalker<V>
-        where BP: Fn(V) -> V + 'static
+    where
+        BP: Fn(V) -> V + 'static,
     {
         BidirectionalWalker {
             forward: self.forward,
@@ -61,13 +63,11 @@ impl<V: Copy + Clone> BidirectionalWalker<V> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use Moment;
-    use Interval;
-    use period::*;
+    use crate::period::*;
+    use crate::{Interval, Moment};
     use chrono::{Local, TimeZone};
 
     #[test]
@@ -76,99 +76,148 @@ mod tests {
         let interval = Interval::starting_at(now, Grain::Second);
         let mut iterator = Walker::generator(interval, |prev| prev + PeriodComp::days(1));
 
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                   iterator.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
-                   iterator.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 27).and_hms(9, 10, 11)),
-                   iterator.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 28).and_hms(9, 10, 11)),
-                   iterator.next().unwrap().start);
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            iterator.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
+            iterator.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 27).and_hms(9, 10, 11)),
+            iterator.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 28).and_hms(9, 10, 11)),
+            iterator.next().unwrap().start
+        );
     }
 
     #[test]
     fn test_interval_bidirectional() {
-        let anchor = Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                                           Grain::Second);
+        let anchor = Interval::starting_at(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            Grain::Second,
+        );
 
         let mut bidirectional = BidirectionalWalker::new()
             .forward_with(anchor, |prev| prev + PeriodComp::days(1))
-            .backward_with(anchor - PeriodComp::days(1),
-                           |prev| prev - PeriodComp::days(1));
+            .backward_with(anchor - PeriodComp::days(1), |prev| {
+                prev - PeriodComp::days(1)
+            });
 
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                   bidirectional.forward.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
-                   bidirectional.forward.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
-                   bidirectional.backward.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 23).and_hms(9, 10, 11)),
-                   bidirectional.backward.next().unwrap().start);
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            bidirectional.forward.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
+            bidirectional.forward.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
+            bidirectional.backward.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 23).and_hms(9, 10, 11)),
+            bidirectional.backward.next().unwrap().start
+        );
     }
 
     #[test]
     fn test_interval_bidirectional_forward_values() {
-        let values =
-            vec![Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                                       Grain::Second),
-                 Interval::starting_at(Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
-                                       Grain::Second)];
+        let values = vec![
+            Interval::starting_at(
+                Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+                Grain::Second,
+            ),
+            Interval::starting_at(
+                Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
+                Grain::Second,
+            ),
+        ];
 
         let mut only_forward = BidirectionalWalker::new().forward_values(values);
 
         assert_eq!(None, only_forward.backward.next());
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                   only_forward.forward.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
-                   only_forward.forward.next().unwrap().start);
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            only_forward.forward.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
+            only_forward.forward.next().unwrap().start
+        );
         assert_eq!(None, only_forward.forward.next());
     }
 
     #[test]
     fn test_interval_bidirectional_forward_closure() {
-        let anchor = Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                                           Grain::Second);
+        let anchor = Interval::starting_at(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            Grain::Second,
+        );
 
         let mut only_forward =
             BidirectionalWalker::new().forward_with(anchor, |prev| prev + PeriodComp::days(1));
 
         assert_eq!(None, only_forward.backward.next());
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                   only_forward.forward.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
-                   only_forward.forward.next().unwrap().start);
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            only_forward.forward.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 26).and_hms(9, 10, 11)),
+            only_forward.forward.next().unwrap().start
+        );
     }
 
     #[test]
     fn test_interval_bidirectional_backward_values() {
-        let values =
-            vec![Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                                       Grain::Second),
-                 Interval::starting_at(Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
-                                       Grain::Second)];
+        let values = vec![
+            Interval::starting_at(
+                Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+                Grain::Second,
+            ),
+            Interval::starting_at(
+                Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
+                Grain::Second,
+            ),
+        ];
 
         let mut only_backward = BidirectionalWalker::new().backward_values(values);
 
         assert_eq!(None, only_backward.forward.next());
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                   only_backward.backward.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
-                   only_backward.backward.next().unwrap().start);
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            only_backward.backward.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
+            only_backward.backward.next().unwrap().start
+        );
         assert_eq!(None, only_backward.backward.next());
     }
 
     #[test]
     fn test_interval_bidirectional_backward_closure() {
-        let anchor = Interval::starting_at(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                                           Grain::Second);
+        let anchor = Interval::starting_at(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            Grain::Second,
+        );
 
         let mut only_backward =
             BidirectionalWalker::new().backward_with(anchor, |prev| prev - PeriodComp::days(1));
 
         assert_eq!(None, only_backward.forward.next());
-        assert_eq!(Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                   only_backward.backward.next().unwrap().start);
-        assert_eq!(Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
-                   only_backward.backward.next().unwrap().start);
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            only_backward.backward.next().unwrap().start
+        );
+        assert_eq!(
+            Moment(Local.ymd(2017, 04, 24).and_hms(9, 10, 11)),
+            only_backward.backward.next().unwrap().start
+        );
     }
 }

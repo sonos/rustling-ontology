@@ -2,12 +2,11 @@ extern crate rustling_ontology;
 extern crate rustling_ontology_moment as moment;
 extern crate serde;
 extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
 
-use rustling_ontology::{Output, dimension, output::DatetimeIntervalKind};
-use moment::{Moment, Local};
-use ::std::f64;
+use moment::{Local, Moment};
+use rustling_ontology::{dimension, output::DatetimeIntervalKind, Output};
+use serde::{Serialize, Deserialize};
+use std::f64;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -24,7 +23,10 @@ pub struct Utterance {
 
 impl Utterance {
     pub fn keep(&self) -> bool {
-        self.skip_rustling.map(|it| !it).or(self.in_grammar).unwrap_or(true)
+        self.skip_rustling
+            .map(|it| !it)
+            .or(self.in_grammar)
+            .unwrap_or(true)
     }
 }
 
@@ -41,7 +43,10 @@ pub struct PartialUtterance {
 
 impl PartialUtterance {
     pub fn keep(&self) -> bool {
-        self.skip_rustling.map(|it| !it).or(self.in_grammar).unwrap_or(true)
+        self.skip_rustling
+            .map(|it| !it)
+            .or(self.in_grammar)
+            .unwrap_or(true)
     }
 }
 
@@ -50,10 +55,10 @@ impl PartialUtterance {
 pub enum TestAssertion<A, B> {
     Success(Option<SlotValue>),
     Failed {
-        expected: A, 
+        expected: A,
         found: B,
         reason: String,
-    }
+    },
 }
 
 impl<A, B> TestAssertion<A, B> {
@@ -103,41 +108,53 @@ pub enum SlotValue {
 impl From<Output> for SlotValue {
     fn from(o: Output) -> SlotValue {
         match o {
-            Output::Integer(int) => SlotValue::Number(NumberValue { value: (int.0 as f64).into() }),
-            Output::Float(float) => SlotValue::Number(NumberValue { value: float.0.into() }),
-            Output::Ordinal(ordinal) => SlotValue::Ordinal(OrdinalValue { value: ordinal.0 as i64 }),
-            Output::Percentage(percentage) => SlotValue::Percentage(PercentageValue { value: percentage.0.into() }),
-            Output::Datetime(datetime) => SlotValue::InstantTime( InstantTimeValue {
+            Output::Integer(int) => SlotValue::Number(NumberValue {
+                value: (int.0 as f64).into(),
+            }),
+            Output::Float(float) => SlotValue::Number(NumberValue {
+                value: float.0.into(),
+            }),
+            Output::Ordinal(ordinal) => SlotValue::Ordinal(OrdinalValue {
+                value: ordinal.0 as i64,
+            }),
+            Output::Percentage(percentage) => SlotValue::Percentage(PercentageValue {
+                value: percentage.0.into(),
+            }),
+            Output::Datetime(datetime) => SlotValue::InstantTime(InstantTimeValue {
                 value: datetime.moment,
                 grain: datetime.grain.into(),
                 precision: datetime.precision.into(),
             }),
-            Output::DatetimeInterval(datetime_interval) => {
-                match datetime_interval.interval_kind {
-                    DatetimeIntervalKind::After(datetime) => SlotValue::TimeInterval( TimeIntervalValue {
+            Output::DatetimeInterval(datetime_interval) => match datetime_interval.interval_kind {
+                DatetimeIntervalKind::After(datetime) => {
+                    SlotValue::TimeInterval(TimeIntervalValue {
                         from: Some(datetime.moment),
                         to: None,
-                    }),
-                    DatetimeIntervalKind::Before(datetime) => SlotValue::TimeInterval( TimeIntervalValue {
+                    })
+                }
+                DatetimeIntervalKind::Before(datetime) => {
+                    SlotValue::TimeInterval(TimeIntervalValue {
                         from: None,
                         to: Some(datetime.moment),
-                    }),
-                    DatetimeIntervalKind::Between { start, end, .. } => SlotValue::TimeInterval(TimeIntervalValue {
+                    })
+                }
+                DatetimeIntervalKind::Between { start, end, .. } => {
+                    SlotValue::TimeInterval(TimeIntervalValue {
                         from: Some(start),
                         to: Some(end),
                     })
                 }
             },
-            Output::AmountOfMoney(amount) => SlotValue::AmountOfMoney( AmountOfMoneyValue {
+            Output::AmountOfMoney(amount) => SlotValue::AmountOfMoney(AmountOfMoneyValue {
                 value: amount.value,
                 precision: amount.precision.into(),
                 unit: amount.unit.map(|it| it.to_string()),
             }),
-            Output::Temperature(temperature) => SlotValue::Temperature( TemperatureValue {
+            Output::Temperature(temperature) => SlotValue::Temperature(TemperatureValue {
                 value: temperature.value,
                 unit: temperature.unit.map(|it| it.to_string()),
             }),
-            Output::Duration(duration) => SlotValue::Duration( DurationValue {
+            Output::Duration(duration) => SlotValue::Duration(DurationValue {
                 years: *duration.period.0.get(Grain::Year as usize).unwrap_or(&0),
                 quarters: *duration.period.0.get(Grain::Quarter as usize).unwrap_or(&0),
                 months: *duration.period.0.get(Grain::Month as usize).unwrap_or(&0),
@@ -157,16 +174,17 @@ fn nearly_equal_f64(a: f64, b: f64) -> bool {
     let abs_b = b.abs();
     let diff = (a - b).abs();
 
-    if a == b { // Handle infinities.
+    if a == b {
+        // Handle infinities.
         true
     } else if a == 0.0 || b == 0.0 || diff < f64::MIN_POSITIVE {
         // One of a or b is zero (or both are extremely close to it,) use absolute error.
         diff < (f64::EPSILON * f64::MIN_POSITIVE)
-    } else { // Use relative error.
+    } else {
+        // Use relative error.
         (diff / f64::min(abs_a + abs_b, f64::MAX)) < 0.00001
     }
 }
-
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct NumberValue {
@@ -178,7 +196,6 @@ impl PartialEq for NumberValue {
         nearly_equal_f64(self.value, other.value)
     }
 }
-
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Copy, Debug)]
 pub struct OrdinalValue {
@@ -281,36 +298,54 @@ impl From<dimension::Precision> for Precision {
 }
 
 mod moment_json {
-    use moment::{Moment, Local, TimeZone};
-    use serde::{Serialize, Serializer, Deserialize, Deserializer, de::Error};
+    use moment::{Local, Moment, TimeZone};
+    use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
-    pub fn serialize<S: Serializer>(moment: &Moment<Local>, serializer: S) -> Result<S::Ok, S::Error> {
-        moment.0.format("%Y-%m-%d %T").to_string().serialize(serializer)
+    pub fn serialize<S: Serializer>(
+        moment: &Moment<Local>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        moment
+            .0
+            .format("%Y-%m-%d %T")
+            .to_string()
+            .serialize(serializer)
     }
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Moment<Local>, D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Moment<Local>, D::Error> {
         let time: String = Deserialize::deserialize(deserializer)?;
-        let datetime = Local.datetime_from_str(time.as_ref(), "%Y-%m-%d %T").map_err(D::Error::custom)?;
+        let datetime = Local
+            .datetime_from_str(time.as_ref(), "%Y-%m-%d %T")
+            .map_err(D::Error::custom)?;
         Ok(Moment(datetime))
     }
 }
 
 mod optional_moment_json {
     use super::*;
-    use moment::{Moment, Local, TimeZone};
-    use serde::{Serializer, Deserialize, Deserializer, de::Error};
+    use moment::{Local, Moment, TimeZone};
+    use serde::{de::Error, Deserialize, Deserializer, Serializer};
 
-    pub fn serialize<S: Serializer>(moment: &Option<Moment<Local>>, serializer: S) -> Result<S::Ok, S::Error> {
+    pub fn serialize<S: Serializer>(
+        moment: &Option<Moment<Local>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
         match moment {
             &Some(ref moment) => moment_json::serialize(moment, serializer),
             &None => serializer.serialize_none(),
         }
     }
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<Moment<Local>>, D::Error> {
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Option<Moment<Local>>, D::Error> {
         let time: Option<String> = Deserialize::deserialize(deserializer)?;
         if let Some(time) = time {
-            let datetime = Local.datetime_from_str(time.as_ref(), "%Y-%m-%d %T").map_err(D::Error::custom)?;
+            let datetime = Local
+                .datetime_from_str(time.as_ref(), "%Y-%m-%d %T")
+                .map_err(D::Error::custom)?;
             Ok(Some(Moment(datetime)))
         } else {
             Ok(None)

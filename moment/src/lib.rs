@@ -7,17 +7,17 @@ extern crate enum_primitive;
 extern crate failure;
 extern crate vec_map;
 
-mod period;
-pub mod interval_constraints;
 pub mod bidirectional_walker;
+pub mod interval_constraints;
+mod period;
 pub mod walker;
 
-use std::ops;
 use std::cmp::Ordering;
 use std::fmt;
+use std::ops;
 
-use chrono::{DateTime, Duration, Datelike, Timelike};
-pub use chrono::{Weekday, Local, TimeZone};
+use chrono::{DateTime, Datelike, Duration, Timelike};
+pub use chrono::{Local, TimeZone, Weekday};
 pub use interval_constraints::*;
 pub use period::*;
 
@@ -35,8 +35,8 @@ pub struct Moment<T: TimeZone>(pub DateTime<T>);
 impl<T: TimeZone> Copy for Moment<T> where <T as TimeZone>::Offset: Copy {}
 
 impl<T1: TimeZone, T2: TimeZone> PartialEq<Moment<T2>> for Moment<T1> {
-    fn eq(&self, other: &Moment<T2>) -> bool { 
-        self.0 == other.0 
+    fn eq(&self, other: &Moment<T2>) -> bool {
+        self.0 == other.0
     }
 }
 
@@ -49,8 +49,8 @@ impl<T: TimeZone> PartialOrd for Moment<T> {
 }
 
 impl<T: TimeZone> Ord for Moment<T> {
-    fn cmp(&self, other: &Moment<T>) -> Ordering { 
-        self.0.cmp(&other.0) 
+    fn cmp(&self, other: &Moment<T>) -> Ordering {
+        self.0.cmp(&other.0)
     }
 }
 
@@ -60,7 +60,10 @@ impl<T: TimeZone> fmt::Debug for Moment<T> {
     }
 }
 
-impl<T: TimeZone> fmt::Display for Moment<T> where T::Offset: fmt::Display {
+impl<T: TimeZone> fmt::Display for Moment<T>
+where
+    T::Offset: fmt::Display,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
     }
@@ -105,27 +108,43 @@ impl Moment<Local> {
     }
 }
 
-impl<T: TimeZone> Moment<T> where <T as TimeZone>::Offset: Copy {
-
+impl<T: TimeZone> Moment<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     fn add_months(self, n: i32) -> Moment<T> {
         let (year, month0) = if n >= 0 {
             let n = n as u32;
             let carry = ((self.month0() + n % 12) >= 12) as i32;
-            (self.year() + (n / 12) as i32 + carry, (self.month0() + n) % 12)
+            (
+                self.year() + (n / 12) as i32 + carry,
+                (self.month0() + n) % 12,
+            )
         } else {
             let n = -n as u32;
             let borrow = (self.month0() < n % 12) as i32;
-            (self.year() - (n / 12) as i32 - borrow as i32, (12 + self.month0() - (n % 12)) % 12)
+            (
+                self.year() - (n / 12) as i32 - borrow as i32,
+                (12 + self.month0() - (n % 12)) % 12,
+            )
         };
         let target_month_days = last_day_in_month(year, month0 + 1, self.timezone());
         let day = ::std::cmp::min(target_month_days, self.day());
-        Moment(self.timezone().ymd(year, month0 + 1, day).and_hms(self.hour(), self.minute(), self.second()))
+        Moment(self.timezone().ymd(year, month0 + 1, day).and_hms(
+            self.hour(),
+            self.minute(),
+            self.second(),
+        ))
     }
 
     fn round_to(self, g: Grain) -> Moment<T> {
         match g {
             Grain::Year => Moment(self.timezone().ymd(self.year(), 1, 1).and_hms(0, 0, 0)),
-            Grain::Month => Moment(self.timezone().ymd(self.year(), self.month(), 1).and_hms(0, 0, 0)),
+            Grain::Month => Moment(
+                self.timezone()
+                    .ymd(self.year(), self.month(), 1)
+                    .and_hms(0, 0, 0),
+            ),
             Grain::Day => Moment(self.date().and_hms(0, 0, 0)),
             Grain::Hour => Moment(self.date().and_hms(self.hour(), 0, 0)),
             Grain::Minute => Moment(self.date().and_hms(self.hour(), self.minute(), 0)),
@@ -142,43 +161,57 @@ impl<T: TimeZone> Moment<T> where <T as TimeZone>::Offset: Copy {
     }
 
     fn adjust_for_daylight_saving(self) -> Moment<T> {
-        Moment(self.timezone()
-                   .ymd(self.year(), self.month(), self.day())
-                   .and_hms(self.hour(), self.minute(), self.second()))
+        Moment(
+            self.timezone()
+                .ymd(self.year(), self.month(), self.day())
+                .and_hms(self.hour(), self.minute(), self.second()),
+        )
     }
 }
 
-impl<T: TimeZone> ops::Add<Period> for Moment<T>  where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone> ops::Add<Period> for Moment<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Moment<T>;
     fn add(self, p: Period) -> Moment<T> {
         self + &p
     }
 }
 
-impl<'a, T: TimeZone> ops::Add<&'a Period> for Moment<T>  where <T as TimeZone>::Offset: Copy {
+impl<'a, T: TimeZone> ops::Add<&'a Period> for Moment<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Moment<T>;
     fn add(self, p: &'a Period) -> Moment<T> {
         use enum_primitive::FromPrimitive;
         let mut result = self;
         for (g, q) in p.0.iter() {
-            result = result +
-                     PeriodComp {
-                         grain: Grain::from_usize(g).unwrap(), // checked
-                         quantity: *q,
-                     };
+            result = result
+                + PeriodComp {
+                    grain: Grain::from_usize(g).unwrap(), // checked
+                    quantity: *q,
+                };
         }
         result
     }
 }
 
-impl<T: TimeZone> ops::Add<PeriodComp> for Moment<T>  where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone> ops::Add<PeriodComp> for Moment<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Moment<T>;
     fn add(self, p: PeriodComp) -> Moment<T> {
         self + &p
     }
 }
 
-impl<'a, T: TimeZone> ops::Add<&'a PeriodComp> for Moment<T>  where <T as TimeZone>::Offset: Copy {
+impl<'a, T: TimeZone> ops::Add<&'a PeriodComp> for Moment<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Moment<T>;
     fn add(self, p: &'a PeriodComp) -> Moment<T> {
         match p.grain {
@@ -196,21 +229,27 @@ impl<'a, T: TimeZone> ops::Add<&'a PeriodComp> for Moment<T>  where <T as TimeZo
     }
 }
 
-impl<T: TimeZone> ops::Sub<PeriodComp> for Moment<T>  where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone> ops::Sub<PeriodComp> for Moment<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Moment<T>;
     fn sub(self, p: PeriodComp) -> Moment<T> {
         self + -p
     }
 }
 
-impl<'a, T: TimeZone> ops::Sub<&'a PeriodComp> for Moment<T>  where <T as TimeZone>::Offset: Copy {
+impl<'a, T: TimeZone> ops::Sub<&'a PeriodComp> for Moment<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Moment<T>;
     fn sub(self, p: &'a PeriodComp) -> Moment<T> {
         self + -p
     }
 }
 
-#[derive(Clone,new)]
+#[derive(Clone, new)]
 pub struct Interval<T: TimeZone> {
     pub start: Moment<T>,
     pub end: Option<Moment<T>>,
@@ -231,7 +270,11 @@ impl Interval<Local> {
 
 impl<T: TimeZone> fmt::Debug for Interval<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Interval {{ start: {:?}, end: {:?}, grain: {:?} }}", self.start, self.end, self.grain)
+        write!(
+            f,
+            "Interval {{ start: {:?}, end: {:?}, grain: {:?} }}",
+            self.start, self.end, self.grain
+        )
     }
 }
 
@@ -243,7 +286,10 @@ impl<T: TimeZone> PartialEq for Interval<T> {
     }
 }
 
-impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone> Interval<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     fn start_round_to(self, g: Grain) -> Interval<T> {
         Interval {
             start: self.start.round_to(g),
@@ -262,8 +308,8 @@ impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
 
     pub fn starting_at(start: Moment<T>, grain: Grain) -> Interval<T> {
         Interval {
-            start: start,
-            grain: grain,
+            start,
+            grain,
             end: None,
         }
     }
@@ -273,14 +319,13 @@ impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
     }
 
     pub fn end_moment(self) -> Moment<T> {
-        self.end
-            .unwrap_or_else(|| {
-                                self.start +
-                                PeriodComp {
-                                    quantity: 1,
-                                    grain: self.grain,
-                                }
-                            })
+        self.end.unwrap_or_else(|| {
+            self.start
+                + PeriodComp {
+                    quantity: 1,
+                    grain: self.grain,
+                }
+        })
     }
 
     pub fn after(self) -> Interval<T> {
@@ -311,7 +356,7 @@ impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
         Interval {
             start: self.start,
             grain: ::std::cmp::max(self.grain, other.grain),
-            end: Some(other.start)
+            end: Some(other.start),
         }
     }
 
@@ -327,10 +372,10 @@ impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
                 Some(self)
             } else {
                 Some(Interval {
-                         start: other.start,
-                         grain: ::std::cmp::max(self.grain, other.grain),
-                         end: Some(self_end),
-                     })
+                    start: other.start,
+                    grain: ::std::cmp::max(self.grain, other.grain),
+                    end: Some(self_end),
+                })
             }
         } else {
             other.intersect(self)
@@ -345,7 +390,10 @@ impl<T: TimeZone> Interval<T> where <T as TimeZone>::Offset: Copy {
     }
 }
 
-impl<T: TimeZone> ops::Add<PeriodComp> for Interval<T> where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone> ops::Add<PeriodComp> for Interval<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Interval<T>;
     fn add(self, p: PeriodComp) -> Interval<T> {
         Interval {
@@ -356,37 +404,49 @@ impl<T: TimeZone> ops::Add<PeriodComp> for Interval<T> where <T as TimeZone>::Of
     }
 }
 
-impl<T: TimeZone> ops::Sub<PeriodComp> for Interval<T>  where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone> ops::Sub<PeriodComp> for Interval<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Interval<T>;
     fn sub(self, p: PeriodComp) -> Interval<T> {
         self + -p
     }
 }
 
-impl<T: TimeZone> ops::Add<Period> for Interval<T> where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone> ops::Add<Period> for Interval<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Interval<T>;
     fn add(self, p: Period) -> Interval<T> {
         self + &p
     }
 }
 
-impl<'a, T: TimeZone> ops::Add<&'a Period> for Interval<T> where <T as TimeZone>::Offset: Copy {
+impl<'a, T: TimeZone> ops::Add<&'a Period> for Interval<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Interval<T>;
     fn add(self, p: &'a Period) -> Interval<T> {
         use enum_primitive::FromPrimitive;
         let mut result = self;
         for (g, q) in p.0.iter() {
-            result = result +
-                     PeriodComp {
-                         grain: Grain::from_usize(g).unwrap(), // checked
-                         quantity: *q,
-                     };
+            result = result
+                + PeriodComp {
+                    grain: Grain::from_usize(g).unwrap(), // checked
+                    quantity: *q,
+                };
         }
         result
     }
 }
 
-impl<T: TimeZone> ops::Sub<Period> for Interval<T> where <T as TimeZone>::Offset: Copy {
+impl<T: TimeZone> ops::Sub<Period> for Interval<T>
+where
+    <T as TimeZone>::Offset: Copy,
+{
     type Output = Interval<T>;
     fn sub(self, p: Period) -> Interval<T> {
         self + -p
@@ -396,26 +456,32 @@ impl<T: TimeZone> ops::Sub<Period> for Interval<T> where <T as TimeZone>::Offset
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{TimeZone, FixedOffset, NaiveDate, NaiveDateTime, LocalResult};
+    use chrono::{FixedOffset, LocalResult, NaiveDate, NaiveDateTime, TimeZone};
 
     #[derive(Copy, Clone, PartialEq, Eq)]
     struct Paris;
-    
+
     impl TimeZone for Paris {
         type Offset = FixedOffset;
-        fn from_offset(_: &FixedOffset) -> Paris { Paris }
-    
+        fn from_offset(_: &FixedOffset) -> Paris {
+            Paris
+        }
+
         fn offset_from_local_date(&self, _local: &NaiveDate) -> LocalResult<FixedOffset> {
-            LocalResult::Single(FixedOffset::east(2*3600))
+            LocalResult::Single(FixedOffset::east(2 * 3600))
         }
         fn offset_from_local_datetime(&self, _local: &NaiveDateTime) -> LocalResult<FixedOffset> {
-            LocalResult::Single(FixedOffset::east(2*3600))
+            LocalResult::Single(FixedOffset::east(2 * 3600))
         }
-    
-        fn offset_from_utc_date(&self, _utc: &NaiveDate) -> FixedOffset { FixedOffset::east(2*3600) }
-        fn offset_from_utc_datetime(&self, _utc: &NaiveDateTime) -> FixedOffset { FixedOffset::east(2*3600) }
+
+        fn offset_from_utc_date(&self, _utc: &NaiveDate) -> FixedOffset {
+            FixedOffset::east(2 * 3600)
+        }
+        fn offset_from_utc_datetime(&self, _utc: &NaiveDateTime) -> FixedOffset {
+            FixedOffset::east(2 * 3600)
+        }
     }
-    
+
     #[test]
     fn test_last_day_in_month() {
         assert_eq!(last_day_in_month(2015, 2, Paris), 28);
@@ -436,38 +502,73 @@ mod tests {
     #[test]
     fn add_months_to_moment() {
         let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
-        assert_eq!(Moment(Paris.ymd(2017, 05, 25).and_hms(9, 10, 11)),
-                   now.add_months(1));
-        assert_eq!(Moment(Paris.ymd(2018, 04, 25).and_hms(9, 10, 11)),
-                   now.add_months(12));
-        assert_eq!(Moment(Paris.ymd(2018, 01, 25).and_hms(9, 10, 11)),
-                   Moment(Paris.ymd(2017, 12, 25).and_hms(9, 10, 11)).add_months(1));
-        assert_eq!(Moment(Paris.ymd(2017, 06, 30).and_hms(9, 10, 11)),
-                   Moment(Paris.ymd(2017, 05, 31).and_hms(9, 10, 11)).add_months(1));
+        assert_eq!(
+            Moment(Paris.ymd(2017, 05, 25).and_hms(9, 10, 11)),
+            now.add_months(1)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2018, 04, 25).and_hms(9, 10, 11)),
+            now.add_months(12)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2018, 01, 25).and_hms(9, 10, 11)),
+            Moment(Paris.ymd(2017, 12, 25).and_hms(9, 10, 11)).add_months(1)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 06, 30).and_hms(9, 10, 11)),
+            Moment(Paris.ymd(2017, 05, 31).and_hms(9, 10, 11)).add_months(1)
+        );
         // daylight saving brainfuck
-        assert_eq!(Moment(FixedOffset::east(2*3600).ymd(2017, 03, 26).and_hms(3, 30, 00)),
-                   Moment(FixedOffset::east(1*3600).ymd(2017, 02, 26).and_hms(2, 30, 00)).add_months(1));
+        assert_eq!(
+            Moment(
+                FixedOffset::east(2 * 3600)
+                    .ymd(2017, 03, 26)
+                    .and_hms(3, 30, 00)
+            ),
+            Moment(
+                FixedOffset::east(1 * 3600)
+                    .ymd(2017, 02, 26)
+                    .and_hms(2, 30, 00)
+            )
+            .add_months(1)
+        );
     }
 
     #[test]
     fn add_period_comp_to_moment() {
         let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 21)),
-                   now + PeriodComp::seconds(10));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 20, 11)),
-                   now + &PeriodComp::minutes(10));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(19, 10, 11)),
-                   now + PeriodComp::hours(10));
-        assert_eq!(Moment(Paris.ymd(2017, 05, 5).and_hms(9, 10, 11)),
-                   now + &PeriodComp::days(10));
-        assert_eq!(Moment(Paris.ymd(2017, 05, 2).and_hms(9, 10, 11)),
-                   now + PeriodComp::weeks(1));
-        assert_eq!(Moment(Paris.ymd(2018, 02, 25).and_hms(9, 10, 11)),
-                   now + &PeriodComp::months(10));
-        assert_eq!(Moment(Paris.ymd(2017, 07, 25).and_hms(9, 10, 11)),
-                   now + PeriodComp::quarters(1));
-        assert_eq!(Moment(Paris.ymd(2027, 04, 25).and_hms(9, 10, 11)),
-                   now + &PeriodComp::years(10));
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 21)),
+            now + PeriodComp::seconds(10)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 25).and_hms(9, 20, 11)),
+            now + &PeriodComp::minutes(10)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 25).and_hms(19, 10, 11)),
+            now + PeriodComp::hours(10)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 05, 5).and_hms(9, 10, 11)),
+            now + &PeriodComp::days(10)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 05, 2).and_hms(9, 10, 11)),
+            now + PeriodComp::weeks(1)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2018, 02, 25).and_hms(9, 10, 11)),
+            now + &PeriodComp::months(10)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 07, 25).and_hms(9, 10, 11)),
+            now + PeriodComp::quarters(1)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2027, 04, 25).and_hms(9, 10, 11)),
+            now + &PeriodComp::years(10)
+        );
     }
 
     #[test]
@@ -478,57 +579,98 @@ mod tests {
         period.0.insert(Grain::Year as usize, 2);
         period.0.insert(Grain::Month as usize, 3);
 
-        assert_eq!(Moment(Paris.ymd(2019, 07, 25).and_hms(9, 10, 11)),
-                   now + &period);
+        assert_eq!(
+            Moment(Paris.ymd(2019, 07, 25).and_hms(9, 10, 11)),
+            now + &period
+        );
 
         period.0.insert(Grain::Hour as usize, 5);
 
-        assert_eq!(Moment(Paris.ymd(2019, 07, 25).and_hms(14, 10, 11)),
-                   now + period.clone());
+        assert_eq!(
+            Moment(Paris.ymd(2019, 07, 25).and_hms(14, 10, 11)),
+            now + period.clone()
+        );
     }
 
     #[test]
     fn sub_months_to_moment() {
         let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
-        assert_eq!(Moment(Paris.ymd(2017, 03, 25).and_hms(9, 10, 11)),
-                   now.add_months(-1));
-        assert_eq!(Moment(Paris.ymd(2016, 04, 25).and_hms(9, 10, 11)),
-                   now.add_months(-12));
-        assert_eq!(Moment(Paris.ymd(2017, 12, 25).and_hms(9, 10, 11)),
-                   Moment(Paris.ymd(2018, 01, 25).and_hms(9, 10, 11)).add_months(-1));
-        assert_eq!(Moment(Paris.ymd(2017, 06, 30).and_hms(9, 10, 11)),
-                   Moment(Paris.ymd(2017, 07, 31).and_hms(9, 10, 11)).add_months(-1));
+        assert_eq!(
+            Moment(Paris.ymd(2017, 03, 25).and_hms(9, 10, 11)),
+            now.add_months(-1)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2016, 04, 25).and_hms(9, 10, 11)),
+            now.add_months(-12)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 12, 25).and_hms(9, 10, 11)),
+            Moment(Paris.ymd(2018, 01, 25).and_hms(9, 10, 11)).add_months(-1)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 06, 30).and_hms(9, 10, 11)),
+            Moment(Paris.ymd(2017, 07, 31).and_hms(9, 10, 11)).add_months(-1)
+        );
         // daylight saving brainfuck
-        assert_eq!(Moment(FixedOffset::east(2*3600).ymd(2017, 03, 26).and_hms(3, 30, 00)),
-                   Moment(FixedOffset::east(1*3600).ymd(2017, 04, 26).and_hms(2, 30, 00)).add_months(-1));
+        assert_eq!(
+            Moment(
+                FixedOffset::east(2 * 3600)
+                    .ymd(2017, 03, 26)
+                    .and_hms(3, 30, 00)
+            ),
+            Moment(
+                FixedOffset::east(1 * 3600)
+                    .ymd(2017, 04, 26)
+                    .and_hms(2, 30, 00)
+            )
+            .add_months(-1)
+        );
     }
 
     #[test]
     fn daylight_saving_aware() {
         // TODO Take a look at the offset shifting due to a period addition        // 1st March -> +1 and 31 Match -> +2        // 1st March + 30 days -> +1 instead of +2
-        assert_eq!(Moment(Paris.ymd(2017, 03, 31).and_hms(0, 0, 0)),
-                   Moment(Paris.ymd(2017, 03, 20).and_hms(0, 0, 0)) + PeriodComp::days(11))
+        assert_eq!(
+            Moment(Paris.ymd(2017, 03, 31).and_hms(0, 0, 0)),
+            Moment(Paris.ymd(2017, 03, 20).and_hms(0, 0, 0)) + PeriodComp::days(11)
+        )
     }
 
     #[test]
     fn moment_round_to() {
         let now = Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11));
-        assert_eq!(Moment(Paris.ymd(2017, 01, 01).and_hms(0, 0, 0)),
-                   now.round_to(Grain::Year));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 01).and_hms(0, 0, 0)),
-                   now.round_to(Grain::Month));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(0, 0, 0)),
-                   now.round_to(Grain::Day));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 0, 0)),
-                   now.round_to(Grain::Hour));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 0)),
-                   now.round_to(Grain::Minute));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)),
-                   now.round_to(Grain::Second));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 24).and_hms(0, 0, 0)),
-                   now.round_to(Grain::Week));
-        assert_eq!(Moment(Paris.ymd(2017, 04, 01).and_hms(0, 0, 0)),
-                   now.round_to(Grain::Quarter));
+        assert_eq!(
+            Moment(Paris.ymd(2017, 01, 01).and_hms(0, 0, 0)),
+            now.round_to(Grain::Year)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 01).and_hms(0, 0, 0)),
+            now.round_to(Grain::Month)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 25).and_hms(0, 0, 0)),
+            now.round_to(Grain::Day)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 25).and_hms(9, 0, 0)),
+            now.round_to(Grain::Hour)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 0)),
+            now.round_to(Grain::Minute)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)),
+            now.round_to(Grain::Second)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 24).and_hms(0, 0, 0)),
+            now.round_to(Grain::Week)
+        );
+        assert_eq!(
+            Moment(Paris.ymd(2017, 04, 01).and_hms(0, 0, 0)),
+            now.round_to(Grain::Quarter)
+        );
     }
 
     #[test]
@@ -586,18 +728,22 @@ mod tests {
             grain: Grain::Hour,
             end: Some(Moment(Paris.ymd(2017, 05, 08).and_hms(11, 0, 0))),
         };
-        assert_eq!(Interval {
-                       start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
-                       grain: Grain::Hour,
-                       end: Some(Moment(Paris.ymd(2017, 04, 30).and_hms(0, 0, 0))),
-                   },
-                   interval.intersect(other).unwrap());
-        assert_eq!(Interval {
-                       start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
-                       grain: Grain::Hour,
-                       end: Some(Moment(Paris.ymd(2017, 04, 30).and_hms(0, 0, 0))),
-                   },
-                   other.intersect(interval).unwrap());
+        assert_eq!(
+            Interval {
+                start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
+                grain: Grain::Hour,
+                end: Some(Moment(Paris.ymd(2017, 04, 30).and_hms(0, 0, 0))),
+            },
+            interval.intersect(other).unwrap()
+        );
+        assert_eq!(
+            Interval {
+                start: Moment(Paris.ymd(2017, 04, 26).and_hms(9, 0, 0)),
+                grain: Grain::Hour,
+                end: Some(Moment(Paris.ymd(2017, 04, 30).and_hms(0, 0, 0))),
+            },
+            other.intersect(interval).unwrap()
+        );
         let other = Interval {
             start: Moment(Paris.ymd(2017, 05, 26).and_hms(9, 0, 0)),
             grain: Grain::Hour,

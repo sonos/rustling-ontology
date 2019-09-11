@@ -2,6 +2,7 @@
 name = "rustling-ontology-values"
 version = "0.19.1"
 authors = ["Mathieu Poumeyrol <kali@zoy.org>"]
+edition = "2018"
 
 [dependencies]
 log = "0.4"

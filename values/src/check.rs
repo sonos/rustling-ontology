@@ -1,8 +1,8 @@
+use crate::context::{ParsingContext, ResolverContext};
+use crate::dimension::*;
+use crate::output::*;
+use moment::{Grain, Interval, Local, Moment, Period};
 use rustling::{AttemptFrom, Check, ParsedNode};
-use moment::{Grain, Interval, Moment, Local, Period};
-use dimension::*;
-use output::*;
-use context::{ParsingContext, ResolverContext};
 
 #[derive(Debug)]
 pub struct CheckInteger {
@@ -58,7 +58,7 @@ pub fn check_float(v: f32) -> CheckFloat {
 #[derive(Debug)]
 pub struct CheckDuration {
     pub period: Period,
-    pub precision: Precision
+    pub precision: Precision,
 }
 
 impl Check<Dimension> for CheckDuration {
@@ -73,7 +73,6 @@ pub fn check_duration(period: Period, precision: Precision) -> CheckDuration {
     CheckDuration { period, precision }
 }
 
-
 #[derive(Debug)]
 pub struct CheckMoment {
     pub direction: Option<Direction>,
@@ -85,55 +84,63 @@ pub struct CheckMoment {
 impl Check<Dimension> for CheckMoment {
     fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
         match self.direction {
-            None => {
-                self.context.resolve(&pn.value)
-                    .and_then(|v| DatetimeOutput::attempt_from(v))
-                    .map(|v| {
-                        let check_value = v.moment == self.interval.start && v.grain == self.interval.grain;
-                        let check_precision = v.precision == self.precision;
+            None => self
+                .context
+                .resolve(&pn.value)
+                .and_then(|v| DatetimeOutput::attempt_from(v))
+                .map(|v| {
+                    let check_value =
+                        v.moment == self.interval.start && v.grain == self.interval.grain;
+                    let check_precision = v.precision == self.precision;
+                    check_value && check_precision
+                })
+                .unwrap_or(false),
+            Some(Direction::After) => self
+                .context
+                .resolve(&pn.value)
+                .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
+                .map(|v| {
+                    if let DatetimeIntervalKind::After(m) = v.interval_kind {
+                        let check_value =
+                            m.moment == self.interval.start && m.grain == self.interval.grain;
+                        let check_precision = m.precision == self.precision;
                         check_value && check_precision
-                    })
-                    .unwrap_or(false)
-            }
-            Some(Direction::After) => {
-                self.context.resolve(&pn.value)
-                    .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
-                    .map(|v| {
-                        if let DatetimeIntervalKind::After(m) = v.interval_kind {
-                            let check_value = m.moment == self.interval.start && m.grain == self.interval.grain;
-                            let check_precision = m.precision == self.precision;
-                            check_value && check_precision
-                        } else {
-                            false
-                        }
-                    })
-                    .unwrap_or(false)
-            }
-            Some(Direction::Before) => {
-                self.context.resolve(&pn.value)
-                    .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
-                    .map(|v| {
-                        if let DatetimeIntervalKind::Before(m) = v.interval_kind {
-                            let check_value = m.moment == self.interval.start && m.grain == self.interval.grain;
-                            let check_precision = m.precision == self.precision;
-                            check_value && check_precision
-                        } else {
-                            false
-                        }
-                    })
-                    .unwrap_or(false)
-            }
+                    } else {
+                        false
+                    }
+                })
+                .unwrap_or(false),
+            Some(Direction::Before) => self
+                .context
+                .resolve(&pn.value)
+                .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
+                .map(|v| {
+                    if let DatetimeIntervalKind::Before(m) = v.interval_kind {
+                        let check_value =
+                            m.moment == self.interval.start && m.grain == self.interval.grain;
+                        let check_precision = m.precision == self.precision;
+                        check_value && check_precision
+                    } else {
+                        false
+                    }
+                })
+                .unwrap_or(false),
         }
     }
 }
 
-pub fn check_moment(context: ResolverContext, moment: Moment<Local>, grain: Grain, precision: Precision, direction: Option<Direction>)
-                    -> CheckMoment {
+pub fn check_moment(
+    context: ResolverContext,
+    moment: Moment<Local>,
+    grain: Grain,
+    precision: Precision,
+    direction: Option<Direction>,
+) -> CheckMoment {
     CheckMoment {
-        direction: direction,
-        precision: precision,
+        direction,
+        precision,
         interval: Interval::starting_at(moment, grain),
-        context: context
+        context,
     }
 }
 
@@ -146,11 +153,20 @@ pub struct CheckMomentSpan {
 
 impl Check<Dimension> for CheckMomentSpan {
     fn check(&self, pn: &ParsedNode<Dimension>) -> bool {
-        self.context.resolve(&pn.value)
+        self.context
+            .resolve(&pn.value)
             .and_then(|v| DatetimeIntervalOutput::attempt_from(v))
             .map(|v| {
-                if let DatetimeIntervalKind::Between { start, end, precision, .. } = v.interval_kind {
-                    start == self.interval.start && Some(end) == self.interval.end && precision == self.precision
+                if let DatetimeIntervalKind::Between {
+                    start,
+                    end,
+                    precision,
+                    ..
+                } = v.interval_kind
+                {
+                    start == self.interval.start
+                        && Some(end) == self.interval.end
+                        && precision == self.precision
                 } else {
                     false
                 }
@@ -159,9 +175,18 @@ impl Check<Dimension> for CheckMomentSpan {
     }
 }
 
-pub fn check_moment_span(context: ResolverContext, precision: Precision, start: Moment<Local>, end: Moment<Local>, grain: Grain)
-                         -> CheckMomentSpan {
-    CheckMomentSpan { interval: Interval::new(start, Some(end), grain), precision, context }
+pub fn check_moment_span(
+    context: ResolverContext,
+    precision: Precision,
+    start: Moment<Local>,
+    end: Moment<Local>,
+    grain: Grain,
+) -> CheckMomentSpan {
+    CheckMomentSpan {
+        interval: Interval::new(start, Some(end), grain),
+        precision,
+        context,
+    }
 }
 
 #[derive(Debug)]
@@ -181,9 +206,9 @@ impl Check<Dimension> for CheckFinance {
 
 pub fn check_finance(value: f32, unit: Option<&'static str>, precision: Precision) -> CheckFinance {
     CheckFinance {
-        value: value,
-        precision: precision,
-        unit: unit,
+        value,
+        precision,
+        unit,
     }
 }
 
@@ -201,9 +226,7 @@ impl Check<Dimension> for CheckPercentage {
 }
 
 pub fn check_percentage(value: f32) -> CheckPercentage {
-    CheckPercentage {
-        value: value,
-    }
+    CheckPercentage { value }
 }
 
 #[derive(Debug)]
@@ -221,9 +244,5 @@ impl Check<Dimension> for CheckTemperature {
 }
 
 pub fn check_temperature(value: f32, unit: Option<&'static str>) -> CheckTemperature {
-    CheckTemperature {
-        value: value,
-        unit: unit,
-    }
+    CheckTemperature { value, unit }
 }
-

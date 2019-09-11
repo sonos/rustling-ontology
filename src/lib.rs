@@ -19,28 +19,25 @@
 //! }
 //! ```
 extern crate rmp_serde;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-
 extern crate rustling;
-extern crate rustling_ontology_moment;
 extern crate rustling_ontology_grammar as grammar;
+extern crate rustling_ontology_moment;
 extern crate rustling_ontology_values;
+extern crate serde;
 
-pub use rustling::{AttemptInto, ParsedNode, ParserMatch, Range, Value, Sym, ParsingAnalysis};
+pub use grammar::{dims, Lang};
 pub use rustling::RustlingResult;
-pub use grammar::{Lang, dims};
+pub use rustling::{AttemptInto, ParsedNode, ParserMatch, ParsingAnalysis, Range, Sym, Value};
+pub use rustling_ontology_moment::Grain;
+pub use rustling_ontology_moment::{Interval, Local, Moment, TimeZone};
 pub use rustling_ontology_values::dimension;
 pub use rustling_ontology_values::output;
 pub use rustling_ontology_values::output::{Output, OutputKind};
-pub use rustling_ontology_values::{ResolverContext, IdentityContext, ParsingContext};
-pub use rustling_ontology_moment::{Interval, Moment, Local, TimeZone};
-pub use rustling_ontology_moment::Grain;
+pub use rustling_ontology_values::{IdentityContext, ParsingContext, ResolverContext};
 
+mod mapper;
 mod parser;
 mod tagger;
-mod mapper;
 
 pub use tagger::CandidateTagger;
 
@@ -52,17 +49,20 @@ pub type RawParser = rustling::Parser<dimension::Dimension, parser::Feat, parser
 pub struct Parser(RawParser);
 
 impl Parser {
-    pub fn parse_with_kind_order(&self,
-                                 input: &str,
-                                 context: &ResolverContext,
-                                 order: &[OutputKind])
-                                 -> RustlingResult<Vec<ParserMatch<Output>>> {
+    pub fn parse_with_kind_order(
+        &self,
+        input: &str,
+        context: &ResolverContext,
+        order: &[OutputKind],
+    ) -> RustlingResult<Vec<ParserMatch<Output>>> {
         let tagger = CandidateTagger {
             output_kind_filter: order,
-            context: context,
+            context,
             resolve_all_candidates: false,
         };
-        Ok(self.0.parse(input, &tagger)?
+        Ok(self
+            .0
+            .parse(input, &tagger)?
             .into_iter()
             .filter_map(|m| {
                 if let Some(v) = m.value {
@@ -82,27 +82,34 @@ impl Parser {
             .collect())
     }
 
-    pub fn parse(&self,
-                 input: &str,
-                 context: &ResolverContext)
-                 -> RustlingResult<Vec<ParserMatch<Output>>> {
+    pub fn parse(
+        &self,
+        input: &str,
+        context: &ResolverContext,
+    ) -> RustlingResult<Vec<ParserMatch<Output>>> {
         let all_output = OutputKind::all();
         self.parse_with_kind_order(input, context, &all_output)
     }
 
-    pub fn analyse_with_kind_order(&self,
-                                    examples: Vec<&str>,
-                                    context: &ResolverContext,
-                                    order:  &[OutputKind]) -> RustlingResult<ParsingAnalysis> {
+    pub fn analyse_with_kind_order(
+        &self,
+        examples: Vec<&str>,
+        context: &ResolverContext,
+        order: &[OutputKind],
+    ) -> RustlingResult<ParsingAnalysis> {
         let tagger = CandidateTagger {
             output_kind_filter: order,
-            context: context,
+            context,
             resolve_all_candidates: false,
         };
         self.0.analyse(examples, &tagger)
     }
 
-    pub fn analyse(&self, examples: Vec<&str>, context: &ResolverContext) -> RustlingResult<ParsingAnalysis> {
+    pub fn analyse(
+        &self,
+        examples: Vec<&str>,
+        context: &ResolverContext,
+    ) -> RustlingResult<ParsingAnalysis> {
         let all_kind = OutputKind::all();
         self.analyse_with_kind_order(examples, &context, &all_kind)
     }
@@ -118,34 +125,57 @@ impl Parser {
 
 /// Obtain a parser for a given language.
 pub fn build_parser(lang: Lang) -> RustlingResult<Parser> {
-    build_raw_parser(lang).map(::Parser)
+    build_raw_parser(lang).map(crate::Parser)
 }
-
-
 
 /// Obtain a parser for a given language.
 pub fn build_raw_parser(lang: Lang) -> RustlingResult<RawParser> {
     let rules = grammar::rules(lang)?;
     let model = match lang {
-        Lang::DE => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/de.rmp"))[..]) },
-        Lang::EN => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/en.rmp"))[..]) },
-        Lang::ES => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/es.rmp"))[..]) },
-        Lang::IT => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/it.rmp"))[..]) },
-        Lang::FR => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/fr.rmp"))[..]) },
-        Lang::PT => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/pt.rmp"))[..]) },
-        Lang::JA => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ja.rmp"))[..]) },
-        Lang::KO => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ko.rmp"))[..]) },
-        Lang::ZH => { ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/zh.rmp"))[..]) },
+        Lang::DE => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/de.rmp"))[..])
+        }
+        Lang::EN => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/en.rmp"))[..])
+        }
+        Lang::ES => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/es.rmp"))[..])
+        }
+        Lang::IT => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/it.rmp"))[..])
+        }
+        Lang::FR => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/fr.rmp"))[..])
+        }
+        Lang::PT => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/pt.rmp"))[..])
+        }
+        Lang::JA => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ja.rmp"))[..])
+        }
+        Lang::KO => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/ko.rmp"))[..])
+        }
+        Lang::ZH => {
+            ::rmp_serde::decode::from_read(&include_bytes!(concat!(env!("OUT_DIR"), "/zh.rmp"))[..])
+        }
     }?;
-    Ok(::RawParser::new(rules, model, ::parser::FeatureExtractor()))
+    Ok(crate::RawParser::new(
+        rules,
+        model,
+        crate::parser::FeatureExtractor(),
+    ))
 }
-
 
 pub fn train_parser(lang: Lang) -> RustlingResult<Parser> {
     let rules = grammar::rules(lang)?;
     let examples = grammar::examples(lang);
-    let model = ::rustling::train::train(&rules, examples, ::parser::FeatureExtractor())?;
-    Ok(Parser(::rustling::Parser::new(rules, model, ::parser::FeatureExtractor())))
+    let model = ::rustling::train::train(&rules, examples, crate::parser::FeatureExtractor())?;
+    Ok(Parser(::rustling::Parser::new(
+        rules,
+        model,
+        crate::parser::FeatureExtractor(),
+    )))
 }
 
 #[cfg(test)]
@@ -157,7 +187,9 @@ mod tests {
         let ctx = ResolverContext::default();
         let parser = build_parser(Lang::EN).unwrap();
         let number = "one million five hundred twenty-one thousand eighty-two";
-        let result = parser.parse_with_kind_order(number, &ctx,  &[OutputKind::Number]).unwrap();
+        let result = parser
+            .parse_with_kind_order(number, &ctx, &[OutputKind::Number])
+            .unwrap();
         let int: output::IntegerOutput = result[0].value.clone().attempt_into().unwrap();
         assert_eq!(1521082, int.0);
     }
@@ -176,7 +208,10 @@ mod tests {
         let result = parser.candidates(&*sent, &tagger).unwrap();
         println!("{}", result.len());
         for r in &result {
-            println!("{:?}", &sent[r.node.root_node.byte_range.0..r.node.root_node.byte_range.1]);
+            println!(
+                "{:?}",
+                &sent[r.node.root_node.byte_range.0..r.node.root_node.byte_range.1]
+            );
         }
         panic!();
     }
