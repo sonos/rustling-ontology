@@ -2,7 +2,7 @@ use std::f32;
 use rustling::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::helpers;
-
+use rustling_ontology_values::dimension::Precision::*;
 
 pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_2("intersect",
@@ -68,7 +68,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 9),
              |a, _, b| IntegerValue::new(a.value().value + b.value().value));
     b.rule_1_terminal("number (16..19 21..29)",
-                      b.reg(r#"(die[cs]i(?:s[eéè]is|siete|ocho|nueve)|veinti(?:un[oa]|d[oó]s|tr[eéè]s|cuatro|cinco|s[eéè]is|siete|ocho|nueve))"#)?,
+                      b.reg(r#"(die[cs]i(?:s[eéè]is|siete|ocho|nueve)|veinti(?:(?:un[oa]|[ùuú]n)|d[oó]s|tr[eéè]s|cuatro|cinco|s[eéè]is|siete|ocho|nueve))"#)?,
                       |text_match| {
                           let value = match text_match.group(1).as_ref() {
                               "dieciseis" => 16,
@@ -80,6 +80,9 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                               "diecinueve" => 19,
                               "veintiuno" => 21,
                               "veintiuna" => 21,
+                              "veintiùn" => 21,
+                              "veintiun" => 21,
+                              "veintiún" => 21,
                               "veintidos" => 22,
                               "veintidós" => 22,
                               "veintitres" => 23,
@@ -185,7 +188,18 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      ..IntegerValue::default()
                  })
              });
-
+    b.rule_1("few", b.reg(r#"un[oa]s"#)?, |_| {
+        Ok(IntegerValue {
+            value: 3,
+            grain: Some(1),
+            precision: Approximate,
+            ..IntegerValue::default()
+        })
+    });
+    b.rule_1_terminal("several",
+                      b.reg(r#"vario[ao]s"#)?,
+                      |_| IntegerValue::new_with_grain(4, 1)
+    );
     b.rule_1_terminal("integer (numeric)",
                       b.reg(r#"(\d{1,18})"#)?,
                       |text_match| IntegerValue::new(text_match.group(0).parse()?));

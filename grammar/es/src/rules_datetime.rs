@@ -273,7 +273,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("del <year>", //latin america mostly
-             b.reg(r#"del(?: a[ñn]o)?"#)?,
+             b.reg(r#"(?:d?el )?(?:a[ñn]o)?"#)?,
              integer_check_by_range!(1000, 2100),
              |_, integer| helpers::year(integer.value().value as i32)
     );
@@ -295,7 +295,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"el"#)?,
              ordinal_check!(),
              b.reg(r#"d[iíì]a"#)?,
-             |_, ordinal, _| Ok((*ordinal.value()).prefixed()));
+             |_, ordinal, _| Ok((*ordinal.value()).prefixed()))
+    ;
     b.rule_2("<day-of-month> <named-month>",
              integer_check_by_range!(1, 31),
              datetime_check!(form!(Form::Month(_))),
