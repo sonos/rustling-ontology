@@ -1351,15 +1351,15 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Seasons
     b.rule_1_terminal("summer",
-                      b.reg(r#"(?:quest(a |'))?estate"#)?,
+                      b.reg(r#"(?:quest(?:a |'))?estate"#)?,
                       |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
     );
     b.rule_1_terminal("autumn",
-                      b.reg(r#"(?:quest(o |'))?autunno"#)?,
+                      b.reg(r#"(?:quest(?:o |'))?autunno"#)?,
                       |_| helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
     );
     b.rule_1_terminal("winter",
-                      b.reg(r#"(?:quest(o |'))?inverno"#)?,
+                      b.reg(r#"(?:quest(?:o |'))?inverno"#)?,
                       |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     );
     b.rule_1_terminal("spring",
