@@ -886,6 +886,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |a, b| a.value().intersect(b.value())
     );
+    b.rule_2("<time-of-day> <part-of-day>",
+             datetime_check!(excluding_form!(Form::TimeOfDay(_))),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
+             |a, b| a.value().intersect(b.value())
+    );
     b.rule_2("<dim time> in the morning",
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"(?:(?:il|la)|di|in|[dn](?:el(?:la)?)) mattin(?:o|a(?:ta)?)"#)?,
@@ -1202,7 +1207,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_4("from <datetime> - <datetime> (interval)",
              b.reg(r#"dal?(?:l['oe])?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
-             b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
+             b.reg(r#"(?:fino )?a(?:l(?:l['oe])?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
