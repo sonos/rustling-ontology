@@ -886,11 +886,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |a, b| a.value().intersect(b.value())
     );
-    b.rule_2("<time-of-day> <part-of-day>",
-             datetime_check!(excluding_form!(Form::TimeOfDay(_))),
-             datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
-             |a, b| a.value().intersect(b.value())
-    );
     b.rule_2("<dim time> in the morning",
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"(?:(?:il|la)|di|in|[dn](?:el(?:la)?)) mattin(?:o|a(?:ta)?)"#)?,
@@ -1212,7 +1207,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_4("between <datetime> and <datetime> (interval)",
-             b.reg(r#"tra"#)?,
+             b.reg(r#"[tf]ra"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"e"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
@@ -1228,7 +1223,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b, year| a.value().span_to(b.value(), true)?.intersect(year.value())
     );
     b.rule_5("between <datetime> and <datetime> <year> (interval)",
-             b.reg(r#"tra"#)?,
+             b.reg(r#"[ft]ra"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"e"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime) && datetime.is_coarse_grain_greater_than(Grain::Year)),
@@ -1249,21 +1244,16 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_4("between <time-of-day> and <time-of-day> (interval)",
-             b.reg(r#"tra"#)?,
+             b.reg(r#"[ft]ra"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"e"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_2("before <time-of-day>",
-             b.reg(r#"prima|entro"#)?,
+             b.reg(r#"prima|entro|fino al(?:l[eoa])?"#)?,
              datetime_check!(),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
-    );
-    b.rule_2("before <time-of-day>",
-             b.reg(r#"prima|entro"#)?,
-             datetime_check!(),
-             |_, datetime| Ok(datetime.value().clone().mark_before_start())
     );
     b.rule_2("after <time-of-day>",
              b.reg(r#"dopo"#)?,
