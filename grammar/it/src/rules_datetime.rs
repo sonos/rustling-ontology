@@ -47,7 +47,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //    );
 // Removed constraints (latent() And Not(TimeOfDay)) on datetime  (in cov test : 'per mezzanotte e venti' for ex) but need to check if this is a mistake to remove constraints
     b.rule_2("for <datetime>",
-             b.reg(r#"per|durante"#)?,
+             b.reg(r#"per|durante|nel|in"#)?,
              datetime_check!(),
              |_, a| Ok(a.value().clone())
     );
@@ -415,7 +415,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //                 ?.intersect(tod.value())
 //    );
     b.rule_2("next <date>",
-             b.reg(r#"prossim[oa]"#)?,
+             b.reg(r#"(?:il )?prossim[oa]"#)?,
              datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
              |_, datetime| datetime.value().the_nth_not_immediate(0)
     );
@@ -950,19 +950,19 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Seasons
     b.rule_1_terminal("summer",
-                      b.reg(r#"(?:quest(?:a |'))?estate"#)?,
+                      b.reg(r#"(?:quest(?:a |')|nell')?estate"#)?,
                       |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
     );
     b.rule_1_terminal("autumn",
-                      b.reg(r#"(?:quest(?:o |'))?autunno"#)?,
+                      b.reg(r#"(?:quest(?:o |')|nell')?autunno"#)?,
                       |_| helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
     );
     b.rule_1_terminal("winter",
-                      b.reg(r#"(?:quest(?:o |'))?inverno"#)?,
+                      b.reg(r#"(?:quest(?:o |')|nell')?inverno"#)?,
                       |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     );
     b.rule_1_terminal("spring",
-                      b.reg(r#"(?:questa )?primavera"#)?,
+                      b.reg(r#"(?:questa |nella )?primavera"#)?,
                       |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     );
     // Dates
@@ -1251,7 +1251,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_2("before <time-of-day>",
-             b.reg(r#"prima|entro|fino al(?:l[eoa])?"#)?,
+             b.reg(r#"prima(?: di)?|entro|[sf]ino al(?:l[eoa])?"#)?,
              datetime_check!(),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
     );
@@ -1288,7 +1288,6 @@ pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> Rustli
                  start.span_to(&end, false)
              }
     );
-
     Ok(())
 
 }
@@ -1342,6 +1341,13 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
              cycle_check!(),
              b.reg(r#"dopo"#)?,
              |integer, cycle, _| helpers::cycle_nth(cycle.value().grain, integer.value().value)
+    );
+    // TODO: resolution is not correct for times, i.e. rounds at grain
+    b.rule_3("last n <cycle>",
+             b.reg(r#"gli scorsi|(?:(?:gli|nelle|(?:per|durante)? le|nel corso de(?:lle|gli)?|nell'arco di questi)? ultim[ei])?"#)?,
+             integer_check_by_range!(1, 9999),
+             cycle_check!(),
+             |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
     );
     // TODO: more <cycle> combinations with N + past/future
     // LATER
