@@ -25,7 +25,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //    );
     b.rule_3("intersect by 'of'",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
-             b.reg(r#"del(?:l['oa])?"#)?,
+             b.reg(r#"del(?:l['oa])?|di"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |a, _, b| a.value().intersect(b.value())
     );
@@ -204,6 +204,16 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
              |datetime, _| datetime.value().the_nth_not_immediate(0)
     );
+    b.rule_2("<datetime> following",
+             datetime_check!(),
+             b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
+             |datetime, _| datetime.value().the_nth_not_immediate(0)
+    );
+    b.rule_2("next <datetime> ",
+             b.reg(r#"prossim[oa]"#)?,
+             datetime_check!(),
+             |_, datetime| datetime.value().the_nth_not_immediate(0)
+    );
     b.rule_3("the <named-month> following",
              b.reg(r#"il|l['ao]"#)?,
              datetime_check!(form!(Form::Month(_))),
@@ -257,7 +267,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_4("<ordinal> <datetime> of <datetime>",
              ordinal_check!(), // the first
-             datetime_check!(), // Thursday
+             datetime_check!(excluding_form!(Form::Month(_))), // Thursday // exclude Month to avoid confusion with 'il primo febbraio del prossimo anno'
              b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?, // of
              datetime_check!(), // march
              |ordinal, a, _, b| {
@@ -374,7 +384,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<day-of-week> <datetime>",
              datetime_check!(form!(Form::DayOfWeek{..})),
-             datetime_check!(),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              |_, datetime| Ok(datetime.value().clone())
     );
     b.rule_3("the <day-of-week> <datetime>",
@@ -418,6 +428,12 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"(?:il )?prossim[oa]"#)?,
              datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
              |_, datetime| datetime.value().the_nth_not_immediate(0)
+    );
+    b.rule_3("the <date> next",
+             b.reg(r#"(?:il )?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
+             b.reg(r#"prossim[oa]"#)?,
+             |_, datetime, _| datetime.value().the_nth_not_immediate(0)
     );
     // Time of day
     b.rule_1("time-of-day (latent)",
@@ -1251,7 +1267,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_2("before <time-of-day>",
-             b.reg(r#"prima(?: di)?|entro|[sf]ino al(?:l[eoa])?"#)?,
+             b.reg(r#"prima(?: d(?:i|el(?:l[ea])?)?)?|entro|[sf]ino a(?:l(?:l[eoa])?)?"#)?,
              datetime_check!(),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
     );
@@ -1261,7 +1277,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_after_end())
     );
     b.rule_2("after <time-of-day>",
-             b.reg(r#"dopo|a partire da(?:l(?:l['e])?)?"#)?,
+             b.reg(r#"dopo|a partire da(?:l(?:l['e])?)?|da(?:l(?:l[eo])?)?"#)?,
              datetime_check!(),
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
@@ -1288,6 +1304,47 @@ pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> Rustli
                  start.span_to(&end, false)
              }
     );
+    // Durations with modifiers / timeline positioning
+    b.rule_2("in-future <duration> (French 'dans 2 mois')",
+             b.reg(r#"[tf]ra"#)?,
+             duration_check!(),
+             |_, duration| duration.value().in_present()
+    );
+    b.rule_2("<duration> later",
+             duration_check!(),
+             b.reg(r"(dopo|più tardi)")?,
+             |duration, _| duration.value().in_present()
+    );
+    b.rule_2("<duration> ago",
+             duration_check!(),
+             b.reg(r#"fa"#)?,
+             |duration, _| duration.value().ago()
+    );
+    b.rule_3("in <duration> from now",
+             b.reg(r#"[tf]ra"#)?,
+             duration_check!(),
+             b.reg(r#"da (?:adesso|ora)?"#)?,
+             |_, duration, _| duration.value().in_present()
+    );
+    b.rule_2("since <duration>",
+             b.reg(r#"da(?: |l(?:l['oaie])?)"#)?,
+             duration_check!(),
+             |_, duration| {
+                 duration.value().ago()?
+                     .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
+             });
+    b.rule_3("<duration> after <datetime>",
+             duration_check!(),
+             b.reg(r#"dopo"#)?,
+             datetime_check!(),
+             |duration, _, datetime| duration.value().after(datetime.value())
+    );
+    b.rule_3("<duration> before <datetime>",
+             duration_check!(),
+             b.reg(r#"prima"#)?,
+             datetime_check!(),
+             |duration, _, datetime| duration.value().after(datetime.value())
+    );
     Ok(())
 
 }
@@ -1300,7 +1357,7 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
              |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
     );
     b.rule_2("last <cycle>",
-             b.reg(r#"(?:nell[oa] |nell'|nel corso (?:dell[oa] |dell')?)?(scors[oa]|passat[oa]|ultim[ao])"#)?,
+             b.reg(r#"(?:nell[oa] |nell'|nel corso (?:dell[oa] |dell')?)?(scors[oa]|passat[oa]|quest'ultim[ao])"#)?,
              cycle_check!(),
              |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
     );
@@ -1342,12 +1399,19 @@ pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> Rustl
              b.reg(r#"dopo"#)?,
              |integer, cycle, _| helpers::cycle_nth(cycle.value().grain, integer.value().value)
     );
-    // TODO: resolution is not correct for times, i.e. rounds at grain
+    // TODO: resolution is not correct for times, i.e. rounds at grain?
     b.rule_3("last n <cycle>",
              b.reg(r#"gli scorsi|(?:(?:gli|nelle|(?:per|durante)? le|nel corso de(?:lle|gli)?|nell'arco di questi)? ultim[ei])?"#)?,
              integer_check_by_range!(1, 9999),
              cycle_check!(),
              |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    // TODO: Same as above ?
+    b.rule_3("next n <cycle>",
+             b.reg(r#"(?:[nd]ei|i|nelle)? prossim[ie]"#)?,
+             integer_check_by_range!(1, 9999),
+             cycle_check!(),
+             |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
     );
     // TODO: more <cycle> combinations with N + past/future
     // LATER
