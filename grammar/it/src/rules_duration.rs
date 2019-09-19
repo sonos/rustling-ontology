@@ -109,17 +109,6 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(0),
              |duration, integer| helpers::compose_duration_with_integer(duration.value(), integer.value())
     );
-    // Durations with modifiers / timeline positioning
-    b.rule_2("in-future <duration> (French 'dans 2 mois')",
-             b.reg(r#"[tf]ra"#)?,
-             duration_check!(),
-             |_, duration| duration.value().in_present()
-    );
-    b.rule_2("<duration> later",
-             duration_check!(),
-             b.reg(r"(dopo|più tardi)")?,
-             |duration, _| duration.value().in_present()
-    );
     b.rule_2("approx <duration>",
              b.reg(r#"verso|interno a|(?:approssim|indic|orient)ativamente|(?:all'in)?circa|più o meno|pressappoco|suppergiù|grosso modo"#)?,
              duration_check!(),
@@ -145,30 +134,5 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              duration_check!(),
              |_, duration| Ok(duration.value().clone().prefixed())
     );
-    b.rule_2("<duration> ago",
-             duration_check!(),
-             b.reg(r#"fa"#)?,
-             |duration, _| duration.value().ago()
-    );
-    b.rule_2("since <duration>",
-             b.reg(r#"da(?: |l(?:l['oaie])?)"#)?,
-             duration_check!(),
-             |_, duration| {
-                 duration.value().ago()?
-                     .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
-             });
-    b.rule_3("<duration> after <datetime>",
-             duration_check!(),
-             b.reg(r#"dopo"#)?,
-             datetime_check!(),
-             |duration, _, datetime| duration.value().after(datetime.value())
-    );
-    b.rule_3("<duration> before <datetime>",
-             duration_check!(),
-             b.reg(r#"prima"#)?,
-             datetime_check!(),
-             |duration, _, datetime| duration.value().after(datetime.value())
-    );
-
     Ok(())
 }
