@@ -28,8 +28,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_integer(3000000), "3M", "3000000", "3.000.000", "três milhões");
     //example!(v, check_integer(1200000), "1.200.000", "1200000", "1,2M", "um milhão e duzentos mil");
     //example!(v, check_integer(-1200000), "- 1.200.000", "-1200000", "menos 1200000", "-1,2M", "menos um milhão e duzentos mil");
-    // TODO : float temperature
-    //example!(v, check_float(1.1), "1,1", "1,10", "um vígula um", "um vírgula dez");
+    example!(v, check_float(1.1), "1,1", "1,10", "um vírgula um", "um vírgula dez");
     example!(v, check_float(0.5), "0,5", "0,50", "zero vírgula cinco", "zero vírgula cinquenta");
     example!(v, check_float(32.75), "32,75", "trinta e dois vírgula setenta e cinco");
     example!(v, check_float(10.08), "10,08", "dez vírgula zero oito");
@@ -280,16 +279,13 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     // FIXME:
     // fix_example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]),  "13 julho - 15 julho",  "de 13 a 15 de julho",  "do dia 13 ao dia 15 de julho",  "de sábado dia 13 a domingo dia 15 de julho",  "de sábado dia 13 até domingo dia 15 de julho",  "do dia 13 a domingo dia 15");
 
-    // FIXME: Resolution error (second date bad resolution) + "13-15 julho" not supported
+    // FIXME: "13-15 julho" not supported
     // example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "13-15 julho", "entre dia 13 e dia 15 de julho");
-    // FIXME: Resolution issue 10 --> 11 , + "de segunda dia primeiro a quarta-feira dia 10 de julho" not parsed
+    // FIXME: "de segunda dia primeiro a quarta-feira dia 10 de julho" not parsed
     // fix_example!(v, check_moment_span!(c, [2013, 7, 1], [2013, 7, 10]), "do dia 1 ao dia 10 de julho", "de segunda dia primeiro a quarta-feira dia 10 de julho");
-    // FIXME: Resolution eror : 06/18 -> 06/19
     //example!(v, check_moment_span!(c, [2013, 2, 13], [2013, 2, 18]), "do dia 13 ao dia 18", "entre dia 13 e dia 18");
     example!(v, check_moment_span!(c, [2023, 2, 1], [2023, 3, 1]), "entre fevereiro e março de dois mil e vinte e três", "entre o mês de fevereiro e o mês de março de dois mil e vinte e três");
-    // FIXME: Resolution error : "primeiro de julho" -> 06/01 but "de 10 de junho a primeiro de julho" -> 06/02
     // example!(v, check_moment_span!(c, [2013, 6, 10], [2013, 7, 2]), "de 10 de junho a primeiro de julho", "entre o dia dez de junho e dia primeiro de julho", "entre o dia 10 de junho e o dia primeiro de julho", "de 10 de junho a 1º de julho");
-    // FIXME: Resolution error: start: 2017-04-06T00:00:00+02:00, end: 2017-06-09T00:00:00+02:00, 8 --> 9
     // example!(v, check_moment_span!(c, [2017,4,6], [2017,6,9]), "do dia seis de abril ao dia oito de junho de dois mil e dezessete", "de seis de abril ao dia oito de junho de dois mil e dezessete");
     // TODO: OK, but abbreviation "5ª f." not supported, "09:30 - 11:00" as interval not supported
     // fix_example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11]), "09:30 - 11:00 na quinta-feira", "das 9h30 às 11h na quinta-feira", "das 9 e meia às 11 de quinta-feira", "na quinta-feira das 9h30 às 11h", "quinta-feira entre 9 e meia e 11", "quinta das 9h30 às 11h", "5ª f. entre as 09:30 e as 11:00");
@@ -317,6 +313,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 5], [2013, 2, 12, 7]), "das 5 às 7", "entre 5 e 7 horas", "de 5 à sete horas");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "quinta-feira das 9 às 11", "na quinta-feira entre as 9 e as 11");
 
+    // 12 resolved as midnight
     //example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 14]), "do meio-dia às 14h", "entre o meio-dia e as duas da tarde", "entre as doze e as catorze horas");
     example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 30]), "das 11h30 à 1h30", "das 11 e meia à uma e meia");
     example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "às 13:30 de sábado dia 21 de setembro", "às 13h30 de sábado dia 21 de setembro");
