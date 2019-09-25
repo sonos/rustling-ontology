@@ -216,9 +216,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  start.span_to(&end, true)
              }
     );
-    b.rule_2("next <named-month|named-day>",
+    b.rule_2("next <datetime>",
              b.reg(r#"(?:el|la )?pr[oóò]xim[oa]"#)?,
              datetime_check!(),
+             |_, datetime| datetime.value().the_nth_not_immediate(0)
+    );
+    b.rule_2("next <named-month>",
+             b.reg(r#"(?:el )?pr[oóò]xim[oa](?: mes de)?"#)?,
+             datetime_check!(form!(Form::Month(_))),
              |_, datetime| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_2("last <named-month|named-day>",
@@ -856,9 +861,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_4("<datetime> - <datetime> (interval)",
-             b.reg(r#"del"#)?,
+             b.reg(r#"del?"#)?,
              datetime_check!(),
-             b.reg(r#"\-|al?"#)?,
+             b.reg(r#"\-|al?|hasta"#)?,
              datetime_check!(),
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
