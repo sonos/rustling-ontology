@@ -132,10 +132,11 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     // Holidays
     // TODO
-    // holiday_example!(v, check_moment!(c, [2013, 12, 25]), "Natale", "natale", "giorno di natale");
+    example!(v, check_moment!(c, [2013, 12, 25]), "Navidad");
     // holiday_example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "la sera di natale", "la notte di Natale");
     // "il primo gennaio & co. works already"
-    // holiday_example!(v, check_moment!(c, [2014, 1, 1]), "primo giorno dell'anno", "capodanno", "primo gennaio", "il primo gennaio", "il primo giorno di gennaio");
+    example!(v, check_moment!(c, [2014, 1, 1]), "año nuevo", "el primero de enero");
+    example!(v, check_moment!(c, [2013, 12, 31]), "en nochevieja");
     // holiday_example!(v, check_moment!(c, [2013, 11, 1]), "tutti i santi", "il giorno di tutti i santi", "ognissanti", "il giorno di ognissanti", "il giorno d'ognissanti");
     // "il primo maggio & co. works already"
     // holiday_example!(v, check_moment!(c, [2013, 05, 1]), "festa del lavoro", "la festa dei lavoratori", "il primo maggio");
