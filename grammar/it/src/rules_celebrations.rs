@@ -6,7 +6,7 @@ use rustling_ontology_values::helpers;
 
 pub fn rules_celebration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1_terminal("christmas",
-                      b.reg(r#"natale"#)?,
+                      b.reg(r#"(?:giorno di )?natale"#)?,
                       |_| Ok(helpers::month_day(12, 25)?
                           .form(Form::Celebration))
     );
@@ -16,7 +16,7 @@ pub fn rules_celebration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()
                               .form(Form::Celebration))
     );
     b.rule_1_terminal("Labor's day",
-                          b.reg(r#"festa del lavoro"#)?,
+                          b.reg(r#"festa de[li] lavor(?:o|atori)?"#)?,
                           |_| Ok(helpers::month_day(5, 1)?
                               .form(Form::Celebration))
     );
