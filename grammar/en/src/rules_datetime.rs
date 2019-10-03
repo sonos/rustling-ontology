@@ -1023,6 +1023,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     /* END OF DATETIME - TIME - TIME OF DAY WITH PRECISION - UNSUPPORTED */
 
+
+    /* Date and Time period need separate rules for the resolution to be adjusted to the right grain */
     /* DATETIME - DATE-PERIOD - FROM DATE INTERVALS */
 
     // TODO: split written / verbalized forms
@@ -1092,8 +1094,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     /* END OF DATETIME - TIME-PERIOD - FROM TIME INTERVALS */
 
-    /* DATETIME - DATE AND TIME PERIODS - SPLIT TO DO */
+    /* DATETIME - DATE AND TIME PERIODS */
 
+    b.rule_2("from <datetime> (incl. <time-of-day>)",
+             b.reg(r#"from"#)?,
+             datetime_check!(),
+             |_, a| Ok(a.value().clone().mark_after_start())
+    );
     b.rule_2("by <time-of-day>",
              b.reg(r#"by"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(_))(datetime)),
@@ -1105,7 +1112,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(),
              |_, a| helpers::cycle_nth(Grain::Day, 0)?.span_to(a.value(), true)
     );
-    // TODO: split date/time period + correct regex
+    // TODO: correct regex
     b.rule_2("until <datetime>",
              b.reg(r#"(?:anytime |sometimes? )?(?:(?:un)?til(?:l)?|through|up to)"#)?,
              datetime_check!(),

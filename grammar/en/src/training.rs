@@ -187,7 +187,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "next 3 months", "next three months");
     example!(v, check_moment_span!(c, [2011], [2013]), "last 2 years", "last two years");
     example!(v, check_moment_span!(c, [2014], [2017]), "next 3 years", "next three years");
-    example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "July 13-15", "July 13 to 15", "July 13 thru 15", "July 13 through 15", "July 13 - July 15");
+    example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "July 13-15", "July 13 to 15", "July 13 thru 15", "July 13 through 15", "July 13 - July 15", "from July 13 to July 15");
     example!(v, check_moment_span!(c, [2013, 8, 8], [2013, 8, 13]), "Aug 8 - Aug 12");
     example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 0]), "9:30 - 11:00");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11, 0]), "from 9:30 - 11:00 on Thursday", "between 9:30 and 11:00 on thursday", "9:30 - 11:00 on Thursday", "later than 9:30 but before 11:00 on Thursday", "Thursday from 9:30 to 11:00","from 9:30 untill 11:00 on thursday", "Thursday from 9:30 untill 11:00", "9:30 till 11:00 on Thursday");
@@ -195,6 +195,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 30]), "11:30-1:30");
     example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "1:30 PM on Sat, Sep 21");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "within 2 weeks");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14, 0], Direction::After), "from 2:00pm");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14, 0], Direction::Before), "until 2:00pm", "through 2:00pm");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 14]), "by 2:00pm");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 20]), "by EOD");

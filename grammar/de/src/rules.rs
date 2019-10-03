@@ -335,6 +335,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"fr[üu]her"#)?,
              |duration, _| duration.value().ago()
     );
+    b.rule_2("seit <duration>",
+             b.reg(r#"seit"#)?,
+             duration_check!(),
+             |_, duration| duration.value().ago()?
+                 .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
+    );
     b.rule_3("<duration> after <datetime>",
              duration_check!(),
              b.reg(r#"nach"#)?,

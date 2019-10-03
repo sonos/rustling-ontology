@@ -1370,6 +1370,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
+    b.rule_2("depuis <datetime>",
+             b.reg(r#"depuis"#)?,
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+             |_, datetime| Ok(datetime.value().the_nth(-1)?.mark_after_start())
+    );
     b.rule_2("à partir de <part-of-day>",
              b.reg(r#"[aà] partir d['eu](?:l[ 'a])?|depuis"#)?,
              datetime_check!(form!(Form::PartOfDay(_))),
