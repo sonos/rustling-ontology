@@ -1113,10 +1113,15 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a| helpers::cycle_nth(Grain::Day, 0)?.span_to(a.value(), true)
     );
     // TODO: correct regex
+    b.rule_2("until <time-of-day>",
+             b.reg(r#"(?:anytime |sometimes? )?(?:(?:un)?til(?:l)?|through|up to)"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             |_, a| Ok(a.value().clone().mark_before_end())
+    );
     b.rule_2("until <datetime>",
              b.reg(r#"(?:anytime |sometimes? )?(?:(?:un)?til(?:l)?|through|up to)"#)?,
-             datetime_check!(),
-             |_, a| Ok(a.value().clone().mark_before_end())
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
+             |_, a| Ok(a.value().clone().mark_before_end_all())
     );
     // TODO: split date/time period + correct regex
     b.rule_2("before <datetime>",

@@ -309,12 +309,12 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| helpers::day_of_month(1)
     );
     b.rule_2("le <day-of-month> (non ordinal)",
-             b.reg(r#"le"#)?,
+             b.reg(r#"le|au"#)?,
              integer_check_by_range!(1, 31),
              |_, integer| helpers::day_of_month(integer.value().value as u32)
     );
     b.rule_4("le <day-of-month> à <time-of-day>",
-             b.reg(r#"le"#)?,
+             b.reg(r#"le|au"#)?,
              integer_check_by_range!(1, 31),
              b.reg(r#"[aà]"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(_))(datetime)),
@@ -1345,10 +1345,35 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
-    b.rule_2("jusqu'à <datetime>",
-             b.reg(r#"(?:n[ ']importe quand )?jusqu'(?:au|[aà]|en)?"#)?,
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+    b.rule_2("jusqu'à <time-of-day>",
+             b.reg(r#"(?:n[ ']importe quand )?jusqu'?(?:au|[aà]|en)?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(_))(datetime) && !datetime.latent),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
+    );
+    b.rule_2("jusqu'à <datetime>",
+             b.reg(r#"(?:n[ ']importe quand )?jusqu'?(?:au|[aà]|en)?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
+             |_, datetime| Ok(datetime.value().clone().mark_before_end_all())
+    );
+    // Two specific rules w/ "jusqu'au" + day-of-month, not catchable otherwise when no tokenization
+    b.rule_2("jusqu'au <day-of-month>",
+             b.reg(r#"(?:n[ ']importe quand )?jusqu'au"#)?,
+             integer_check_by_range!(1, 31),
+             |_, integer| {
+                 let dom = helpers::day_of_month(integer.value().value as u32);
+                 Ok(dom?.clone().mark_after_end_all())
+             }
+    );
+    b.rule_3("jusqu'au <day-of-month> <named-month>",
+             b.reg(r#"(?:n[ ']importe quand )?jusqu'au"#)?,
+             integer_check_by_range!(1, 31),
+             datetime_check!(form!(Form::Month(_))),
+             |_, integer, month| {
+                 let dom = month.value()
+                     .intersect(&helpers::day_of_month(integer.value().value as u32)?)?
+                     .form(Form::DayOfMonth);
+                 Ok(dom.clone().mark_after_end_all())
+             }
     );
     b.rule_2("avant <datetime>",
              b.reg(r#"(?:n[ ']importe quand )?avant"#)?,
@@ -1356,7 +1381,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_before_start())
     );
     b.rule_2("avant <part-of-day>",
-             b.reg(r#"(?:n[ ']importe quand )?(avant|jusqu'(?:au|[aà]|en))"#)?,
+             b.reg(r#"(?:n[ ']importe quand )?(avant|jusqu'(?:au|[aà]|en)?)"#)?,
              datetime_check!(form!(Form::PartOfDay(_))),
              |_, datetime| Ok(datetime.value().clone().mark_before_start())
     );

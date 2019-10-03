@@ -1855,9 +1855,21 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //             |_, datetime| Ok(datetime.value().clone().mark_before_end_all())
 //    );
     b.rule_2("before <datetime>",
-             b.reg(r#"vor(?: de[nmr]| )|bis(?:(?: zu[rm]?(?: den)?)| in d(?:en|ie|as))?"#)?,
+             b.reg(r#"vor(?: de[nmr])?"#)?,
              datetime_check!(excluding_form!(Form::PartOfForm(_))),
              |_, datetime| Ok(datetime.value().clone().mark_before_start())
+    );
+
+    b.rule_2("until <datetime>",
+             b.reg(r#"bis(?:(?: zu[rm]?(?: de[nmr])?))?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::PartOfForm(_))(datetime) && excluding_form!(Form::TimeOfDay(_))(datetime)),
+             |_, datetime| Ok(datetime.value().clone().mark_before_end_all())
+    );
+
+    b.rule_2("until <time-of-day>",
+             b.reg(r#"bis"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::PartOfForm(_))(datetime) && form!(Form::TimeOfDay(_))(datetime)),
+             |_, datetime| Ok(datetime.value().clone().mark_before_end())
     );
 
     b.rule_2("before <part-of-form> (specific cases)",

@@ -286,7 +286,8 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 13, 44]), "ein uhr und vierundvierzig minuten");
     example!(v, check_moment_span!(c, [2013, 2, 11, 1, 9], [2013, 2, 11, 3, 25]), "gestern zwischen ein uhr und neun minuten und drei uhr und fünfundzwanzig minuten");
     example!(v, check_moment_span!(c, [2013, 2, 13, 00, 45], [2013, 2, 13, 1, 00]), "zwischen dreiviertel eins und ein uhr morgen");
-    example!(v, check_moment_with_direction!(c, [2013, 2, 14], Direction::Before), "bis Donnerstag");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 14], Direction::Before), "vor Donnerstag");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 15], Direction::Before), "bis Donnerstag");
 
 }
 
