@@ -167,8 +167,26 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_3("<ordinal> quarter <year>",
              ordinal_check_by_range!(1, 4),
              cycle_check!(|cycle: &CycleValue| cycle.grain == Grain::Quarter),
-             datetime_check!(),
+             datetime_check!(form!(Form::Year(_))),
              |ordinal, _, datetime| helpers::cycle_nth_after(Grain::Quarter, ordinal.value().value - 1, datetime.value())
+    );
+    b.rule_2("Q1-4 <year>",
+             b.reg(r#"q ?([1234]|one|two|three|four)"#)?,
+             datetime_check!(form!(Form::Year(_))),
+             |q, year| {
+                 let n = match q.group(1).as_ref() {
+                     "1" => 0,
+                     "2" => 1,
+                     "3" => 2,
+                     "4" => 3,
+                     "one" => 0,
+                     "two" => 1,
+                     "three" => 2,
+                     "four" => 3,
+                     _ => return Err(RuleError::Invalid.into()),
+                 };
+                 helpers::cycle_nth_after(Grain::Quarter, n, year.value())
+             }
     );
     /* END OF DATETIME - DATE - STANDALONE SINGLE GRAIN */
 
