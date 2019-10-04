@@ -6,7 +6,7 @@ use rustling_ontology_values::ResolverContext;
 pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     // Days
-    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "ahora", "ahora mismo", "en este preciso momento", "en este preciso istante");
+    example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "ahora", "ahora mismo", "en este preciso momento", "en este preciso istante", "inmediatamente");
     example!(v, check_moment!(c, [2013, 2, 12]), "hoy", "en este momento");
     example!(v, check_moment!(c, [2013, 2, 11]), "ayer", "el día anterior", "el dia anterior", "el día de antes", "el dia de antes", "la víspera", "la vispera");
     example!(v, check_moment!(c, [2013, 2, 10]), "antes de ayer", "anteayer");
@@ -92,9 +92,9 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     // fix_example!(v, check_moment!(c, [2013, 2, 12, 11, 45]), "a las doce menos cuarto del mediodía", "11:45", "a las once horas y cuarenta y cinco minutos", "hoy a las 11:45");
 
     // Day + day time
-    example!(v, check_moment!(c, [2013, 3, 2, 5, 0]), "2 de marzo a las 5:00");
+    example!(v, check_moment!(c, [2013, 3, 2, 5, 0]), "2 de marzo a las 5:00", "2 de marzo a las 5:00 exactamente", "2 de marzo a las 5:00 exactas", "2 de marzo a las 5:00 en punto");
     example!(v, check_moment!(c, [2013, 3, 2, 5]), "2 de marzo a las 5h", "el 2 de marzo a las 5h", "el 02/03 a las 5h de la mañana", "el 02/03 a las 5h de la madrugada");
-    example!(v, check_moment!(c, [2013, 3, 2, 5]), "2 de marzo sobre las 5h", "el 2 de marzo hacia las 5h", "2 de marzo a las 5h más o menos");
+    example!(v, check_moment_with_precision!(c, [2013, 3, 2, 5], Precision::Approximate), "2 de marzo sobre las 5h", "el 2 de marzo hacia las 5h", "2 de marzo a las 5h más o menos");
     // FIXME: Also time-of-the-day issues, apparently with 'h' - "el 2 a las 5h"
     example!(v, check_moment!(c, [2013, 3, 2, 5]), "el 2 a las 5", "el dos a las cinco", "el 2 a las 5 de la mañana", "el día 2 a las 5 de la madrugada");
     example!(v, check_moment!(c, [2013, 2, 16, 6]), "el 16 a las 6 de la mañana","el día 16 a las 6 de la madrugada");
@@ -132,10 +132,11 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     // Holidays
     // TODO
-    // holiday_example!(v, check_moment!(c, [2013, 12, 25]), "Natale", "natale", "giorno di natale");
+    example!(v, check_moment!(c, [2013, 12, 25]), "Navidad");
     // holiday_example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "la sera di natale", "la notte di Natale");
     // "il primo gennaio & co. works already"
-    // holiday_example!(v, check_moment!(c, [2014, 1, 1]), "primo giorno dell'anno", "capodanno", "primo gennaio", "il primo gennaio", "il primo giorno di gennaio");
+    example!(v, check_moment!(c, [2014, 1, 1]), "año nuevo", "el primero de enero");
+    example!(v, check_moment!(c, [2013, 12, 31]), "en nochevieja");
     // holiday_example!(v, check_moment!(c, [2013, 11, 1]), "tutti i santi", "il giorno di tutti i santi", "ognissanti", "il giorno di ognissanti", "il giorno d'ognissanti");
     // "il primo maggio & co. works already"
     // holiday_example!(v, check_moment!(c, [2013, 05, 1]), "festa del lavoro", "la festa dei lavoratori", "il primo maggio");
