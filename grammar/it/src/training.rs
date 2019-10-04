@@ -78,7 +78,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 11, 55]), "mezzogiorno meno cinque");
     // FIXME: "dodici e trenta"
     example!(v, check_moment!(c, [2013, 2, 12, 12, 30]), "mezzogiorno e mezza", "mezzogiorno e mezzo", "mezzogiorno e trenta");
-    example!(v, check_moment!(c, [2013, 2, 13, 00, 03]), "mezzanotte e tre");
+    example!(v, check_moment!(c, [2013, 2, 13, 00, 03]), "mezzanotte e tre", "per mezzanotte e tre");
     example!(v, check_moment!(c, [2013, 2, 12, 00, 03]), "oggi a mezzanotte e tre");
     example!(v, check_moment!(c, [2013, 2, 12, 15, 15]), "alle quindici e quindici", "alle ore quindici e quindici minuti", "alle quindici e un quarto", "alle tre e un quarto questo pomeriggio", "alle tre e un quarto di pomeriggio", "alle tre e quindici oggi pomeriggio", "15:15", "15h15");
     example!(v, check_moment!(c, [2013, 2, 13, 15, 15]), "alle tre e un quarto domani pomeriggio");
@@ -133,13 +133,13 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     // Holidays
     // TODO
-    // holiday_example!(v, check_moment!(c, [2013, 12, 25]), "Natale", "natale", "giorno di natale");
+    example!(v, check_moment!(c, [2013, 12, 25]), "Natale", "natale", "giorno di natale", "il prossimo natale");
     // holiday_example!(v, check_moment_span!(c, [2013, 12, 24, 18], [2013, 12, 25, 00]), "la sera di natale", "la notte di Natale");
     // "il primo gennaio & co. works already"
     // holiday_example!(v, check_moment!(c, [2014, 1, 1]), "primo giorno dell'anno", "capodanno", "primo gennaio", "il primo gennaio", "il primo giorno di gennaio");
     // holiday_example!(v, check_moment!(c, [2013, 11, 1]), "tutti i santi", "il giorno di tutti i santi", "ognissanti", "il giorno di ognissanti", "il giorno d'ognissanti");
     // "il primo maggio & co. works already"
-    // holiday_example!(v, check_moment!(c, [2013, 05, 1]), "festa del lavoro", "la festa dei lavoratori", "il primo maggio");
+    example!(v, check_moment!(c, [2013, 05, 1]), "festa del lavoro", "la festa dei lavoratori", "il primo maggio");
 
     // Part of day (morning, afternoon...)
     example!(v, check_moment_span!(c, [2013, 2, 12, 12], [2013, 2, 12, 19]), "questo pomeriggio", "il pomeriggio", "oggi pomeriggio");

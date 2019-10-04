@@ -1,481 +1,8 @@
 use rustling::*;
 use rustling_ontology_values::dimension::*;
-use rustling_ontology_values::dimension::Precision::*;
 use rustling_ontology_values::helpers;
-use rustling_ontology_moment::{Weekday, Grain, PeriodComp, Period};
+use rustling_ontology_moment::{Weekday, Grain};
 
-pub fn rules_percentage(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("<number> per cent",
-        number_check!(),
-        b.reg(r"%|per ?cento?")?,
-        |number, _| Ok(PercentageValue(number.value().value()))
-    );
-    Ok(())
-}
-
-pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("intersect (X cents)",
-             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
-             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
-             |a, b| helpers::compose_money(a.value(), b.value()));
-    b.rule_3("intersect (and X cents)",
-             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
-             b.reg(r#"e"#)?,
-             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit == Some("cent")),
-             |a, _, b| helpers::compose_money(&a.value(), &b.value()));
-    b.rule_3("intersect (and X)",
-             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
-             b.reg(r#"e"#)?,
-             number_check!(),
-             |a, _, b| helpers::compose_money_number(&a.value(), &b.value()));
-    b.rule_2("intersect",
-             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
-             number_check!(),
-             |a, b| helpers::compose_money_number(&a.value(), &b.value()));
-    b.rule_3("intersect",
-             amount_of_money_check!(|money: &AmountOfMoneyValue| money.unit != Some("cent")),
-             b.reg(r#"e"#)?,
-             number_check!(),
-             |a, _, b| helpers::compose_money_number(&a.value(), &b.value()));
-    b.rule_1_terminal("$",
-        b.reg(r#"\$|dollar[oi]"#)?,
-        |_| Ok(MoneyUnitValue { unit: Some("$") })
-    );
-    b.rule_1_terminal("EUR",
-        b.reg(r#"€|[e€]ur(?:o?s?|i)"#)?,
-        |_| Ok(MoneyUnitValue { unit: Some("EUR") })
-    );
-    b.rule_1_terminal("£",
-        b.reg(r#"lir[ae]|pound|£"#)?,
-        |_| Ok(MoneyUnitValue { unit: Some("£") })
-    );
-    b.rule_1_terminal("GBP",
-                      b.reg(r#"gbp|(?:lir[ae] )?sterlin[ae](?: britannich?[ae]| ingles[ei])?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("GBP") })
-    );
-    b.rule_1_terminal("USD",
-        b.reg(r#"\$|us[d\$]|dollar[oi]? (?:american[oi]|u\.?s\.?a\.?|statunitens[ei])"#)?,
-        |_| Ok(MoneyUnitValue { unit: Some("USD") })
-    );
-    b.rule_1_terminal("AUD",
-                      b.reg(r#"au[d\$]|dollar[oi] australian[oi]"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("AUD") })
-    );
-    b.rule_1_terminal("CAD",
-                      b.reg(r#"cad|dollar[oi] canades[ei]"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("CAD") })
-    );
-    b.rule_1_terminal("HKD",
-                      b.reg(r#"hkd|dollar[oi] di hong[- ]?kong"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("HKD") })
-    );
-    b.rule_1_terminal("KR",
-                      b.reg(r#"kr|coron[ae]"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("KR") })
-    );
-    b.rule_1_terminal("DKK",
-                      b.reg(r#"dkk|coron[ae] danes[ei]"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("DKK") })
-    );
-    b.rule_1_terminal("NOK",
-                      b.reg(r#"nok|coron[ae] norveges[ei]"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("NOK") })
-    );
-    b.rule_1_terminal("SEK",
-                      b.reg(r#"sek|coron[ae] svedes[ei]"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("SEK") })
-    );
-    b.rule_1_terminal("CHF",
-                      b.reg(r#"chf|franch?[oi] svizzer[oi]"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("CHF") })
-    );
-    // This is not recognized for a very obscure reason
-    b.rule_1_terminal("RUB",
-                      b.reg(r#"rub(?:l[oi])?(?: russ[oi])?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("RUB") })
-    );
-    b.rule_1_terminal("INR",
-                      b.reg(r#"inr|rupi[ae](?: indian[ae])?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("INR") })
-    );
-    b.rule_1_terminal("JPY",
-                      b.reg(r#"jpy|yens?(?: giappones[ei])?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("JPY") })
-    );
-    b.rule_1_terminal("RMB|CNH|CNY",
-                      b.reg(r#"cny|cnh|rmb|yuans?(?: cines[ei])?|renminbis?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("CNY") })
-    );
-    b.rule_1_terminal("¥",
-                      b.reg(r#"¥"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("¥") })
-    );
-    b.rule_1_terminal("KRW",
-                      b.reg(r#"₩|krw|won(?: (?:sud[- ]?)?corean[oi])?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("KRW") })
-    );
-    b.rule_1_terminal("Bitcoin",
-        b.reg(r#"฿|bitcoins?"#)?,
-        |_| Ok(MoneyUnitValue { unit: Some("฿") })
-    );
-    b.rule_1_terminal("cent",
-                      b.reg(r#"cent(?:esim[oi]|s)?"#)?,
-                      |_| Ok(MoneyUnitValue { unit: Some("cent") })
-    );
-    b.rule_2("<amount> <unit>",
-             number_check!(),
-             money_unit!(),
-             |a, b| {
-                 Ok(AmountOfMoneyValue {
-                     value: a.value().value(),
-                     unit: b.value().unit,
-                     ..AmountOfMoneyValue::default()
-                 })
-             });
-    b.rule_2("<unit> <amount>",
-             money_unit!(),
-             number_check!(),
-             |a, b| {
-                 Ok(AmountOfMoneyValue {
-                     value: b.value().value(),
-                     unit: a.value().unit,
-                     ..AmountOfMoneyValue::default()
-                 })
-             });
-    b.rule_3("<amount> of <unit>",
-             integer_check!(|integer: &IntegerValue| !integer.group),
-             b.reg(r#"d[i']"#)?,
-             money_unit!(),
-             |a, _, b| {
-                 Ok(AmountOfMoneyValue {
-                     value: a.value().value as f32,
-                     precision: Exact,
-                     unit: b.value().unit,
-                     ..AmountOfMoneyValue::default()
-                 })
-             });
-    b.rule_2("approx <amount-of-money>",
-             b.reg(r#"verso|interno a|(?:approssim|indic|orient)ativamente|(?:all'in)?circa|quasi|più o meno|pressappoco|suppergiù|grosso modo"#)?,
-             amount_of_money_check!(),
-             |_, a| {
-                 Ok(AmountOfMoneyValue {
-                     precision: Approximate,
-                     ..a.value().clone()
-                 })
-             });
-    b.rule_2("<amount-of-money> approx",
-             amount_of_money_check!(),
-             b.reg(r#"(?:all'in)?circa|più o meno"#)?,
-             |a, _| {
-                 Ok(AmountOfMoneyValue {
-                     precision: Approximate,
-                     ..a.value().clone()
-                 })
-             });
-    b.rule_2("exactly <amount-of-money>",
-             b.reg(r#"(?:esatt|precis)amente"#)?,
-             amount_of_money_check!(),
-             |_, a| {
-                 Ok(AmountOfMoneyValue {
-                     precision: Exact,
-                     ..a.value().clone()
-                 })
-             });
-    b.rule_2("exactly <amount-of-money>",
-             amount_of_money_check!(),
-             b.reg(r#"(?:esatt|precis)amente|(?:precis|esatt)[oiae]"#)?,
-             |a, _| {
-                 Ok(AmountOfMoneyValue {
-                     precision: Exact,
-                     ..a.value().clone()
-                 })
-             }
-    );
-    Ok(())
-}
-
-pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    // Basic duration units
-    b.rule_1_terminal("second (unit-of-duration)",
-                      b.reg(r#"sec(?:ond[oi])?"#)?,
-                      |_| Ok(UnitOfDurationValue::new(Grain::Second))
-    );
-    b.rule_1_terminal("minute (unit-of-duration)",
-                      b.reg(r#"min(?:ut[oi])?"#)?,
-                      |_| Ok(UnitOfDurationValue::new(Grain::Minute))
-    );
-    b.rule_1_terminal("hour (unit-of-duration)",
-                      b.reg(r#"or[ae]"#)?,
-                      |_| Ok(UnitOfDurationValue::new(Grain::Hour))
-    );
-    b.rule_1_terminal("day (unit-of-duration)",
-                      b.reg(r#"giorn(?:[oi]|ata)"#)?,
-                      |_| Ok(UnitOfDurationValue::new(Grain::Day))
-    );
-    b.rule_1_terminal("week (unit-of-duration)",
-                      b.reg(r#"settiman[ae]"#)?,
-                      |_| Ok(UnitOfDurationValue::new(Grain::Week))
-    );
-    b.rule_1_terminal("month (unit-of-duration)",
-                      b.reg(r#"mes(?:e|i)"#)?,
-                      |_| Ok(UnitOfDurationValue::new(Grain::Month))
-    );
-    b.rule_1_terminal("year (unit-of-duration)",
-                      b.reg(r#"ann[oi]"#)?,
-                      |_| Ok(UnitOfDurationValue::new(Grain::Year))
-    );
-    b.rule_1_terminal("1 quarter of an hour",
-                      b.reg(r#"(1/4|(?:un|1) quarto) d'ora"#)?,
-                      |_| Ok(DurationValue::new(PeriodComp::minutes(15).into()))
-    );
-    b.rule_1_terminal("1 half an hour",
-                      b.reg(r#"1/2 ora|(?:una |1 )?mezz'?ora"#)?,
-                      |_| Ok(DurationValue::new(PeriodComp::minutes(30).into()))
-    );
-    b.rule_1_terminal("3 quarters of an hour",
-                      b.reg(r#"(?:3/4|tre quarti) d'ora"#)?,
-                      |_| Ok(DurationValue::new(PeriodComp::minutes(45).into()))
-    );
-    // N duration units
-    b.rule_2("<integer> <unit-of-duration>",
-             integer_check_by_range!(0),
-             unit_of_duration_check!(),
-             |integer, uod| Ok(DurationValue::new(PeriodComp::new(uod.value().grain, integer.value().value).into()))
-    );
-    b.rule_3("<number> hours <number>",
-             integer_check_by_range!(0),
-             b.reg(r#"or[ae] e|h"#)?,
-             integer_check_by_range!(0,59),
-             |hour, _, minute| {
-                 let hour_period = Period::from(PeriodComp::new(Grain::Hour, hour.value().clone().value));
-                 let minute_period = Period::from(PeriodComp::new(Grain::Minute, minute.value().clone().value));
-                 Ok(DurationValue::new(hour_period + minute_period))
-             }
-    );
-    b.rule_3("<integer> <unit-of-duration> and a quarter",
-             integer_check_by_range!(0),
-             unit_of_duration_check!(),
-             b.reg(r#"e un quarto"#)?,
-             |integer, uod, _| {
-                 let quarter_period: Period = uod.value().grain.quarter_period().map(|a| a.into()).ok_or_else(|| RuleError::Invalid)?;
-                 Ok(DurationValue::new(quarter_period + PeriodComp::new(uod.value().grain, integer.value().value)))
-             }
-    );
-    b.rule_3("<integer> <unit-of-duration> and a half",
-             integer_check_by_range!(0),
-             unit_of_duration_check!(),
-             b.reg(r#"e mezz[oa]"#)?,
-             |integer, uod, _| {
-                 let half_period: Period = uod.value().grain.half_period().map(|a| a.into()).ok_or_else(|| RuleError::Invalid)?;
-                 Ok(DurationValue::new(half_period + PeriodComp::new(uod.value().grain, integer.value().value)))
-             }
-    );
-    b.rule_3("<integer> <unit-of-duration> and 3 quarters of an hour",
-             integer_check_by_range!(0),
-             unit_of_duration_check!(),
-             b.reg(r#"e tre quarti"#)?,
-             |integer, uod, _| {
-                 let half_period: Period = uod.value().grain.half_period().map(|a| a.into()).ok_or_else(|| RuleError::Invalid)?;
-                 Ok(DurationValue::new(half_period + PeriodComp::new(uod.value().grain, integer.value().value)))
-             }
-    );
-    // Duration combinations
-    b.rule_3("<duration> and <duration>",
-             duration_check!(|duration: &DurationValue| !duration.suffixed),
-             b.reg(r#"e"#)?,
-             duration_check!(|duration: &DurationValue| !duration.prefixed),
-             |a, _, b| Ok(a.value() + b.value())
-    );
-    b.rule_2("<duration> <duration>",
-             duration_check!(|duration: &DurationValue| !duration.suffixed),
-             duration_check!(|duration: &DurationValue| !duration.prefixed),
-             |a, b| Ok(a.value() + b.value())
-    );
-    b.rule_2("<duration> <integer>",
-             duration_check!(|duration: &DurationValue| !duration.prefixed),
-             integer_check_by_range!(0),
-             |duration, integer| helpers::compose_duration_with_integer(duration.value(), integer.value())
-    );
-    // Durations with modifiers / timeline positioning
-    b.rule_2("in-future <duration> (French 'dans 2 mois')",
-             b.reg(r#"[tf]ra"#)?,
-             duration_check!(),
-             |_, duration| duration.value().in_present()
-    );
-    b.rule_2("<duration> later",
-             duration_check!(),
-             b.reg(r"(dopo|più tardi)")?,
-             |duration, _| duration.value().in_present()
-    );
-    b.rule_2("approx <duration>",
-             b.reg(r#"verso|interno a|(?:approssim|indic|orient)ativamente|(?:all'in)?circa|più o meno|pressappoco|suppergiù|grosso modo"#)?,
-             duration_check!(),
-             |_, duration| Ok(duration.value().clone().precision(Precision::Approximate))
-    );
-    b.rule_2("<duration> approx",
-             duration_check!(),
-             b.reg(r#"(?:all'in)?circa|più o meno"#)?,
-             |duration, _| Ok(duration.value().clone().precision(Precision::Approximate))
-    );
-    b.rule_2("exactly <duration>",
-             b.reg(r#"esattamente"#)?,
-             duration_check!(),
-             |_, duration| Ok(duration.value().clone().precision(Precision::Exact))
-    );
-    b.rule_2("<duration> exactly",
-             duration_check!(),
-             b.reg(r#"(?:esatt|precis)(?:[aoie]|amente)"#)?,
-             |duration, _| Ok(duration.value().clone().precision(Precision::Exact))
-    );
-    b.rule_2("during <duration>",
-             b.reg(r#"(?:durante|per)"#)?,
-             duration_check!(),
-             |_, duration| Ok(duration.value().clone().prefixed())
-    );
-    b.rule_2("<duration> ago",
-             duration_check!(),
-             b.reg(r#"fa"#)?,
-             |duration, _| duration.value().ago()
-    );
-    b.rule_2("since <duration>",
-             b.reg(r#"da(?: |l(?:l['oaie])?)"#)?,
-             duration_check!(),
-             |_, duration| {
-                 duration.value().ago()?
-                     .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
-             });
-    b.rule_3("<duration> after <datetime>",
-             duration_check!(),
-             b.reg(r#"dopo"#)?,
-             datetime_check!(),
-             |duration, _, datetime| duration.value().after(datetime.value())
-    );
-    b.rule_3("<duration> before <datetime>",
-             duration_check!(),
-             b.reg(r#"prima"#)?,
-             datetime_check!(),
-             |duration, _, datetime| duration.value().after(datetime.value())
-    );
-
-    Ok(())
-}
-
-pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    // Cycle units
-    b.rule_1_terminal("second (cycle)",
-                      b.reg(r#"second[oi]"#)?,
-                      |_| CycleValue::new(Grain::Second)
-    );
-    b.rule_1_terminal("minute (cycle)",
-                      b.reg(r#"minut[oi]"#)?,
-                      |_| CycleValue::new(Grain::Minute)
-    );
-    b.rule_1_terminal("hour (cycle)",
-                      b.reg(r#"or[ae]"#)?,
-                      |_| CycleValue::new(Grain::Hour)
-    );
-    b.rule_1_terminal("day (cycle)",
-                      b.reg(r#"giorn[oi]"#)?,
-                      |_| CycleValue::new(Grain::Day)
-    );
-    b.rule_1_terminal("week (cycle)",
-                      b.reg(r#"settiman[ae]"#)?,
-                      |_| CycleValue::new(Grain::Week)
-    );
-    b.rule_1("month (cycle)",
-             b.reg(r#"mes[ei]"#)?,
-             |_| CycleValue::new(Grain::Month)
-    );
-    b.rule_1("year (cycle)",
-             b.reg(r#"ann[oi]"#)?,
-             |_| CycleValue::new(Grain::Year)
-    );
-    // Cycles with modifiers / timeline positioning
-    b.rule_2("this / in the <cycle>",
-             b.reg(r#"quest[oa']|in"#)?,
-             cycle_check!(),
-             |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
-    );
-    b.rule_2("<cycle> last",
-             b.reg(r#"scors[oa]|passat[oa]"#)?,
-             cycle_check!(),
-             |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
-    );
-    b.rule_2("last <cycle>",
-             cycle_check!(),
-             b.reg(r#"scors[oa]|passat[oa]"#)?,
-             |cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
-    );
-    b.rule_2("the next <cycle>",
-             b.reg(r#"(?:il |la )prossim[oa]"#)?,
-             cycle_check!(),
-             |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
-    );
-    b.rule_2("next <cycle>",
-             b.reg(r#"prossim[oa]"#)?,
-             cycle_check!(),
-             |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
-    );
-    b.rule_2("<cycle> next",
-             cycle_check!(),
-             b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
-             |cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
-    );
-    b.rule_3("the <cycle> next",
-             b.reg(r#"il|l['ao]"#)?,
-             cycle_check!(),
-             b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
-             |_, cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
-    );
-    b.rule_3("n <cycle> before",
-             integer_check_by_range!(2, 9999),
-             cycle_check!(),
-             b.reg(r#"prima"#)?,
-             |integer, cycle, _| helpers::cycle_nth(cycle.value().grain, -1 * integer.value().value)
-    );
-    b.rule_3("n <cycle> after",
-             integer_check_by_range!(2, 9999),
-             cycle_check!(),
-             b.reg(r#"dopo"#)?,
-             |integer, cycle, _| helpers::cycle_nth(cycle.value().grain, integer.value().value)
-    );
-    // TODO: more <cycle> combinations with N + past/future
-    // LATER
-    // END TODO
-    b.rule_4("<ordinal> <cycle> of <datetime>",
-             ordinal_check_by_range!(1, 9999),
-             cycle_check!(),
-             b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
-             datetime_check!(),
-             |ordinal, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, datetime.value())
-    );
-    b.rule_5("the <ordinal> <cycle> of <datetime>",
-             b.reg(r#"il|l['ao]"#)?,
-             ordinal_check_by_range!(1, 9999),
-             cycle_check!(),
-             b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
-             datetime_check!(),
-             |_, ordinal, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, datetime.value())
-    );
-    b.rule_4("the <cycle> of <datetime>",
-             b.reg(r#"il|l['ao]"#)?,
-             cycle_check!(),
-             b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
-             datetime_check!(),
-             |_, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, 0, datetime.value())
-    );
-    b.rule_2("the day after the <datetime>",
-             b.reg(r#"(?:l'indomani|il giorno dopo) (?:di|del(?:l[ao'])?)"#)?,
-             datetime_check!(),
-             |_, datetime| helpers::cycle_nth_after_not_immediate(Grain::Day, 1, datetime.value())
-    );
-    b.rule_2("the day before the <datetime>",
-             b.reg(r#"(la vigilia|il giorno prima) (di|del(l(a|o|'))?)"#)?,
-             datetime_check!(),
-             |_, datetime| helpers::cycle_nth_after_not_immediate(Grain::Day, -1, datetime.value())
-    );
-    Ok(())
-}
 
 pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // Basic
@@ -490,9 +17,15 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |a, _, b| a.value().intersect(b.value())
     );
+//    b.rule_3("intersect by 'and' or ','",
+//             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+//             b.reg(r#"e|,"#)?,
+//             datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
+//             |a, _, b| a.value().intersect(b.value())
+//    );
     b.rule_3("intersect by 'of'",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
-             b.reg(r#"del(?:l['oa])?"#)?,
+             b.reg(r#"del(?:l['oa])?|di"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent),
              |a, _, b| a.value().intersect(b.value())
     );
@@ -503,13 +36,24 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _, b| a.value().intersect(b.value())
     );
     b.rule_2("in <named-month>",
-             b.reg(r#"(?:ad?|in)"#)?,
+             b.reg(r#"(?:ad?|in|nel)"#)?,
              datetime_check!(form!(Form::Month(_))),
              |_, a| Ok(a.value().clone())
     );
+//    b.rule_2("for <datetime>",
+//             b.reg(r#"per"#)?,
+//             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
+//             |_, a| Ok(a.value().clone())
+//    );
+// Removed constraints (latent() And Not(TimeOfDay)) on datetime  (in cov test : 'per mezzanotte e venti' for ex) but need to check if this is a mistake to remove constraints
     b.rule_2("for <datetime>",
-             b.reg(r#"per"#)?,
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
+             b.reg(r#"per|durante|nel|in"#)?,
+             datetime_check!(),
+             |_, a| Ok(a.value().clone())
+    );
+    b.rule_2("for <celebration>",
+             b.reg(r#"a"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::Celebration)(datetime)),
              |_, a| Ok(a.value().clone())
     );
     // Days, months
@@ -594,11 +138,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     // END TODO
     // Deictic lexemes
     b.rule_1_terminal("now",
-                      b.reg(r#"ora|adesso|subito|in questo (?:momento esatto|preciso istante)"#)?,
+                      b.reg(r#"ora|adesso|subito|in questo (?:momento esatto|preciso istante)|immediatamente|proprio(?: ora| adesso)|attualmente"#)?,
                       |_| helpers::cycle_nth(Grain::Second, 0)
     );
     b.rule_1_terminal("today",
-                      b.reg(r#"oggi|in questo momento|in questa giornata"#)?,
+                      b.reg(r#"oggi|in questo(?: preciso)? momento|in questa giornata"#)?,
                       |_| helpers::cycle_nth(Grain::Day, 0)
     );
     b.rule_1_terminal("tomorrow",
@@ -640,36 +184,41 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |datetime, _| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_2("next <named-month>",
-             b.reg(r#"(?:il |la )?prossim[oa]"#)?,
+             b.reg(r#"(?:il |la |nel corso del )?prossim[oa]"#)?,
              datetime_check!(form!(Form::Month(_))),
-             |_, datetime| datetime.value().the_nth(1)
+             |_, datetime| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_2("<named-month> next",
              datetime_check!(form!(Form::Month(_))),
              b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
-             |datetime, _| datetime.value().the_nth(1)
+             |datetime, _| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_3("the <named-month> next",
              b.reg(r#"il|l['ao]"#)?,
              datetime_check!(form!(Form::Month(_))),
              b.reg(r#"prossim[oa]"#)?,
-             |_, datetime, _| datetime.value().the_nth(1)
+             |_, datetime, _| datetime.value().the_nth_not_immediate(0)
     );
-    b.rule_2("following <named-month|named-day>",
-             b.reg(r#"(?:il |la )?prossim[oa]"#)?,
-             datetime_check!(form!(Form::Month(_))),
-             |_, datetime| datetime.value().the_nth(1)
-    );
-    b.rule_2("<named-month|named-day> following",
+    b.rule_2("<named-month> following",
              datetime_check!(form!(Form::Month(_))),
              b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
-             |datetime, _| datetime.value().the_nth(1)
+             |datetime, _| datetime.value().the_nth_not_immediate(0)
     );
-    b.rule_3("the <named-month|named-day> following",
+    b.rule_2("<datetime> following",
+             datetime_check!(),
+             b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
+             |datetime, _| datetime.value().the_nth_not_immediate(0)
+    );
+    b.rule_2("next <datetime> ",
+             b.reg(r#"prossim[oa]"#)?,
+             datetime_check!(),
+             |_, datetime| datetime.value().the_nth_not_immediate(0)
+    );
+    b.rule_3("the <named-month> following",
              b.reg(r#"il|l['ao]"#)?,
              datetime_check!(form!(Form::Month(_))),
              b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
-             |_, datetime, _| datetime.value().the_nth(1)
+             |_, datetime, _| datetime.value().the_nth_not_immediate(0)
     );
     b.rule_2("<named-month|named-day> last/past",
              datetime_check!(),
@@ -677,7 +226,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |datetime, _| datetime.value().the_nth(-1)
     );
     b.rule_2("last/past <named-month|named-day>",
-             b.reg(r#"scors[oa]|passat[oa]"#)?,
+             b.reg(r#"(?:nell[oa] )?scors[oa]|passat[oa]"#)?,
              datetime_check!(),
              |_, datetime| datetime.value().the_nth(-1)
     );
@@ -688,6 +237,16 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(),
              |_, dow, _, datetime| dow.value().last_of(datetime.value())
     );
+    b.rule_2("the day after the <datetime>",
+             b.reg(r#"(?:l'indomani|il giorno dopo) (?:di|del(?:l[ao'])?)"#)?,
+             datetime_check!(),
+             |_, datetime| helpers::cycle_nth_after_not_immediate(Grain::Day, 1, datetime.value())
+    );
+    b.rule_2("the day before the <datetime>",
+             b.reg(r#"(la vigilia|il giorno prima) (di|del(l(a|o|'))?)"#)?,
+             datetime_check!(),
+             |_, datetime| helpers::cycle_nth_after_not_immediate(Grain::Day, -1, datetime.value())
+    );
     b.rule_4("last <day-of-week> of <datetime> (latent)",
              b.reg(r#"ultim[oa]"#)?,
              cycle_check!(),
@@ -695,10 +254,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(),
              |_, cycle, _, datetime| cycle.value().last_of(datetime.value())
     );
+
     b.rule_5("the <ordinal> <datetime> of <datetime>",
              b.reg(r#"il|l['ao]"#)?,
              ordinal_check!(), // the first
-             datetime_check!(), // Thursday
+             datetime_check!(excluding_form!(Form::Month(_))), // Thursday // exclude Month to avoid confusion with 'il primo febbraio del prossimo anno'
              b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?, // of
              datetime_check!(), // march
              |_, ordinal, a, _, b| {
@@ -707,7 +267,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_4("<ordinal> <datetime> of <datetime>",
              ordinal_check!(), // the first
-             datetime_check!(), // Thursday
+             datetime_check!(excluding_form!(Form::Month(_))), // Thursday // exclude Month to avoid confusion with 'il primo febbraio del prossimo anno'
              b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?, // of
              datetime_check!(), // march
              |ordinal, a, _, b| {
@@ -763,8 +323,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              }
     );
     b.rule_2("in <year>",
-             b.reg(r#"[nd]el(?:l'anno)?"#)?,
+             b.reg(r#"[dn]el(?: corso del(?:l'anno)?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::Year(_))(datetime)),
+             |_, year| Ok(year.value().clone())
+    );
+    b.rule_2("in <year>",
+             b.reg(r#"nel corso del|(?:del)?l'anno"#)?,
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::Year(_))(datetime)),
              |_, year| Ok(year.value().clone())
     );
     b.rule_1("year (latent)",
@@ -775,7 +340,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Days of the month
     b.rule_1_terminal("first of the month",
-                      b.reg(r#"(?:il )?(?:1|prim)[o°]"#)?,
+                      b.reg(r#"(?:il )?(?:1|prim)[o°](?: di)?"#)?,
                       |_| helpers::day_of_month(1)
     );
     b.rule_2("the <day-of-month> (non ordinal)",
@@ -819,7 +384,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_2("<day-of-week> <datetime>",
              datetime_check!(form!(Form::DayOfWeek{..})),
-             datetime_check!(),
+             datetime_check!(form!(Form::TimeOfDay(_))),
              |_, datetime| Ok(datetime.value().clone())
     );
     b.rule_3("the <day-of-week> <datetime>",
@@ -833,29 +398,42 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 31),
              |_, integer| helpers::day_of_month(integer.value().value as u32)
     );
-    b.rule_3("<day-of-week> <day-of-month> at <time-of-day>)",
-             datetime_check!(form!(Form::DayOfWeek{..})),
-             integer_check_by_range!(1, 31),
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, integer, tod| helpers::day_of_month(integer.value().value as u32)
-                 ?.intersect(tod.value())
-    );
+ // ex: wrong parsing: 'mercoledi venti sei del mese prossimo' --> day-of-week('mercoledi') + integer('vinte') + time-of-day('sei')
+ //   b.rule_3("<day-of-week> <day-of-month> at <time-of-day>)",
+ //            datetime_check!(form!(Form::DayOfWeek{..})),
+ //            integer_check_by_range!(1, 31),
+ //            datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent && form!(Form::TimeOfDay(_)(datetime))),
+             //datetime_check!(form!(Form::TimeOfDay(_))),
+ //            |_, integer, tod| helpers::day_of_month(integer.value().value as u32)
+ //                ?.intersect(tod.value())
+ //   );
     // FIXME: Why can't this sort of thing be caught with intersect?
-    b.rule_4("the <day-of-month> <named-month> at <time-of-day>)",
-             b.reg(r#"il|l['oa]"#)?,
-             integer_check_by_range!(1, 31),
-             datetime_check!(form!(Form::Month(_))),
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, integer, month, tod| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
-                 ?.intersect(tod.value())
+//    b.rule_4("the <day-of-month> <named-month> at <time-of-day>)",
+//             b.reg(r#"il|l['oa]"#)?,
+//             integer_check_by_range!(1, 31),
+//             datetime_check!(form!(Form::Month(_))),
+//             datetime_check!(form!(Form::TimeOfDay(_))),
+//             |_, integer, month, tod| month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)
+//                 ?.intersect(tod.value())
+//    );
+//    b.rule_4("the <day-of-week> <day-of-month> at <time-of-day>)",
+//             b.reg(r#"il|l['oa]"#)?,
+//             datetime_check!(form!(Form::DayOfWeek{..})),
+//             integer_check_by_range!(1, 31),
+//             datetime_check!(form!(Form::TimeOfDay(_))),
+//             |_, _, integer, tod| helpers::day_of_month(integer.value().value as u32)
+//                 ?.intersect(tod.value())
+//    );
+    b.rule_2("next <date>",
+             b.reg(r#"(?:il )?prossim[oa]"#)?,
+             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
+             |_, datetime| datetime.value().the_nth_not_immediate(0)
     );
-    b.rule_4("the <day-of-week> <day-of-month> at <time-of-day>)",
-             b.reg(r#"il|l['oa]"#)?,
-             datetime_check!(form!(Form::DayOfWeek{..})),
-             integer_check_by_range!(1, 31),
-             datetime_check!(form!(Form::TimeOfDay(_))),
-             |_, _, integer, tod| helpers::day_of_month(integer.value().value as u32)
-                 ?.intersect(tod.value())
+    b.rule_3("the <date> next",
+             b.reg(r#"(?:il )?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| datetime.form.is_day()),
+             b.reg(r#"prossim[oa]"#)?,
+             |_, datetime, _| datetime.value().the_nth_not_immediate(0)
     );
     // Time of day
     b.rule_1("time-of-day (latent)",
@@ -900,9 +478,43 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, integer| Ok(helpers::hour(integer.value().value as u32, integer.value().value < 12)?.not_latent())
     );
     b.rule_2("around <time-of-day>",
-             b.reg(r#"verso|interno a|(?:approssim|indic|orient)ativamente|(?:all'in)?circa|più o meno|pressappoco|suppergiù|grosso modo"#)?,
+             b.reg(r#"intorno a(?:ll[ae])?|verso|(?:approssim|indic|orient)ativamente|(?:all'in)?circa|più o meno|pressappoco|suppergiù|grosso modo"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a| Ok(a.value().clone().not_latent().precision(Precision::Approximate))
+    );
+    b.rule_2("<time-of-day> around",
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"(?:all'in)?circa"#)?,
+             |a, _| Ok(a.value().clone().not_latent().precision(Precision::Approximate))
+    );
+    b.rule_2("<time-of-day> exactly",
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             b.reg(r#"in punto|precis[ea]|esatte"#)?,
+             |a, _| Ok(a.value().clone().not_latent().precision(Precision::Exact))
+    );
+    b.rule_2("exactly <time-of-day>",
+             b.reg(r#"(?:precis|esatt)amente"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             |_, a| Ok(a.value().clone().not_latent().precision(Precision::Exact))
+    );
+    b.rule_3("relative minutes before <hour>",
+             relative_minute_check!(),
+             b.reg(r#"prima d(i|ell[ae])"#)?,
+             datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
+             |relative_minute, _, datetime| Ok(helpers::hour_relative_minute(
+                 datetime.value().form_time_of_day()?.full_hour(),
+                 -1 * relative_minute.value().0,
+                 true)?
+                 .precision(datetime.value().precision))
+    );
+    b.rule_3("relative minutes after <hour>",
+             relative_minute_check!(),
+             b.reg(r#"dopo le"#)?,
+             datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
+             |relative_minute, _, datetime| Ok(helpers::hour_relative_minute(
+                 datetime.value().form_time_of_day()?.full_hour(),
+                 relative_minute.value().0,
+                 true)?.precision(datetime.value().precision))
     );
     b.rule_1_terminal("hh(:|h)mm (time-of-day)",
                       b.reg(r#"((?:[01]?\d)|(?:2[0-3]))[:\.h]([0-5]\d)"#)?,
@@ -939,7 +551,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |_| Ok(RelativeMinuteValue(30))
     );
     b.rule_1_terminal("three quarters (relative minutes)",
-                      b.reg(r#"(?:3|tre) quarti d'ora"#)?,
+                      b.reg(r#"(?:3|tre) quarti(?: d'ora)?"#)?,
                       |_| Ok(RelativeMinuteValue(45))
     );
     b.rule_1("number (as relative minutes)",
@@ -951,8 +563,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"min(?:\.|ut[oi])?"#)?,
              |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
     );
+    // check datetime islatent() removed (I don't understand why it is not working with this check)
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              relative_minute_check!(),
              |datetime, minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
@@ -960,8 +573,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
+    // check datetime islatent() removed (I don't understand why it is not working with this check)
     b.rule_3("<hour-of-day> minus <integer> (as relative minutes)",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              b.reg(r#"meno"#)?,
              relative_minute_check!(),
              |datetime, _, minutes| helpers::hour_relative_minute(
@@ -970,8 +584,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
+    // check datetime islatent() removed (I don't understand why it is not working with this check)
     b.rule_3("<hour-of-day> and/past <relative minutes>",
-             datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
+             datetime_check!(|datetime: &DatetimeValue| form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              b.reg(r#"e"#)?,
              relative_minute_check!(),
              |datetime, _, minutes| helpers::hour_relative_minute(
@@ -1282,8 +897,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       }
     );
     b.rule_2("<dim time> <part-of-day>",
-
-             datetime_check!(excluding_form!(Form::TimeOfDay(_))),
+             //datetime_check!(excluding_form!(Form::TimeOfDay(_))),
+             datetime_check!(|datetime: &DatetimeValue| !!!datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |a, b| a.value().intersect(b.value())
     );
@@ -1351,19 +966,19 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Seasons
     b.rule_1_terminal("summer",
-                      b.reg(r#"(?:quest(a |'))?estate"#)?,
+                      b.reg(r#"(?:quest(?:a |')|nell')?estate"#)?,
                       |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
     );
     b.rule_1_terminal("autumn",
-                      b.reg(r#"(?:quest(o |'))?autunno"#)?,
+                      b.reg(r#"(?:quest(?:o |')|nell')?autunno"#)?,
                       |_| helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
     );
     b.rule_1_terminal("winter",
-                      b.reg(r#"(?:quest(o |'))?inverno"#)?,
+                      b.reg(r#"(?:quest(?:o |')|nell')?inverno"#)?,
                       |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     );
     b.rule_1_terminal("spring",
-                      b.reg(r#"(?:questa )?primavera"#)?,
+                      b.reg(r#"(?:questa |nella )?primavera"#)?,
                       |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     );
     // Dates
@@ -1601,14 +1216,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_4("from <datetime> - <datetime> (interval)",
-             b.reg(r#"dal?(?:l['o])?"#)?,
+             b.reg(r#"dal?(?:l['oe])?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
-             b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
+             b.reg(r#"(?:fino )?a(?:l(?:l['oe])?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              |_, a, _, b| a.value().span_to(b.value(), true)
     );
     b.rule_4("between <datetime> and <datetime> (interval)",
-             b.reg(r#"tra"#)?,
+             b.reg(r#"[tf]ra"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"e"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
@@ -1616,7 +1231,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     // Specific case with years
     b.rule_5("from <datetime> - <datetime> <year> (interval)",
-             b.reg(r#"dal?(?:l['o])?"#)?,
+             b.reg(r#"dal?(?:l['oe])?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime) && datetime.is_coarse_grain_greater_than(Grain::Year)),
@@ -1624,7 +1239,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b, year| a.value().span_to(b.value(), true)?.intersect(year.value())
     );
     b.rule_5("between <datetime> and <datetime> <year> (interval)",
-             b.reg(r#"tra"#)?,
+             b.reg(r#"[ft]ra"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime)),
              b.reg(r#"e"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && excluding_form!(Form::TimeOfDay(_))(datetime) && datetime.is_coarse_grain_greater_than(Grain::Year)),
@@ -1633,42 +1248,28 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_3("<time-of-day> - <time-of-day> (interval)",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(_))(datetime)),
-             b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
+             b.reg(r#"(?:fino )?a(?:l(?:l['oe])?)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(_))(datetime)),
              |a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_4("from <time-of-day> - <time-of-day> (interval)",
-             b.reg(r#"dal?(?:l['o])?"#)?,
+             b.reg(r#"dal?(?:l['oe])?"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"(?:fino )?a(?:l(?:l['o])?)?"#)?,
+             b.reg(r#"(?:fino )?a(?:l(?:l['oe])?)?"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
     b.rule_4("between <time-of-day> and <time-of-day> (interval)",
-             b.reg(r#"tra"#)?,
+             b.reg(r#"[ft]ra"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"e"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
-    b.rule_2("by/before <duration> (French: 'd ici'",
-             b.reg(r#"prima|entro"#)?,
-             duration_check!(),
-             |_, duration| {
-                 let start = helpers::cycle_nth(Grain::Second, 0)?;
-                 let end = duration.value().in_present()?;
-                 start.span_to(&end, false)
-             }
-    );
     b.rule_2("before <time-of-day>",
-             b.reg(r#"prima|entro"#)?,
+             b.reg(r#"prima(?: d(?:i|el(?:l[ea])?)?)?|entro|[sf]ino a(?:l(?:l[eoa])?)?"#)?,
              datetime_check!(),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
-    );
-    b.rule_2("before <time-of-day>",
-             b.reg(r#"prima|entro"#)?,
-             datetime_check!(),
-             |_, datetime| Ok(datetime.value().clone().mark_before_start())
     );
     b.rule_2("after <time-of-day>",
              b.reg(r#"dopo"#)?,
@@ -1676,7 +1277,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, datetime| Ok(datetime.value().clone().mark_after_end())
     );
     b.rule_2("after <time-of-day>",
-             b.reg(r#"dopo|a partire da(?:l(?:l['e])?)?"#)?,
+             b.reg(r#"dopo|a partire da(?:l(?:l['e])?)?|da(?:l(?:l[eo])?)?"#)?,
              datetime_check!(),
              |_, datetime| Ok(datetime.value().clone().mark_after_start())
     );
@@ -1693,415 +1294,187 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     Ok(())
 }
 
-pub fn rules_temperature(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_1("number as temp",
-             number_check!(),
-             |a| {
-        Ok(TemperatureValue {
-            value: a.value().value(),
-            unit: None,
-            latent: true,
-        })
-    });
-    // FIXME: should be with number check
-    b.rule_2("<latent temp> degrees",
-             temperature_check!(),
-             b.reg(r#"(?:grad[oi]?)|°"#)?,
-             |a, _| {
-                 Ok(TemperatureValue {
-                     value: a.value().value,
-                     unit: Some("degree"),
-                     latent: false,
-                 })
+pub fn rules_datetime_with_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    b.rule_2("by/before <duration> (French: 'd ici'",
+             b.reg(r#"prima|entro"#)?,
+             duration_check!(),
+             |_, duration| {
+                 let start = helpers::cycle_nth(Grain::Second, 0)?;
+                 let end = duration.value().in_present()?;
+                 start.span_to(&end, false)
+             }
+    );
+    // Durations with modifiers / timeline positioning
+    b.rule_2("in-future <duration> (French 'dans 2 mois')",
+             b.reg(r#"[tf]ra"#)?,
+             duration_check!(),
+             |_, duration| duration.value().in_present()
+    );
+    b.rule_2("<duration> later",
+             duration_check!(),
+             b.reg(r"(dopo|più tardi)")?,
+             |duration, _| duration.value().in_present()
+    );
+    b.rule_2("<duration> ago",
+             duration_check!(),
+             b.reg(r#"fa"#)?,
+             |duration, _| duration.value().ago()
+    );
+    b.rule_3("in <duration> from now",
+             b.reg(r#"[tf]ra"#)?,
+             duration_check!(),
+             b.reg(r#"da (?:adesso|ora)?"#)?,
+             |_, duration, _| duration.value().in_present()
+    );
+    b.rule_2("since <duration>",
+             b.reg(r#"da(?: |l(?:l['oaie])?)"#)?,
+             duration_check!(),
+             |_, duration| {
+                 duration.value().ago()?
+                     .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
              });
-    b.rule_2("<temp> Celsius",
-             temperature_check!(),
-             b.reg(r#"c(?:entigrad[oi]|el[cs]ius|\.)?"#)?,
-             |a, _| {
-                 Ok(TemperatureValue {
-                     value: a.value().value,
-                     unit: Some("celsius"),
-                     latent: false,
-                 })
-             });
-    b.rule_2("<temp> Fahrenheit",
-             temperature_check!(),
-             b.reg(r#"f(?:ah?reh?n(?:h?eit)?)?\.?"#)?,
-             |a, _| {
-                 Ok(TemperatureValue {
-                     value: a.value().value,
-                     unit: Some("fahrenheit"),
-                     latent: false,
-                 })
-             });
-    b.rule_2("<temp> Kelvin",
-             temperature_check!(),
-             b.reg(r#"k(?:elvin|\.)?"#)?,
-             |a, _| {
-                 Ok(TemperatureValue {
-                     value: a.value().value,
-                     unit: Some("kelvin"),
-                     latent: false,
-                 })
-             });
-    b.rule_2("<temp> temp below zero",
-             temperature_check!(|temp: &TemperatureValue| !temp.latent),
-             b.reg(r#"sotto (?:lo )?zero"#)?,
-             |a, _| {
-                 Ok(TemperatureValue {
-                     value: -1.0 * a.value().value,
-                     latent: false,
-                     ..*a.value()
-                 })
-             });
+    b.rule_3("<duration> after <datetime>",
+             duration_check!(),
+             b.reg(r#"dopo"#)?,
+             datetime_check!(),
+             |duration, _, datetime| duration.value().after(datetime.value())
+    );
+    b.rule_3("<duration> before <datetime>",
+             duration_check!(),
+             b.reg(r#"prima"#)?,
+             datetime_check!(),
+             |duration, _, datetime| duration.value().after(datetime.value())
+    );
+    Ok(())
+
+}
+
+pub fn rules_datetime_with_nth_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    // Cycles with modifiers / timeline positioning
+    b.rule_2("this / in the <cycle>",
+             b.reg(r#"(?:di )?quest[oa']|in"#)?,
+             cycle_check!(),
+             |_, cycle| helpers::cycle_nth(cycle.value().grain, 0)
+    );
+    b.rule_2("last <cycle>",
+             b.reg(r#"(?:nell[oa] |nell'|nel corso (?:dell[oa] |dell')?)?(scors[oa]|passat[oa]|quest'ultim[ao])"#)?,
+             cycle_check!(),
+             |_, cycle| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    b.rule_2("<cycle> last",
+             cycle_check!(),
+             b.reg(r#"scors[oa]|passat[oa]"#)?,
+             |cycle, _| helpers::cycle_nth(cycle.value().grain, -1)
+    );
+    b.rule_2("the next <cycle>",
+             b.reg(r#"(?:il |la |nella |nel (?:corso del )?)?prossim[oa]"#)?,
+             cycle_check!(),
+             |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_2("next <cycle>",
+             b.reg(r#"prossim[oa]"#)?,
+             cycle_check!(),
+             |_, cycle| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_2("<cycle> next",
+             cycle_check!(),
+             b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
+             |cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_3("the <cycle> next",
+             b.reg(r#"il|l['ao]"#)?,
+             cycle_check!(),
+             b.reg(r#"prossim[oa]|seguent[ei]|che viene|dopo|successiv[oa]"#)?,
+             |_, cycle, _| helpers::cycle_nth(cycle.value().grain, 1)
+    );
+    b.rule_3("n <cycle> before",
+             integer_check_by_range!(2, 9999),
+             cycle_check!(),
+             b.reg(r#"prima|fa"#)?,
+             |integer, cycle, _| helpers::cycle_nth(cycle.value().grain, -1 * integer.value().value)
+    );
+    b.rule_3("n <cycle> after",
+             integer_check_by_range!(2, 9999),
+             cycle_check!(),
+             b.reg(r#"dopo"#)?,
+             |integer, cycle, _| helpers::cycle_nth(cycle.value().grain, integer.value().value)
+    );
+    // TODO: resolution is not correct for times, i.e. rounds at grain?
+    b.rule_3("last n <cycle>",
+             b.reg(r#"gli scorsi|(?:(?:gli|nelle|(?:per|durante)? le|nel corso de(?:lle|gli)?|nell'arco di questi)? ultim[ei])?"#)?,
+             integer_check_by_range!(1, 9999),
+             cycle_check!(),
+             |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, -1 * integer.value().value)
+    );
+    // TODO: Same as above ?
+    b.rule_3("next n <cycle>",
+             b.reg(r#"(?:[nd]ei|i|nelle)? prossim[ie]"#)?,
+             integer_check_by_range!(1, 9999),
+             cycle_check!(),
+             |_, integer, cycle| helpers::cycle_n_not_immediate(cycle.value().grain, integer.value().value)
+    );
+    // TODO: more <cycle> combinations with N + past/future
+    // LATER
+    // END TODO
+    b.rule_4("<ordinal> <cycle> of <datetime>",
+             ordinal_check_by_range!(1, 9999),
+             cycle_check!(),
+             b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
+             datetime_check!(),
+             |ordinal, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, datetime.value())
+    );
+    b.rule_5("the <ordinal> <cycle> of <datetime>",
+             b.reg(r#"il|l['ao]"#)?,
+             ordinal_check_by_range!(1, 9999),
+             cycle_check!(),
+             b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
+             datetime_check!(),
+             |_, ordinal, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, ordinal.value().value - 1, datetime.value())
+    );
+    b.rule_4("the <cycle> of <datetime>",
+             b.reg(r#"il|l['ao]"#)?,
+             cycle_check!(),
+             b.reg(r#"d(?:['i]|el(?:l['ao])?)"#)?,
+             datetime_check!(),
+             |_, cycle, _, datetime| helpers::cycle_nth_after_not_immediate(cycle.value().grain, 0, datetime.value())
+    );
     Ok(())
 }
 
-pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
-    b.rule_2("intersect",
-             number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
-             number_check!(),
-             |a, b| helpers::compose_numbers(&a.value(), &b.value()));
-    b.rule_3("intersect with and",
-             number_check!(|number: &NumberValue| number.grain().unwrap_or(0) > 1),
-             b.reg(r#"e"#)?,
-             number_check!(),
-             |a, _, b| helpers::compose_numbers(&a.value(), &b.value()));
-    // Keep the order of patterns as is, otherwise 'undici' is caught with 'un'
-    b.rule_1_terminal("number (0..19)",
-                      b.reg(r#"(dici(?:assette|otto|annove)|(?:un|do|tre|quattor|quin|se)dici|zero|un[oa']?|due|tr[eé]|quattro|cinque|sei|sette|otto|nove|dieci)"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
-                              "zero" => 0,
-                              "un" => 1,
-                              "un'" => 1,
-                              "uno" => 1,
-                              "una" => 1,
-                              "due" => 2,
-                              "tre" => 3,
-                              "tré" => 3,
-                              "quattro" => 4,
-                              "cinque" => 5,
-                              "sei" => 6,
-                              "sette" => 7,
-                              "otto" => 8,
-                              "nove" => 9,
-                              "dieci" => 10,
-                              "undici" => 11,
-                              "dodici" => 12,
-                              "tredici" => 13,
-                              "quattordici" => 14,
-                              "quindici" => 15,
-                              "sedici" => 16,
-                              "diciassette" => 17,
-                              "diciotto" => 18,
-                              "diciannove" => 19,
-                              _ => return Err(RuleError::Invalid.into()),
-                          };
-                          IntegerValue::new(value)
-                      }
+
+pub fn rules_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
+    // Cycle units
+    b.rule_1_terminal("second (cycle)",
+                      b.reg(r#"second[oi]"#)?,
+                      |_| CycleValue::new(Grain::Second)
     );
-    b.rule_1_terminal("number (20..90)",
-                      b.reg(r#"(venti|trenta|(?:(?:quar|cinqu|sess|sett|ott|nov)anta))"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
-                              "venti" => 20,
-                              "trenta" => 30,
-                              "quaranta" => 40,
-                              "cinquanta" => 50,
-                              "sessanta" => 60,
-                              "settanta" => 70,
-                              "ottanta" => 80,
-                              "novanta" => 90,
-                              _ => return Err(RuleError::Invalid.into()),
-                          };
-                          IntegerValue::new(value)
-                      });
-    b.rule_2("number (21..29 31..39 41..49 51..59 61..69 71..79 81..89 91..99)",
-             b.reg(r#"(venti?|trenta?|(?:(?:quar|cinqu|sess|sett|ott|nov)anta?))"#)?,
-             integer_check_by_range!(1, 9),
-             |text_match, b| {
-                 let value = match text_match.group(1).as_ref() {
-                     "venti" => 20,
-                     "trenta" => 30,
-                     "quaranta" => 40,
-                     "cinquanta" => 50,
-                     "sessanta" => 60,
-                     "settanta" => 70,
-                     "ottanta" => 80,
-                     "novanta" => 90,
-                     "vent" => 20,
-                     "trent" => 30,
-                     "quarant" => 40,
-                     "cinquant" => 50,
-                     "sessant" => 60,
-                     "settant" => 70,
-                     "ottant" => 80,
-                     "novant" => 90,
-                     _ => return Err(RuleError::Invalid.into())
-                 };
-                 IntegerValue::new(value + b.value().value)
-             });
-    b.rule_1_terminal("number 100..1000",
-                      b.reg(r#"(cento?|duecento|trecento|quattrocento|cinquecento|seicento|settecento|ottocento|novecento|mil(?:le|a))"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
-                              "cent" => 100,
-                              "cento" => 100,
-                              "duecento" => 200,
-                              "trecento" => 300,
-                              "quattrocento" => 400,
-                              "cinquecento" => 500,
-                              "seicento" => 600,
-                              "settecento" => 700,
-                              "ottocento" => 800,
-                              "novecento" => 900,
-                              "mille" => 1000,
-                              "mila" => 1000,
-                              _ => return Err(RuleError::Invalid.into())
-                          };
-                          IntegerValue::new_with_grain(value, 2)
-                      });
-    b.rule_2("numbers 100..199",
-             integer_check_by_range!(100, 100),
-             integer_check_by_range!(0, 99),
-             |_, b| IntegerValue::new(b.value().value + 100));
-    b.rule_3("numbers 200..999",
-             integer_check_by_range!(2, 9),
-             integer_check_by_range!(100, 100),
-             integer_check_by_range!(0, 99),
-             |a, b, c| IntegerValue::new(a.value().value * b.value().value + c.value().value));
-    b.rule_1_terminal("hundred",
-                      b.reg(r#"cento"#)?,
-                      |_| IntegerValue::new_with_grain(100, 2)
+    b.rule_1_terminal("minute (cycle)",
+                      b.reg(r#"minut[oi]"#)?,
+                      |_| CycleValue::new(Grain::Minute)
     );
-    b.rule_2("N hundreds",
-             integer_check_by_range!(1, 99),
-             b.reg(r#"cento"#)?,
-             |a, _| {
-                 Ok(IntegerValue {
-                     value: a.value().value * 100,
-                     grain: Some(2),
-                     ..IntegerValue::default()
-                 })
-             });
-    b.rule_1_terminal("thousand",
-                      b.reg(r#"mil(?:le|a)"#)?,
-                      |_| IntegerValue::new_with_grain(1000, 3)
+    b.rule_1_terminal("hour (cycle)",
+                      b.reg(r#"or[ae]"#)?,
+                      |_| CycleValue::new(Grain::Hour)
     );
-    b.rule_2("N thousands",
-             integer_check_by_range!(1, 999),
-             b.reg(r#"mil(?:le|a)"#)?,
-             |a, _| {
-                 Ok(IntegerValue {
-                     value: a.value().value * 1000,
-                     grain: Some(3),
-                     ..IntegerValue::default()
-                 })
-             });
-    b.rule_1_terminal("million",
-                      b.reg(r#"milione?"#)?,
-                      |_| IntegerValue::new_with_grain(1000000, 6)
+    b.rule_1_terminal("day (cycle)",
+                      b.reg(r#"giorn(?:[oi]|ata)"#)?,
+                      |_| CycleValue::new(Grain::Day)
     );
-    b.rule_2("N millions",
-             integer_check_by_range!(1, 999),
-             b.reg(r#"milion[ei]?(?: e)?"#)?,
-             |a, _| {
-                 Ok(IntegerValue {
-                     value: a.value().value * 1000000,
-                     grain: Some(6),
-                     ..IntegerValue::default()
-                 })
-             });
-    b.rule_1_terminal("billion",
-                      b.reg(r#"miliardo"#)?,
-                      |_| IntegerValue::new_with_grain(1000000000, 9)
+    b.rule_1_terminal("week (cycle)",
+                      b.reg(r#"settiman[ae]"#)?,
+                      |_| CycleValue::new(Grain::Week)
     );
-    b.rule_2("N billions",
-             integer_check_by_range!(1, 999),
-             b.reg(r#"miliard[oi]"#)?,
-             |a, _| {
-                 Ok(IntegerValue {
-                     value: a.value().value * 1000000000,
-                     grain: Some(9),
-                     ..IntegerValue::default()
-                 })
-             });
-    b.rule_1_terminal("integer (numeric)",
-                      b.reg(r#"(\d{1,18})"#)?,
-                      |text_match| {
-                          let value: i64 = text_match.group(1).parse()?;
-                          IntegerValue::new(value)
-                      });
-
-
-
-    b.rule_1_terminal("integer with thousands separator .",
-                      b.reg(r#"(\d{1,3}(\.\d\d\d){1,5})"#)?,
-                      |text_match| {
-                          let reformatted_string = text_match.group(1).replace(".", "");
-                          let value: i64 = reformatted_string.parse()?;
-                          IntegerValue::new(value)
-                      });
-    b.rule_1_terminal("decimal number",
-                      b.reg(r#"(\d*,\d+)"#)?,
-                      |text_match| {
-                          let reformatted_string = text_match.group(1).replace(",", ".");
-                          let value: f32 = reformatted_string.parse()?;
-                          FloatValue::new(value)
-                      });
-    b.rule_3("number dot number",
-             number_check!(|number: &NumberValue| !number.prefixed()),
-             b.reg(r#"punto|virgola"#)?,
-             number_check!(|number: &NumberValue| !number.suffixed()),
-             |a, _, b| {
-                 let power = b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
-                 Ok(FloatValue {
-                     value: b.value().value() * coeff + a.value().value(),
-                     ..FloatValue::default()
-                 })
-             });
-
-    b.rule_4("number dot zero ... number",
-             number_check!(|number: &NumberValue| !number.prefixed()),
-             b.reg(r#"punto|virgola"#)?,
-             b.reg(r#"(?:(?:zero )*(?:zero))"#)?,
-             number_check!(|number: &NumberValue| !number.suffixed()),
-             |a, _, zeros, b| {
-                 let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
-                 Ok(FloatValue {
-                     value: b.value().value() * coeff + a.value().value(),
-                     ..FloatValue::default()
-                 })
-             });
-
-    b.rule_1_terminal("decimal with thousands separator",
-                      b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
-                      |text_match| {
-                          let reformatted_string = text_match.group(1).replace(".", "").replace(",", ".");
-                          let value: f32 = reformatted_string.parse()?;
-                          FloatValue::new(value)
-                      });
-    b.rule_2("numbers prefix with -, negative or minus",
-             b.reg(r#"-|meno"#)?,
-             number_check!(|number: &NumberValue| !number.prefixed()),
-             |_, a| -> RuleResult<NumberValue> {
-                 Ok(match a.value().clone() {
-                     // checked
-                     NumberValue::Integer(integer) => {
-                         IntegerValue {
-                             value: integer.value * -1,
-                             prefixed: true,
-                             ..integer
-                         }
-                             .into()
-                     }
-                     NumberValue::Float(float) => {
-                         FloatValue {
-                             value: float.value * -1.0,
-                             prefixed: true,
-                             ..float
-                         }
-                             .into()
-                     }
-                 })
-             });
-    b.rule_2("numbers prefix with +, positive",
-             b.reg(r#"\+"#)?,
-             number_check!(|number: &NumberValue| !number.prefixed()),
-             |_, a| -> RuleResult<NumberValue> {
-                 Ok(match a.value().clone() {
-                     // checked
-                     NumberValue::Integer(integer) => {
-                         IntegerValue {
-                             prefixed: true,
-                             ..integer
-                         }
-                             .into()
-                     }
-                     NumberValue::Float(float) => {
-                         FloatValue {
-                             prefixed: true,
-                             ..float
-                         }
-                             .into()
-                     }
-                 })
-             }
+    b.rule_1_terminal("month (cycle)",
+                      b.reg(r#"mes[ei]"#)?,
+                      |_| CycleValue::new(Grain::Month)
     );
-    b.rule_2("numbers suffixes (K, M, G)",
-             number_check!(|number: &NumberValue| !number.suffixed()),
-             b.reg_neg_lh(r#"([kmg])"#, r#"^[\W\$€]"#)?,
-             |a, text_match| -> RuleResult<NumberValue> {
-                 let multiplier = match text_match.group(0).as_ref() {
-                     "k" => 1000,
-                     "m" => 1000000,
-                     "g" => 1000000000,
-                     _ => return Err(RuleError::Invalid.into()),
-                 };
-                 Ok(match a.value().clone() { // checked
-                     NumberValue::Integer(integer) => {
-                         IntegerValue {
-                             value: integer.value * multiplier,
-                             suffixed: true,
-                             ..integer
-                         }
-                             .into()
-                     }
-                     NumberValue::Float(float) => {
-                         let product = float.value * (multiplier as f32);
-                         if product.floor() == product {
-                             IntegerValue {
-                                 value: product as i64,
-                                 suffixed: true,
-                                 ..IntegerValue::default()
-                             }
-                                 .into()
-                         } else {
-                             FloatValue {
-                                 value: product,
-                                 suffixed: true,
-                                 ..float
-                             }
-                                 .into()
-                         }
-                     }
-                 })
-             });
-
-
-    // Ordinals
-    b.rule_1_terminal("ordinals (1-2-3 abbrev)",
-                      b.reg(r#"(?:il |la )?(1|2|3)[oa°]"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
-                              "1" => 1,
-                              "2" => 2,
-                              "3" => 3,
-                              _ => return Err(RuleError::Invalid.into())
-                          };
-                          Ok(OrdinalValue::new(value))
-                      });
-    b.rule_1_terminal("ordinals (primo..10)",
-                      b.reg(r#"((?:il |la )?1[oa°]|zeresim|prim|second|terz|quart|quint|sest|settim|ottav|non|decim)[oiae]"#)?,
-                      |text_match| {
-                          let value = match text_match.group(1).as_ref() {
-                              "zeresim" => 0,
-                              "prim" => 1,
-                              "second" => 2,
-                              "terz" => 3,
-                              "quart" => 4,
-                              "quint" => 5,
-                              "sest" => 6,
-                              "settim" => 7,
-                              "ottav" => 8,
-                              "non" => 9,
-                              "decim" => 10,
-                              _ => return Err(RuleError::Invalid.into())
-                          };
-                          Ok(OrdinalValue::new(value))
-                      });
+    b.rule_1_terminal("Quarter (cycle)",
+                      b.reg(r#"trimestre"#)?,
+                      |_| CycleValue::new(Grain::Quarter)
+    );
+    b.rule_1_terminal("year (cycle)",
+                      b.reg(r#"ann[oi]"#)?,
+                      |_| CycleValue::new(Grain::Year)
+    );
     Ok(())
 }

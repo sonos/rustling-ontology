@@ -652,10 +652,12 @@ impl Form {
 
     pub fn is_day(&self) -> bool {
         match self {
-            &Form::Cycle(grain) => match grain {
-                Grain::Day => true,
-                _ => false,
-            },
+            &Form::Cycle(grain) => {
+                match grain {
+                    Grain::Day => true,
+                    _ => false,
+                }
+            }
             &Form::MonthDay(_) => true,
             &Form::DayOfWeek { .. } => true,
             &Form::DayOfMonth => true,
