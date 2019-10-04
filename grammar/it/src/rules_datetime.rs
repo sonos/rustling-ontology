@@ -313,13 +313,21 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("year",
              integer_check_by_range!(1000, 2100),
              |integer| {
-                 helpers::year(integer.value().value as i32)
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     helpers::year(integer.value().value as i32)
+                 }
              }
     );
     b.rule_1("year (latent)",
              integer_check_by_range!(-1000, 999),
              |integer| {
-                 Ok(helpers::year(integer.value().value as i32)?.latent())
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     Ok(helpers::year(integer.value().value as i32)?.latent())
+                 }
              }
     );
     b.rule_2("in <year>",
@@ -335,7 +343,11 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("year (latent)",
              integer_check_by_range!(2101, 3000),
              |integer| {
-                 Ok(helpers::year(integer.value().value as i32)?.latent())
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     Ok(helpers::year(integer.value().value as i32)?.latent())
+                 }
              }
     );
     // Days of the month

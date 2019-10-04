@@ -1095,26 +1095,42 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("year",
              integer_check_by_range!(1900, 2100),
              |integer| {
-                 helpers::year(integer.value().value as i32)
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     helpers::year(integer.value().value as i32)
+                 }
              }
     );
     b.rule_2("year",
              b.reg(r#"(?:de[rnms]|das|die) jahre?s?n?"#)?,
              integer_check_by_range!(-1000, 2100),
              |_, integer| {
-                 helpers::year(integer.value().value as i32)
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     helpers::year(integer.value().value as i32)
+                 }
              }
     );
     b.rule_1("year (latent)",
              integer_check_by_range!(-1000, 1899),
              |integer| {
-                 Ok(helpers::year(integer.value().value as i32)?.latent())
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     Ok(helpers::year(integer.value().value as i32)?.latent())
+                 }
              }
     );
     b.rule_1("year (latent)",
              integer_check_by_range!(2101, 2200),
              |integer| {
-                 Ok(helpers::year(integer.value().value as i32)?.latent())
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     Ok(helpers::year(integer.value().value as i32)?.latent())
+                 }
              }
     );
     b.rule_2("the <day-of-month> (ordinal)",
