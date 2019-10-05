@@ -429,31 +429,31 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("quart (relative minutes)",
                       b.reg(r#"(?:un )?quart"#)?,
-                      |_| Ok(RelativeMinuteValue(15))
+                      |_| helpers::relative_minute_value(15)
     );
     b.rule_1_terminal("demi (relative minutes)",
                       b.reg(r#"demie?"#)?,
-                      |_| Ok(RelativeMinuteValue(30))
+                      |_| helpers::relative_minute_value(30)
     );
     b.rule_1_terminal("trois quarts (relative minutes)",
                       b.reg(r#"(?:3|trois) quarts?"#)?,
-                      |_| Ok(RelativeMinuteValue(45))
+                      |_| helpers::relative_minute_value(45)
     );
     b.rule_1("number (as relative minutes)",
              integer_check_by_range!(1, 59),
-             |a| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a| helpers::relative_minute_value(a.value().value as i32)
     );
     b.rule_2("number minutes (as relative minutes)",
              integer_check_by_range!(1, 59),
              b.reg(r#"min\.?(?:ute)?s?"#)?,
-             |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a, _| helpers::relative_minute_value(a.value().value as i32)
     );
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              relative_minute_check!(),
-             |datetime, minutes| helpers::hour_relative_minute(
+             |datetime, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 minutes.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
@@ -461,9 +461,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              relative_minute_check!(),
              b.reg(r#"pile|exactement|pr[ée]cises?"#)?,
-             |datetime, minutes, _| helpers::hour_relative_minute(
+             |datetime, relative_minutes, _| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 minutes.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
@@ -471,9 +471,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              b.reg(r#"moins(?: le)?"#)?,
              relative_minute_check!(),
-             |datetime, _, minutes| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 -1 * minutes.value().0,
+                 -1 * relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
@@ -482,9 +482,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"moins(?: le)?"#)?,
              relative_minute_check!(),
              b.reg(r#"pile|exactement|pr[ée]cises?"#)?,
-             |datetime, _, minutes, _| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes, _| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 -1 * minutes.value().0,
+                 -1 * relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
@@ -492,9 +492,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              b.reg(r#"et|pass[ée]e?s? de"#)?,
              relative_minute_check!(),
-             |datetime, _, minutes| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 minutes.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );
@@ -503,9 +503,9 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"et|pass[ée]e?s? de"#)?,
              relative_minute_check!(),
              b.reg(r#"pile|exactement|pr[ée]cises?"#)?,
-             |datetime, _, minutes, _| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes, _| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 minutes.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock()
              )
     );

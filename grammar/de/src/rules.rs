@@ -1276,50 +1276,50 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("quarter (relative minutes)",
                       b.reg(r#"vie?rtel"#)?,
-                      |_| Ok(RelativeMinuteValue(15))
+                      |_| helpers::relative_minute_value(15)
     );
     b.rule_1_terminal("half (relative minutes)",
                       b.reg(r#"halbe?"#)?,
-                      |_| Ok(RelativeMinuteValue(30))
+                      |_| helpers::relative_minute_value(30)
     );
     b.rule_1_terminal("number (as relative minutes for minute=1)",
              b.reg(r#"eins"#)?,
-             |_| Ok(RelativeMinuteValue(1))
+             |_| helpers::relative_minute_value(1)
     );
     b.rule_1("number (as relative minutes for minute>1)",
              integer_check_by_range!(2, 59),
-             |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
+             |integer| helpers::relative_minute_value(integer.value().value as i32)
     );
     b.rule_2("number <minutes> (as relative minutes)",
              integer_check_by_range!(1, 59),
              b.reg(r#"minuten?"#)?,
-             |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a, _| helpers::relative_minute_value(a.value().value as i32)
     );
     b.rule_3("<hour-of-day> <integer> (as relative minutes)",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              b.reg(r#"\s|und"#)?,
              relative_minute_check!(),
-             |datetime, _, relative_minute| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_3("relative minutes to|till|before <integer> (hour-of-day)",
              relative_minute_check!(),
              b.reg(r#"vor"#)?,
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
-             |relative_minute, _, datetime| helpers::hour_relative_minute(
+             |relative_minutes, _, datetime| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 -1 * relative_minute.value().0,
+                 -1 * relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_3("relative minutes after|past <integer> (hour-of-day)",
              relative_minute_check!(),
              b.reg(r#"nach"#)?,
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
-             |relative_minute, _, datetime| helpers::hour_relative_minute(
+             |relative_minutes, _, datetime| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_2("viertel <integer> (german style hour-of-day)",

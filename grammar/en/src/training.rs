@@ -223,7 +223,8 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 3]), "March", "in March");
     example!(v, check_moment!(c, [2016, 12, 15]), "12.15.2016", "12.15.16");
     example!(v, check_moment!(c, [2017, 05, 10]), "wednesday the 10th of may");
-    example!(v, check_moment!(c, [2013, 2, 12, 9, 9]), "at nine nine", "at nine nine am", "at nine nine in the morning");
+    example!(v, check_moment!(c, [2013, 2, 12, 9, 9]), "at nine o nine", "at nine o nine am", "at nine o nine in the morning");
+    example!(v, check_moment!(c, [2013, 2, 12, 8, 25]), "at eight twenty-five", "at eight twenty-five am", "at eight twenty-five in the morning");
     example!(v, check_moment_span!(c, [2017, 05, 12, 10, 32], [2017, 06, 7, 18, 23]), "friday the 12th of may, 10:32 am to wednesday the 7th of june, 6:22 pm");
 }
 

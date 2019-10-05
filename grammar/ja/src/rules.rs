@@ -1440,31 +1440,31 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1("number (as relative minutes)",
              integer_check_by_range!(1, 59),
-             |a| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a| helpers::relative_minute_value(a.value().value as i32)
     );
     b.rule_2("number <minutes> (as relative minutes)",
              integer_check_by_range!(1, 59),
              b.reg(r#"分"#)?,
-             |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a, _| helpers::relative_minute_value(a.value().value as i32)
     );
 
     b.rule_3("relative minutes to|till|before <integer> (hour-of-day)",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
              relative_minute_check!(),
              b.reg(r#"前"#)?,
-             |tod, relative_minute, _| helpers::hour_relative_minute(
+             |tod, relative_minutes, _| helpers::hour_relative_minute(
                  tod.value().form_time_of_day()?.full_hour(),
-                 -1 * relative_minute.value().0,
-                 true)
+                 -1 * relative_minutes.value().value,
+                 tod.value().form.is_12_clock())
     );
 
     b.rule_2("relative minutes after|past <integer> (hour-of-day)",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
              relative_minute_check!(),
-             |tod, relative_minute| helpers::hour_relative_minute(
+             |tod, relative_minutes| helpers::hour_relative_minute(
                  tod.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
-                 true)
+                 relative_minutes.value().value,
+                 tod.value().form.is_12_clock())
     );
     // Written dates in numeric formats
     b.rule_1_terminal("yyyy-mm-dd - ISO - additional separator '.' allowed",

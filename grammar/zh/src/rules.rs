@@ -374,22 +374,22 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 
     b.rule_1("number (as relative minutes)",
              integer_check_by_range!(1, 59),
-             |a| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a| helpers::relative_minute_value(a.value().value as i32)
     );
 
     b.rule_2("number minutes (as relative minutes)",
              integer_check_by_range!(1, 59),
              b.reg(r#"分钟?"#)?,
-             |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a, _| helpers::relative_minute_value(a.value().value as i32)
     );
 
     b.rule_3("relative minutes to|till|before <integer> (hour-of-day)",
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"(?:点|點)?差"#)?,
              relative_minute_check!(),
-             |datetime, _, relative_minute| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 -1 * relative_minute.value().0,
+                 -1 * relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
 
@@ -397,20 +397,20 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::TimeOfDay(_))),
              b.reg(r#"点|點|过|過"#)?,
              relative_minute_check!(),
-             |datetime, _, relative_minute| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
 
     b.rule_1_terminal("quarter (relative minutes)",
                       b.reg(r#"一刻"#)?,
-                      |_| Ok(RelativeMinuteValue(15))
+                      |_| helpers::relative_minute_value(15)
     );
 
     b.rule_1_terminal("half (relative minutes)",
                       b.reg(r#"半"#)?,
-                      |_| Ok(RelativeMinuteValue(30))
+                      |_| helpers::relative_minute_value(30)
     );
 
 

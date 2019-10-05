@@ -599,40 +599,48 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("quarter (relative minutes)",
                       b.reg(r#"(?:a|one)? ?quarter"#)?,
-                      |_| Ok(RelativeMinuteValue(15))
+                      |_| helpers::relative_minute_value(15)
     );
     b.rule_1_terminal("half (relative minutes)",
                       b.reg(r#"half"#)?,
-                      |_| Ok(RelativeMinuteValue(30))
+                      |_| helpers::relative_minute_value(30)
     );
-    b.rule_1("number (as relative minutes)",
-             integer_check_by_range!(1, 59),
-             |a| Ok(RelativeMinuteValue(a.value().value as i32))
-    );
-    b.rule_2("0 or o as 0 + number (as relative minutes)",
+    b.rule_2("0 or o as 0 + number [1-9] (as relative minutes)",
              b.reg(r#"o|zero"#)?,
              integer_check_by_range!(1, 9),
-             |_, a| Ok(RelativeMinuteValue(a.value().value as i32))
+             |_, a| {
+                 helpers::relative_minute_value_prefixed(a.value().value as i32)
+             }
     );
-    b.rule_2("number <minutes> (as relative minutes)",
+    b.rule_1("number [1-59] (as relative minutes)",
              integer_check_by_range!(1, 59),
-             b.reg(r#"minutes?"#)?,
-             |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a| helpers::relative_minute_value(a.value().value as i32)
     );
-    b.rule_3("0 or o as 0 + number <minutes> (as relative minutes)",
+    b.rule_3("0 or o as 0 number [1-9] minutes (as relative minutes)",
              b.reg(r#"o|zero"#)?,
              integer_check_by_range!(1, 9),
              b.reg(r#"minutes?"#)?,
-             |_, a, _| Ok(RelativeMinuteValue(a.value().value as i32))
+             |_, a, _| helpers::relative_minute_value_prefixed(a.value().value as i32)
+    );
+    b.rule_2("number [1-59] minutes (as relative minutes)",
+             integer_check_by_range!(1, 59),
+             b.reg(r#"minutes?"#)?,
+             |a, _| helpers::relative_minute_value(a.value().value as i32)
     );
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
              relative_minute_check!(),
-             |datetime, relative_minute| Ok(helpers::hour_relative_minute(
-                 datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
-                 true)?
-                 .precision(datetime.value().precision))
+             |datetime, relative_minutes| {
+                     if relative_minutes.value().value < 10 && !relative_minutes.value().prefixed {
+                         return Err(RuleError::Invalid.into())
+                     } else {
+                         Ok(helpers::hour_relative_minute(
+                             datetime.value().form_time_of_day()?.full_hour(),
+                             relative_minutes.value().value,
+                             datetime.value().form.is_12_clock())?
+                             .precision(datetime.value().precision))
+                     }
+             }
     );
     b.rule_5("at <hour-of-day> hours <integer> minutes",
              b.reg(r#"at"#)?,
@@ -640,38 +648,38 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"hours?(?: and)?"#)?,
              relative_minute_check!(),
              b.reg(r#"minutes?"#)?,
-             |_, datetime, _, relative_minute, _| Ok(helpers::hour_relative_minute(
+             |_, datetime, _, relative_minutes, _| Ok(helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
-                 true)?
+                 relative_minutes.value().value,
+                 datetime.value().form.is_12_clock())?
                  .precision(datetime.value().precision))
     );
     b.rule_3("relative minutes to|till|before <integer> (hour-of-day)",
              relative_minute_check!(),
              b.reg(r#"to|till|before|of"#)?,
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
-             |relative_minute, _, datetime| Ok(helpers::hour_relative_minute(
+             |relative_minutes, _, datetime| Ok(helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 -1 * relative_minute.value().0,
-                 true)?
+                 -1 * relative_minutes.value().value,
+                 datetime.value().form.is_12_clock())?
                  .precision(datetime.value().precision))
     );
     b.rule_3("relative minutes after|past <integer> (hour-of-day)",
              relative_minute_check!(),
              b.reg(r#"after|past"#)?,
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
-             |relative_minute, _, datetime| Ok(helpers::hour_relative_minute(
+             |relative_minutes, _, datetime| Ok(helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
-                 true)?.precision(datetime.value().precision))
+                 relative_minutes.value().value,
+                 datetime.value().form.is_12_clock())?.precision(datetime.value().precision))
     );
     b.rule_2("half <integer> (UK style hour-of-day)",
              b.reg(r#"half"#)?,
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
-             |_, a| Ok(helpers::hour_relative_minute(
-                 a.value().form_time_of_day()?.full_hour(),
+             |_, datetime| Ok(helpers::hour_relative_minute(
+                 datetime.value().form_time_of_day()?.full_hour(),
                  30,
-                 true)?.precision(a.value().precision))
+                 datetime.value().form.is_12_clock())?.precision(datetime.value().precision))
     );
     /* END OF DATETIME - TIME - TIME OF DAY */
 

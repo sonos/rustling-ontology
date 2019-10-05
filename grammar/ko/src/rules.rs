@@ -755,13 +755,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::hour(0, false),
     );
     b.rule_1_terminal("half (relative minutes)", b.reg(r#"반"#)?, |_| {
-        Ok(RelativeMinuteValue(30))
+        helpers::relative_minute_value(30)
     });
     b.rule_2(
         "number (as relative minutes)",
         integer_check_by_range!(1, 59),
         b.reg(r#"분"#)?,
-        |integer, _| Ok(RelativeMinuteValue(integer.value().value as i32)),
+        |integer, _| helpers::relative_minute_value(integer.value().value as i32),
     );
     b.rule_2(
         "<hour-of-day> <integer> (as relative minutes)",
@@ -770,9 +770,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |tod, relative_minutes| {
             helpers::hour_relative_minute(
                 tod.value().form_time_of_day()?.full_hour(),
-                relative_minutes.value().0,
-                true,
-            )
+                relative_minutes.value().value,
+                tod.value().form.is_12_clock())
         },
     );
     b.rule_2(
@@ -783,8 +782,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             helpers::hour_minute(
                 tod.value().form_time_of_day()?.full_hour(),
                 integer.value().value as u32,
-                true,
-            )
+                tod.value().form.is_12_clock())
         },
     );
     b.rule_3(
@@ -795,9 +793,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |tod, relative_minutes, _| {
             helpers::hour_relative_minute(
                 tod.value().form_time_of_day()?.full_hour(),
-                -1 * relative_minutes.value().0,
-                true,
-            )
+                -1 * relative_minutes.value().value,
+                tod.value().form.is_12_clock())
         },
     );
     b.rule_2(

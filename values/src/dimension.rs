@@ -665,6 +665,13 @@ impl Form {
             _ => false,
         }
     }
+
+    pub fn is_12_clock(&self) -> bool {
+        match self {
+            Form::TimeOfDay(tod) => tod.is_12_clock(),
+            _ => false
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -937,4 +944,7 @@ impl DurationValue {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct RelativeMinuteValue(pub i32);
+pub struct RelativeMinuteValue {
+    pub value: i32,
+    pub prefixed: bool,
+}

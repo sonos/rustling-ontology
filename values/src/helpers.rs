@@ -581,6 +581,14 @@ pub fn hour_relative_minute(h: u32, m: i32, is_12_clock: bool) -> RuleResult<Dat
     hour_minute(shifter_hour, normalized_minute, is_12_clock)
 }
 
+pub fn relative_minute_value(m: i32) -> RuleResult<RelativeMinuteValue> {
+    Ok(RelativeMinuteValue { value: m, prefixed: false })
+}
+
+pub fn relative_minute_value_prefixed(m: i32) -> RuleResult<RelativeMinuteValue> {
+    Ok(RelativeMinuteValue { value: m, prefixed: true })
+}
+
 pub fn cycle(grain: Grain) -> RuleResult<DatetimeValue> {
     Ok(DatetimeValue::constraint(Cycle::rc(grain)).form(Form::Cycle(grain)))
 }
