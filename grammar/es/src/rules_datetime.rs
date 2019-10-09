@@ -894,9 +894,19 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_2("before <datetime>",
-             b.reg(r#"antes de|hasta"#)?,
-             datetime_check!(),
+             b.reg(r#"antes del?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
+    );
+    b.rule_2("until <time-of-day>",
+             b.reg(r#"hasta"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             |_, a| Ok(a.value().clone().mark_before_end())
+    );
+    b.rule_2("until <datetime>",
+             b.reg(r#"hasta"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
+             |_, datetime| Ok(datetime.value().clone().mark_before_end_all())
     );
     b.rule_2("approx <time-of-day>",
              b.reg(r#"sobre|cerca de|hacia|alrededor de"#)?,
@@ -987,7 +997,7 @@ pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingR
     b.rule_4("the <cycle> before <datetime>",
              b.reg(r#"(?:el|l[oa]s?)"#)?,
              cycle_check!(),
-             b.reg(r#"antes de"#)?,
+             b.reg(r#"antes del?"#)?,
              datetime_check!(),
              |_, cycle, _, datetime| helpers::cycle_nth_after(cycle.value().grain, -1, datetime.value())
     );

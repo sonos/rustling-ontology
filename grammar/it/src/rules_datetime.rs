@@ -1278,10 +1278,25 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, a, _, b| a.value().smart_span_to(b.value(), false)
     );
+    b.rule_2("until <time-of-day>",
+             b.reg(r#"(?:fino )?a(?:l(?:l['oe])?)?"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             |_, a| Ok(a.value().clone().mark_before_end())
+    );
+    b.rule_2("until <datetime>",
+             b.reg(r#"(?:fino )?a(?:l(?:l['oe])?)?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
+             |_, a| Ok(a.value().clone().mark_before_end_all())
+    );
     b.rule_2("before <time-of-day>",
-             b.reg(r#"prima(?: d(?:i|el(?:l[ea])?)?)?|entro|[sf]ino a(?:l(?:l[eoa])?)?"#)?,
-             datetime_check!(),
+             b.reg(r#"prima(?: d(?:i|el(?:l[ea])?)?)?|entro"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
+    );
+    b.rule_2("before <datetime>",
+             b.reg(r#"prima(?: d(?:i|el(?:l[ea])?)?)?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
+             |_, a| Ok(a.value().clone().mark_before_start())
     );
     b.rule_2("after <time-of-day>",
              b.reg(r#"dopo"#)?,

@@ -296,6 +296,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16], Direction::Before), "antes das 16h", "até as 4 da tarde");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16, 0], Direction::Before), "até as 16:00");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 14], Direction::Before), "ate amanha");
     // FIXME: Same as below (Interval(..-..) expected but got Before(..))
     // example!(v, check_moment_span!(c, [2013, 2, 13, 0], [2013, 2, 13, 6]), "amanhã até as seis horas", "amanhã antes das 6h", "até as 6 horas amanhã");
     // FIXME: Same as below (Interval(..-..) expected but got After(..))

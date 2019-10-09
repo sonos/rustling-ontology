@@ -1161,10 +1161,14 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
              |_, a| Ok(a.value().clone().mark_before_end_all())
     );
-    // TODO: split date/time period + correct regex
+    b.rule_2("before <time-of-day>",
+             b.reg(r#"(?:anytime |sometimes? )?before"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             |_, a| Ok(a.value().clone().mark_before_start())
+    );
     b.rule_2("before <datetime>",
              b.reg(r#"(?:anytime |sometimes? )?before"#)?,
-             datetime_check!(),
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
              |_, a| Ok(a.value().clone().mark_before_start())
     );
     // TODO: split date/time period + correct regex
