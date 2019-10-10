@@ -5,6 +5,15 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 edition = "2018"
 
 [dependencies]
+rustling-ontology-de-data = { path = "de-data" }
+
+
+
+[build-dependencies]
+rmp-serde = "0.14"
+serde = { version = "1.0", features = ["derive"] }
 rustling = { git = "https://github.com/snipsco/rustling", tag="0.9.1" }
-rustling-ontology-moment = { path = "../../moment" }
 rustling-ontology-values = { path = "../../values" }
+rustling-ontology-moment = { path = "../../moment" }
+rustling-ontology-de-data = { path = "de-data" }
+
