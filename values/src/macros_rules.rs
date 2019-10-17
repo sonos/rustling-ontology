@@ -89,7 +89,6 @@ macro_rules! datetime_check {
     ($($predicate:expr),*) => ( ::rustling::core::FilterNodePattern::<DatetimeValue>::filter(vec![ $( b!($predicate) ),*]) );
 }
 
-
 #[macro_export]
 macro_rules! datetime_check_exclude_too_ambiguous {
     () => ( ::rustling::core::FilterNodePattern::<DatetimeValue>::filter(vec![b!(|datetime: &DatetimeValue| !datetime.is_too_ambiguous())]) );

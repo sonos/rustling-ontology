@@ -267,7 +267,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  a.value().the_nth_not_immediate(0)
              }
     );
-    // TODO: add restrictions on datetime form
     b.rule_2("this <datetime>",
              b.reg(r#"the|this|current|coming"#)?,
              datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime) && !form!(Form::Meal)(datetime)),
@@ -277,7 +276,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      .datetime_kind(a.value().datetime_kind.clone()))
              }
     );
-    // TODO: add restrictions on datetime form
     b.rule_2("next <datetime>",
              b.reg(r#"(?:the |this )?next"#)?,
              datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime) && !form!(Form::Meal)(datetime)),
@@ -287,7 +285,6 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                      .datetime_kind(a.value().datetime_kind.clone()))
              }
     );
-    // TODO: add restrictions on datetime form
     b.rule_2("last <datetime>",
              b.reg(r#"this past|(?:the |this )?last"#)?,
              datetime_check!(|datetime: &DatetimeValue| !form!(Form::PartOfDay(_))(datetime) && !form!(Form::Meal)(datetime)),
@@ -434,10 +431,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              ordinal_check!(|ordinal: &OrdinalValue| 1 <= ordinal.value && ordinal.value <= 31),
              |month, ordinal| {
                  let m = month.value().form_month()?;
-                 let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: ordinal.value().value as u32}));
-                 Ok(month.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)?
-                     .form(form))
-
+                 helpers::month_day(m, ordinal.value().value as u32)
              }
     );
     b.rule_2("<named-month> <day-of-month> (non ordinal)",
@@ -445,8 +439,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 31),
              |month, integer| {
                  let m = month.value().form_month()?;
-                 let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: integer.value().value as u32}));
-                 Ok(month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)?.form(form))
+                 helpers::month_day(m, integer.value().value as u32)
              }
     );
     b.rule_3("<named-month> the <day-of-month> (non ordinal)",
@@ -455,8 +448,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(1, 31),
              |month, _, integer| {
                  let m = month.value().form_month()?;
-                 let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: integer.value().value as u32}));
-                 Ok(month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)?.form(form))
+                 helpers::month_day(m, integer.value().value as u32)
              }
     );
     b.rule_3("<day-of-month> (ordinal) of <named-month>",
@@ -465,8 +457,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::Month(_))),
              |ordinal, _, month| {
                  let m = month.value().form_month()?;
-                 let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: ordinal.value().value as u32}));
-                 Ok(month.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)?.form(form))
+                 helpers::month_day(m, ordinal.value().value as u32)
              }
     );
     b.rule_3("<day-of-month> (non ordinal) of <named-month>",
@@ -475,8 +466,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::Month(_))),
              |integer, _, month| {
                  let m = month.value().form_month()?;
-                 let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: integer.value().value as u32}));
-                 Ok(month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)?.form(form))
+                 helpers::month_day(m, integer.value().value as u32)
              }
     );
     b.rule_2("<day-of-month> (non ordinal) <named-month>",
@@ -484,8 +474,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::Month(_))),
              |integer, month| {
                  let m = month.value().form_month()?;
-                 let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: integer.value().value as u32}));
-                 Ok(month.value().intersect(&helpers::day_of_month(integer.value().value as u32)?)?.form(form))
+                 helpers::month_day(m, integer.value().value as u32)
              }
     );
     b.rule_2("<day-of-month>(ordinal) <named-month>",
@@ -493,8 +482,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(form!(Form::Month(_))),
              |ordinal, month| {
                  let m = month.value().form_month()?;
-                 let form = Form::MonthDay(Some(MonthDayForm { month: m,  day_of_month: ordinal.value().value as u32}));
-                 Ok(month.value().intersect(&helpers::day_of_month(ordinal.value().value as u32)?)?.form(form))
+                 helpers::month_day(m, ordinal.value().value as u32)
              }
     );
     /* END OF DATETIME - DATE - DATES */
@@ -904,7 +892,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |_, datetime| Ok(datetime.value().clone().latent())
     );
-    b.rule_2("in|for≤|during the <part-of-day>",
+    b.rule_2("in|for|during the <part-of-day>",
              b.reg(r#"(?:in|for|during)(?: the)?"#)?,
              datetime_check!(|datetime: &DatetimeValue| form!(Form::PartOfDay(_))(datetime) || form!(Form::Meal)(datetime)),
              |_, datetime| Ok(datetime.value().clone().not_latent())
@@ -989,25 +977,33 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           Ok(friday.span_to(&monday, false)?.datetime_kind(DatetimeKind::DatePeriod))
                       }
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - summer",
                       b.reg(r#"(?:the )?summer"#)?,
                       |_| Ok(helpers::month_day(6, 21)?
                           .span_to(&helpers::month_day(9, 23)?, false)?
                           .form(Form::Season))
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - fall",
                       b.reg(r#"(?:the )?(?:fall|autumn)"#)?,
                       |_| Ok(helpers::month_day(9, 23)?
                           .span_to(&helpers::month_day(12, 21)?, false)?
                           .form(Form::Season))
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - winter",
                       b.reg(r#"(?:the )?winter"#)?,
                       |_| Ok(helpers::month_day(12, 21)?
                           .span_to(&helpers::month_day(3, 20)?, false)?
                           .form(Form::Season))
     );
-    b.rule_1_terminal("season",
+    // FIXME: Also add support for combined years? e.g. "winter 2014-2015"
+    b.rule_2("season - winter <year>",
+                      b.reg(r#"(?:the )?winter(?: of)?"#)?,
+                      datetime_check!(form!(Form::Year(_))),
+                      |_, year| Ok(helpers::year_month_day(year.value().form_year()?, 12, 21)?
+                          .span_to(&helpers::year_month_day(year.value().form_year()? + (1 as i32), 3, 20)?, false)?
+                          .form(Form::Season))
+    );
+    b.rule_1_terminal("season - spring",
                       b.reg(r#"(?:the )?spring"#)?,
                       |_| Ok(helpers::month_day(3, 20)?
                           .span_to(&helpers::month_day(6, 21)?, false)?
@@ -1041,21 +1037,21 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       });
     b.rule_2("<time-of-day> approximately",
              datetime_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"(?:-?ish|approximately)"#)?,
+             b.reg(r#"-?ish|approximately"#)?,
              |datetime, _| Ok(datetime.value().clone().not_latent().precision(Precision::Approximate))
     );
     b.rule_2("about <time-of-day>",
-             b.reg(r#"(?:about|around|approximately)"#)?,
+             b.reg(r#"about|around|approximately"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, datetime| Ok(datetime.value().clone().not_latent().precision(Precision::Approximate))
     );
     b.rule_2("<time-of-day> sharp",
              datetime_check!(form!(Form::TimeOfDay(_))),
-             b.reg(r#"(?:sharp|exactly|precisely)"#)?,
+             b.reg(r#"sharp|exactly|precisely"#)?,
              |datetime, _| Ok(datetime.value().clone().not_latent().precision(Precision::Exact))
     );
     b.rule_2("exactly <time-of-day>",
-             b.reg(r#"(?:exactly|precisely)"#)?,
+             b.reg(r#"exactly|precisely"#)?,
              datetime_check!(form!(Form::TimeOfDay(_))),
              |_, datetime| Ok(datetime.value().clone().not_latent().precision(Precision::Exact))
     );

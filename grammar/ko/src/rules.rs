@@ -1032,16 +1032,23 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         let monday = helpers::day_of_week(Weekday::Mon)?.intersect(&helpers::hour(0, false)?)?;
         friday.span_to(&monday, false)
     });
-    b.rule_1_terminal("season", b.reg(r#"여름"#)?, |_| {
+    b.rule_1_terminal("season - summer", b.reg(r#"여름"#)?, |_| {
         helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
     });
-    b.rule_1_terminal("season", b.reg(r#"가을"#)?, |_| {
+    b.rule_1_terminal("season - fall", b.reg(r#"가을"#)?, |_| {
         helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
     });
-    b.rule_1_terminal("season", b.reg(r#"겨울"#)?, |_| {
+    b.rule_1_terminal("season - winter", b.reg(r#"겨울"#)?, |_| {
         helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     });
-    b.rule_1_terminal("season", b.reg(r#"봄"#)?, |_| {
+    b.rule_2("season - winter <year>",
+             b.reg(r#"겨울"#)?,
+             datetime_check!(form!(Form::Year(_))),
+             |_, year| Ok(helpers::year_month_day(year.value().form_year()?, 12, 21)?
+                 .span_to(&helpers::year_month_day(year.value().form_year()? + (1 as i32), 3, 20)?, false)?
+                 .form(Form::Season))
+    );
+    b.rule_1_terminal("season - spring", b.reg(r#"봄"#)?, |_| {
         helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     });
     b.rule_2(

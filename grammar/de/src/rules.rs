@@ -1717,37 +1717,44 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             friday.span_to(&monday, false)
         }
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - summer",
                       b.reg(r#"sommer(?:zeit|s)?"#)?,
                       |_| Ok(helpers::month_day(6, 21)?
                           .span_to(&helpers::month_day(9, 23)?, false)?
-                          .form(Form::PartOfYear))
+                          .form(Form::Season))
     );
     b.rule_1_terminal("Summer solstice",
         b.reg(r#"sommersonn(?:en)?wende"#)?,
         |_| Ok(helpers::month_day(6, 21)?.form(Form::Celebration).too_ambiguous())
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - fall",
                       b.reg(r#"herbst(?:zeit|s|es)?|sp[äa]tjahr(?:es)?"#)?,
                       |_| Ok(helpers::month_day(9, 23)?
                           .span_to(&helpers::month_day(12, 21)?, false)?
-                          .form(Form::PartOfYear))
+                          .form(Form::Season))
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - winter",
                       b.reg(r#"winter(?:zeit|s)?"#)?,
                       |_| Ok(helpers::month_day(12, 21)?
                           .span_to(&helpers::month_day(3, 20)?, false)?
-                          .form(Form::PartOfYear))
+                          .form(Form::Season))
+    );
+    b.rule_2("season - winter <year>",
+             b.reg(r#"winter(?:zeit|s)?"#)?,
+             datetime_check!(form!(Form::Year(_))),
+             |_, year| Ok(helpers::year_month_day(year.value().form_year()?, 12, 21)?
+                 .span_to(&helpers::year_month_day(year.value().form_year()? + (1 as i32), 3, 20)?, false)?
+                 .form(Form::Season))
     );
     b.rule_1_terminal("Winter solstice",
         b.reg(r#"wintersonnwende"#)?,
         |_| Ok(helpers::month_day(12, 21)?.form(Form::Celebration).too_ambiguous())
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - spring",
                       b.reg(r#"(?:fr[üu]hlings?|fr[üu]hjahr(?:es)?)(?:zeit)?"#)?,
                       |_| Ok(helpers::month_day(3, 20)?
                           .span_to(&helpers::month_day(6, 21)?, false)?
-                          .form(Form::PartOfYear))
+                          .form(Form::Season))
     );
     b.rule_2("im <part-of-year>",
              b.reg(r#"(?:(?:in )?(?:de[nrms]|die|das)|im|ins)"#)?,

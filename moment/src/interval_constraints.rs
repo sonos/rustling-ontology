@@ -1763,6 +1763,36 @@ mod tests {
         assert_eq!(None, walker.forward.clone().next());
     }
 
+    // FIXME: Ongoing checks for issue #192 - wrong year resolution in intervals with implicit
+    // year on the left side, e.g. "from august 3rd to november 3rd 2019", when year is current
+    // or future and interval overlaps present day
+//    #[test]
+//    fn test_span_to() {
+//        let context = build_context(Moment(Paris.ymd(2019, 10, 03).and_hms(9, 10, 11)));
+//        let walker = MonthDay::new(1, 7).unwrap()
+//            //.span_to(&MonthDay::new(11, 9).unwrap().intersect(&rc!(Year(2019))))
+//            .span_to(&YearMonthDay::new(2019, 11, 9).unwrap())
+//            .to_walker(&context.reference, &context);
+//
+//        assert_eq!(
+//            None,
+//            walker.forward.clone().next()
+//        );
+//        assert_eq!(
+//            Some(Interval::new(
+//                Moment(Paris.ymd(2019, 01, 07).and_hms(0, 0, 0)),
+//                Some(Moment(Paris.ymd(2019, 11, 9).and_hms(0, 0, 0))),
+//                Grain::Day
+//            )),
+//            walker.backward.clone().next()
+//        );
+//        assert_eq!(
+//            None,
+//            walker.backward.clone().skip(1).next()
+//        );
+//    }
+
+
     #[test]
     fn test_cycle() {
         let context = build_context(Moment(Paris.ymd(2017, 04, 25).and_hms(9, 10, 11)));

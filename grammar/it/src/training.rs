@@ -126,10 +126,11 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2012, 11, 12]), "3 mesi fa");
     example!(v, check_moment!(c, [2014, 2]), "tra un anno", "fra un anno");
     example!(v, check_moment!(c, [2011, 2]), "due anni fa");
-
     // Seasons
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "quest'estate", "questa estate");
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "quest'inverno", "questo inverno");
+    example!(v, check_moment_span!(c, [2014, 6, 21], [2014, 9, 24]), "estate 2014", "nell' estate 2014", "per l' estate 2014");
+    example!(v, check_moment_span!(c, [2014, 12, 21], [2015, 3, 21]), "inverno 2014", "nell' inverno 2014", "per l' inverno 2014");
 
     // Holidays
     // TODO
