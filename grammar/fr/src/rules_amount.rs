@@ -130,7 +130,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         money_unit!(),
         |a, _, b| {
             Ok(AmountOfMoneyValue {
-                value: a.value().value as f32,
+                value: a.value().value as f64,
                 precision: Exact,
                 unit: b.value().unit,
                 ..AmountOfMoneyValue::default()
@@ -142,7 +142,7 @@ pub fn rules_finance(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         money_unit!(),
         |a, _, b| {
             Ok(AmountOfMoneyValue {
-                value: a.value().value as f32,
+                value: a.value().value as f64,
                 precision: Approximate,
                 unit: b.value().unit,
                 ..AmountOfMoneyValue::default()

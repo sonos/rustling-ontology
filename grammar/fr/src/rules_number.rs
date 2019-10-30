@@ -1,4 +1,4 @@
-use std::f32;
+use std::f64;
 use rustling::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::helpers;
@@ -191,7 +191,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"(\d*,\d+)"#)?,
                       |text_match| {
                           let reformatted_string = text_match.group(1).replace(",", ".");
-                          let value: f32 = reformatted_string.parse()?;
+                          let value: f64 = reformatted_string.parse()?;
                           FloatValue::new(value)
                       });
     b.rule_3("number dot number",
@@ -200,7 +200,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(|number: &NumberValue| !number.suffixed()),
              |a, _, b| {
                  let power = b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 let coeff = 10.0_f64.powf(-1.0 * power as f64);
                  Ok(FloatValue {
                      value: b.value().value() * coeff + a.value().value(),
                      ..FloatValue::default()
@@ -213,7 +213,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              number_check!(|number: &NumberValue| !number.suffixed()),
              |a, _, zeros, b| {
                  let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 let coeff = 10.0_f64.powf(-1.0 * power as f64);
                  Ok(FloatValue {
                      value: b.value().value() * coeff + a.value().value(),
                      ..FloatValue::default()
@@ -223,7 +223,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
                       |text_match| {
                           let reformatted_string = text_match.group(1).replace(".", "").replace(",", ".");
-                          let value: f32 = reformatted_string.parse()?;
+                          let value: f64 = reformatted_string.parse()?;
                           FloatValue::new(value)
                       });
     b.rule_2("numbers prefix with -, negative or minus",
@@ -293,7 +293,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                        .into()
                }
                NumberValue::Float(float) => {
-            let product = float.value * (multiplier as f32);
+            let product = float.value * (multiplier as f64);
             if product.floor() == product {
                 IntegerValue {
                         value: product as i64,
@@ -470,7 +470,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         integer_check_by_range!(0, 99),
         b.reg(r#"et demie?"#)?,
         |integer, _| {
-            FloatValue::new(integer.value().value as f32 + 0.5)
+            FloatValue::new(integer.value().value as f64 + 0.5)
         }
     );
     b.rule_1_terminal("70, 80, 90 (Belgium and Switzerland)",
@@ -697,7 +697,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check_by_range!(0, 99),
              b.reg(r#"et demie?"#)?,
              |integer, _| {
-                 FloatValue::new(integer.value().value as f32 + 0.5)
+                 FloatValue::new(integer.value().value as f64 + 0.5)
              }
     );
     b.rule_1_terminal("70, 80, 90 (Belgium and Switzerland)",

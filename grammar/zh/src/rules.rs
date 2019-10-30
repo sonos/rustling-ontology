@@ -779,7 +779,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |text_match| IntegerValue::new(text_match.group(0).parse()?));
 
     b.rule_1("decimal number", b.reg(r#"(\d*\.\d+)"#)?, |text_match| {
-        let value: f32 = text_match.group(0).parse()?;
+        let value: f64 = text_match.group(0).parse()?;
         Ok(FloatValue {
             value: value,
             ..FloatValue::default()
@@ -837,7 +837,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"(\d+(,\d\d\d)+\.\d+)"#)?,
                       |text_match| {
                           let reformatted_string = text_match.group(1).replace(",", "");
-                          let value: f32 = reformatted_string.parse()?;
+                          let value: f64 = reformatted_string.parse()?;
                           Ok(FloatValue {
                               value: value,
                               ..FloatValue::default()
@@ -880,7 +880,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                              .into()
                      }
                      NumberValue::Float(float) => {
-                         let product = float.value * (multiplier as f32);
+                         let product = float.value * (multiplier as f64);
                          if product.floor() == product {
                              IntegerValue {
                                  value: product as i64,

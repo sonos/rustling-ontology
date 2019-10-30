@@ -6,7 +6,7 @@ use std::ops;
 
 pub fn compose_numbers(a: &NumberValue, b: &NumberValue) -> RuleResult<NumberValue> {
     let grain = a.grain().unwrap_or(0) as u32;
-    if 10u64.pow(grain) as f32 > b.value() && a.value() >= 0.0 && b.value() >= 0.0 {
+    if 10u64.pow(grain) as f64 > b.value() && a.value() >= 0.0 && b.value() >= 0.0 {
         match (a, b) {
             (&NumberValue::Integer(ref lhs), &NumberValue::Integer(ref rhs)) => {
                 Ok(NumberValue::Integer(
