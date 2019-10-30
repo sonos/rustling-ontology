@@ -1,4 +1,4 @@
-use std::f32;
+use std::f64;
 
 use rustling::*;
 use rustling_ontology_values::dimension::*;
@@ -460,7 +460,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("time-of-day (latent) (half)",
             number_check!(|number: &NumberValue| {
                 let hour = (number.value() - 0.5) as u32;
-                hour as f32 == (number.value() - 0.5) && hour >= 1 && hour <= 23
+                hour as f64 == (number.value() - 0.5) && hour >= 1 && hour <= 23
             }),
              |number| {
                 let hour = number.value().value() as u32;
@@ -470,7 +470,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("time-of-day (latent) (quarter)",
             number_check!(|number: &NumberValue| {
                 let hour = (number.value() - 0.25) as u32;
-                hour as f32 == (number.value() - 0.25) && hour >= 1 && hour <= 23
+                hour as f64 == (number.value() - 0.25) && hour >= 1 && hour <= 23
             }),
              |number| {
                 let hour = number.value().value() as u32;

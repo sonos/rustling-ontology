@@ -236,7 +236,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("float number", 
         b.reg(r#"((?:\d|〇)*[、,，\.](?:\d|〇)+)"#)?, |text_match| {
           let res = text_match.group(1).replace_japanese_digit().replace_comma();
-          let value: f32 = res.parse()?;
+          let value: f64 = res.parse()?;
           Ok(FloatValue {
               value: value,
               ..FloatValue::default()
@@ -248,7 +248,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         number_check!(|number: &NumberValue| !number.suffixed()),
         |a, _, b| {
             let power = b.value().value().to_string().chars().count();
-            let coeff = 10.0_f32.powf(-1.0 * power as f32);
+            let coeff = 10.0_f64.powf(-1.0 * power as f64);
             Ok(FloatValue {
                 value: b.value().value() * coeff + a.value().value(),
                 ..FloatValue::default()
@@ -279,7 +279,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                                              decimal_part_string.chars()
                                                  .filter_map(number_mapping)
                                                  .collect::<String>());
-              let decimal_part: f32 = decimal_part_string.parse()?;
+              let decimal_part: f64 = decimal_part_string.parse()?;
               Ok(FloatValue {
                  value: a.value().value() + decimal_part,
                  ..FloatValue::default()

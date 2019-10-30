@@ -1745,7 +1745,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .filter_map(number_mapping)
                     .collect::<String>()
             );
-            FloatValue::new(a.value().value() + number_string.parse::<f32>()?)
+            FloatValue::new(a.value().value() + number_string.parse::<f64>()?)
         },
     );
 

@@ -40,7 +40,7 @@ pub fn check_ordinal(v: i64) -> CheckOrdinal {
 
 #[derive(Debug)]
 pub struct CheckFloat {
-    pub value: f32,
+    pub value: f64,
 }
 
 impl Check<Dimension> for CheckFloat {
@@ -51,7 +51,7 @@ impl Check<Dimension> for CheckFloat {
     }
 }
 
-pub fn check_float(v: f32) -> CheckFloat {
+pub fn check_float(v: f64) -> CheckFloat {
     CheckFloat { value: v }
 }
 
@@ -191,7 +191,7 @@ pub fn check_moment_span(
 
 #[derive(Debug)]
 pub struct CheckFinance {
-    pub value: f32,
+    pub value: f64,
     pub unit: Option<&'static str>,
     pub precision: Precision,
 }
@@ -204,7 +204,7 @@ impl Check<Dimension> for CheckFinance {
     }
 }
 
-pub fn check_finance(value: f32, unit: Option<&'static str>, precision: Precision) -> CheckFinance {
+pub fn check_finance(value: f64, unit: Option<&'static str>, precision: Precision) -> CheckFinance {
     CheckFinance {
         value,
         precision,
@@ -214,7 +214,7 @@ pub fn check_finance(value: f32, unit: Option<&'static str>, precision: Precisio
 
 #[derive(Debug)]
 pub struct CheckPercentage {
-    pub value: f32,
+    pub value: f64,
 }
 
 impl Check<Dimension> for CheckPercentage {
@@ -225,13 +225,13 @@ impl Check<Dimension> for CheckPercentage {
     }
 }
 
-pub fn check_percentage(value: f32) -> CheckPercentage {
+pub fn check_percentage(value: f64) -> CheckPercentage {
     CheckPercentage { value }
 }
 
 #[derive(Debug)]
 pub struct CheckTemperature {
-    pub value: f32,
+    pub value: f64,
     pub unit: Option<&'static str>,
 }
 
@@ -243,6 +243,6 @@ impl Check<Dimension> for CheckTemperature {
     }
 }
 
-pub fn check_temperature(value: f32, unit: Option<&'static str>) -> CheckTemperature {
+pub fn check_temperature(value: f64, unit: Option<&'static str>) -> CheckTemperature {
     CheckTemperature { value, unit }
 }

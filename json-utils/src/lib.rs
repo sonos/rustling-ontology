@@ -231,7 +231,7 @@ pub struct TimeIntervalValue {
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct AmountOfMoneyValue {
-    pub value: f32,
+    pub value: f64,
     pub precision: Precision,
     pub unit: Option<String>,
 }
