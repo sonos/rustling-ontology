@@ -262,19 +262,31 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("year",
              integer_check_by_range!(1000, 2100),
              |integer| {
-                 helpers::year(integer.value().value as i32)
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     helpers::year(integer.value().value as i32)
+                 }
              }
     );
     b.rule_1("year (latent)",
              integer_check_by_range!(-1000, 999),
              |integer| {
-                 Ok(helpers::year(integer.value().value as i32)?.latent())
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     Ok(helpers::year(integer.value().value as i32)?.latent())
+                 }
              }
     );
     b.rule_1("year (latent)",
              integer_check_by_range!(2101, 2200),
              |integer| {
-                 Ok(helpers::year(integer.value().value as i32)?.latent())
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     Ok(helpers::year(integer.value().value as i32)?.latent())
+                 }
              }
     );
     b.rule_2("del <year>", //latin america mostly
@@ -485,54 +497,54 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("quarter (relative minutes)",
                       b.reg(r#"(?:un )?(?:cuarto|1/4)(?: de hora)?"#)?,
-                      |_| Ok(RelativeMinuteValue(15))
+                      |_| helpers::relative_minute_value(15)
     );
     b.rule_1_terminal("half (relative minutes)",
                       b.reg(r#"media"#)?,
-                      |_| Ok(RelativeMinuteValue(30))
+                      |_| helpers::relative_minute_value(30)
     );
     b.rule_1_terminal("3 quarter (relative minutes)",
                       b.reg(r#"(3|tres) cuartos?(?: de hora)?"#)?,
-                      |_| Ok(RelativeMinuteValue(45))
+                      |_| helpers::relative_minute_value(45)
     );
     b.rule_1("number (as relative minutes)",
              integer_check_by_range!(1, 59),
-             |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
+             |integer|helpers::relative_minute_value(integer.value().value as i32)
     );
     b.rule_2("<integer> minutes (as relative minutes)",
              integer_check_by_range!(1, 59),
              b.reg(r#"min\.?(?:uto)?s?"#)?,
-             |integer, _| Ok(RelativeMinuteValue(integer.value().value as i32))
+             |integer, _| helpers::relative_minute_value(integer.value().value as i32)
     );
     b.rule_2("<integer> minutes (as relative minutes)",
              b.reg(r#"y"#)?,
              integer_check_by_range!(1, 59),
-             |_, integer| Ok(RelativeMinuteValue(integer.value().value as i32))
+             |_, integer| helpers::relative_minute_value(integer.value().value as i32)
     );
     b.rule_2("<hour-of-day> <integer> (as relative minutes)",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              relative_minute_check!(),
-             |datetime, relative_minute| helpers::hour_relative_minute(
+             |datetime, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_3("<hour-of-day> minus <integer> (as relative minutes)",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              b.reg(r#"menos\s?"#)?,
              relative_minute_check!(),
-             |datetime, _, relative_minute| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 -1 * relative_minute.value().0,
+                 -1 * relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_3("<hour-of-day> and <relative minutes>",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
              b.reg(r#"y"#)?,
              relative_minute_check!(),
-             |datetime, _, relative_minute| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     // Written dates in numeric formats
@@ -786,22 +798,29 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           friday.span_to(&monday, false)
                       }
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - summer",
                       b.reg(r#"verano"#)?,
                       |_| helpers::month_day(6, 21)?
                           .span_to(&helpers::month_day(9, 23)?, false)
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - fall",
                       b.reg(r#"oto[ñn]o"#)?,
                       |_| helpers::month_day(9, 23)?
                           .span_to(&helpers::month_day(12, 21)?, false)
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - winter",
                       b.reg(r#"invierno"#)?,
                       |_| helpers::month_day(12, 21)?
                           .span_to(&helpers::month_day(3, 20)?, false)
     );
-    b.rule_1_terminal("season",
+    b.rule_2("season - winter <year>",
+             b.reg(r#"invierno(?: de)?"#)?,
+             datetime_check!(form!(Form::Year(_))),
+             |_, year| Ok(helpers::year_month_day(year.value().form_year()?, 12, 21)?
+                 .span_to(&helpers::year_month_day(year.value().form_year()? + (1 as i32), 3, 20)?, false)?
+                 .form(Form::Season))
+    );
+    b.rule_1_terminal("season - spring",
                       b.reg(r#"primavera"#)?,
                       |_| helpers::month_day(3, 20)?
                           .span_to(&helpers::month_day(6, 21)?, false)
@@ -882,9 +901,19 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              |_, a, _, b| a.value().span_to(b.value(), false)
     );
     b.rule_2("before <datetime>",
-             b.reg(r#"antes de|hasta"#)?,
-             datetime_check!(),
+             b.reg(r#"antes del?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
              |_, datetime| Ok(datetime.value().clone().mark_before_end())
+    );
+    b.rule_2("until <time-of-day>",
+             b.reg(r#"hasta"#)?,
+             datetime_check!(form!(Form::TimeOfDay(_))),
+             |_, a| Ok(a.value().clone().mark_before_end())
+    );
+    b.rule_2("until <datetime>",
+             b.reg(r#"hasta"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::TimeOfDay(_))(datetime)),
+             |_, datetime| Ok(datetime.value().clone().mark_before_end_all())
     );
     b.rule_2("approx <time-of-day>",
              b.reg(r#"sobre|cerca de|hacia|alrededor de"#)?,
@@ -975,7 +1004,7 @@ pub fn rules_datetime_with_cycle(b: &mut RuleSetBuilder<Dimension>) -> RustlingR
     b.rule_4("the <cycle> before <datetime>",
              b.reg(r#"(?:el|l[oa]s?)"#)?,
              cycle_check!(),
-             b.reg(r#"antes de"#)?,
+             b.reg(r#"antes del?"#)?,
              datetime_check!(),
              |_, cycle, _, datetime| helpers::cycle_nth_after(cycle.value().grain, -1, datetime.value())
     );

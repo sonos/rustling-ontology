@@ -185,6 +185,10 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 12]), "ein jahr nach weihnachten");
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "diesen sommer");
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "diesen winter");
+    example!(v, check_moment!(c, [2014, 6, 1], Grain::Month), "juni 2014", "in juni 2014");
+    example!(v, check_moment!(c, [2005, 5, 1], Grain::Month), "mai 2005", "in mai 2005");
+    example!(v, check_moment_span!(c, [2014, 6, 21], [2014, 9, 24]), "sommer 2014", "in sommer 2014");
+    example!(v, check_moment_span!(c, [2014, 12, 21], [2015, 3, 21]), "winter 2014", "in winter 2014");
     example!(v, check_moment!(c, [2013, 12, 25]), "Weihnachten", "Weihnachtstag");
     example!(v, check_moment!(c, [2013, 12, 31]), "Silvester");
     example!(v, check_moment!(c, [2014, 1, 1]), "Neujahrstag", "Neujahr");
@@ -286,7 +290,8 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 13, 44]), "ein uhr und vierundvierzig minuten");
     example!(v, check_moment_span!(c, [2013, 2, 11, 1, 9], [2013, 2, 11, 3, 25]), "gestern zwischen ein uhr und neun minuten und drei uhr und fünfundzwanzig minuten");
     example!(v, check_moment_span!(c, [2013, 2, 13, 00, 45], [2013, 2, 13, 1, 00]), "zwischen dreiviertel eins und ein uhr morgen");
-    example!(v, check_moment_with_direction!(c, [2013, 2, 14], Direction::Before), "bis Donnerstag");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 14], Direction::Before), "vor Donnerstag");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 15], Direction::Before), "bis Donnerstag");
 
 }
 
@@ -304,6 +309,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(102), "102", "hundert zwei");
     example!(v, check_float(1.1), "1,1", "1 komma 1", "1,10", "01,10");
     example!(v, check_float(0.77), "0,77", ",77");
+    example!(v, check_float(0.3), "0,3", "null komma drei");
+    example!(v, check_float(0.03), "0,03", "null komma null drei");
     example!(v, check_integer(100000), "100.000", "100000", "100K", "100k");
     example!(v, check_integer(3000000), "3M", "3000K", "3000000", "3.000.000");
     example!(v, check_integer(1200000), "1.200.000", "1200000", "1,2M", "1200K", ",0012G");

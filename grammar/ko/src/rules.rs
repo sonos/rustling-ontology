@@ -755,13 +755,13 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |_| helpers::hour(0, false),
     );
     b.rule_1_terminal("half (relative minutes)", b.reg(r#"반"#)?, |_| {
-        Ok(RelativeMinuteValue(30))
+        helpers::relative_minute_value(30)
     });
     b.rule_2(
         "number (as relative minutes)",
         integer_check_by_range!(1, 59),
         b.reg(r#"분"#)?,
-        |integer, _| Ok(RelativeMinuteValue(integer.value().value as i32)),
+        |integer, _| helpers::relative_minute_value(integer.value().value as i32),
     );
     b.rule_2(
         "<hour-of-day> <integer> (as relative minutes)",
@@ -770,9 +770,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |tod, relative_minutes| {
             helpers::hour_relative_minute(
                 tod.value().form_time_of_day()?.full_hour(),
-                relative_minutes.value().0,
-                true,
-            )
+                relative_minutes.value().value,
+                tod.value().form.is_12_clock())
         },
     );
     b.rule_2(
@@ -783,8 +782,7 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             helpers::hour_minute(
                 tod.value().form_time_of_day()?.full_hour(),
                 integer.value().value as u32,
-                true,
-            )
+                tod.value().form.is_12_clock())
         },
     );
     b.rule_3(
@@ -795,9 +793,8 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         |tod, relative_minutes, _| {
             helpers::hour_relative_minute(
                 tod.value().form_time_of_day()?.full_hour(),
-                -1 * relative_minutes.value().0,
-                true,
-            )
+                -1 * relative_minutes.value().value,
+                tod.value().form.is_12_clock())
         },
     );
     b.rule_2(
@@ -1035,16 +1032,23 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
         let monday = helpers::day_of_week(Weekday::Mon)?.intersect(&helpers::hour(0, false)?)?;
         friday.span_to(&monday, false)
     });
-    b.rule_1_terminal("season", b.reg(r#"여름"#)?, |_| {
+    b.rule_1_terminal("season - summer", b.reg(r#"여름"#)?, |_| {
         helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
     });
-    b.rule_1_terminal("season", b.reg(r#"가을"#)?, |_| {
+    b.rule_1_terminal("season - fall", b.reg(r#"가을"#)?, |_| {
         helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
     });
-    b.rule_1_terminal("season", b.reg(r#"겨울"#)?, |_| {
+    b.rule_1_terminal("season - winter", b.reg(r#"겨울"#)?, |_| {
         helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     });
-    b.rule_1_terminal("season", b.reg(r#"봄"#)?, |_| {
+    b.rule_2("season - winter <year>",
+             b.reg(r#"겨울"#)?,
+             datetime_check!(form!(Form::Year(_))),
+             |_, year| Ok(helpers::year_month_day(year.value().form_year()?, 12, 21)?
+                 .span_to(&helpers::year_month_day(year.value().form_year()? + (1 as i32), 3, 20)?, false)?
+                 .form(Form::Season))
+    );
+    b.rule_1_terminal("season - spring", b.reg(r#"봄"#)?, |_| {
         helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     });
     b.rule_2(
@@ -1741,7 +1745,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                     .filter_map(number_mapping)
                     .collect::<String>()
             );
-            FloatValue::new(a.value().value() + number_string.parse::<f32>()?)
+            FloatValue::new(a.value().value() + number_string.parse::<f64>()?)
         },
     );
 

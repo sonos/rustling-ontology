@@ -335,6 +335,12 @@ pub fn rules_duration(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              b.reg(r#"fr[üu]her"#)?,
              |duration, _| duration.value().ago()
     );
+    b.rule_2("seit <duration>",
+             b.reg(r#"seit"#)?,
+             duration_check!(),
+             |_, duration| duration.value().ago()?
+                 .span_to(&helpers::cycle_nth(Grain::Second, 0)?, false)
+    );
     b.rule_3("<duration> after <datetime>",
              duration_check!(),
              b.reg(r#"nach"#)?,
@@ -1089,26 +1095,42 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("year",
              integer_check_by_range!(1900, 2100),
              |integer| {
-                 helpers::year(integer.value().value as i32)
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     helpers::year(integer.value().value as i32)
+                 }
              }
     );
     b.rule_2("year",
              b.reg(r#"(?:de[rnms]|das|die) jahre?s?n?"#)?,
              integer_check_by_range!(-1000, 2100),
              |_, integer| {
-                 helpers::year(integer.value().value as i32)
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     helpers::year(integer.value().value as i32)
+                 }
              }
     );
     b.rule_1("year (latent)",
              integer_check_by_range!(-1000, 1899),
              |integer| {
-                 Ok(helpers::year(integer.value().value as i32)?.latent())
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     Ok(helpers::year(integer.value().value as i32)?.latent())
+                 }
              }
     );
     b.rule_1("year (latent)",
              integer_check_by_range!(2101, 2200),
              |integer| {
-                 Ok(helpers::year(integer.value().value as i32)?.latent())
+                 if integer.value().suffixed {
+                     return Err(RuleError::Invalid.into())
+                 } else {
+                     Ok(helpers::year(integer.value().value as i32)?.latent())
+                 }
              }
     );
     b.rule_2("the <day-of-month> (ordinal)",
@@ -1254,50 +1276,50 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1_terminal("quarter (relative minutes)",
                       b.reg(r#"vie?rtel"#)?,
-                      |_| Ok(RelativeMinuteValue(15))
+                      |_| helpers::relative_minute_value(15)
     );
     b.rule_1_terminal("half (relative minutes)",
                       b.reg(r#"halbe?"#)?,
-                      |_| Ok(RelativeMinuteValue(30))
+                      |_| helpers::relative_minute_value(30)
     );
     b.rule_1_terminal("number (as relative minutes for minute=1)",
              b.reg(r#"eins"#)?,
-             |_| Ok(RelativeMinuteValue(1))
+             |_| helpers::relative_minute_value(1)
     );
     b.rule_1("number (as relative minutes for minute>1)",
              integer_check_by_range!(2, 59),
-             |integer| Ok(RelativeMinuteValue(integer.value().value as i32))
+             |integer| helpers::relative_minute_value(integer.value().value as i32)
     );
     b.rule_2("number <minutes> (as relative minutes)",
              integer_check_by_range!(1, 59),
              b.reg(r#"minuten?"#)?,
-             |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a, _| helpers::relative_minute_value(a.value().value as i32)
     );
     b.rule_3("<hour-of-day> <integer> (as relative minutes)",
              datetime_check!(|datetime: &DatetimeValue| !datetime.latent && form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))(datetime)),
              b.reg(r#"\s|und"#)?,
              relative_minute_check!(),
-             |datetime, _, relative_minute| helpers::hour_relative_minute(
+             |datetime, _, relative_minutes| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_3("relative minutes to|till|before <integer> (hour-of-day)",
              relative_minute_check!(),
              b.reg(r#"vor"#)?,
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
-             |relative_minute, _, datetime| helpers::hour_relative_minute(
+             |relative_minutes, _, datetime| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 -1 * relative_minute.value().0,
+                 -1 * relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_3("relative minutes after|past <integer> (hour-of-day)",
              relative_minute_check!(),
              b.reg(r#"nach"#)?,
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour { .. }))),
-             |relative_minute, _, datetime| helpers::hour_relative_minute(
+             |relative_minutes, _, datetime| helpers::hour_relative_minute(
                  datetime.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
+                 relative_minutes.value().value,
                  datetime.value().form_time_of_day()?.is_12_clock())
     );
     b.rule_2("viertel <integer> (german style hour-of-day)",
@@ -1695,37 +1717,44 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
             friday.span_to(&monday, false)
         }
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - summer",
                       b.reg(r#"sommer(?:zeit|s)?"#)?,
                       |_| Ok(helpers::month_day(6, 21)?
                           .span_to(&helpers::month_day(9, 23)?, false)?
-                          .form(Form::PartOfYear))
+                          .form(Form::Season))
     );
     b.rule_1_terminal("Summer solstice",
         b.reg(r#"sommersonn(?:en)?wende"#)?,
         |_| Ok(helpers::month_day(6, 21)?.form(Form::Celebration).too_ambiguous())
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - fall",
                       b.reg(r#"herbst(?:zeit|s|es)?|sp[äa]tjahr(?:es)?"#)?,
                       |_| Ok(helpers::month_day(9, 23)?
                           .span_to(&helpers::month_day(12, 21)?, false)?
-                          .form(Form::PartOfYear))
+                          .form(Form::Season))
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - winter",
                       b.reg(r#"winter(?:zeit|s)?"#)?,
                       |_| Ok(helpers::month_day(12, 21)?
                           .span_to(&helpers::month_day(3, 20)?, false)?
-                          .form(Form::PartOfYear))
+                          .form(Form::Season))
+    );
+    b.rule_2("season - winter <year>",
+             b.reg(r#"winter(?:zeit|s)?"#)?,
+             datetime_check!(form!(Form::Year(_))),
+             |_, year| Ok(helpers::year_month_day(year.value().form_year()?, 12, 21)?
+                 .span_to(&helpers::year_month_day(year.value().form_year()? + (1 as i32), 3, 20)?, false)?
+                 .form(Form::Season))
     );
     b.rule_1_terminal("Winter solstice",
         b.reg(r#"wintersonnwende"#)?,
         |_| Ok(helpers::month_day(12, 21)?.form(Form::Celebration).too_ambiguous())
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - spring",
                       b.reg(r#"(?:fr[üu]hlings?|fr[üu]hjahr(?:es)?)(?:zeit)?"#)?,
                       |_| Ok(helpers::month_day(3, 20)?
                           .span_to(&helpers::month_day(6, 21)?, false)?
-                          .form(Form::PartOfYear))
+                          .form(Form::Season))
     );
     b.rule_2("im <part-of-year>",
              b.reg(r#"(?:(?:in )?(?:de[nrms]|die|das)|im|ins)"#)?,
@@ -1849,9 +1878,21 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
 //             |_, datetime| Ok(datetime.value().clone().mark_before_end_all())
 //    );
     b.rule_2("before <datetime>",
-             b.reg(r#"vor(?: de[nmr]| )|bis(?:(?: zu[rm]?(?: den)?)| in d(?:en|ie|as))?"#)?,
+             b.reg(r#"vor(?: de[nmr])?"#)?,
              datetime_check!(excluding_form!(Form::PartOfForm(_))),
              |_, datetime| Ok(datetime.value().clone().mark_before_start())
+    );
+
+    b.rule_2("until <datetime>",
+             b.reg(r#"bis(?:(?: zu[rm]?(?: de[nmr])?))?"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::PartOfForm(_))(datetime) && excluding_form!(Form::TimeOfDay(_))(datetime)),
+             |_, datetime| Ok(datetime.value().clone().mark_before_end_all())
+    );
+
+    b.rule_2("until <time-of-day>",
+             b.reg(r#"bis"#)?,
+             datetime_check!(|datetime: &DatetimeValue| excluding_form!(Form::PartOfForm(_))(datetime) && form!(Form::TimeOfDay(_))(datetime)),
+             |_, datetime| Ok(datetime.value().clone().mark_before_end())
     );
 
     b.rule_2("before <part-of-form> (specific cases)",
@@ -2287,28 +2328,26 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       |text_match| FloatValue::new(text_match.group(1).replace(",", ".").parse()?)
     );
     b.rule_3("number dot number",
-             number_check!(|number: &NumberValue| !number.prefixed()),
+             integer_check!(|integer: &IntegerValue| !integer.prefixed),
              b.reg(r#"komma"#)?,
-             number_check!(|number: &NumberValue| !number.suffixed()),
+             integer_check!(|integer: &IntegerValue| !integer.suffixed),
              |a, _, b| {
-                 let power = b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 let value: f64 = format!("{}.{}", a.value().value, b.value().value).parse()?;
                  Ok(FloatValue {
-                     value: b.value().value() * coeff + a.value().value(),
+                     value,
                      ..FloatValue::default()
                  })
-             }
-    );
+             });
     b.rule_4("number dot zero ... number",
-             number_check!(|number: &NumberValue| !number.prefixed()),
+             integer_check!(|integer: &IntegerValue| !integer.prefixed),
              b.reg(r#"komma"#)?,
              b.reg(r#"(?:(?:null )*(?:null))"#)?,
-             number_check!(|number: &NumberValue| !number.suffixed()),
+             integer_check!(|integer: &IntegerValue| !integer.suffixed),
              |a, _, zeros, b| {
-                 let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 let zeros_string =  std::iter::repeat("0").take(zeros.group(0).split_whitespace().count()).collect::<String>();
+                 let value: f64 = format!("{}.{}{}", a.value().value, zeros_string, b.value().value).parse()?;
                  Ok(FloatValue {
-                     value: b.value().value() * coeff + a.value().value(),
+                     value,
                      ..FloatValue::default()
                  })
              });
@@ -2383,7 +2422,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                              .into()
                      }
                      NumberValue::Float(float) => {
-                         let product = float.value * (multiplier as f32);
+                         let product = float.value * (multiplier as f64);
                          if product.floor() == product {
                              IntegerValue {
                                  value: product as i64,

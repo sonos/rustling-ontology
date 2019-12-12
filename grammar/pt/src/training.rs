@@ -30,6 +30,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_integer(-1200000), "- 1.200.000", "-1200000", "menos 1200000", "-1,2M", "menos um milhão e duzentos mil");
     example!(v, check_float(1.1), "1,1", "1,10", "um vírgula um", "um vírgula dez");
     example!(v, check_float(0.5), "0,5", "0,50", "zero vírgula cinco", "zero vírgula cinquenta");
+    example!(v, check_float(0.3), "0,3", "0,30", "zero vírgula três");
+    example!(v, check_float(0.03), "0,03", "zero vírgula zero três");
     example!(v, check_float(32.75), "32,75", "trinta e dois vírgula setenta e cinco");
     example!(v, check_float(10.08), "10,08", "dez vírgula zero oito");
     example!(v, check_ordinal(1), "1o", "1a", "primeiro", "primeira", "1º", "1ª");
@@ -208,6 +210,9 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     // Seasons
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "este verão");
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "este inverno");
+    example!(v, check_moment_span!(c, [2014, 6, 21], [2014, 9, 24]), "verao 2014", "para o verão de 2014"); // "no verão de 2009"
+    example!(v, check_moment_span!(c, [2014, 12, 21], [2015, 3, 21]), "inverno 2014", "no inverno 2014", "para o inverno 2014");
+
 
     // Holidays
     example!(v, check_moment!(c, [2013, 12, 25]), "Natal", "dia de natal");
@@ -296,6 +301,7 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16], Direction::Before), "antes das 16h", "até as 4 da tarde");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 16, 0], Direction::Before), "até as 16:00");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 14], Direction::Before), "ate amanha");
     // FIXME: Same as below (Interval(..-..) expected but got Before(..))
     // example!(v, check_moment_span!(c, [2013, 2, 13, 0], [2013, 2, 13, 6]), "amanhã até as seis horas", "amanhã antes das 6h", "até as 6 horas amanhã");
     // FIXME: Same as below (Interval(..-..) expected but got After(..))

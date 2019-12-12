@@ -145,7 +145,7 @@ impl Default for Precision {
 /// Payload for the amount of money value of Dimension
 #[derive(Debug, PartialEq, Copy, Clone, Default)]
 pub struct AmountOfMoneyValue {
-    pub value: f32,
+    pub value: f64,
     pub precision: Precision,
     pub unit: Option<&'static str>,
 }
@@ -313,7 +313,7 @@ impl AttemptFrom<Dimension> for FloatValue {
 /// Payload for the floating numbers value of Dimension
 #[derive(Debug, PartialEq, Clone, Default)]
 pub struct FloatValue {
-    pub value: f32,
+    pub value: f64,
     #[doc(hidden)]
     pub prefixed: bool,
     #[doc(hidden)]
@@ -325,7 +325,7 @@ pub struct FloatValue {
 }
 
 impl FloatValue {
-    pub fn new(value: f32) -> RuleResult<FloatValue> {
+    pub fn new(value: f64) -> RuleResult<FloatValue> {
         Ok(FloatValue {
             value,
             ..FloatValue::default()
@@ -428,10 +428,10 @@ impl NumberValue {
     }
 
     #[doc(hidden)]
-    pub fn value(&self) -> f32 {
+    pub fn value(&self) -> f64 {
         match self {
             &NumberValue::Float(ref v) => v.value,
-            &NumberValue::Integer(ref v) => v.value as f32,
+            &NumberValue::Integer(ref v) => v.value as f64,
         }
     }
 
@@ -447,7 +447,7 @@ impl NumberValue {
 /// Payload for the temperatures value of Dimension
 #[derive(Debug, PartialEq, Clone)]
 pub struct TemperatureValue {
-    pub value: f32,
+    pub value: f64,
     /// Celsius, Fahrenheit, ...
     pub unit: Option<&'static str>,
     /// true if it can not be confirmed that the value is actually a temperature
@@ -665,6 +665,13 @@ impl Form {
             _ => false,
         }
     }
+
+    pub fn is_12_clock(&self) -> bool {
+        match self {
+            Form::TimeOfDay(tod) => tod.is_12_clock(),
+            _ => false
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -854,7 +861,7 @@ pub struct YearMonthDayForm {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct PercentageValue(pub f32);
+pub struct PercentageValue(pub f64);
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum FromAddition {
@@ -937,4 +944,7 @@ impl DurationValue {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct RelativeMinuteValue(pub i32);
+pub struct RelativeMinuteValue {
+    pub value: i32,
+    pub prefixed: bool,
+}

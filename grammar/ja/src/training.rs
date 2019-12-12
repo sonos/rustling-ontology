@@ -26,6 +26,7 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(40020), "四万二十");
 
     example!(v, check_float(0.8), "0.8", "+0.8", "0点８", "零点八", "〇点８", "〇.８");
+    example!(v, check_float(0.3), "0.3", "+0.3", "0点３", "零点三", "〇点３", "〇.３");
 
     example!(v, check_ordinal(1), "最初", "一番目", "一行目", "一錠目", "一匹目");
     example!(v, check_ordinal(7), "七番目", "七体目", "七問目", "七拍子目", "七種目", "七種類目");

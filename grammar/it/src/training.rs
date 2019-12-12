@@ -126,10 +126,11 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2012, 11, 12]), "3 mesi fa");
     example!(v, check_moment!(c, [2014, 2]), "tra un anno", "fra un anno");
     example!(v, check_moment!(c, [2011, 2]), "due anni fa");
-
     // Seasons
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "quest'estate", "questa estate");
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "quest'inverno", "questo inverno");
+    example!(v, check_moment_span!(c, [2014, 6, 21], [2014, 9, 24]), "estate 2014", "nell' estate 2014", "per l' estate 2014");
+    example!(v, check_moment_span!(c, [2014, 12, 21], [2015, 3, 21]), "inverno 2014", "nell' inverno 2014", "per l' inverno 2014");
 
     // Holidays
     // TODO
@@ -294,6 +295,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(-1200000), "- 1.200.000", "-1200000", "meno 1200000", "-1,2M", "-1200K", "-,0012G");
     example!(v, check_float(1.1), "1,1", "1,10", "01,10", "uno punto uno", "uno virgola uno", "uno punto dieci", "uno virgola dieci");
     example!(v, check_float(0.5), "0,5", "0,50", "zero punto cinque", "zero virgola cinque", "zero punto cinquanta", "zero virgola cinquanta");
+    example!(v, check_float(0.3), "0,3", "0,30", "zero punto tre", "zero virgola tre");
+    example!(v, check_float(0.03), "0,03", "zero punto zero tre", "zero virgola zero tre");
     example!(v, check_float(32.75), "32,75", "trenta due punto settanta cinque", "trenta due virgola settanta cinque");
     example!(v, check_float(10.08), "10,08", "dieci punto zero otto");//, "dieci virgola zero otto");
     example!(v, check_ordinal(1), "1o", "1a", "il 1o", "la 1a", "1°");

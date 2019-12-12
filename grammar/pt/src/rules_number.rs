@@ -1,4 +1,4 @@
-use std::f32;
+use std::f64;
 use rustling::*;
 use rustling_ontology_values::dimension::*;
 use rustling_ontology_values::helpers;
@@ -124,13 +124,13 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
 
     b.rule_1_terminal("thousand",
-        b.reg(r#"mil|k"#)?,
+        b.reg(r#"mil"#)?,
         |_| IntegerValue::new_with_grain(1000, 3)
     );
 
     b.rule_2("thousands",
         integer_check_by_range!(1, 999),
-        b.reg(r#"mil|k"#)?,
+        b.reg(r#"mil"#)?,
         |a, _| {
             Ok(IntegerValue {
                    value: a.value().value * 1000,
@@ -214,40 +214,38 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                       b.reg(r#"(\d*,\d+)"#)?,
                       |text_match| {
                           let reformatted_string = text_match.group(1).replace(",", ".");
-                          let value: f32 = reformatted_string.parse()?;
+                          let value: f64 = reformatted_string.parse()?;
                           FloatValue::new(value)
                       });
     b.rule_3("number dot number",
-             number_check!(|number: &NumberValue| !number.prefixed()),
+             integer_check!(|integer: &IntegerValue| !integer.prefixed),
              b.reg(r#"v[íi]rgula"#)?,
-             number_check!(|number: &NumberValue| !number.suffixed()),
+             integer_check!(|integer: &IntegerValue| !integer.suffixed),
              |a, _, b| {
-                 let power = b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 let value: f64 = format!("{}.{}", a.value().value, b.value().value).parse()?;
                  Ok(FloatValue {
-                     value: b.value().value() * coeff + a.value().value(),
+                     value,
                      ..FloatValue::default()
                  })
              });
     b.rule_4("number dot zero ... number",
-             number_check!(|number: &NumberValue| !number.prefixed()),
+             integer_check!(|integer: &IntegerValue| !integer.prefixed),
              b.reg(r#"v[íi]rgula"#)?,
              b.reg(r#"(?:(?:zero )*(?:zero))"#)?,
-             number_check!(|number: &NumberValue| !number.suffixed()),
+             integer_check!(|integer: &IntegerValue| !integer.suffixed),
              |a, _, zeros, b| {
-                 let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f32.powf(-1.0 * power as f32);
+                 let zeros_string =  std::iter::repeat("0").take(zeros.group(0).split_whitespace().count()).collect::<String>();
+                 let value: f64 = format!("{}.{}{}", a.value().value, zeros_string, b.value().value).parse()?;
                  Ok(FloatValue {
-                     value: b.value().value() * coeff + a.value().value(),
+                     value,
                      ..FloatValue::default()
                  })
              });
-
     b.rule_1_terminal("decimal with thousands separator",
                       b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
                       |text_match| {
                           let reformatted_string = text_match.group(1).replace(".", "").replace(",", ".");
-                          let value: f32 = reformatted_string.parse()?;
+                          let value: f64 = reformatted_string.parse()?;
                           FloatValue::new(value)
                       });
     b.rule_2("numbers prefix with -, negative or minus",
@@ -297,6 +295,45 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                  })
              }
     );
+    b.rule_2("numbers suffixes (K, M, G)",
+             number_check!(|number: &NumberValue| !number.suffixed()),
+             b.reg_neg_lh(r#"([kmg])"#, r#"^[\W\$€]"#)?,
+             |a, text_match| -> RuleResult<NumberValue> {
+                 let multiplier = match text_match.group(0).as_ref() {
+                     "k" => 1000,
+                     "m" => 1000000,
+                     "g" => 1000000000,
+                     _ => return Err(RuleError::Invalid.into()),
+                 };
+                 Ok(match a.value().clone() { // checked
+                     NumberValue::Integer(integer) => {
+                         IntegerValue {
+                             value: integer.value * multiplier,
+                             suffixed: true,
+                             ..integer
+                         }
+                             .into()
+                     }
+                     NumberValue::Float(float) => {
+                         let product = float.value * (multiplier as f64);
+                         if product.floor() == product {
+                             IntegerValue {
+                                 value: product as i64,
+                                 suffixed: true,
+                                 ..IntegerValue::default()
+                             }
+                                 .into()
+                         } else {
+                             FloatValue {
+                                 value: product,
+                                 suffixed: true,
+                                 ..float
+                             }
+                                 .into()
+                         }
+                     }
+                 })
+             });
     b.rule_1_terminal("ordinals (primeiro..9)",
                       b.reg(r#"(primeir|segund|terceir|quart|quint|sext|s[eéè]tim|oitav|non)(?:[oa]s?)?"#)?,
                       |text_match| {

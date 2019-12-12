@@ -236,24 +236,23 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     b.rule_1("float number", 
         b.reg(r#"((?:\d|〇)*[、,，\.](?:\d|〇)+)"#)?, |text_match| {
           let res = text_match.group(1).replace_japanese_digit().replace_comma();
-          let value: f32 = res.parse()?;
+          let value: f64 = res.parse()?;
           Ok(FloatValue {
               value: value,
               ..FloatValue::default()
           })
     });
     b.rule_3("number dot number",
-        number_check!(|number: &NumberValue| !number.prefixed()),
-        b.reg(r#"てん|テン|[、,，\.]|点"#)?,
-        number_check!(|number: &NumberValue| !number.suffixed()),
-        |a, _, b| {
-            let power = b.value().value().to_string().chars().count();
-            let coeff = 10.0_f32.powf(-1.0 * power as f32);
-            Ok(FloatValue {
-                value: b.value().value() * coeff + a.value().value(),
-                ..FloatValue::default()
-            })
-    });
+             integer_check!(|integer: &IntegerValue| !integer.prefixed),
+             b.reg(r#"てん|テン|[、,，\.]|点"#)?,
+             integer_check!(|integer: &IntegerValue| !integer.suffixed),
+             |a, _, b| {
+                 let value: f64 = format!("{}.{}", a.value().value, b.value().value).parse()?;
+                 Ok(FloatValue {
+                     value,
+                     ..FloatValue::default()
+                 })
+             });
     b.rule_3("number dot number",
          number_check!(|number: &NumberValue| !number.prefixed()),
          b.reg(r#"てん|テン|[、,，\.]|点"#)?,
@@ -279,7 +278,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                                              decimal_part_string.chars()
                                                  .filter_map(number_mapping)
                                                  .collect::<String>());
-              let decimal_part: f32 = decimal_part_string.parse()?;
+              let decimal_part: f64 = decimal_part_string.parse()?;
               Ok(FloatValue {
                  value: a.value().value() + decimal_part,
                  ..FloatValue::default()
@@ -1440,31 +1439,31 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
     );
     b.rule_1("number (as relative minutes)",
              integer_check_by_range!(1, 59),
-             |a| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a| helpers::relative_minute_value(a.value().value as i32)
     );
     b.rule_2("number <minutes> (as relative minutes)",
              integer_check_by_range!(1, 59),
              b.reg(r#"分"#)?,
-             |a, _| Ok(RelativeMinuteValue(a.value().value as i32))
+             |a, _| helpers::relative_minute_value(a.value().value as i32)
     );
 
     b.rule_3("relative minutes to|till|before <integer> (hour-of-day)",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
              relative_minute_check!(),
              b.reg(r#"前"#)?,
-             |tod, relative_minute, _| helpers::hour_relative_minute(
+             |tod, relative_minutes, _| helpers::hour_relative_minute(
                  tod.value().form_time_of_day()?.full_hour(),
-                 -1 * relative_minute.value().0,
-                 true)
+                 -1 * relative_minutes.value().value,
+                 tod.value().form.is_12_clock())
     );
 
     b.rule_2("relative minutes after|past <integer> (hour-of-day)",
              datetime_check!(form!(Form::TimeOfDay(TimeOfDayForm::Hour {.. }))),
              relative_minute_check!(),
-             |tod, relative_minute| helpers::hour_relative_minute(
+             |tod, relative_minutes| helpers::hour_relative_minute(
                  tod.value().form_time_of_day()?.full_hour(),
-                 relative_minute.value().0,
-                 true)
+                 relative_minutes.value().value,
+                 tod.value().form.is_12_clock())
     );
     // Written dates in numeric formats
     b.rule_1_terminal("yyyy-mm-dd - ISO - additional separator '.' allowed",
@@ -1819,19 +1818,26 @@ pub fn rules_datetime(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           saturday.the_nth(0)?.span_to(&monday.the_nth(0)?, false)
                       }
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - summer",
                       b.reg(r#"夏"#)?,
                       |_| helpers::month_day(6, 21)?.span_to(&helpers::month_day(9, 23)?, false)
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - fall",
                       b.reg(r#"秋"#)?,
                       |_| helpers::month_day(9, 23)?.span_to(&helpers::month_day(12, 21)?, false)
     );
-    b.rule_1_terminal("season",
+    b.rule_1_terminal("season - winter",
                       b.reg(r#"冬"#)?,
                       |_| helpers::month_day(12, 21)?.span_to(&helpers::month_day(3, 20)?, false)
     );
-    b.rule_1_terminal("season",
+    b.rule_2("season - winter <year>",
+             datetime_check!(form!(Form::Year(_))),
+             b.reg(r#"年の?冬(:?に)?"#)?,
+             |year, _| Ok(helpers::year_month_day(year.value().form_year()?, 12, 21)?
+                 .span_to(&helpers::year_month_day(year.value().form_year()? + (1 as i32), 3, 20)?, false)?
+                 .form(Form::Season))
+    );
+    b.rule_1_terminal("season - spring",
                       b.reg(r#"春"#)?,
                       |_| helpers::month_day(3, 20)?.span_to(&helpers::month_day(6, 21)?, false)
     );

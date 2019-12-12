@@ -155,6 +155,10 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 5, 12]), "three months hence");
     example!(v, check_moment!(c, [2015, 2]), "two years hence");
     example!(v, check_moment!(c, [2013, 12]), "one year after christmas");
+    example!(v, check_moment!(c, [2014, 3, 1], Grain::Month), "march 2014", "in march 2014", "for march 2014");
+    example!(v, check_moment!(c, [2005, 5, 1], Grain::Month), "may 2005", "in may 2005", "for may 2005");
+    example!(v, check_moment_span!(c, [2014, 6, 21], [2014, 9, 24]), "summer 2014", "in summer 2014", "for summer 2014");
+    example!(v, check_moment_span!(c, [2014, 12, 21], [2015, 3, 21]), "winter 2014", "in winter 2014", "for winter 2014");
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "this summer", "current summer");
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "this winter");
     example!(v, check_moment!(c, [2013, 12, 25]), "xmas", "christmas", "christmas day");
@@ -187,14 +191,18 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment_span!(c, [2013, 3], [2013, 6]), "next 3 months", "next three months");
     example!(v, check_moment_span!(c, [2011], [2013]), "last 2 years", "last two years");
     example!(v, check_moment_span!(c, [2014], [2017]), "next 3 years", "next three years");
-    example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "July 13-15", "July 13 to 15", "July 13 thru 15", "July 13 through 15", "July 13 - July 15");
+    example!(v, check_moment_span!(c, [2013, 7, 13], [2013, 7, 16]), "July 13-15", "July 13 to 15", "July 13 thru 15", "July 13 through 15", "July 13 - July 15", "from July 13 to July 15");
     example!(v, check_moment_span!(c, [2013, 8, 8], [2013, 8, 13]), "Aug 8 - Aug 12");
+    example!(v, check_moment_span!(c, [2008, 8, 8], [2008, 12, 13]), "Aug 8 to december 12 2008");
+    example!(v, check_moment_span!(c, [2013, 1, 8], [2013, 12, 13]), "jan 8 to december 12 2013");
+    example!(v, check_moment_span!(c, [2019, 1, 8], [2019, 12, 13]), "jan 8 to december 12 2019"); // this helps correct resolution of year in such intervals, for year current and +
     example!(v, check_moment_span!(c, [2013, 2, 12, 9, 30], [2013, 2, 12, 11, 0]), "9:30 - 11:00");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9, 30], [2013, 2, 14, 11, 0]), "from 9:30 - 11:00 on Thursday", "between 9:30 and 11:00 on thursday", "9:30 - 11:00 on Thursday", "later than 9:30 but before 11:00 on Thursday", "Thursday from 9:30 to 11:00","from 9:30 untill 11:00 on thursday", "Thursday from 9:30 untill 11:00", "9:30 till 11:00 on Thursday");
     example!(v, check_moment_span!(c, [2013, 2, 14, 9], [2013, 2, 14, 11]), "Thursday from 9a to 11a");
     example!(v, check_moment_span!(c, [2013, 2, 12, 11, 30], [2013, 2, 12, 13, 30]), "11:30-1:30");
     example!(v, check_moment!(c, [2013, 9, 21, 13, 30]), "1:30 PM on Sat, Sep 21");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 26]), "within 2 weeks");
+    example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14, 0], Direction::After), "from 2:00pm");
     example!(v, check_moment_with_direction!(c, [2013, 2, 12, 14, 0], Direction::Before), "until 2:00pm", "through 2:00pm");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 14]), "by 2:00pm");
     example!(v, check_moment_span!(c, [2013, 2, 12, 4, 30, 0], [2013, 2, 12, 20]), "by EOD");
@@ -219,7 +227,8 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 3]), "March", "in March");
     example!(v, check_moment!(c, [2016, 12, 15]), "12.15.2016", "12.15.16");
     example!(v, check_moment!(c, [2017, 05, 10]), "wednesday the 10th of may");
-    example!(v, check_moment!(c, [2013, 2, 12, 9, 9]), "at nine nine", "at nine nine am", "at nine nine in the morning");
+    example!(v, check_moment!(c, [2013, 2, 12, 9, 9]), "at nine o nine", "at nine o nine am", "at nine o nine in the morning");
+    example!(v, check_moment!(c, [2013, 2, 12, 8, 25]), "at eight twenty-five", "at eight twenty-five am", "at eight twenty-five in the morning");
     example!(v, check_moment_span!(c, [2017, 05, 12, 10, 32], [2017, 06, 7, 18, 23]), "friday the 12th of may, 10:32 am to wednesday the 7th of june, 6:22 pm");
 }
 
@@ -250,7 +259,9 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(17), "17", "seventeen");
     example!(v, check_integer(18), "18", "eighteen");
     example!(v, check_float(1.1), "1.1", "1.10", "01.10", "one point ten", "one point one");
+    example!(v, check_float(0.3), "0.3", "0.30", "zero point three");
     example!(v, check_float(0.5), "0.5", "0.50", "zero point five");
+    example!(v, check_float(0.05), "0.05", "zero point zero five");
     example!(v, check_float(32.75), "32.75", "thirty-two point seventy-five");
     example!(v, check_float(10.08), "10.08", "ten point zero eight");
     example!(v,

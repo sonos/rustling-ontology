@@ -111,10 +111,10 @@ impl OutputKind {
 pub struct IntegerOutput(pub i64);
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct FloatOutput(pub f32);
+pub struct FloatOutput(pub f64);
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct PercentageOutput(pub f32);
+pub struct PercentageOutput(pub f64);
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct OrdinalOutput(pub i64);
@@ -157,14 +157,14 @@ pub enum DatetimeIntervalKind {
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct AmountOfMoneyOutput {
-    pub value: f32,
+    pub value: f64,
     pub precision: Precision,
     pub unit: Option<&'static str>,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct TemperatureOutput {
-    pub value: f32,
+    pub value: f64,
     pub unit: Option<&'static str>,
     pub latent: bool,
 }

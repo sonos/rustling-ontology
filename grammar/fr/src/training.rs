@@ -258,6 +258,11 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 2, 12, 5, 0, 0]), "dans une demi heure", "dans 1/2h", "dans 1/2 h", "dans 1/2 heure");
     example!(v, check_moment!(c, [2013, 2, 12, 5, 15, 0]), "dans trois quarts d'heure", "dans 3/4h", "dans 3/4 h", "dans 3/4 heure");
     example!(v, check_moment!(c, [2016, 12, 15]), "15.12.2016", "15.12.16");
+    example!(v, check_moment!(c, [2014, 3, 1], Grain::Month), "mars 2014", "en mars 2014", "pour mars 2014");
+    example!(v, check_moment!(c, [2005, 5, 1], Grain::Month), "mai 2005", "en mai 2005", "pour mai 2005");
+    example!(v, check_moment_span!(c, [2014, 6, 21], [2014, 9, 24]), "été 2014", "pour l'été 2014");
+    example!(v, check_moment_span!(c, [2014, 12, 21], [2015, 3, 21]), "hiver 2014", "pour l'hiver 2014");
+
 }
 
 pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
@@ -335,6 +340,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
              "-,0012G");
     example!(v, check_float(1.1), "1,1", "1,10", "un virgule dix");
     example!(v, check_float(0.5), "0,5", "0,50", "zéro virgule cinq", "zero point cinq");
+    example!(v, check_float(0.3), "0,3", "0,30", "zéro virgule trois", "zero point trois");
+    example!(v, check_float(0.03), "0,03", "zéro virgule zéro trois", "zero point zero trois");
     example!(v, check_float(32.75), "32,75", "trente-deux virgule soixante-quinze");
     example!(v, check_float(10.08), "10,08", "dix virgule zéro huit", "dix point zéro huit");
     example!(v, check_ordinal(1), "1er", "1ere", "le 1er");

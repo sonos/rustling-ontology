@@ -125,10 +125,13 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_moment!(c, [2013, 1, 22]), "hace tres semanas");
     example!(v, check_moment!(c, [2012, 11, 12]), "hace tres meses");
     example!(v, check_moment!(c, [2011, 2]), "hace dos años");
-
+    example!(v, check_moment!(c, [2014, 3, 1], Grain::Month), "marzo 2014", "en marzo 2014", "por marzo 2014");
+    example!(v, check_moment!(c, [2005, 5, 1], Grain::Month), "mayo 2005", "en mayo 2005", "por mayo 2005");
     // Seasons
     example!(v, check_moment_span!(c, [2013, 6, 21], [2013, 9, 24]), "este verano");
     example!(v, check_moment_span!(c, [2012, 12, 21], [2013, 3, 21]), "este invierno");
+    example!(v, check_moment_span!(c, [2014, 6, 21], [2014, 9, 24]), "verano 2014", "en verano 2014", "para el verano 2014");
+    example!(v, check_moment_span!(c, [2014, 12, 21], [2015, 3, 21]), "invierno 2014", "en invierno 2014", "para el invierno 2014");
 
     // Holidays
     // TODO
@@ -289,6 +292,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(-1200000), "- 1.200.000", "-1200000", "menos 1200000", "-1,2M", "-1200K", "-,0012G", "menos un millón doscientos mil");
     example!(v, check_float(1.1), "1,1", "1,10", "1,10", "uno punto uno", "uno coma uno", "uno punto diez", "uno coma diez");
     example!(v, check_float(0.5), "0,5", "0,50", "cero punto cinco", "cero coma cinco", "cero punto cincuenta", "cero coma cincuenta");
+    example!(v, check_float(0.3), "0,3", "0,30", "cero punto tres", "cero coma tres");
+    example!(v, check_float(0.03), "0,03", "cero punto cero tres", "cero coma cero tres");
     example!(v, check_float(32.75), "32,75", "treinta y dos punto setenta y cinco", "treinta y dos coma setenta y cinco");
     example!(v, check_float(10.08), "10,08", "diez punto cero ocho", "diez coma cero ocho");
     // TODO: Check if want/need support for ordinal special character/overscript
