@@ -340,6 +340,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
              "-,0012G");
     example!(v, check_float(1.1), "1,1", "1,10", "un virgule dix");
     example!(v, check_float(0.5), "0,5", "0,50", "zéro virgule cinq", "zero point cinq");
+    example!(v, check_float(0.3), "0,3", "0,30", "zéro virgule trois", "zero point trois");
+    example!(v, check_float(0.03), "0,03", "zéro virgule zéro trois", "zero point zero trois");
     example!(v, check_float(32.75), "32,75", "trente-deux virgule soixante-quinze");
     example!(v, check_float(10.08), "10,08", "dix virgule zéro huit", "dix point zéro huit");
     example!(v, check_ordinal(1), "1er", "1ere", "le 1er");

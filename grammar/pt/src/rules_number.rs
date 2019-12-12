@@ -218,31 +218,29 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                           FloatValue::new(value)
                       });
     b.rule_3("number dot number",
-             number_check!(|number: &NumberValue| !number.prefixed()),
+             integer_check!(|integer: &IntegerValue| !integer.prefixed),
              b.reg(r#"v[íi]rgula"#)?,
-             number_check!(|number: &NumberValue| !number.suffixed()),
+             integer_check!(|integer: &IntegerValue| !integer.suffixed),
              |a, _, b| {
-                 let power = b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f64.powf(-1.0 * power as f64);
+                 let value: f64 = format!("{}.{}", a.value().value, b.value().value).parse()?;
                  Ok(FloatValue {
-                     value: b.value().value() * coeff + a.value().value(),
+                     value,
                      ..FloatValue::default()
                  })
              });
     b.rule_4("number dot zero ... number",
-             number_check!(|number: &NumberValue| !number.prefixed()),
+             integer_check!(|integer: &IntegerValue| !integer.prefixed),
              b.reg(r#"v[íi]rgula"#)?,
              b.reg(r#"(?:(?:zero )*(?:zero))"#)?,
-             number_check!(|number: &NumberValue| !number.suffixed()),
+             integer_check!(|integer: &IntegerValue| !integer.suffixed),
              |a, _, zeros, b| {
-                 let power = zeros.group(0).split_whitespace().count() + b.value().value().to_string().chars().count();
-                 let coeff = 10.0_f64.powf(-1.0 * power as f64);
+                 let zeros_string =  std::iter::repeat("0").take(zeros.group(0).split_whitespace().count()).collect::<String>();
+                 let value: f64 = format!("{}.{}{}", a.value().value, zeros_string, b.value().value).parse()?;
                  Ok(FloatValue {
-                     value: b.value().value() * coeff + a.value().value(),
+                     value,
                      ..FloatValue::default()
                  })
              });
-
     b.rule_1_terminal("decimal with thousands separator",
                       b.reg(r#"(\d+(\.\d\d\d)+,\d+)"#)?,
                       |text_match| {
@@ -317,7 +315,7 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
                              .into()
                      }
                      NumberValue::Float(float) => {
-                         let product = float.value * (multiplier as f32);
+                         let product = float.value * (multiplier as f64);
                          if product.floor() == product {
                              IntegerValue {
                                  value: product as i64,

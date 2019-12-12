@@ -309,6 +309,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_integer(102), "102", "hundert zwei");
     example!(v, check_float(1.1), "1,1", "1 komma 1", "1,10", "01,10");
     example!(v, check_float(0.77), "0,77", ",77");
+    example!(v, check_float(0.3), "0,3", "null komma drei");
+    example!(v, check_float(0.03), "0,03", "null komma null drei");
     example!(v, check_integer(100000), "100.000", "100000", "100K", "100k");
     example!(v, check_integer(3000000), "3M", "3000K", "3000000", "3.000.000");
     example!(v, check_integer(1200000), "1.200.000", "1200000", "1,2M", "1200K", ",0012G");

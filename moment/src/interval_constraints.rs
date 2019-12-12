@@ -1766,7 +1766,7 @@ mod tests {
     // FIXME: Ongoing checks for issue #192 - wrong year resolution in intervals with implicit
     // year on the left side, e.g. "from august 3rd to november 3rd 2019", when year is current
     // or future and interval overlaps present day
-//    #[test]
+//    #[test]r
 //    fn test_span_to() {
 //        let context = build_context(Moment(Paris.ymd(2019, 10, 03).and_hms(9, 10, 11)));
 //        let walker = MonthDay::new(1, 7).unwrap()

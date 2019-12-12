@@ -238,7 +238,7 @@ pub struct AmountOfMoneyValue {
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct TemperatureValue {
-    pub value: f32,
+    pub value: f64,
     pub unit: Option<String>,
 }
 

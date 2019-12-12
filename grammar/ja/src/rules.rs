@@ -243,17 +243,16 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
           })
     });
     b.rule_3("number dot number",
-        number_check!(|number: &NumberValue| !number.prefixed()),
-        b.reg(r#"てん|テン|[、,，\.]|点"#)?,
-        number_check!(|number: &NumberValue| !number.suffixed()),
-        |a, _, b| {
-            let power = b.value().value().to_string().chars().count();
-            let coeff = 10.0_f64.powf(-1.0 * power as f64);
-            Ok(FloatValue {
-                value: b.value().value() * coeff + a.value().value(),
-                ..FloatValue::default()
-            })
-    });
+             integer_check!(|integer: &IntegerValue| !integer.prefixed),
+             b.reg(r#"てん|テン|[、,，\.]|点"#)?,
+             integer_check!(|integer: &IntegerValue| !integer.suffixed),
+             |a, _, b| {
+                 let value: f64 = format!("{}.{}", a.value().value, b.value().value).parse()?;
+                 Ok(FloatValue {
+                     value,
+                     ..FloatValue::default()
+                 })
+             });
     b.rule_3("number dot number",
          number_check!(|number: &NumberValue| !number.prefixed()),
          b.reg(r#"てん|テン|[、,，\.]|点"#)?,

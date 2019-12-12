@@ -30,6 +30,8 @@ pub fn examples_numbers(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     //example!(v, check_integer(-1200000), "- 1.200.000", "-1200000", "menos 1200000", "-1,2M", "menos um milhão e duzentos mil");
     example!(v, check_float(1.1), "1,1", "1,10", "um vírgula um", "um vírgula dez");
     example!(v, check_float(0.5), "0,5", "0,50", "zero vírgula cinco", "zero vírgula cinquenta");
+    example!(v, check_float(0.3), "0,3", "0,30", "zero vírgula três");
+    example!(v, check_float(0.03), "0,03", "zero vírgula zero três");
     example!(v, check_float(32.75), "32,75", "trinta e dois vírgula setenta e cinco");
     example!(v, check_float(10.08), "10,08", "dez vírgula zero oito");
     example!(v, check_ordinal(1), "1o", "1a", "primeiro", "primeira", "1º", "1ª");

@@ -212,7 +212,6 @@ pub fn rules_numbers(b: &mut RuleSetBuilder<Dimension>) -> RustlingResult<()> {
              integer_check!(|integer: &IntegerValue| !integer.suffixed),
              |a, _, zeros, b| {
                 let zeros_string =  std::iter::repeat("0").take(zeros.group(0).split_whitespace().count()).collect::<String>();
-                println!("{:?}", format!("{}.{}{}", a.value().value, zeros_string, b.value().value));
                  let value: f64 = format!("{}.{}{}", a.value().value, zeros_string, b.value().value).parse()?;
                  Ok(FloatValue {
                      value,
