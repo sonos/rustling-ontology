@@ -103,50 +103,8 @@ pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) {
     example!(v, check_temperature(45.0, Some("degree")), "45°", "+45°", "45度");
     example!(v, check_temperature(45.0, Some("degree")), "45°", "45度");
-    example!(v,
-             check_temperature(50.0, Some("fahrenheit")),
-             "50°F",
-             "华氏50°",
-             "華氏50°",
-             "华氏50度",
-             "華氏50度",
-             "50华氏°",
-             "50華氏°",
-             "50华氏度",
-             "50華氏度");
-    example!(v,
-             check_temperature(70.0, Some("fahrenheit")),
-             "70°F",
-             "华氏70°",
-             "華氏70°",
-             "华氏70度",
-             "華氏70度",
-             "70华氏°",
-             "70華氏°",
-             "70华氏度",
-             "70華氏度");
-    example!(v,
-             check_temperature(23.0, Some("celsius")),
-             "23°C",
-             "摄氏23°",
-             "攝氏23°",
-             "摄氏23度",
-             "攝氏23度",
-             "23摄氏°",
-             "23攝氏°",
-             "23摄氏度",
-             "23攝氏度");
-    example!(v,
-             check_temperature(37.0, Some("celsius")),
-             "37°C",
-             "摄氏37°",
-             "攝氏37°",
-             "摄氏37度",
-             "攝氏37度",
-             "37摄氏°",
-             "37攝氏°",
-             "37摄氏度",
-             "37攝氏度");
+    example!(v, check_temperature(50.0, Some("fahrenheit")), "50°F");
+    example!(v, check_temperature(23.0, Some("celsius")), "23°C");
 }
 
 

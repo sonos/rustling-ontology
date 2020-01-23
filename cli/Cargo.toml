@@ -10,4 +10,4 @@ prettytable-rs = "0.6"
 rustling-ontology = { path = ".." }
 rustling-ontology-json-utils = { path = "../json-utils" }
 rustling-ontology-moment = { path = "../moment" }
-serde_json = "1.0"
+serde_json = "1"

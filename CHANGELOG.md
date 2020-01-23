@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Fixed
+- Remove Chinese training examples causing issues on raspbian and windows [#205](https://github.com/snipsco/rustling-ontology/pull/205)
+- Fix float parsing for all languages [#203](https://github.com/snipsco/rustling-ontology/pull/203)
+- Add various improvements in all languages [#203](https://github.com/snipsco/rustling-ontology/pull/203)
+
 ## [0.19.2]
 ### Fixed
 - Fix chrono issue and move to rust edition 2018 [#194](https://github.com/snipsco/rustling-ontology/pull/194)

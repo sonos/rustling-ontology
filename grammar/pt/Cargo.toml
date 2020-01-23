@@ -5,6 +5,6 @@ authors = ["hdlj <rosa.stern@snips.ai>"]
 edition = "2018"
 
 [dependencies]
-rustling = { git = "https://github.com/snipsco/rustling", tag="0.9.1" }
+rustling = { git = "https://github.com/snipsco/rustling", tag = "0.9.1" }
 rustling-ontology-moment = { path = "../../moment" }
 rustling-ontology-values = { path = "../../values" }
