@@ -110,8 +110,6 @@ pub fn examples_temperature(v: &mut Vec<::rustling::train::Example<Dimension>>) 
              "華氏50°",
              "华氏50度",
              "華氏50度",
-             "50华氏°",
-             "50華氏°",
              "50华氏度",
              "50華氏度");
     example!(v,
