@@ -23,7 +23,7 @@ fn main() {
     match matches.subcommand() {
         ("parse", Some(matches)) => {
             let sentence = matches.value_of("sentence").unwrap().to_lowercase();
-            let decoder = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
+            let decoder = ResolverContext::for_reference(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
             let rules = grammar::rules(lang).unwrap();
             let matches = rules.apply_all(&*sentence).unwrap();
             let mut table = Table::new();
