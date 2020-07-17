@@ -36,12 +36,21 @@ pub struct ResolverContext {
 impl ResolverContext {
     pub fn from_secs(secs: i64) -> ResolverContext {
         let anchor = Interval::starting_at(Moment(Local.timestamp(secs, 0)), Grain::Second);
-        ResolverContext::new(anchor)
+        ResolverContext::for_reference(anchor)
     }
 
-    pub fn new(now: Interval<Local>) -> ResolverContext {
+    /// Returns a ResolverContext for the given interval. This API is working for 32bits and 64bits 
+    /// operating system by supporting dates only between 1970 and 2038
+    pub fn for_reference(now: Interval<Local>) -> ResolverContext {
         ResolverContext {
             ctx: Context::for_reference(now),
+        }
+    }
+
+    /// Returns a ResolverContext with the given intervals. No restrictions is applied. 
+    pub fn new(now: Interval<Local>, min: Interval<Local>, max: Interval<Local>) -> ResolverContext {
+        ResolverContext {
+            ctx: Context::new(now, min, max)
         }
     }
 }
