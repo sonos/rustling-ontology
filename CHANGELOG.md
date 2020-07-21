@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 ## [Unrelease]
 
 ### Changed
-- Rename on Resolver Context the `new` by `for_reference`
+- Rename  `ResolverContext::new` by `ResolverContext::for_reference`
 
 ### Added 
 - `ResolverContext::new` to build a context with a reference, min and max interval.
