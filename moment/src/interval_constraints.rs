@@ -7,7 +7,7 @@ use std::fmt;
 use std::ops;
 use std::rc::Rc;
 
-#[derive(Clone, PartialEq, new)]
+#[derive(Clone, PartialEq)]
 pub struct Context<T: TimeZone> {
     pub reference: Interval<T>,
     pub min: Interval<T>,
@@ -42,6 +42,19 @@ impl<T: TimeZone> Context<T>
 where
     <T as TimeZone>::Offset: Copy,
 {
+    /// Returns a context based on the given intervals. The caller needs to be careful with 32bits 
+    /// operating system. 
+    pub fn new(reference: Interval<T>, min: Interval<T>, max: Interval<T>) -> Context<T> {
+        Context {
+            reference,
+            min,
+            max,
+        }
+    }
+
+    /// Returns a context based on the given reference date. To avoid undefined behaviour for 
+    /// 32 bits operating system. The max and min date restricted to 1970 and 2038. To avoid this 
+    /// restriction, `new` function should be used. 
     pub fn for_reference(now: Interval<T>) -> Context<T> {
         // TODO: Should be refactor with the min, max date offer by chrono crate
         let now_end = now.end_moment();

@@ -35,7 +35,7 @@ pub fn extract_node_features(
     let rules_feat = node
         .children
         .iter()
-        .map({ |child| child.rule_sym })
+        .map( |child| child.rule_sym )
         .collect::<Vec<_>>();
 
     let mut features = vec![Feat::Rules(rules_feat)];
@@ -46,7 +46,7 @@ pub fn extract_node_features(
     let children_features = node
         .children
         .iter()
-        .map({ |child| extract_node_features(child) })
+        .map(|child| extract_node_features(child))
         .collect();
 
     rustling::Input {

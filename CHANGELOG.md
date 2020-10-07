@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [Unrelease]
+
+### Changed
+- Rename  `ResolverContext::new` by `ResolverContext::for_reference`
+
+### Added 
+- `ResolverContext::new` to build a context with a reference, min and max interval.
+
 ## [0.19.3]
 ### Fixed
 - Remove Chinese training examples causing issues on raspbian and windows [#205](https://github.com/snipsco/rustling-ontology/pull/205)

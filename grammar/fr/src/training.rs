@@ -47,7 +47,7 @@ pub fn examples_finance(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
+    let c = ResolverContext::for_reference(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 12, 4, 30, 00]), "maintenant", "tout de suite", "en ce moment");
     example!(v, check_moment!(c, [2013, 2, 12]), "aujourd'hui", "ce jour", "dans la journée");
     example!(v, check_moment!(c, [2013, 2, 11]), "hier", "le jour d'avant", "le jour précédent", "la veille");

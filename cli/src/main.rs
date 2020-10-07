@@ -140,7 +140,7 @@ fn main() {
             let utterances: Vec<Utterance> = partial_utterances.into_iter()
                 .map(|it| {
                   if it.keep() && (it.value.is_none() || force_resolution) {
-                      let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
+                      let context = ResolverContext::for_reference(Interval::starting_at(default_context, Grain::Second));
                       let entities = parser.parse(it.phrase.to_lowercase().as_str(), &context).unwrap();
                       let full_match = entities
                         .into_iter()
@@ -180,7 +180,7 @@ fn main() {
                         .collect::<Vec<_>>()
                 });
             let utterances: Vec<Utterance> = {
-              let file = ::std::fs::File::open(input_path).map_err(|e| format!("Could not open input file at path: {}, with error {}", input_path, e)).unwrap();;
+              let file = ::std::fs::File::open(input_path).map_err(|e| format!("Could not open input file at path: {}, with error {}", input_path, e)).unwrap();
               serde_json::from_reader(&file).unwrap()
             };
             let parser = build_parser(lang).unwrap();
@@ -189,7 +189,7 @@ fn main() {
             let output: Vec<TestOutput> = utterances.into_iter()
                 .map(|utterance| {
                   if utterance.keep() {
-                      let context = ResolverContext::new(Interval::starting_at(default_context, Grain::Second));
+                      let context = ResolverContext::for_reference(Interval::starting_at(default_context, Grain::Second));
                       let entities = if let Some(ref kinds) = kinds {
                           parser.parse_with_kind_order(utterance.phrase.to_lowercase().as_str(), &context, &kinds).unwrap()
                       } else {

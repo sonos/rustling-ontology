@@ -96,7 +96,7 @@ pub fn examples_durations(v: &mut Vec<::rustling::train::Example<Dimension>>) {
 }
 
 pub fn examples_datetime(v: &mut Vec<::rustling::train::Example<Dimension>>) {
-    let c = ResolverContext::new(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
+    let c = ResolverContext::for_reference(Interval::starting_at(Moment(Local.ymd(2013, 2, 12).and_hms(4, 30, 0)), Grain::Second));
     example!(v, check_moment!(c, [2013, 2, 10]), "一昨日", "二千十三年二月十日", "前の日曜日", "先週の日曜日");
     example!(v, check_moment!(c, [2013, 2, 11]), "昨日", "前の日", "前日");
     example!(v, check_moment!(c, [2013, 2, 13]), "明日", "次の日", "二千十三年二月十三日", "今週の水曜日", "バレンタインデーの前の日");
