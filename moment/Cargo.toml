@@ -5,7 +5,7 @@ authors = ["hdlj <hubert.delajonquiere@snips.net>"]
 edition = "2018"
 
 [dependencies]
-chrono = "=0.4.8"
+chrono = "0.4"
 derive-new = "0.5"
 enum_primitive = "0.1"
 failure = "0.1"
